@@ -10,6 +10,9 @@ import {
   Platform,
   Linking,
   Button,
+   LayoutAnimation,
+  
+  UIManager,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { ScrollView } from "react-native";
@@ -27,7 +30,7 @@ import Animated, {
 } from "react-native-reanimated";
 import CalendarStrip from "react-native-calendar-strip";
 
-import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import { GestureDetector, Gesture, FlatList } from "react-native-gesture-handler";
 import Colors from "@/constants/Colors";
 import { SportHallDataType } from "@/interfaces/listing";
 import SportHall from "@/assets/Data/sportHall.json";
@@ -35,6 +38,196 @@ import SportHall from "@/assets/Data/sportHall.json";
 const { width } = Dimensions.get("window");
 const SWIPE_WIDTH = width - 170;
 const BUTTON_WIDTH = 40;
+
+if (Platform.OS === 'android') {
+  UIManager.setLayoutAnimationEnabledExperimental &&
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    backgroundColor: "#f8f9fa",
+    paddingBottom: 60,
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    flexDirection: "row",
+  },
+
+  rail: {
+    width: SWIPE_WIDTH,
+    height: 40,
+    borderRadius: 30,
+    justifyContent: "center",
+    marginTop: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: "#e0e0e0",
+  },
+  swipet: {
+    marginTop: 20,
+    marginBottom: 20,
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "center",
+  },
+  swipeButton: {
+    width: BUTTON_WIDTH,
+    height: 20,
+    backgroundColor: Colors.primary,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    zIndex: 1,
+  },
+   box: {
+    width: 60,
+    height: 60,
+    backgroundColor: '#ccc',
+    margin: 5,
+    borderRadius: 8,
+  },
+  calendars: {
+    height: "20%",
+    width: "100%",
+    marginBottom: 40,
+  },
+  swipeText: {
+    fontSize: 24,
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  image: {
+    width: "40%",
+    height: 100,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  toggleText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 10,
+  },
+    content: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  
+  title: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginBottom: 6,
+    color: "#212121",
+    textAlign: "center",
+  },
+  subTitle: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  text: {
+    fontSize: 14,
+    color: "#555",
+  },
+  featuresContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 8,
+  },
+  featureBadge: {
+    backgroundColor: "#e6f4ea",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#a5d6a7",
+  },
+  featureText: {
+    fontSize: 12,
+    color: "#2e7d32",
+    fontWeight: "500",
+  },
+  animatedSort: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  containermodal: {
+    padding: 16,
+    backgroundColor: "#f8f9fa",
+  },
+  wave: {
+    position: "absolute",
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: "rgba(33, 150, 243, 0.3)", // blueish wave
+  },
+  sortButton: {
+    backgroundColor: "#eee",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  sortText: {
+    fontSize: 16,
+    color: Colors.primary,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderTopRightRadius: 16,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 16,
+    color: "#333",
+  },
+  option: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  optionText: {
+    fontSize: 16,
+    color: "#444",
+  },
+});
 
 const Page = () => {
   const [sportHalls, setSportHalls] = useState<SportHallDataType[] | null>(
@@ -45,13 +238,41 @@ const Page = () => {
   const [selectedSort, setSelectedSort] = useState<string | null>(null);
   const [today, setToday] = useState<string>(new Date().toISOString());
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [modalJoin, setModalJoin] = useState(false);
+   const [visibleSportHalls, setVisibleSportHalls] = useState<SportHallDataType[]>([]);
+   const [page, setPage] = useState(1);
+  const pageSize = 5;
 
+ 
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  
   interface CallWaveButtonProps {
     partnersLookingFor: number | string;
     playersNeeded: number | string;
     onPress: () => void;
   }
+
+  const toggleSection = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedId(!expandedId ? "expanded" : null);
+  };
+
+   useEffect(() => {
+    loadMoreItems();
+  }, [sportHalls]);
+
+   const loadMoreItems = () => {
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    if (!sportHalls) return;
+    const nextItems = sportHalls.slice(startIndex, endIndex);
+
+    // Only load if there are more items
+    if (nextItems.length > 0) {
+      setVisibleSportHalls((prev) => [...prev, ...nextItems]);
+      setPage((prev) => prev + 1);
+    }
+  };
+
 
   const Wave = ({ delay = 0 }: { delay?: number }) => {
     const scale = useSharedValue(0);
@@ -107,21 +328,21 @@ const Page = () => {
         {/* Title above the button */}
         <Text
           style={{
-            marginBottom: 8,
+            
             fontWeight: "600",
-            fontSize: 16,
+            fontSize: 12,
             color: Colors.primary,
           }}
         >
-          {partnersLookingFor} partners looking for
+          partners looking for
         </Text>
 
         <TouchableOpacity
           onPress={onPress}
           activeOpacity={0.8}
           style={{
-            width: 100,
-            height: 100,
+            width: 80,
+            height: 80,
             justifyContent: "center",
             alignItems: "center",
           }}
@@ -130,8 +351,8 @@ const Page = () => {
           <View
             style={{
               position: "absolute",
-              width: 100,
-              height: 100,
+              width: 80,
+              height: 80,
               justifyContent: "center",
               alignItems: "center",
             }}
@@ -144,8 +365,8 @@ const Page = () => {
           {/* Number inside the circle */}
           <View
             style={{
-              width: 60,
-              height: 60,
+              width: 40,
+              height: 40,
               borderRadius: 30,
               backgroundColor: Colors.primary,
               justifyContent: "center",
@@ -369,181 +590,184 @@ const Page = () => {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Animated.Text style={[styles.swipet, bounceStyle]}>
-        Swipe to find partner
-      </Animated.Text>
-      <Text style={styles.text}>
-        Swipe right to show unfiltered orders sport hall.
-      </Text>
-      <View
-        style={{ flex: 1, flexDirection: "row", justifyContent: "space-between" }}
-      >
-        <Animated.View style={[styles.rail, railAnimatedStyle]}>
-          <GestureDetector gesture={panGesture}>
-            <Animated.View style={[styles.swipeButton, animatedStyle]}>
-              <Text style={styles.swipeText}>→</Text>
-            </Animated.View>
-          </GestureDetector>
-        </Animated.View>
+  <FlatList
+    data={ visibleSportHalls}
+    keyExtractor={(item) => item.sportHallID.toString()}
+    contentContainerStyle={styles.container}
+    
+    // ✅ List header content (shown once at the top)
+    ListHeaderComponent={
+      <>
+        <Animated.Text style={[styles.swipet, bounceStyle]}>
+          Swipe to find partner
+        </Animated.Text>
+        <Text style={styles.text}>
+          Swipe right to show unfiltered orders sport hall.
+        </Text>
 
-        <View style={styles.containermodal}>
-          <TouchableOpacity
-            onPress={() => setModalVisible(true)}
-            style={styles.sortButton}
-          >
-            <Text style={styles.sortText}>Sort by</Text>
-          </TouchableOpacity>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Animated.View style={[styles.rail, railAnimatedStyle]}>
+            <GestureDetector gesture={panGesture}>
+              <Animated.View style={[styles.swipeButton, animatedStyle]}>
+                <Text style={styles.swipeText}>→</Text>
+              </Animated.View>
+            </GestureDetector>
+          </Animated.View>
 
-          <Modal
-            visible={modalVisible}
-            animationType="slide"
-            transparent
-            onRequestClose={() => {
+          <View style={styles.containermodal}>
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              style={styles.sortButton}
+            >
+              <Text style={styles.sortText}>Sort by</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* 🔽 Sort Modal (rendered only once, not inside renderItem) */}
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => {
+            setModalVisible(false);
+            setSelectedParent(null);
+          }}
+        >
+          <Pressable
+            style={styles.overlay}
+            onPress={() => {
               setModalVisible(false);
               setSelectedParent(null);
             }}
           >
-            <Pressable
-              style={styles.overlay}
-              onPress={() => {
-                setModalVisible(false);
-                setSelectedParent(null);
-              }}
-            >
-              <View style={styles.modalContainer}>
-                <Text style={styles.modalTitle}>Sort by</Text>
-                <CalendarStrip
-                  style={styles.calendars}
-                  selectedDate={new Date(today)}
-                  calendarAnimation={{ type: "parallel", duration: 30 }}
-                  onDateSelected={(date: any) => sortSlotGiver(date)}
-                  dateNumberStyle={{
-                    fontSize: 18,
-                    fontWeight: "400",
-                    color: "#464646",
-                  }}
-                  dateNameStyle={{
-                    fontSize: 10,
-                    fontWeight: "400",
-                    color: Colors.littleDark,
-                  }}
-                  calendarHeaderStyle={{
-                    fontSize: 18,
-                    fontWeight: "500",
-                    color: Colors.littleDark,
-                  }}
-                  calendarHeaderContainerStyle={{
-                    width: "100%",
-                    height: "30%",
-                  }}
-                />
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Sort by</Text>
+              <CalendarStrip
+                style={styles.calendars}
+                selectedDate={new Date(today)}
+                calendarAnimation={{ type: "parallel", duration: 30 }}
+                onDateSelected={(date) => sortSlotGiver(date)}
+                dateNumberStyle={{
+                  fontSize: 18,
+                  fontWeight: "400",
+                  color: "#464646",
+                }}
+                dateNameStyle={{
+                  fontSize: 10,
+                  fontWeight: "400",
+                  color: Colors.littleDark,
+                }}
+                calendarHeaderStyle={{
+                  fontSize: 18,
+                  fontWeight: "500",
+                  color: Colors.littleDark,
+                }}
+                calendarHeaderContainerStyle={{
+                  width: "100%",
+                  height: "30%",
+                }}
+              />
 
-                {!selectedParent ? (
-                  sortOptions.map((option) => (
-                    <TouchableOpacity
-                      key={option.label}
-                      style={styles.option}
-                      onPress={() =>
-                        option.children.length > 0
-                          ? setSelectedParent(option.label)
-                          : sortSportHalls(option.label)
-                      }
-                    >
-                      <Text style={styles.optionText}>{option.label}</Text>
-                    </TouchableOpacity>
-                  ))
-                ) : (
-                  <>
-                    <TouchableOpacity onPress={() => setSelectedParent(null)}>
-                      <Text style={{ color: Colors.primary, marginBottom: 10 }}>
-                        ← Back
-                      </Text>
-                    </TouchableOpacity>
-                    {sortOptions
-                      .find((opt) => opt.label === selectedParent)
-                      ?.children.map((child, index) => (
-                        <Animated.View
-                          key={child}
-                          entering={FadeIn.duration(300).delay(index * 100)}
+              {!selectedParent ? (
+                sortOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option.label}
+                    style={styles.option}
+                    onPress={() =>
+                      option.children.length > 0
+                        ? setSelectedParent(option.label)
+                        : sortSportHalls(option.label)
+                    }
+                  >
+                    <Text style={styles.optionText}>{option.label}</Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <>
+                  <TouchableOpacity onPress={() => setSelectedParent(null)}>
+                    <Text style={{ color: Colors.primary, marginBottom: 10 }}>
+                      ← Back
+                    </Text>
+                  </TouchableOpacity>
+                  {sortOptions
+                    .find((opt) => opt.label === selectedParent)
+                    ?.children.map((child, index) => (
+                      <Animated.View
+                        key={child}
+                        entering={FadeIn.duration(300).delay(index * 100)}
+                      >
+                        <TouchableOpacity
+                          style={styles.option}
+                          onPress={() =>
+                            sortSportHalls(`${selectedParent}:${child}`)
+                          }
                         >
-                          <TouchableOpacity
-                            style={styles.option}
-                            onPress={() =>
-                              sortSportHalls(`${selectedParent}:${child}`)
-                            }
-                          >
-                            <Text style={styles.optionText}>{child}</Text>
-                          </TouchableOpacity>
-                        </Animated.View>
-                      ))}
-                  </>
-                )}
-              </View>
-            </Pressable>
-          </Modal>
-        </View>
-      </View>
+                          <Text style={styles.optionText}>{child}</Text>
+                        </TouchableOpacity>
+                      </Animated.View>
+                    ))}
+                </>
+              )}
+            </View>
+          </Pressable>
+        </Modal>
+      </>
+    }
 
-      {sportHalls?.map((item) => (
-        <View key={item.sportHallID} style={styles.card}>
-          <Image
-            source={{ uri: item.imageUrls[0] }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+    // ✅ Item render
+    renderItem={({ item }) => (
+      <View style={styles.card}>
+        <Image
+          source={{ uri: item.imageUrls[0] }}
+          style={styles.image}
+          resizeMode="cover"
+        />
+        <View style={{ flex: 1, justifyContent: "center" }}>
           <Text style={styles.title}>{item.name}</Text>
-
-          <Text style={styles.subTitle}>📞 {item.phoneNumber}</Text>
 
           <CallWaveButton
             partnersLookingFor={item.partnersLookingFor ?? 0}
             playersNeeded={item.playersNeeded ?? 0}
             onPress={() => setModalJoin(true)}
           />
-          <Modal
-            transparent={true}
-            animationType="slide"
-            visible={modalJoin}
-            onRequestClose={() => setModalJoin(false)}
-          >
-            <Pressable
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "rgba(242, 234, 234, 0.21)",
-              }}
-            >
-              <View style={{ backgroundColor: "white", padding: 20, borderRadius: 10 }}>
-                <Text>Do you want to join {item.name}?</Text>
-                <View style={{ marginVertical: 10 , 
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  width: "100%",
-                 }}>
-                  <Button title="Cancel" onPress={() => setModalJoin(false)} />
-                  <Button
-                    title="Join"
-                    onPress={() => {
-                      handleJoin(item.sportHallID);
-                      setModalVisible(false);
-                    }}
-                  />
-                </View>
-              </View>
-            </Pressable>
-          </Modal>
 
           <TouchableOpacity
             onPress={() =>
-              openGoogleMaps(
-                parseFloat(item.location.latitude),
-                parseFloat(item.location.longitude),
-                item.address
+              setExpandedId(
+                item.sportHallID === expandedId ? null : item.sportHallID
               )
             }
-            style={{
+          >
+            <Text style={styles.toggleText}>
+              {expandedId === item.sportHallID ? "Show Less" : "Show More"}
+            </Text>
+          </TouchableOpacity>
+
+          {expandedId === item.sportHallID && (
+            <View style={styles.content}>
+             
+
+              <Text style={styles.subTitle}>Features:</Text>
+              <View style={styles.featuresContainer}>
+                {Array.isArray(item.feature) ?
+                  item.feature.map((feature, index) => (
+                    <View key={index} style={styles.featureBadge}>
+                      <Text style={styles.featureText}>{feature}</Text>
+                    </View>
+                  ))
+                  : null}
+              </View>
+
+              <TouchableOpacity
+                onPress={() =>
+                  openGoogleMaps(
+                    parseFloat(item.location.latitude),
+                parseFloat(item.location.longitude),
+                item.address
+                  )
+                }
+                style={{
               marginBottom: 10,
               marginTop: 10,
               padding: 10,
@@ -554,187 +778,23 @@ const Page = () => {
               alignItems: "center",
               justifyContent: "center",
             }}
-          >
-            <Text style={styles.text}>📍{item.address}</Text>
-          </TouchableOpacity>
 
-          <Text style={styles.subTitle}>🎯 Features:</Text>
-          <View style={styles.featuresContainer}>
-            {Object.entries(item.feature)
-              .filter(([_, value]) => value) // show only enabled features
-              .map(([key]) => (
-                <View key={key} style={styles.featureBadge}>
-                  <Text style={styles.featureText}>✔️ {key}</Text>
-                </View>
-              ))}
-          </View>
+              
+              >
+
+                <Text style={{ color: Colors.primary, fontSize: 16 }}>
+                  📍 Open in Maps
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
-      ))}
-    </ScrollView>
+      </View>
+    )}
+    onEndReached={loadMoreItems}
+    onEndReachedThreshold={0.5}
+  />
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: "#f8f9fa",
-  },
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-  },
-
-  rail: {
-    width: SWIPE_WIDTH,
-    height: 40,
-    borderRadius: 30,
-    justifyContent: "center",
-    marginTop: 20,
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: "#e0e0e0",
-  },
-  swipet: {
-    marginTop: 20,
-    marginBottom: 20,
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-  },
-  swipeButton: {
-    width: BUTTON_WIDTH,
-    height: 20,
-    backgroundColor: Colors.primary,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    zIndex: 1,
-  },
-  calendars: {
-    height: "20%",
-    width: "100%",
-    marginBottom: 40,
-  },
-  swipeText: {
-    fontSize: 24,
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  image: {
-    width: "100%",
-    height: 180,
-    borderRadius: 10,
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 6,
-    color: "#212121",
-    textAlign: "center",
-  },
-  subTitle: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  text: {
-    fontSize: 14,
-    color: "#555",
-  },
-  featuresContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 8,
-  },
-  featureBadge: {
-    backgroundColor: "#e6f4ea",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#a5d6a7",
-  },
-  featureText: {
-    fontSize: 12,
-    color: "#2e7d32",
-    fontWeight: "500",
-  },
-  animatedSort: {
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  containermodal: {
-    padding: 16,
-    backgroundColor: "#f8f9fa",
-  },
-  wave: {
-    position: "absolute",
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: "rgba(33, 150, 243, 0.3)", // blueish wave
-  },
-  sortButton: {
-    backgroundColor: "#eee",
-    padding: 10,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  sortText: {
-    fontSize: 16,
-    color: Colors.primary,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-  },
-  modalContainer: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderTopRightRadius: 16,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 16,
-    color: "#333",
-  },
-  option: {
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  optionText: {
-    fontSize: 16,
-    color: "#444",
-  },
-});
 
 export default Page;

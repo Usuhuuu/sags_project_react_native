@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   StatusBar,
   View,
@@ -21,18 +21,22 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolate,
+  withTiming,
+  useSharedValue,
+  interpolateColor,
+  withSpring,
 } from "react-native-reanimated";
-import type { SharedValue } from "react-native-reanimated";
 import { router } from "expo-router";
+import type { SharedValue } from "react-native-reanimated";
 
 // ICON MAP
 const iconMap: { [key: string]: any } = {
-  basketball: require("../assets/sport-icons/test_icons/basketball.png"),
-  football: require("../assets/sport-icons/test_icons/football.png"),
-  volleyball: require("../assets/sport-icons/test_icons/volleyball.png"),
-  tennis: require("../assets/sport-icons/test_icons/tennis.png"),
-  bowling: require("../assets/sport-icons/test_icons/bowling.png"),
-  golf: require("../assets/sport-icons/test_icons/golf.png"),
+  basketball: require("../assets/sport-icons/basketball.png"),
+  football: require("../assets/sport-icons/football.png"),
+  volleyball: require("../assets/sport-icons/volleyball.png"),
+  tennis: require("../assets/sport-icons/table-tennis.png"),
+  bowling: require("../assets/sport-icons/lanes.png"),
+  golf: require("../assets/sport-icons/golf.png"),
 };
 
 interface Props {
@@ -48,10 +52,14 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   const sportDetail: any = t("sportTextIcons", { returnObjects: true });
   const windowHeight = Dimensions.get("window").height;
 
+  // Simulated notification count
+  const notificationCount = 8; // Replace with actual notification count from your state or context
+
+  // Animate icons wrapper up as sheet moves
   const animatedIconStyle = useAnimatedStyle(() => {
     const translateYValue = interpolate(
       bottomSheetY.value,
-      [0,   windowHeight * 0.5],
+      [0, windowHeight * 0.5],
       [-80, 0],
       Extrapolate.CLAMP
     );
@@ -60,12 +68,38 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     };
   });
 
+  // Background fades in with sheet movement
+  const animatedContainerStyle = useAnimatedStyle(() => {
+    const backgroundColor = interpolateColor(
+      bottomSheetY.value,
+      [windowHeight * 0.9, 0],
+      ["rgba(255,255,255,0)", Colors.light]
+    );
+    return { backgroundColor };
+  });
+
+  // Notification badge animation
+  const badgeScale = useSharedValue(0);
+  useEffect(() => {
+    if (notificationCount > 0) {
+      badgeScale.value = withSpring(1, { damping: 2, stiffness: 100 });
+    } else {
+      badgeScale.value = withTiming(0, { duration: 200 });
+    }
+  }, [notificationCount]);
+
+  const badgeAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: badgeScale.value }],
+      opacity: badgeScale.value,
+    };
+  });
+
   const itemsRef = useRef<(View | null)[]>([]);
 
   const selectCategory = (index: number) => {
     const selected = itemsRef.current[index];
     setActiveIndex(index);
-
     if (selected) {
       (selected as unknown as View).measure(
         (_fx, fy, width, height, px, py) => {
@@ -77,7 +111,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     onCategoryChanged(sportDetail[index].name);
   };
 
-   const openDrawer = () => {
+  const openDrawer = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
@@ -85,11 +119,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="#61b3fa" />
       <View style={styles.container}>
-        
-
-        
-
-        {/* ACTION ROW */}
+        {/* Action Row */}
         <View style={styles.actionRowWrapper}>
           <TouchableOpacity style={styles.search}>
             <Image
@@ -98,26 +128,41 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.notification}
-          
-            onPress={() =>
-                router.push("/listing/notification")
-              }
-
+          {/* Notification */}
+          <TouchableOpacity
+            style={styles.notification}
+            onPress={() => router.push("/listing/notification")}
           >
-            <Ionicons name="notifications" size={25} color={Colors.primary} />
-
+            <Image
+              source={require("../assets/sport-icons/notification.png")}
+              style={{ width: 30, height: 30 }}
+            />
+            {notificationCount > 0 && (
+              <Animated.View style={[styles.badge, badgeAnimatedStyle]}>
+                <Text style={styles.badgeText}>
+                  {notificationCount > 99 ? "99+" : notificationCount}
+                </Text>
+              </Animated.View>
+            )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.notification}
-          onPress={openDrawer}
-          >
-            <Ionicons name="menu" size={25} color={Colors.primary} />
+          {/* Menu */}
+          <TouchableOpacity style={styles.notification} onPress={openDrawer}>
+            <Image
+              source={require("../assets/sport-icons/menu.png")}
+              style={{ width: 24, height: 24 }}
+            />
           </TouchableOpacity>
         </View>
 
-        {/* ICON SECTION */}
-        <Animated.View style={[styles.iconsWrapper, animatedIconStyle]}>
+        {/* Icons Section */}
+        <Animated.View
+          style={[
+            styles.iconsWrapper,
+            animatedIconStyle,
+            animatedContainerStyle,
+          ]}
+        >
           <ScrollView
             ref={scrollRef}
             horizontal
@@ -157,23 +202,12 @@ const styles = StyleSheet.create({
     overflow: "visible",
     backgroundColor: "transparent",
   },
-  background: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    height: "90%",
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
   actionRowWrapper: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
     paddingTop: 10,
     paddingHorizontal: 10,
-    borderColor: "#b0d9fc",
-    borderWidth: 2,
   },
   search: {
     justifyContent: "center",
@@ -199,14 +233,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
+  badge: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    backgroundColor: "red",
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 10,
+    fontWeight: "bold",
+  },
   iconsWrapper: {
     position: "absolute",
-    top: 65,
+    top: 70,
     left: 0,
     right: 0,
-    zIndex: 10,
-    borderColor: "#b0d9fc",
-    borderWidth: 2,
   },
   scrollViewContent: {
     flexDirection: "row",
@@ -224,12 +273,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
   },
   iconContainer: {
-    backgroundColor: "#fafafa",
-    padding: 8,
-    borderRadius: 10,
-    borderColor: Colors.primary,
-    borderWidth: 1,
-    marginBottom: 5,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.light,
+    justifyContent: "center",
+    alignItems: "center",
     elevation: 10,
     shadowOpacity: 0.3,
     shadowRadius: 3,
