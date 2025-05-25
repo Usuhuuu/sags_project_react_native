@@ -165,40 +165,39 @@ const FriendRequest = () => {
     setIsitLoading(isLoading);
   }, [data, error, isLoading]);
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const response = await axiosInstance.post("/auth/friend_data", {
-          friend_unique_ID: entireFriendData,
-        });
-        setFriendInfo(response.data.friendData || []);
-        setShowFriends(!showFriends);
-      } catch (error) {
-        setFriendInfo([]);
-        setShowFriends(true);
-        console.log("Error fetching user info:", error);
-      } finally {
-        setShowFriends(true);
-      }
-    };
-    LoginStatus ? fetchUserInfo() : setNoFriend(true);
-  }, [entireFriendData]);
-
   const {
-    data: userLarar,
+    data: userInfoData,
     error: userInfoError,
     isLoading: userInfoLoading,
-  } = post_auth_swr({
-    item: {
-      pathname: "/auth/friend_data",
-      cacheKey: "friend_profile_info",
-      loginStatus: LoginStatus,
-      body: entireFriendData,
+  } = post_auth_swr(
+    {
+      item: {
+        pathname: "/auth/friend_data",
+        cacheKey: "friend_profile_info",
+        loginStatus: LoginStatus && entireFriendData?.length > 0,
+        body: entireFriendData,
+      },
     },
-  });
+    {
+      revalidateOnFocus: true,
+      revalidateOnMount: true,
+      dedupingInterval: 10000,
+    }
+  );
   useEffect(() => {
-    console.log("sda", userLarar);
-  }, []);
+    if (userInfoLoading) {
+      setShowFriends(false);
+    }
+    if (userInfoData) {
+      setFriendInfo(userInfoData.friendData || []);
+      setShowFriends(!showFriends);
+    } else if (userInfoError) {
+      setFriendInfo([]);
+      setShowFriends(true);
+    }
+    setShowFriends(true);
+    !LoginStatus && setNoFriend(true);
+  }, [userInfoData, userInfoError, userInfoLoading, data, error]);
 
   const uniqueCurrentData = Array.from(new Set(currentData));
   return (

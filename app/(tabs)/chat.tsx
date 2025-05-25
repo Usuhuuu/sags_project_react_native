@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Image,
+  Alert,
 } from "react-native";
 import { Socket } from "socket.io-client";
 import * as Sentry from "@sentry/react-native";
@@ -327,7 +328,6 @@ const ChatComponent: React.FC = () => {
   );
 
   useEffect(() => {
-    console.log(chatData, chatError, chatLoading);
     if (chatLoading) {
       setLoading(true);
     } else if (chatData && chatData.success) {
@@ -368,7 +368,6 @@ const ChatComponent: React.FC = () => {
             const otherMember = groupID.members.find(
               (member: string) => member !== userDatas.unique_user_ID
             );
-            console.log("otherMember", otherMember);
             return {
               individualChat: groupID._id,
               members: groupID.members,
@@ -483,64 +482,69 @@ const ChatComponent: React.FC = () => {
       socketRef.current?.emit("leave_group", currentChatId.current);
     }
 
-    socketRef.current?.emit("joinGroup", { item: groupId });
-    currentChatId.current = groupId;
+    socketRef.current?.emit("joinGroup", { item: groupId }, (data: any) => {
+      console.log(data);
+      if (!data.success) {
+        Alert.alert("You are not allow to join this chat");
+        return;
+      }
+      currentChatId.current = groupId;
 
-    socketRef.current?.emit(
-      "chatHistory",
-      { timer: Date.now() },
-      (message: MessageHistory) => {
-        setIsitReady(true);
+      socketRef.current?.emit(
+        "chatHistory",
+        { timer: Date.now() },
+        (message: MessageHistory) => {
+          setIsitReady(true);
 
-        if (message.nextCursor === null && message.messages.length === 0) {
-          console.log(message.messages.length);
-          setLoading(false);
+          if (message.nextCursor === null && message.messages.length === 0) {
+            console.log(message.messages.length);
+            setLoading(false);
+            setIsitReady(false);
+            return;
+          }
+
+          const formattedMessages = prepareMessages(
+            message.messages,
+            message.nextCursor,
+            message.no_more_message
+          );
+
+          saveMessageToMap({
+            chat_ID: currentChatId.current,
+            messages: formattedMessages,
+            newSendedMsj: false,
+          });
+          setCursor(message.nextCursor);
           setIsitReady(false);
-          return;
         }
+      );
+      setmainModalShow(true);
+      // 🧼 Clean previous listener
+      socketRef.current?.off("receiveMessage");
 
-        const formattedMessages = prepareMessages(
-          message.messages,
-          message.nextCursor,
-          message.no_more_message
+      socketRef.current?.on("receiveMessage", (data: Message) => {
+        const newMsj: Message = {
+          sender_unique_name: data.sender_unique_name,
+          groupId: data.groupId,
+          message: data.message,
+          timestamp: new Date(data.timestamp),
+        };
+        const preparedMsj = newMessagePrepareFunction(
+          newMsj,
+          messagesMap,
+          currentChatId
         );
 
         saveMessageToMap({
           chat_ID: currentChatId.current,
-          messages: formattedMessages,
-          newSendedMsj: false,
+          messages: preparedMsj,
+          newSendedMsj: true,
         });
-        setCursor(message.nextCursor);
-        setIsitReady(false);
-      }
-    );
-    setmainModalShow(true);
 
-    // 🧼 Clean previous listener
-    socketRef.current?.off("receiveMessage");
-
-    socketRef.current?.on("receiveMessage", (data: Message) => {
-      const newMsj: Message = {
-        sender_unique_name: data.sender_unique_name,
-        groupId: data.groupId,
-        message: data.message,
-        timestamp: new Date(data.timestamp),
-      };
-      const preparedMsj = newMessagePrepareFunction(
-        newMsj,
-        messagesMap,
-        currentChatId
-      );
-
-      saveMessageToMap({
-        chat_ID: currentChatId.current,
-        messages: preparedMsj,
-        newSendedMsj: true,
-      });
-
-      flatListRef.current?.scrollToIndex({
-        index: 0,
-        animated: true,
+        flatListRef.current?.scrollToIndex({
+          index: 0,
+          animated: true,
+        });
       });
     });
   };

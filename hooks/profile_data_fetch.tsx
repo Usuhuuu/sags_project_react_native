@@ -34,12 +34,15 @@ export const normalFetch = async (url: string) => {
   }
 };
 
-export const postFetch = async (path: string, body: string[]) => {
+export const postFetch = async ({
+  path,
+  body,
+}: {
+  path: string;
+  body: any;
+}) => {
   try {
-    const response = await axiosInstance.post(`${path}`, {
-      body,
-    });
-    console.log("sdaa", response.data);
+    const response = await axiosInstance.post(`${path}`, body);
     return response.data;
   } catch (err) {
     console.log(postFetch);

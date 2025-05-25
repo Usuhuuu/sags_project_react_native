@@ -24,6 +24,7 @@ export const regular_swr = (
   } = useSWR(loginStatus ? [cacheKey, loginStatus] : null, {
     fetcher: () => normalFetch(`${pathname}`),
     revalidateOnFocus: config?.revalidateOnFocus ?? false,
+    dedupingInterval: config?.dedupingInterval ?? 10000,
     shouldRetryOnError: true,
     revalidateOnMount: config?.revalidateOnMount ?? false,
     errorRetryCount: 3,
@@ -50,6 +51,7 @@ export const auth_swr = (
     fetcher: () => fetchRoleAndProfile(`${pathname}`, loginStatus ?? false),
     revalidateOnFocus: config?.revalidateOnFocus ?? false,
     revalidateOnMount: config?.revalidateOnMount ?? false,
+    dedupingInterval: config?.dedupingInterval ?? 10000,
     shouldRetryOnError: false,
     errorRetryInterval: 4000,
     errorRetryCount: 3,
@@ -72,15 +74,20 @@ export const post_auth_swr = (
     data: userData,
     error: userError,
     isLoading: userLoading,
-  } = useSWR(loginStatus ? [cacheKey, loginStatus] : null, {
-    fetcher: () => postFetch(`${pathname}`, body ?? []),
-    revalidateOnFocus: config?.revalidateOnFocus ?? false,
-    revalidateOnMount: config?.revalidateOnMount ?? false,
-    shouldRetryOnError: false,
-    errorRetryInterval: 4000,
-    errorRetryCount: 3,
-    ...config,
-  });
+  } = useSWR(
+    loginStatus && body && body.length > 0 ? [cacheKey, loginStatus] : null,
+    {
+      fetcher: async () =>
+        await postFetch({ path: pathname, body: { friend_unique_ID: body } }),
+      revalidateOnFocus: config?.revalidateOnFocus ?? false,
+      revalidateOnMount: config?.revalidateOnMount ?? false,
+      dedupingInterval: config?.dedupingInterval ?? 10000,
+      shouldRetryOnError: false,
+      errorRetryInterval: 4000,
+      errorRetryCount: 3,
+      ...config,
+    }
+  );
 
   return {
     data: userData,

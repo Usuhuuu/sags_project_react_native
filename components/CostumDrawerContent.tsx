@@ -101,18 +101,18 @@ const CustomDrawerContent = (props: any) => {
   }, [LoginStatus]);
 
   useEffect(() => {
-  if (data) {
-    const parsedData =
-      typeof data.profileData == "string"
-        ? JSON.parse(data.profileData)
-        : data.profileData;
+    if (data) {
+      const parsedData =
+        typeof data.profileData == "string"
+          ? JSON.parse(data.profileData)
+          : data.profileData;
 
-    setUserData(Array.isArray(parsedData) ? parsedData[0] : parsedData);
-    logIn();
-  } else if (error) {
-    console.log("Error fetching user data: Pisda", error);
-  }
-}, [data, error]);
+      setUserData(Array.isArray(parsedData) ? parsedData[0] : parsedData);
+      logIn();
+    } else if (error) {
+      console.log("Error fetching user data: Pisda", error);
+    }
+  }, [data, error]);
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.light, maxWidth: "100%" }}>
@@ -132,7 +132,7 @@ const CustomDrawerContent = (props: any) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerTouchable}
-              onPress={() => router.push("/login")}
+              onPress={() => router.push("/(modals)/authentication/login")}
             >
               <Text style={styles.headerText}>{t("aboutUs.login")}</Text>
             </TouchableOpacity>

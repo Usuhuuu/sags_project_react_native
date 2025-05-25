@@ -65,14 +65,12 @@ export default {
       "expo-secure-store",
       "expo-localization",
       "expo-notifications",
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true,
-        }
-      ],
+      ["expo-calendar", { calendarPermission: "The app needs to access your calendar." }],
+      ["expo-camera", {
+        cameraPermission: "Allow application to access your camera",
+        microphonePermission: "Allow application to access your microphone",
+        recordAudioAndroid: true
+      }],
       [
         "@react-native-google-signin/google-signin",
         {
@@ -137,7 +135,10 @@ export default {
               LSApplicationQueriesSchemes: [
                 "google",
                 "com.googleusercontent.apps.56931783205-78eeaknokj0nah74h5d53eis9ebj77r6"
-              ]
+              ],
+              NSCalendarsUsageDescription: "Allow $(PRODUCT_NAME) to access your calendar",
+              NSRemindersUsageDescription: "Allow $(PRODUCT_NAME) to access your reminders"
+
             }
           },
           newArchEnabled: false

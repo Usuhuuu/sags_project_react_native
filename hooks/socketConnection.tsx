@@ -26,6 +26,7 @@ export const connectSocket = async (): Promise<Socket | null> => {
     const notificationToken = await SecureStore.getItemAsync(
       "notificationToken"
     );
+    console.log(notificationToken);
 
     if (!token) {
       console.warn("🚫 No token found");

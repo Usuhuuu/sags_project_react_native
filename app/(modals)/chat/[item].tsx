@@ -230,67 +230,71 @@ const DirectChatScreen: React.FC = ({}) => {
       },
       (callBackData: any) => {
         currentChatId.current = callBackData.callBackData;
-      }
-    );
-    setIsitReady(false);
-    socketRef.current?.emit("direct-active-user");
-    socketRef.current?.emit(
-      "directChatHistory",
-      {
-        timer: new Date(),
-        initFriend: item,
-      },
-      (message: any) => {
-        setIsitReady(true);
-        if (message.nextCursor === null && message.messages.length === 0) {
-          console.log(message.messages.length);
-          console.log("pisda");
-          setLoading(false);
+        if (!callBackData.success) {
           setIsitReady(false);
+
           return;
         }
+        socketRef.current?.emit("direct-active-user");
+        socketRef.current?.emit(
+          "directChatHistory",
+          {
+            timer: new Date(),
+            initFriend: item,
+          },
+          (message: any) => {
+            setIsitReady(true);
+            if (message.nextCursor === null && message.messages.length === 0) {
+              console.log(message.messages.length);
+              console.log("pisda");
+              setLoading(false);
+              setIsitReady(false);
+              return;
+            }
 
-        const formatMessages = prepareMessages(
-          message.messages,
-          message.nextCursor,
-          message.no_more_message
+            const formatMessages = prepareMessages(
+              message.messages,
+              message.nextCursor,
+              message.no_more_message
+            );
+
+            saveMessageToMap({
+              chat_ID: currentChatId.current,
+              messages: formatMessages,
+              newSendedMsj: false,
+            });
+
+            setCursor(message.nextCursor);
+            setIsitReady(false);
+          }
         );
+        socketRef.current?.on("directMessageReceived", async (data) => {
+          if (!socketRef.current?.connected) {
+            await connectSocket();
+          }
+          const newMsj: Message = {
+            sender_unique_name: data.sender_unique_name,
+            message: data.message,
+            timestamp: new Date(data.timestamp),
+          };
+          const preparedNewMsj = newMessagePrepareFunction(
+            newMsj,
+            messagesMap,
+            currentChatId
+          );
 
-        saveMessageToMap({
-          chat_ID: currentChatId.current,
-          messages: formatMessages,
-          newSendedMsj: false,
+          saveMessageToMap({
+            chat_ID: currentChatId.current,
+            messages: preparedNewMsj,
+            newSendedMsj: true,
+          });
+          flatListRef.current?.scrollToIndex({
+            index: 0,
+            animated: true,
+          });
         });
-
-        setCursor(message.nextCursor);
-        setIsitReady(false);
       }
     );
-    socketRef.current?.on("directMessageReceived", async (data) => {
-      if (!socketRef.current?.connected) {
-        await connectSocket();
-      }
-      const newMsj: Message = {
-        sender_unique_name: data.sender_unique_name,
-        message: data.message,
-        timestamp: new Date(data.timestamp),
-      };
-      const preparedNewMsj = newMessagePrepareFunction(
-        newMsj,
-        messagesMap,
-        currentChatId
-      );
-
-      saveMessageToMap({
-        chat_ID: currentChatId.current,
-        messages: preparedNewMsj,
-        newSendedMsj: true,
-      });
-      flatListRef.current?.scrollToIndex({
-        index: 0,
-        animated: true,
-      });
-    });
   };
   useEffect(() => {
     initIndividualChat();
