@@ -268,7 +268,9 @@ export const newMessagePrepareFunction = (
 };
 
 const ChatComponent: React.FC = () => {
-  const [chatGroups, setChatGroups] = useState<GroupChat[]>([]);
+  const [chatGroups, setChatGroups] = useState<{ [key: string]: GroupChat }>(
+    {}
+  );
   const [newMessage, setNewMessage] = useState<string>("");
   const [mainModalShow, setmainModalShow] = useState<boolean>(false);
   const [userDatas, setUserDatas] = useState<any>([]);
@@ -335,55 +337,60 @@ const ChatComponent: React.FC = () => {
         ...(chatData.chatGroupIDs.chat || []),
         ...(chatData.chatGroupIDs.directChat || []),
       ];
-      setChatGroups(
-        allGroups.map((groupID: any) => {
-          const groupChatName = groupID.group_chat_name;
-          const regex =
-            /(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\s+[–-]\s+(\d{2}:\d{2})/;
+      const map = {} as { [groupId: string]: GroupChat };
 
-          if (typeof groupChatName === "string") {
-            const match = groupChatName.match(regex);
-            if (match) {
-              const [_, date, startTime, endTime] = match;
-              const indexOfDate = groupChatName.indexOf(date);
-              const sportHallName = groupChatName
-                .substring(0, indexOfDate)
-                .replace(/-\s*$/, "")
-                .trim();
+      allGroups.forEach((groupID: any) => {
+        const groupChatName = groupID.group_chat_name;
+        const regex =
+          /(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\s+[–-]\s+(\d{2}:\d{2})/;
 
-              return {
-                group_ID: groupID._id,
-                members: groupID.members,
-                group_chat_name: `${sportHallName} - ${date} ${startTime} – ${endTime}`,
-                chat_image: groupID.chat_image,
-                sportHallName,
-                date,
-                startTime,
-                endTime,
-              };
-            }
-          }
-          // Handle direct (individual) chat
-          if (groupID.individualChat && Array.isArray(groupID.members)) {
-            const otherMember = groupID.members.find(
-              (member: string) => member !== userDatas.unique_user_ID
-            );
-            return {
-              individualChat: groupID._id,
+        if (typeof groupChatName === "string") {
+          const match = groupChatName.match(regex);
+          if (match) {
+            const [_, date, startTime, endTime] = match;
+            const indexOfDate = groupChatName.indexOf(date);
+            const sportHallName = groupChatName
+              .substring(0, indexOfDate)
+              .replace(/-\s*$/, "")
+              .trim();
+
+            map[groupID._id] = {
+              group_ID: groupID._id,
               members: groupID.members,
-              group_chat_name: otherMember || "Direct Chat",
+              group_chat_name: `${sportHallName} - ${date} ${startTime} – ${endTime}`,
               chat_image: groupID.chat_image,
+              sportHallName,
+              date,
+              startTime,
+              endTime,
             };
+            return;
           }
-          // Default fallback
-          return {
-            group_ID: groupID._id,
+        }
+
+        if (groupID.individualChat && Array.isArray(groupID.members)) {
+          const otherMember = groupID.members.find(
+            (member: string) => member !== userDatas.unique_user_ID
+          );
+          map[groupID._id] = {
+            individualChat: groupID._id,
             members: groupID.members,
-            group_chat_name: groupChatName,
+            group_chat_name: otherMember || "Direct Chat",
             chat_image: groupID.chat_image,
           };
-        })
-      );
+          return;
+        }
+
+        // Fallback
+        map[groupID._id] = {
+          group_ID: groupID._id,
+          members: groupID.members,
+          group_chat_name: groupChatName,
+          chat_image: groupID.chat_image,
+        };
+      });
+
+      setChatGroups(map);
       setFullScreenShow(true);
     } else if (chatData && !chatData.success) {
       console.log("no chat ");
@@ -750,7 +757,7 @@ const ChatComponent: React.FC = () => {
                   }}
                 >
                   <FlatList
-                    data={chatGroups}
+                    data={Object.values(chatGroups)} // Convert hash map to array
                     style={styles.groupItemContainer}
                     renderItem={({ item }) => (
                       <>
@@ -816,7 +823,8 @@ const ChatComponent: React.FC = () => {
                     )}
                     keyExtractor={(item) =>
                       item.group_ID ||
-                      (item.individualChat ?? JSON.stringify(Math.random()))
+                      item.individualChat ||
+                      Math.random().toString()
                     }
                   />
                 </View>
@@ -836,11 +844,12 @@ const ChatComponent: React.FC = () => {
                 setNewMessage={setNewMessage}
                 sendMessage={sendMessage}
                 renderChatItem={renderChatItem}
-                memberData={chatGroups}
+                groupMap={chatGroups}
                 activeUserData={activeUserData}
                 socketRef={socketRef}
                 groupID={currentChatId.current}
                 refreshFlag={refreshFlag}
+                currentChatId={currentChatId}
               />
             </View>
           )}

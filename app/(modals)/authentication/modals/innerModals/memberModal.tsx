@@ -16,11 +16,12 @@ import axiosInstance from "@/hooks/axiosInstance";
 import QRCode from "react-native-qrcode-svg";
 import * as Clipboard from "expo-clipboard";
 import { useAuth } from "@/app/(modals)/context/authContext";
+import { GroupChat } from "@/app/(tabs)/chat";
 
 interface MemberModalProps {
   memberModalVisible: boolean;
   setMemberModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  memberData: any[];
+  memberData: GroupChat[];
 }
 
 interface Members {

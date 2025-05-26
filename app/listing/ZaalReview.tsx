@@ -1,91 +1,54 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  ScrollView,
-} from "react-native";
-import { useLocalSearchParams } from "expo-router"; // To read query parameters
-import Colors from "@/constants/Colors"; // Import your colors
+import React, { useState } from "react";
+import { View, Text, Button, StyleSheet, TouchableOpacity } from "react-native";
+import SwipeableModal from "./book/swipe_modal"; // Adjust path if needed
 
-const ReviewUpdateScreen = () => {
-  const { reviews, rating } = useLocalSearchParams(); // Destructure the reviews and rating from the query params
-  const [loading, setLoading] = useState<boolean>(false);
-  const [ratingState, setRating] = useState(
-    Math.floor((parseInt(Array.isArray(rating) ? rating[0] : rating) || 0) / 20)
-  ); // Parse the rating and convert it to a value from 1 to 5
-
-  useEffect(() => {
-    // Here, you can handle any logic you need with the reviews and rating
-    console.log("Reviews:", reviews); // Number of reviews
-    console.log("Rating:", rating); // Rating score
-  }, [reviews, rating]);
+export default function ReviewUpdateScreen() {
+  const [modalVisible, setModalVisible] = useState(false);
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          padding: 20,
-          alignItems: "center",
-        }}
+    <View style={styles.screen}>
+      <TouchableOpacity
+        onPress={() => setModalVisible(true)}
+        style={styles.button}
       >
-        {loading ? (
-          <ActivityIndicator size="large" color="#0000ff" />
-        ) : (
-          <>
-            <Text style={styles.label}>Unelgee</Text>
-            <Text style={styles.reviewText}>{ratingState}</Text>
+        <Text style={{ color: "white" }}>Open Swipeable Modal</Text>
+      </TouchableOpacity>
 
-            <View style={styles.ratingRow}>
-              {[1, 2, 3, 4, 5]?.map((star) => (
-                <Text
-                  key={star}
-                  style={{
-                    fontSize: 30,
-                    color: star <= ratingState ? "" : "#ccc", // Display gold for selected rating, gray for others
-                  }}
-                >
-                  ★
-                </Text>
-              ))}
-            </View>
-
-            {/* Display Reviews */}
-            <Text>Niit: {reviews} unelgee baina</Text>
-          </>
-        )}
-      </ScrollView>
+      <SwipeableModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+      >
+        <Text style={styles.modalTitle}>Swipe down to close</Text>
+        {[...Array(30)].map((_, i) => (
+          <Text key={i} style={{ marginVertical: 10 }}>
+            Scrollable content line {i + 1}
+          </Text>
+        ))}
+      </SwipeableModal>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    padding: 20,
     justifyContent: "center",
-    backgroundColor: "#f8f8f8",
-  },
-  label: {
-    fontSize: 18,
-    marginBottom: 10,
-    fontWeight: "bold",
-    color: "#333",
-    textTransform: "uppercase",
-  },
-  reviewText: {
-    fontSize: 80,
-    marginBottom: 10,
-    color: Colors.primary, // Replace with your desired color or import Colors
-  },
-  ratingRow: {
-    flexDirection: "row",
-    marginBottom: 10,
     alignItems: "center",
-    gap: 5,
+  },
+  button: {
+    backgroundColor: "#4a90e2",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
   },
 });
-
-export default ReviewUpdateScreen;
