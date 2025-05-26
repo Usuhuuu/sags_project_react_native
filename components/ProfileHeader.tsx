@@ -230,6 +230,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     );
     setSelectedItem(menu[index]?.name);
   };
+
+
+  
   useEffect(() => {
     if (data) {
       const parsedData =

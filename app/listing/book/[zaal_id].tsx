@@ -1,5 +1,5 @@
 import { useBookingStore } from "@/app/(modals)/context/store";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -93,6 +93,7 @@ const TransactionPage = () => {
   const [wholeDay, setWholeDay] = useState<boolean>(false);
 
   const bookingDetails = useBookingStore((state) => state.bookingDetails);
+  
 
   useEffect(() => {
     bookingDetails?.selectedTimeSlots.includes("WHOLE_DAY")
@@ -105,6 +106,8 @@ const TransactionPage = () => {
 
   const paymentPerPeopleArray: number[] = [];
   const totalBookerPaymentArray: number[] = [];
+
+  
 
   const handleOrder = async () => {
     try {
@@ -933,7 +936,9 @@ const TransactionPage = () => {
                       styles.buttons,
                       { backgroundColor: Colors.primary },
                     ]}
-                    onPress={() => handleOrder()}
+                    onPress={() => {
+                      handleOrder();
+                    }}
                   >
                     <Text style={{ color: Colors.white }}>Complete</Text>
                   </TouchableOpacity>

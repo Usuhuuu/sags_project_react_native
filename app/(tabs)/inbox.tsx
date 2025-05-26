@@ -34,7 +34,7 @@ import { GestureDetector, Gesture, FlatList } from "react-native-gesture-handler
 import Colors from "@/constants/Colors";
 import { SportHallDataType } from "@/interfaces/listing";
 import SportHall from "@/assets/Data/sportHall.json";
-import CallWaveButton from "@/components/CallWaveButton";
+import CallWaveButton from "../listing/book/CallWaveButton";
 
 
 const { width } = Dimensions.get("window");
