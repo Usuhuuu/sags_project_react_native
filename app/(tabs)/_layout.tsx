@@ -33,11 +33,16 @@ import RegisterZaal from "@/components/profileScreens/contractorScreen/register_
 import MailComponent from "@/components/profileScreens/drawerScreen/mail";
 import { useSharedValue } from "react-native-reanimated";
 import BookingCheck from "@/components/profileScreens/contractorScreen/booking_check";
+import { useCalendar } from "@/interfaces/CalendarContext";
+import { Animated, Easing,  } from 'react-native';
+
 // Create a Drawer Navigator
 export const TabsLayout = () => {
   const { t } = useTranslation();
   const { LoginStatus } = useAuth();
   const bottomSheetY = useSharedValue(0);
+
+
 
   return (
     <Tabs
@@ -268,6 +273,33 @@ const Layout = () => {
   const adminDrawerLng = drawer?.adminDrawer[0];
   const contractorDrawerLng = drawer?.contractorDrawer[0];
   const { LoginStatus, logOut, logIn } = useAuth();
+  const { triggerCalendar } = useCalendar();
+    const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+    const bounceLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+         toValue: 1.2,
+      duration: 1000,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+        }),
+       Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 1000,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }),
+      ])
+    );
+    bounceLoop.start();
+
+    // Optional cleanup to stop animation on unmount
+    return () => bounceLoop.stop();
+  }, [scaleAnim]);
+
+
 
   const drawerScreens: any = {
     default: [
@@ -377,6 +409,8 @@ const Layout = () => {
   }
   const noHeadRender = ["Home", "Нүүр хуудас", "홈"];
 
+  
+
   const renderScreens = () => {
     const screensToRender = LoginStatus
       ? drawerScreens[userRole] || drawerScreens.default
@@ -431,7 +465,27 @@ const Layout = () => {
                       />
                     </TouchableOpacity>
                   )
-                : undefined,
+                : () => <TouchableOpacity
+                      onPress={() => triggerCalendar()}
+                    >
+
+                     <Animated.View style={{ transform: [{ scale: scaleAnim }]  }}>
+         <Image
+            source={require("../../assets/sport-icons/calendar.png")}
+            style={{ width: 24, height: 24, marginRight: 15 }}
+            accessibilityLabel="Calendar Icon"
+            accessibilityHint="Opens the calendar"
+          />
+        </Animated.View>
+                    </TouchableOpacity> ,
+            headerTitle: name,
+            headerTitleStyle: {
+              color: Colors.primary,
+              fontSize: 24,
+            },
+            headerStyle: {
+              backgroundColor: Colors.light,
+            },
           }}
         />
       )
@@ -460,3 +514,7 @@ const Layout = () => {
 };
 
 export default Layout;
+
+
+
+

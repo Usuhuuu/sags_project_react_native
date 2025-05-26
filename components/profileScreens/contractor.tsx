@@ -1,7 +1,7 @@
 import axiosInstance from "@/hooks/axiosInstance";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Colors from "@/constants/Colors";
 import { useDrawerStatus } from "@react-navigation/drawer";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
@@ -37,7 +37,8 @@ const ContractorPage: React.FC<ContractorPageProps> = ({
   const adminRoleLng = drawer?.adminRole[0];
   const contractorRoleLng = drawer?.contractorRole[0];
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+    
       {/* Header */}
       <View style={styles.topContainer}>
         <TouchableOpacity onPress={openDrawer}>
@@ -70,12 +71,10 @@ const ContractorPage: React.FC<ContractorPageProps> = ({
         </TouchableOpacity>
 
         {/* Perform Other Action */}
-        <TouchableOpacity style={styles.actionButton}>
-          <Ionicons name="settings-outline" size={24} color="#fff" />
-          <Text style={styles.buttonText}>Other Action</Text>
-        </TouchableOpacity>
+        
       </View>
-    </View>
+   
+      </SafeAreaView>
   );
 };
 
@@ -83,10 +82,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
+  
   },
   topContainer: {
     width: "100%",
-    height: 60,
+    height: 100,
     justifyContent: "space-between",
     alignItems: "center",
     flexDirection: "row",

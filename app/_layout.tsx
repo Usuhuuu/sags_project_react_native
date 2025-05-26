@@ -16,6 +16,7 @@ import { SavedHallsProvider } from "@/app/(modals)/context/savedHall";
 import Layout, { TabsLayout } from "./(tabs)/_layout";
 import { CustomErrorBoundary } from "./(modals)/context/errorContext";
 import * as Notifications from "expo-notifications";
+import { CalendarProvider } from "@/interfaces/CalendarContext";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -234,10 +235,14 @@ export default Sentry.wrap(() => (
     <AuthProvider>
       <LanguageProvider>
         <SavedHallsProvider>
+          <CalendarProvider>
           <RootLayout>
-            <Layout />
+            
+              <Layout />
             <TabsLayout />
+            
           </RootLayout>
+          </CalendarProvider>
         </SavedHallsProvider>
       </LanguageProvider>
     </AuthProvider>
