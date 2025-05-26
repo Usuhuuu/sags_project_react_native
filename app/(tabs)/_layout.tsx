@@ -98,18 +98,15 @@ export const TabsLayout = () => {
 
           headerRight: () => {
             return (
-              <TouchableOpacity
-                onPress={() => {
-                  //router.push("/(modals)/createGroup");
-                }}
-                style={{ marginRight: 10 }}
-              >
-                <AntDesign
-                  name="pluscircleo"
-                  size={30}
-                  color={Colors.primary}
-                />
-              </TouchableOpacity>
+              <Image
+                 source={require("../../assets/tab-icons/teamwork.png")}
+                style={{ width: 26, height: 26,
+                  marginRight: 10,
+                 }}
+                accessibilityLabel="Inbox Tab"
+                accessibilityHint="Navigates to the inbox screen"
+                >
+              </Image>
             );
           },
           tabBarIcon: ({ focused }) => (

@@ -34,6 +34,8 @@ import { GestureDetector, Gesture, FlatList } from "react-native-gesture-handler
 import Colors from "@/constants/Colors";
 import { SportHallDataType } from "@/interfaces/listing";
 import SportHall from "@/assets/Data/sportHall.json";
+import CallWaveButton from "@/components/CallWaveButton";
+
 
 const { width } = Dimensions.get("window");
 const SWIPE_WIDTH = width - 170;
@@ -60,7 +62,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
-    flexDirection: "row",
+    flexDirection: "column",
   },
 
   rail: {
@@ -127,6 +129,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+    width: '100%',
+  
+
   },
   
   title: {
@@ -173,6 +178,26 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#f8f9fa",
   },
+   joinButton: {
+    backgroundColor: Colors.primary,
+    padding: 10,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: "center",
+  },
+  cancelButton: {
+    backgroundColor: "#ccc",
+    padding: 10,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: "center",
+    marginLeft: 10,
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+
   wave: {
     position: "absolute",
     width: 150,
@@ -227,6 +252,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#444",
   },
+  down:{
+    marginTop: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.light,
+    alignItems: "center",
+    justifyContent: "center",
+    width:"100%"
+  }
 });
 
 const Page = () => {
@@ -245,16 +281,7 @@ const Page = () => {
  
   const [expandedId, setExpandedId] = useState<string | null>(null);
   
-  interface CallWaveButtonProps {
-    partnersLookingFor: number | string;
-    playersNeeded: number | string;
-    onPress: () => void;
-  }
-
-  const toggleSection = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedId(!expandedId ? "expanded" : null);
-  };
+  
 
    useEffect(() => {
     loadMoreItems();
@@ -274,114 +301,13 @@ const Page = () => {
   };
 
 
-  const Wave = ({ delay = 0 }: { delay?: number }) => {
-    const scale = useSharedValue(0);
-
-    useEffect(() => {
-      scale.value = withDelay(
-        delay,
-        withRepeat(
-          withTiming(1.5, {
-            duration: 1200,
-            easing: Easing.out(Easing.ease),
-          }),
-          -1,
-          true
-        )
-      );
-    }, [delay]);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: scale.value }],
-      opacity: 1.5 - scale.value,
-    }));
-
-    return (
-      <Animated.View
-        style={[
-          {
-            position: "absolute",
-            width: 100,
-            height: 100,
-            borderRadius: 50,
-            backgroundColor: "rgba(33, 150, 243, 0.2)",
-          },
-          animatedStyle,
-        ]}
-      />
-    );
-  };
-
+ 
   const handleJoin = (sportHallID: string) => {
     console.log("Joining sport hall with ID:", sportHallID);
     // Add your join logic here
     setModalJoin(false); // Close the modal after joining
   };
 
-  const CallWaveButton = ({
-    partnersLookingFor,
-    playersNeeded,
-    onPress,
-  }: CallWaveButtonProps) => {
-    return (
-      <View style={{ alignItems: "center" }}>
-        {/* Title above the button */}
-        <Text
-          style={{
-            
-            fontWeight: "600",
-            fontSize: 12,
-            color: Colors.primary,
-          }}
-        >
-          partners looking for
-        </Text>
-
-        <TouchableOpacity
-          onPress={onPress}
-          activeOpacity={0.8}
-          style={{
-            width: 80,
-            height: 80,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          {/* Waves container */}
-          <View
-            style={{
-              position: "absolute",
-              width: 80,
-              height: 80,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Wave delay={0} />
-
-            <Wave delay={1000} />
-          </View>
-
-          {/* Number inside the circle */}
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 30,
-              backgroundColor: Colors.primary,
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 10,
-            }}
-          >
-            <Text style={{ color: "white", fontWeight: "bold", fontSize: 24 }}>
-              {playersNeeded}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  };
 
   const sortOptions = [
     { label: "Distance", children: ["Nearest First", "Farthest First"] },
@@ -588,7 +514,11 @@ const Page = () => {
       console.error("An error occurred", err)
     );
   }
-
+const formatFeatureName = (key: string) => {
+  return key
+    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+    .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
+};
   return (
   <FlatList
     data={ visibleSportHalls}
@@ -716,48 +646,51 @@ const Page = () => {
     }
 
     // ✅ Item render
+    
     renderItem={({ item }) => (
       <View style={styles.card}>
-        <Image
+        <TouchableOpacity
+          onPress={() => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setExpandedId(
+              expandedId === item.sportHallID ? null : item.sportHallID
+            );
+          }}>
+
+        <View style={{ flexDirection: "row", alignItems: "center", }}>
+           <Image
           source={{ uri: item.imageUrls[0] }}
           style={styles.image}
           resizeMode="cover"
         />
-        <View style={{ flex: 1, justifyContent: "center" }}>
+        <View style={{ flex: 1, justifyContent: "center"}}>
           <Text style={styles.title}>{item.name}</Text>
 
           <CallWaveButton
             partnersLookingFor={item.partnersLookingFor ?? 0}
             playersNeeded={item.playersNeeded ?? 0}
-            onPress={() => setModalJoin(true)}
+            
           />
 
-          <TouchableOpacity
-            onPress={() =>
-              setExpandedId(
-                item.sportHallID === expandedId ? null : item.sportHallID
-              )
-            }
-          >
-            <Text style={styles.toggleText}>
-              {expandedId === item.sportHallID ? "Show Less" : "Show More"}
-            </Text>
-          </TouchableOpacity>
-
+         
+          </View>
+        </View>
+          <View style={{ flex: 1, justifyContent: "center" }}>
           {expandedId === item.sportHallID && (
             <View style={styles.content}>
-             
+            
 
-              <Text style={styles.subTitle}>Features:</Text>
-              <View style={styles.featuresContainer}>
-                {Array.isArray(item.feature) ?
-                  item.feature.map((feature, index) => (
-                    <View key={index} style={styles.featureBadge}>
-                      <Text style={styles.featureText}>{feature}</Text>
-                    </View>
-                  ))
-                  : null}
-              </View>
+               <View>
+                 <Text style={styles.subTitle}>Features:</Text>
+                    < View style={styles.featuresContainer}>
+                         {Object.entries(item.feature)
+                    .filter(([_, value]) => value === true)
+                      .map(([key], index) => (
+                     <View key={index} style={styles.featureBadge}>
+                     <Text style={styles.featureText}>{formatFeatureName(key)}</Text>
+                   </View>
+                      ))}
+                      </View>
 
               <TouchableOpacity
                 onPress={() =>
@@ -786,14 +719,41 @@ const Page = () => {
                   📍 Open in Maps
                 </Text>
               </TouchableOpacity>
-            </View>
-          )}
+              </View>
+              <View style={styles.down}>
+                <Text> 
+                  Do you want to join this sport hall?
+                </Text>
+                <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
+
+               <TouchableOpacity onPress={() => handleJoin(item.sportHallID)} style={styles.joinButton}>
+                         <Text style={styles.buttonText}>Join</Text>
+                              </TouchableOpacity>
+
+                       <TouchableOpacity onPress={() => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setExpandedId(
+              expandedId === item.sportHallID ? null : item.sportHallID
+            );
+          }}style={styles.cancelButton}>
+                             <Text style={styles.buttonText}>Cancel</Text>
+                                 </TouchableOpacity>
+                            </View>
+
+                   </View>
+             </View>
+            
+                 )}
         </View>
-      </View>
-    )}
+        </TouchableOpacity>
+          </View>
+       
+       )}
+       
     onEndReached={loadMoreItems}
     onEndReachedThreshold={0.5}
   />
+
   );
 };
 

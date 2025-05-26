@@ -39,6 +39,7 @@
     "expo-apple-authentication": "~6.4.2",
     "expo-application": "~5.9.1",
     "expo-build-properties": "~0.13.2",
+    "expo-calendar": "~14.0.6",
     "expo-camera": "~16.0.18",
     "expo-clipboard": "~6.0.3",
     "expo-constants": "^16.0.2",
@@ -98,8 +99,7 @@
     "swr": "^2.3.2",
     "xml2js": "^0.6.2",
     "zaalproject": "file:",
-    "zustand": "^5.0.5",
-    "expo-calendar": "~14.0.6"
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
