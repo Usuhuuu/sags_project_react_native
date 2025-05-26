@@ -9,11 +9,11 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  TextInput,
   Image,
   Alert,
 } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { TextInput } from "react-native-paper";
 
 const UserInfoScreen = () => {
   const { t } = useTranslation();
@@ -54,12 +54,13 @@ const UserInfoScreen = () => {
     }
     // Set loading state based on isLoading
     setLoading(isLoading);
+    console.log(formData);
   }, [data, error, isLoading]);
 
   if (loading) {
     return (
       <>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={Colors.darkGrey} />
       </>
     );
   }
@@ -67,6 +68,7 @@ const UserInfoScreen = () => {
   interface UserEditInput {
     label: string;
     value: string;
+    placeholder: string;
   }
 
   const userEditDetails: { inputs: UserEditInput[] } = {
@@ -74,22 +76,27 @@ const UserInfoScreen = () => {
       {
         label: userInfo.email,
         value: userData.email,
+        placeholder: "Email",
       },
       {
         label: userInfo.firstName,
         value: userData.firstName,
+        placeholder: "First Name",
       },
       {
         label: userInfo.lastName,
         value: userData.lastName,
+        placeholder: "Last Name",
       },
       {
         label: userInfo.phoneNumber,
         value: userData.phoneNumber,
+        placeholder: "Phone Number",
       },
       {
         label: userInfo.userName,
         value: userData.unique_user_ID,
+        placeholder: "User Name",
       },
     ],
   };
@@ -155,13 +162,13 @@ const UserInfoScreen = () => {
               padding: 15,
               borderWidth: 2,
               borderRadius: 10,
-              borderColor: Colors.primary,
-              backgroundColor: isitEditable ? Colors.primary : "white",
+              borderColor: Colors.darkGrey,
+              backgroundColor: isitEditable ? Colors.darkGrey : "white",
             }}
           >
             <Text
               style={{
-                color: isitEditable ? Colors.light : Colors.primary,
+                color: isitEditable ? Colors.light : Colors.darkGrey,
                 fontWeight: "bold",
               }}
             >
@@ -169,16 +176,20 @@ const UserInfoScreen = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        {userEditDetails.inputs.map(({ label, value }, index) => (
+        {userEditDetails.inputs.map(({ label, value, placeholder }, index) => (
           <View key={index} style={styles.userInfoContainer}>
-            <Text style={styles.label}>{label}</Text>
             <TextInput
-              placeholder={value}
-              style={styles.textinput}
-              value={formData[label] || value}
-              placeholderTextColor={"#9acffd"}
+              value={formData[value] || value}
+              placeholderTextColor={Colors.darkGrey}
+              label={placeholder}
               editable={isitEditable}
               onChangeText={(text) => handleEdit(label, text)}
+              mode="outlined"
+              theme={{
+                colors: {
+                  primary: Colors.darkGrey,
+                },
+              }}
             />
           </View>
         ))}
@@ -203,11 +214,11 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: "bold",
-    color: Colors.primary,
+    color: Colors.darkGrey,
   },
   textinput: {
     height: 40,
-    borderColor: Colors.primary,
+    borderColor: Colors.darkGrey,
     borderWidth: 1.5,
     borderRadius: 5,
     color: "#9acffd",
@@ -220,7 +231,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: Colors.darkGrey,
   },
 });
 
