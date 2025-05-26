@@ -93,7 +93,6 @@ const TransactionPage = () => {
   const [wholeDay, setWholeDay] = useState<boolean>(false);
 
   const bookingDetails = useBookingStore((state) => state.bookingDetails);
-  
 
   useEffect(() => {
     bookingDetails?.selectedTimeSlots.includes("WHOLE_DAY")
@@ -106,8 +105,6 @@ const TransactionPage = () => {
 
   const paymentPerPeopleArray: number[] = [];
   const totalBookerPaymentArray: number[] = [];
-
-  
 
   const handleOrder = async () => {
     try {
@@ -130,6 +127,7 @@ const TransactionPage = () => {
             start_time: startTime,
             end_time: endTime,
             num_players: playersNeeded[index] ?? 0,
+            current_player: 0,
             time_slots: group,
           };
         });
@@ -147,6 +145,7 @@ const TransactionPage = () => {
             {
               wholeDay: true,
               num_players: wholeDayPeople,
+              current_player: 0,
               time_slots: ["wholeDay"],
             },
           ],

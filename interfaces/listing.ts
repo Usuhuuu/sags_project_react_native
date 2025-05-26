@@ -42,4 +42,10 @@ export interface SportHallDataType {
   }[];
   listing_url?:string;
   feature: SportHallFeature;
+  rating?: number;
+  distance?: number;
+  priceSort?: number;
+  partnersLookingFor? : string
+  playersNeeded?: string;
+
 }

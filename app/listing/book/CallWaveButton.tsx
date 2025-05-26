@@ -16,8 +16,6 @@ interface CallWaveButtonProps {
   shouldAnimate?: boolean;
 }
 
-
-
 const Wave = ({ delay = 0 }: { delay?: number }) => {
   const scale = useSharedValue(0);
 
@@ -56,13 +54,13 @@ const Wave = ({ delay = 0 }: { delay?: number }) => {
   );
 };
 
-
 const CallWaveButton = ({
   partnersLookingFor,
   playersNeeded,
   shouldAnimate = true,
-
 }: CallWaveButtonProps) => {
+  console.log("lalar", playersNeeded);
+
   return (
     <View style={{ alignItems: "center" }}>
       <Text style={{ fontWeight: "600", fontSize: 12, color: Colors.primary }}>
