@@ -32,6 +32,7 @@ import FriendReqModal from "../(modals)/friendReqModal";
 import RegisterZaal from "@/components/profileScreens/contractorScreen/register_zaal";
 import MailComponent from "@/components/profileScreens/drawerScreen/mail";
 import { useSharedValue } from "react-native-reanimated";
+import BookingCheck from "@/components/profileScreens/contractorScreen/booking_check";
 // Create a Drawer Navigator
 export const TabsLayout = () => {
   const { t } = useTranslation();
@@ -63,9 +64,8 @@ export const TabsLayout = () => {
           tabBarLabel: t("home"),
           header: () => (
             <ExploreHeader
-              onCategoryChanged={(category) => console.log(category)
-              }
-               bottomSheetY={bottomSheetY}
+              onCategoryChanged={(category) => console.log(category)}
+              bottomSheetY={bottomSheetY}
             />
           ),
           tabBarIcon: ({ focused }) => (
@@ -99,14 +99,11 @@ export const TabsLayout = () => {
           headerRight: () => {
             return (
               <Image
-                 source={require("../../assets/tab-icons/teamwork.png")}
-                style={{ width: 26, height: 26,
-                  marginRight: 10,
-                 }}
+                source={require("../../assets/tab-icons/teamwork.png")}
+                style={{ width: 26, height: 26, marginRight: 10 }}
                 accessibilityLabel="Inbox Tab"
                 accessibilityHint="Navigates to the inbox screen"
-                >
-              </Image>
+              ></Image>
             );
           },
           tabBarIcon: ({ focused }) => (
@@ -341,6 +338,11 @@ const Layout = () => {
         component: RegisterZaal,
         icon: "add",
       },
+      {
+        name: "Booking check",
+        component: BookingCheck,
+        icon: "calendar",
+      },
     ],
   };
 
@@ -458,4 +460,3 @@ const Layout = () => {
 };
 
 export default Layout;
-

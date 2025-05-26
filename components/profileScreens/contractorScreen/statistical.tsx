@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
 import Colors from "@/constants/Colors";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 interface ProfileStatisticalProps {
   copyToClipboard: () => void;
@@ -10,21 +9,22 @@ interface ProfileStatisticalProps {
 
 const ProfileStatistical = ({ data = [] }) => {
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <ScrollView>
+        {/* Header */}
         <View>
           <Text>Statistical Screen</Text>
         </View>
+        {/* Body */}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
-    backgroundColor: Colors.light,
-    height: Dimensions.get("window").height,
+    height: "95%",
+    width: "100%",
   },
   container: {},
   text: {
