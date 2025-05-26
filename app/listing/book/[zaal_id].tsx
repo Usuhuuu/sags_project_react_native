@@ -101,6 +101,7 @@ const TransactionPage = () => {
           groupConnectedTimeSlots(bookingDetails?.selectedTimeSlots ?? [])
         );
   }, []);
+  console.log(bookingDetails?.date);
 
   const paymentPerPeopleArray: number[] = [];
   const totalBookerPaymentArray: number[] = [];

@@ -8,7 +8,6 @@ import {
   Text,
   SafeAreaView,
   Alert,
-  Modal,
 } from "react-native";
 import CalendarStrip from "react-native-calendar-strip";
 import { axiosInstanceRegular } from "../../hooks/axiosInstance";
@@ -203,8 +202,9 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   }, []);
   const handleOrder = () => {
     const zaal_id = sportHallID;
+    console.log("checking");
     setIsOrderScreenVisible(false);
-
+    console.log(formData);
     useBookingStore.getState().setBookingDetails({
       ...formData,
       sportHallID: zaal_id,
@@ -257,6 +257,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                 style={styles.calendars}
                 selectedDate={new Date(today)}
                 calendarAnimation={{ type: "parallel", duration: 30 }}
+                startingDate={new Date(today)}
                 onDateSelected={(date: any) => dateSlotGiver(date)}
                 dateNumberStyle={{
                   fontSize: 18,
@@ -303,7 +304,11 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                   <TouchableOpacity onPress={() => setWholeDayModal(false)}>
                     <Ionicons name="close" size={20} color={Colors.darkGrey} />
                   </TouchableOpacity>
-                  <Calendar />
+                  <Calendar
+                    sport_hall_id={sportHallID}
+                    formData={formData}
+                    setIsOrderScreenVisible={setIsOrderScreenVisible}
+                  />
                 </View>
               </>
             ) : (

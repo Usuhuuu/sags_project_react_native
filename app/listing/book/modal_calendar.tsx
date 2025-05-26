@@ -1,201 +1,339 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
+  Button,
   TouchableOpacity,
-  ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
+import {
+  Calendar as CalendarLibrary,
+  CalendarProps,
+} from "react-native-calendars";
+import { InferProps } from "prop-types";
+import { ContextProp } from "react-native-calendars/src/types";
+import { axiosInstanceRegular } from "@/hooks/axiosInstance";
+import Colors from "@/constants/Colors";
+import { useBookingStore } from "@/app/(modals)/context/store";
+import { router } from "expo-router";
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+type FilterType = "joinable" | "unavailable" | null;
 
-const Calendar: React.FC = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const date = today.getDate();
-
-  const [joinableDays, setJoinableDays] = useState<number[]>([
-    1, 3, 5, 7, 10, 15, 22,
-  ]); // just for example
-  const [unavailableDays, setUnavailableDays] = useState<number[]>([
-    2, 4, 6, 8, 12, 18, 25,
-  ]); // example
-  const [selectedDates, setSelectedDates] = useState<number[]>([]);
-
-  const firstDayOfMonth = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  const calendarDays = [];
-  for (let i = 0; i < firstDayOfMonth; i++) {
-    calendarDays.push(null);
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    calendarDays.push(i);
-  }
-
-  const toggleSelectDate = (day: number) => {
-    setSelectedDates((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+type CalendarDayProps = {
+  date: { year: number; month: number; day: number };
+  state: string;
+  filter: "joinable" | "unavailable" | null;
+  onPress?: () => void;
+  sport_hall_id: string;
+  passDays: {
+    joinable: string[];
+    unavailable: string[];
   };
+  selectedDate: string;
+  formData: FormData;
+};
+
+const CalendarDay: React.FC<CalendarDayProps> = ({
+  date,
+  state,
+  filter,
+  onPress,
+  passDays,
+  selectedDate,
+}) => {
+  const today = new Date();
+  const currentDate = new Date(date.year, date.month - 1, date.day);
+  // Check if current date is before today (disable past)
+  const isPast =
+    currentDate <
+    new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  // Check if current date is today
+  const isToday =
+    currentDate.getFullYear() === today.getFullYear() &&
+    currentDate.getMonth() === today.getMonth() &&
+    currentDate.getDate() === today.getDate();
+
+  let label = "";
+  let labelColor = "#666";
+  let bgColor = "white";
+  let dayTextColor = "#000"; // default day number color
+
+  const fullDateStr = `${date.year}-${String(date.month).padStart(
+    2,
+    "0"
+  )}-${String(date.day).padStart(2, "0")}`;
+
+  const isSelected = fullDateStr === selectedDate;
+  if (isSelected) {
+    bgColor = Colors.primary; // or any color you prefer
+    dayTextColor = "#fff";
+  }
+
+  if (isPast) {
+    bgColor = Colors.grey;
+    dayTextColor = "#ccc";
+  } else {
+    if (filter === "joinable" && passDays.joinable.includes(fullDateStr)) {
+      label = "Joinable";
+      bgColor = Colors.lightGreen;
+      labelColor = "#2E7D32";
+    }
+    if (passDays.unavailable.includes(fullDateStr)) {
+      label = "Booked";
+      bgColor = Colors.grey;
+      labelColor = Colors.darkGrey;
+      dayTextColor = Colors.darkGrey;
+    }
+  }
+
+  if (isToday) {
+    dayTextColor = "#d32f2f";
+  }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.monthYear}>
-        {today.toLocaleString("default", { month: "long" })} {year}
+    <TouchableOpacity
+      style={[styles.dayContainer, { backgroundColor: bgColor }]}
+      onPress={onPress}
+      disabled={isPast || passDays.unavailable.includes(fullDateStr)}
+    >
+      <Text
+        style={[
+          styles.dayText,
+          { color: dayTextColor },
+          state === "disabled" && styles.disabledText,
+          isToday && { fontWeight: "bold", textDecorationLine: "underline" },
+        ]}
+      >
+        {date.day}
       </Text>
-
-      <View style={styles.weekRow}>
-        {DAYS.map((day) => (
-          <Text key={day} style={styles.weekDay}>
-            {day}
-          </Text>
-        ))}
-      </View>
-
-      <View style={styles.datesGrid}>
-        {calendarDays.map((day, index) => {
-          if (!day) return <View key={index} style={styles.emptyCell} />;
-
-          const isToday = day === date;
-          const isSelected = selectedDates.includes(day);
-          const isJoinable = joinableDays.includes(day);
-          const isUnavailable = unavailableDays.includes(day);
-
-          let label = "";
-          if (isJoinable) label = "Join";
-          else if (isUnavailable) label = "Unavailable";
-          else label = "Free";
-
-          return (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.dateButton,
-                isToday && styles.today,
-                isSelected && styles.selectedDate,
-                isJoinable && styles.joinable,
-                isUnavailable && styles.unavailable,
-              ]}
-              onPress={() => toggleSelectDate(day)}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.dateText,
-                  (isToday || isSelected || isJoinable || isUnavailable) &&
-                    styles.whiteText,
-                ]}
-              >
-                {day}
-              </Text>
-              <Text
-                style={[
-                  styles.labelText,
-                  (isJoinable || isUnavailable) && styles.whiteText,
-                ]}
-              >
-                {label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <View style={styles.legends}>
-        <Text style={styles.legendTitle}>Joinable Days:</Text>
-        <Text style={styles.legendList}>
-          {joinableDays.join(", ") || "None"}
-        </Text>
-
-        <Text style={[styles.legendTitle, { marginTop: 12 }]}>
-          Unavailable Days:
-        </Text>
-        <Text style={styles.legendList}>
-          {unavailableDays.join(", ") || "None"}
-        </Text>
-      </View>
-    </ScrollView>
+      {label ? (
+        <Text style={[styles.labelText, { color: labelColor }]}>{label}</Text>
+      ) : null}
+    </TouchableOpacity>
   );
 };
 
+function Calendar(
+  props: React.JSX.IntrinsicAttributes &
+    Pick<CalendarProps & ContextProp, any> &
+    Pick<InferProps<any>, any>
+) {
+  const [filter, setFilter] = useState<FilterType>("joinable");
+  const [today, setToday] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<string>("");
+
+  const [passDays, setPassDays] = useState<{
+    joinable: string[];
+    unavailable: string[];
+  }>({
+    joinable: [],
+    unavailable: [],
+  });
+  const [isitReady, setIsitReady] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchTimeSlots = async (date: Date) => {
+      const [year, month] = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+      ];
+
+      try {
+        const response = await axiosInstanceRegular.get(
+          `/timeslots/${props.sport_hall_id}/${year}/${month}`
+        );
+        if (response.status === 200 && response.data.success) {
+          const result = response.data.find.reduce(
+            (acc: { joinable: string[]; unavailable: string[] }, item: any) => {
+              const isJoinable = item.blocks.some(
+                (block: { time_slots: string[]; num_players: number }) =>
+                  block.num_players > 0 && block.time_slots.includes("wholeDay")
+              );
+              const isUnavailable = item.blocks.every(
+                (block: { time_slots: string[]; num_players: number }) =>
+                  block.num_players === 0 && block.time_slots.length > 0
+              );
+
+              const day = item.day[0];
+              if (isJoinable && !isUnavailable) {
+                acc.joinable.push(day);
+              } else {
+                acc.unavailable.push(day);
+              }
+
+              return acc;
+            },
+            { joinable: [], unavailable: [] }
+          );
+          setPassDays(result);
+          setIsitReady(true);
+        }
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setIsitReady(true);
+      }
+    };
+
+    if (today) {
+      fetchTimeSlots(today);
+    }
+  }, [props.sport_hall_id, today]);
+
+  const handleOrder = ({ date }: { date: string }) => {
+    props.setIsOrderScreenVisible(false);
+    console.log(props.sport_hall_id);
+    useBookingStore.getState().setBookingDetails({
+      ...props.formData,
+      sportHallID: props.sport_hall_id,
+      selectedTimeSlots: ["WHOLE_DAY"],
+      date: date,
+      workTime: props.formData.workTime,
+    });
+    router.push(`/listing/book/${props.sport_hall_id}`);
+  };
+  const handleDaySelection = (day: any) => {
+    setSelectedDate(day.dateString);
+    if (passDays.joinable.includes(day.dateString)) {
+      Alert.alert(
+        "This day possible to join",
+        "Do you want to join",
+        [
+          {
+            text: "No",
+            onPress: () => {
+              console.log("canceled");
+            },
+          },
+          {
+            text: "Yes",
+            onPress: () => {
+              console.log("confirmed");
+            },
+          },
+        ],
+        {
+          cancelable: false,
+        }
+      );
+    } else {
+      Alert.alert(
+        "This day possible to booking",
+        "Do you want to process booking ?",
+        [
+          {
+            text: "No",
+            onPress: () => {
+              console.log("canceled");
+            },
+          },
+          {
+            text: "Yes",
+            onPress: () => {
+              handleOrder({ date: day.dateString });
+            },
+          },
+        ],
+        {
+          cancelable: false,
+        }
+      );
+    }
+  };
+
+  return (
+    <View>
+      {!isitReady ? (
+        <View
+          style={{
+            justifyContent: "center",
+            alignSelf: "center",
+            width: "100%",
+            height: "90%",
+          }}
+        >
+          <ActivityIndicator
+            size={"large"}
+            color={Colors.primary}
+            style={{ justifyContent: "center", alignSelf: "center" }}
+          />
+        </View>
+      ) : (
+        <>
+          <View style={styles.buttonRow}>
+            <Button
+              title="Your Bookings"
+              onPress={() => setFilter("joinable")}
+            />
+            <Button
+              title="Joinable Days"
+              onPress={() => setFilter("unavailable")}
+            />
+          </View>
+
+          <CalendarLibrary
+            onMonthChange={(month: any) => {
+              console.log("date", month);
+              setToday(
+                new Date(
+                  `${month.year}-${String(month.month).padStart(2, "0")}-01`
+                )
+              );
+            }}
+            dayComponent={({
+              date,
+              state,
+            }: {
+              date: { year: number; month: number; day: number };
+              state: string;
+            }) => (
+              <CalendarDay
+                date={date}
+                state={state}
+                filter={filter}
+                sport_hall_id={props.sport_hall_id}
+                passDays={passDays}
+                onPress={() => handleDaySelection(date)}
+                selectedDate={selectedDate}
+                formData={props.formData}
+              />
+            )}
+            {...props}
+          />
+        </>
+      )}
+    </View>
+  );
+}
+
+export default Calendar;
+
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
+  dayContainer: {
+    width: 40,
+    height: 40,
     backgroundColor: "white",
-  },
-  monthYear: {
-    fontSize: 20,
-    fontWeight: "600",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  weekRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 8,
-  },
-  weekDay: {
-    width: 32,
-    textAlign: "center",
-    fontWeight: "600",
-    color: "#666",
-  },
-  datesGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  dateButton: {
-    width: "14.28%",
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
     justifyContent: "center",
-    marginVertical: 4,
+    alignItems: "center",
+    borderRadius: 8,
   },
-  today: {
-    backgroundColor: "#3399FF",
-  },
-  joinable: {
-    backgroundColor: "#4CAF50",
-  },
-  unavailable: {
-    backgroundColor: "#F44336",
-  },
-  selectedDate: {
-    backgroundColor: "#FF9933",
-  },
-  dateText: {
+  dayText: {
     fontSize: 14,
-    color: "#333",
+    fontWeight: "bold",
   },
-  whiteText: {
-    color: "white",
-    fontWeight: "700",
-  },
-  emptyCell: {
-    width: "14.28%",
-    height: 40,
-  },
-  legends: {
-    marginTop: 20,
-    paddingHorizontal: 8,
-  },
-  legendTitle: {
-    fontWeight: "600",
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  legendList: {
-    fontSize: 14,
-    color: "#444",
+  disabledText: {
+    color: "#ccc",
   },
   labelText: {
     fontSize: 10,
-    marginTop: 2,
     color: "#666",
   },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 10,
+  },
 });
-
-export default Calendar;

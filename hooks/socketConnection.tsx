@@ -20,6 +20,7 @@ export const connectSocket = async (): Promise<Socket | null> => {
   }
 
   isConnecting = true;
+  let timeout: NodeJS.Timeout;
 
   connectPromise = new Promise(async (resolve) => {
     const token = await SecureStore.getItemAsync("Tokens");
@@ -32,8 +33,18 @@ export const connectSocket = async (): Promise<Socket | null> => {
       console.warn("🚫 No token found");
       isConnecting = false;
       resolve(null);
+      if (socket) {
+        socket.io.opts.reconnection = false;
+      }
       return false;
     }
+    timeout = setTimeout(() => {
+      if (isConnecting) {
+        console.warn("⏱️ Socket connection timeout");
+        isConnecting = false;
+        resolve(null);
+      }
+    }, 10000);
 
     const { accessToken, refreshToken } = JSON.parse(token);
 
@@ -51,6 +62,7 @@ export const connectSocket = async (): Promise<Socket | null> => {
 
     socket.on("connect", () => {
       console.log("✅ Socket connected");
+      clearTimeout(timeout);
       isConnecting = false;
       resolve(socket);
     });
@@ -105,6 +117,16 @@ export const connectSocket = async (): Promise<Socket | null> => {
   });
 
   return connectPromise;
+};
+
+export const disconnectSocket = async () => {
+  if (socket?.connected) {
+    socket.disconnect();
+    socket = null;
+    isConnecting = false;
+    connectPromise = null;
+    console.log("👋 Socket manually disconnected");
+  }
 };
 
 export const getSocket = (): Socket | null => socket;
