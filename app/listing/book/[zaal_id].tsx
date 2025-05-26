@@ -101,13 +101,15 @@ const TransactionPage = () => {
           groupConnectedTimeSlots(bookingDetails?.selectedTimeSlots ?? [])
         );
   }, []);
-  console.log(bookingDetails?.date);
+  const [isOrdering, setIsOrdering] = useState<boolean>(false);
 
   const paymentPerPeopleArray: number[] = [];
   const totalBookerPaymentArray: number[] = [];
 
   const handleOrder = async () => {
     try {
+      if (isOrdering) return;
+      setIsOrdering(true);
       if (!bookingDetails) {
         Alert.alert("Missing booking details.");
         return;
@@ -162,6 +164,8 @@ const TransactionPage = () => {
       } else {
         Alert.alert("Booking failed try again later");
       }
+    } finally {
+      setIsOrdering(false);
     }
   };
 

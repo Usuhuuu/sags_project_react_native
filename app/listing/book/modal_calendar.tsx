@@ -21,6 +21,9 @@ import { router } from "expo-router";
 
 type FilterType = "joinable" | "unavailable" | null;
 
+const WHOLE_DAY = "WHOLE_DAY";
+const WHOLE_DAY_BACKEND = "wholeDay";
+
 type CalendarDayProps = {
   date: { year: number; month: number; day: number };
   state: string;
@@ -76,7 +79,7 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
     bgColor = Colors.grey;
     dayTextColor = "#ccc";
   } else {
-    if (filter === "joinable" && passDays.joinable.includes(fullDateStr)) {
+    if (passDays.joinable.includes(fullDateStr)) {
       label = "Joinable";
       bgColor = Colors.lightGreen;
       labelColor = "#2E7D32";
@@ -124,6 +127,7 @@ function Calendar(
   const [filter, setFilter] = useState<FilterType>("joinable");
   const [today, setToday] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [isOrdering, setIsOrdering] = useState<boolean>(false);
 
   const [passDays, setPassDays] = useState<{
     joinable: string[];
@@ -140,7 +144,6 @@ function Calendar(
         date.getFullYear(),
         String(date.getMonth() + 1).padStart(2, "0"),
       ];
-
       try {
         const response = await axiosInstanceRegular.get(
           `/timeslots/${props.sport_hall_id}/${year}/${month}`
@@ -150,7 +153,8 @@ function Calendar(
             (acc: { joinable: string[]; unavailable: string[] }, item: any) => {
               const isJoinable = item.blocks.some(
                 (block: { time_slots: string[]; num_players: number }) =>
-                  block.num_players > 0 && block.time_slots.includes("wholeDay")
+                  block.num_players > 0 &&
+                  block.time_slots.includes(WHOLE_DAY_BACKEND)
               );
               const isUnavailable = item.blocks.every(
                 (block: { time_slots: string[]; num_players: number }) =>
@@ -184,15 +188,22 @@ function Calendar(
   }, [props.sport_hall_id, today]);
 
   const handleOrder = ({ date }: { date: string }) => {
+    if (isOrdering) return;
+    setIsOrdering(true);
+    if (!props.formData && !date) {
+      Alert.alert("Select Day");
+      return;
+    }
     props.setIsOrderScreenVisible(false);
     console.log(props.sport_hall_id);
     useBookingStore.getState().setBookingDetails({
       ...props.formData,
       sportHallID: props.sport_hall_id,
-      selectedTimeSlots: ["WHOLE_DAY"],
+      selectedTimeSlots: WHOLE_DAY,
       date: date,
       workTime: props.formData.workTime,
     });
+    setIsOrdering(false);
     router.push(`/listing/book/${props.sport_hall_id}`);
   };
   const handleDaySelection = (day: any) => {
@@ -265,11 +276,11 @@ function Calendar(
         <>
           <View style={styles.buttonRow}>
             <Button
-              title="Your Bookings"
+              title="See Joinable Days"
               onPress={() => setFilter("joinable")}
             />
             <Button
-              title="Joinable Days"
+              title="Disable Joinable Days"
               onPress={() => setFilter("unavailable")}
             />
           </View>
