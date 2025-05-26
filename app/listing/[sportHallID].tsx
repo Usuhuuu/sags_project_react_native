@@ -1,5 +1,10 @@
 import React, { useEffect, useLayoutEffect, useState } from "react";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import {
+  router,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import {
   View,
   Text,
@@ -133,9 +138,8 @@ const DetailsPage = () => {
   };
 
   const handleViewReviews = () => {
-    // router.push(
-    //   `/listing/ZaalReview?reviews=${listing.number_of_reviews}&rating=${listing.review_scores_rating}`
-    // );
+    router.push(`/listing/ZaalReview`);
+    //`/listing/ZaalReview?reviews=${listing.number_of_reviews}&rating=${listing.review_scores_rating}`
   };
 
   const handleSaveCourt = async () => {

@@ -20,6 +20,7 @@ import { ActiveUserType, GroupChat, Message } from "@/app/(tabs)/chat";
 import { Avatar } from "react-native-paper";
 import { Socket } from "socket.io-client";
 import { useTranslation } from "react-i18next";
+import { format, parseISO } from "date-fns";
 
 interface MainChatModalProps {
   mainModalShow: boolean;
@@ -35,11 +36,12 @@ interface MainChatModalProps {
   setNewMessage: React.Dispatch<React.SetStateAction<string>>;
   sendMessage: (message: string) => void;
   renderChatItem: ({ item }: { item: Message }) => JSX.Element;
-  memberData: GroupChat[];
+  groupMap: { [groupId: string]: GroupChat };
   activeUserData: ActiveUserType[];
   socketRef: React.RefObject<Socket | null>;
   groupID: string;
   refreshFlag: boolean;
+  currentChatId: React.RefObject<string>;
 }
 
 const MainChatModal: React.FC<MainChatModalProps> = ({
@@ -56,10 +58,11 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
   setNewMessage,
   sendMessage,
   renderChatItem,
-  memberData,
+  groupMap,
   activeUserData,
   groupID,
   refreshFlag,
+  currentChatId,
 }) => {
   const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = React.useState(false);
@@ -69,7 +72,9 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
     setActiveUserMember(activeUserData.length);
   }, [activeUserData]);
   const chatInitLang: any = t("chatRoom", { returnObjects: true });
-  const messageData = message.get(groupID);
+  const messageData = message.get(currentChatId.current ?? groupID);
+  const groupData = groupMap[currentChatId.current ?? groupID];
+
   return (
     <Modal
       animationType="fade"
@@ -124,28 +129,48 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                     alignItems: "center",
                   }}
                 >
-                  {memberData?.[0]?.chat_image && (
+                  {groupMap?.[0]?.chat_image && (
                     <Avatar.Image
-                      source={{ uri: memberData[0].chat_image }}
+                      source={{ uri: groupMap[0].chat_image }}
                       style={{
                         backgroundColor: Colors.light,
                       }}
                     />
                   )}
 
-                  {memberData[0] ? (
-                    memberData[0].sportHallName &&
-                    memberData[0].date &&
-                    memberData[0].startTime &&
-                    memberData[0].endTime ? (
-                      <View style={{ width: "70%" }}>
+                  {groupData ? (
+                    groupData.sportHallName &&
+                    groupData.date &&
+                    groupData.startTime &&
+                    groupData.endTime ? (
+                      <View style={{ width: "80%" }}>
                         <Text style={{ color: Colors.primary, fontSize: 18 }}>
-                          {memberData[0].sportHallName}
+                          {groupData.sportHallName}
                         </Text>
-                        <Text style={{ color: Colors.secondary, fontSize: 14 }}>
-                          {memberData[0].date} {memberData[0].startTime} –{" "}
-                          {memberData[0].endTime}
-                        </Text>
+                        <View style={{ flexDirection: "row", gap: 10 }}>
+                          <Text
+                            style={{ color: Colors.secondary, fontSize: 14 }}
+                          >
+                            {format(
+                              parseISO(groupData.date).toString(),
+                              "MMMM dd"
+                            )}
+                          </Text>
+                          <Text
+                            style={{ color: Colors.secondary, fontSize: 14 }}
+                          >
+                            {groupData.startTime} –{groupData.endTime}
+                          </Text>
+                        </View>
+                        <View style={{ flexDirection: "row", gap: 5 }}>
+                          <Text style={{ color: "green" }}>
+                            online:
+                            {activeUserMember}
+                          </Text>
+                          <Text style={{ color: Colors.darkGrey }}>
+                            members: {groupData.members.length}
+                          </Text>
+                        </View>
                       </View>
                     ) : (
                       <View style={{ width: "70%", marginLeft: 8 }}>
@@ -158,7 +183,7 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                             color: Colors.primary,
                           }}
                         >
-                          {memberData[0].group_chat_name ?? ""}
+                          {groupData.group_chat_name ?? ""}
                         </Text>
                         <View style={{ flexDirection: "row", gap: 5 }}>
                           <Text style={{ color: "green" }}>
@@ -166,7 +191,7 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                             {activeUserMember}
                           </Text>
                           <Text style={{ color: Colors.darkGrey }}>
-                            members: {memberData[0].members.length}
+                            members: {groupData.members.length}
                           </Text>
                         </View>
                       </View>
@@ -333,7 +358,7 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                 Group Chat Settings
               </Text>
             </View>
-            <ChildModal MemberData={memberData} />
+            <ChildModal MemberData={groupData ? [groupData] : []} />
           </SafeAreaView>
         </SafeAreaProvider>
       </Modal>

@@ -329,8 +329,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                     }}
                     onPress={() => {
                       if (
-                        (unavailableTimes.joinable.length !== 0 &&
-                          unavailableTimes.unavailable.length !== 0) ||
+                        unavailableTimes.joinable.length !== 0 ||
+                        unavailableTimes.unavailable.length !== 0 ||
                         wholeDayBooked.joinableWholeDay ||
                         wholeDayBooked.unavailableWholeDay
                       ) {
