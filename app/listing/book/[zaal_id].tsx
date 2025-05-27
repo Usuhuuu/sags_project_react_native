@@ -1,4 +1,4 @@
-import { useBookingStore } from "@/app/(modals)/context/store";
+import { useBookingStore } from "@/app/(modals)/context/store/bookStore";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -23,7 +23,6 @@ import { format } from "date-fns";
 import axiosInstance from "@/hooks/axiosInstance";
 import { AxiosResponse } from "axios";
 
-const labels = ["Players Needed", "Confirm Info", "Booking Complete"];
 const customStyles = {
   stepIndicatorSize: 30,
   currentStepIndicatorSize: 35,

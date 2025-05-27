@@ -94,7 +94,6 @@ const featureIcons = {
 };
 
 const DetailsPage = () => {
-  const [isScheduleVisible, setIsScheduleVisible] = useState<boolean>(false);
   const [isOrderScreenVisible, setIsOrderScreenVisible] =
     useState<boolean>(false);
   const [infoHeight, setInfoHeight] = useState(0);

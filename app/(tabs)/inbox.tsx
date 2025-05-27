@@ -35,7 +35,7 @@ import Colors from "@/constants/Colors";
 import { SportHallDataType } from "@/interfaces/listing";
 import SportHall from "@/assets/Data/sportHall.json";
 import CallWaveButton from "../listing/book/CallWaveButton";
-import axiosInstance from "@/hooks/axiosInstance";
+import axiosInstance, { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import { format } from "date-fns";
 import { router, useFocusEffect } from "expo-router";
 import { ActivityIndicator } from "react-native-paper";
@@ -313,7 +313,7 @@ const Page = () => {
   const fetchPartnerSearching = async () => {
     try {
       const [year, month, day] = today.split("T")[0].split("-");
-      const response = await axiosInstance.get(
+      const response = await axiosInstanceRegular.get(
         `/timeslots/partner/${year}/${month}/${day}?page=${page}`
       );
       setPartnerLookingData((prev) => ({

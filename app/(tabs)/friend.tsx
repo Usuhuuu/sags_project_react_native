@@ -18,11 +18,16 @@ import { auth_swr, post_auth_swr } from "../../hooks/useswr";
 import { Avatar, Searchbar } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-
-type FriendProfileType = {
+import { useFriendStore } from "../(modals)/context/store/friendStore";
+type FriendName = {
+  firstName: string;
+  lastName: string;
+};
+export type FriendProfileType = {
   unique_user_ID: string;
   email: string;
   userImage?: string;
+  userNames?: FriendName;
 };
 
 const FriendRequest = () => {
@@ -92,8 +97,6 @@ const FriendRequest = () => {
       const response = await axiosInstance.post("/auth/friend_request", {
         friend_unique_ID: searchQuery,
       });
-      console.log("Friend Request Response:", response.data);
-
       if (response.status === 200) {
         mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
         Alert.alert("Success", "Friend request sent");
@@ -146,7 +149,6 @@ const FriendRequest = () => {
       ) {
         try {
           profileData = JSON.parse(data.profileData);
-          console.log(profileData);
           if (
             profileData.friends.length === 0 &&
             profileData.recieved_requests.length === 0 &&
@@ -208,6 +210,17 @@ const FriendRequest = () => {
   }, [userInfoData, userInfoError, userInfoLoading, data, error]);
 
   const uniqueCurrentData = Array.from(new Set(currentData));
+
+  const handleVisit = (item: string) => {
+    console.log(item);
+    const passData = friendInfo.filter(
+      (friend) => friend.unique_user_ID === item
+    );
+
+    useFriendStore.getState().setFriendDetails(passData[0]);
+    router.push(`/(modals)/user/${item}`);
+  };
+
   return (
     <View style={{ backgroundColor: Colors.lightGrey, flex: 1 }}>
       {noFriend ? (
@@ -425,9 +438,9 @@ const FriendRequest = () => {
                             {currentData === friendData && (
                               <View style={{ flexDirection: "row", gap: 5 }}>
                                 <TouchableOpacity
-                                  onPress={() => {
-                                    router.push(`/(modals)/chat/${item}`);
-                                  }}
+                                  onPress={() =>
+                                    router.push(`/(modals)/chat/${item}`)
+                                  }
                                 >
                                   <Ionicons
                                     name="chatbubble-sharp"
@@ -435,7 +448,12 @@ const FriendRequest = () => {
                                     color={Colors.primary}
                                   />
                                 </TouchableOpacity>
-                                <TouchableOpacity>
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    console.log(item);
+                                    handleVisit(item);
+                                  }}
+                                >
                                   <Ionicons
                                     name="person-circle-outline"
                                     size={25}
