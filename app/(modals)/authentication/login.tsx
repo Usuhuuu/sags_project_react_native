@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Alert,
   ImageBackground,
+  KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
@@ -180,165 +182,95 @@ const Page = () => {
   };
 
   return (
-    <ImageBackground
-      source={require("@/assets/images/zurag1.jpg")}
-      style={styles.background}
-      resizeMode="cover"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
     >
-      <View style={styles.container}>
-        <View style={styles.inputContainer}>
-          <TextInput
-            autoCapitalize="none"
-            label={login.email}
-            value={email}
-            onChangeText={setEmail}
-            style={styles.input}
-            placeholderTextColor={Colors.grey}
-            mode="outlined"
-            theme={{
-              colors: { primary: Colors.primary },
-            }}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            autoCapitalize="none"
-            label={login.password}
-            secureTextEntry={passwordHide}
-            value={password}
-            onChangeText={setPassword}
-            style={styles.input}
-            placeholderTextColor={Colors.grey}
-            mode="outlined"
-            theme={{
-              colors: { primary: Colors.primary },
-            }}
-          />
-          <TouchableOpacity
-            style={styles.eyeIcon}
-            onPress={handlePasswordToggle}
-          >
-            <Ionicons
-              name={passwordHide ? "eye-off" : "eye"}
-              size={24}
-              color="#666"
-            />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, styles.loginBtn]}
-          onPress={() => {
-            handleSubmit();
-          }}
-          disabled={loading}
+      <ImageBackground
+        source={require("@/assets/images/zurag1.jpg")}
+        style={{ flex: 1 }}
+        resizeMode="cover"
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 20 }}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.buttonText}>{login.login}</Text>
-        </TouchableOpacity>
-        <View style={styles.separatorView}>
-          <View style={styles.separatorLine} />
-          <Text style={[styles.separatorText, { fontSize: 18 }]}>or</Text>
-          <View style={styles.separatorLine} />
-        </View>
-        <View style={styles.socialButtons}>
-          <TouchableOpacity
-            style={styles.btnOutline}
-            onPress={handleGoogleLogin}
-          >
-            <Ionicons name="logo-google" size={24} style={styles.btnIcon} />
-            <Text style={styles.btnOutlineText}>
-              {login.continuewithgoogle}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.btnOutline}
-            onPress={() => {
-              handleFacebookLogin();
-            }}
-          >
-            <Ionicons name="logo-facebook" size={24} style={styles.btnIcon} />
-            <Text style={styles.btnOutlineText}>
-              {login.continuewithfacebook}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => loginWithApple()}
-            style={styles.btnOutline}
-          >
-            <Ionicons name="logo-apple" size={24} style={styles.btnIcon} />
-            <Text style={styles.btnOutlineText}>Continue with Apple</Text>
-            {isItApple ? (
-              <>
-                <AppleAuthentication.AppleAuthenticationButton
-                  buttonType={
-                    AppleAuthentication.AppleAuthenticationButtonType.CONTINUE
-                  }
-                  buttonStyle={
-                    AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
-                  }
-                  cornerRadius={5}
-                  style={styles.button}
-                  onPress={async () => {
-                    try {
-                      const credentials = await AppleAuthentication.signInAsync(
-                        {
-                          requestedScopes: [
-                            AppleAuthentication.AppleAuthenticationScope
-                              .FULL_NAME,
-                            AppleAuthentication.AppleAuthenticationScope.EMAIL,
-                          ],
-                        }
-                      );
-                      console.log(credentials);
-                    } catch (err: any) {
-                      if (err.code === "ERR_REQUEST_CANCELED") {
-                        console.log("User canceled Login");
-                        Alert.alert(`${err}`);
-                        Alert.alert("ERR_REQUEST_CANCELED");
-                      } else if (err.code === "ERR_INVALID_OPERATION") {
-                        Alert.alert(`${err}`);
-                        Alert.alert("ERR_INVALID_OPERATION");
-                      } else if (err.code === "ERR_REQUEST_FAILED") {
-                        Alert.alert("ERR_REQUEST_FAILED");
-                        Alert.alert(`${err}`);
-                      } else if (err.code === "ERR_REQUEST_NOT_HANDLED") {
-                        Alert.alert("ERR_REQUEST_NOT_HANDLED");
-                      } else {
-                        Alert.alert(`${err}`);
-                        Alert.alert(`${err.code}`);
-                      }
-                    }
-                  }}
-                />
-              </>
-            ) : (
-              <></>
-            )}
-          </TouchableOpacity>
+          <View style={styles.inputContainer}>
+            <TextInput
+              autoCapitalize="none"
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              style={styles.input}
+              placeholderTextColor={Colors.grey}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              autoCapitalize="none"
+              placeholder="Password"
+              secureTextEntry={passwordHide}
+              value={password}
+              onChangeText={setPassword}
+              style={styles.input}
+              placeholderTextColor={Colors.grey}
+            />
+            <TouchableOpacity style={styles.eyeIcon} onPress={handlePasswordToggle}>
+              <Ionicons
+                name={passwordHide ? "eye-off" : "eye"}
+                size={24}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
-            style={styles.btnOutline}
-            onPress={() => {
-              router.push(
-                "/functions/signup_modal.tsx" as Href<"/functions/signup_modal.tsx">
-              );
-            }}
+            style={[styles.button, styles.loginBtn]}
+            onPress={handleSubmit}
+            disabled={loading}
           >
-            <Ionicons name="person-add" size={24} style={styles.btnIcon} />
-            <Text style={styles.btnOutlineText}>Sign up</Text>
+            <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
-        </View>
-      </View>
-      <SignupModal
-        isModalVisible={isModalVisible}
-        setModalVisible={setIsModalVisible}
-        formData={formData}
-        setFormData={setFormData}
-        steps={steps}
-        setSteps={setSteps}
-        path={path}
-      />
-    </ImageBackground>
+
+          <View style={styles.separatorView}>
+            <View style={styles.separatorLine} />
+            <Text style={[styles.separatorText, { fontSize: 18 }]}>or</Text>
+            <View style={styles.separatorLine} />
+          </View>
+
+          <View style={styles.socialButtons}>
+            <TouchableOpacity style={styles.btnOutline} onPress={handleGoogleLogin}>
+              <Ionicons name="logo-google" size={24} style={styles.btnIcon} />
+              <Text style={styles.btnOutlineText}>Continue with Google</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.btnOutline} onPress={handleFacebookLogin}>
+              <Ionicons name="logo-facebook" size={24} style={styles.btnIcon} />
+              <Text style={styles.btnOutlineText}>Continue with Facebook</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.btnOutline}
+              onPress={() => setIsModalVisible(true)}
+            >
+              <Ionicons name="person-add" size={24} style={styles.btnIcon} />
+              <Text style={styles.btnOutlineText}>Sign up</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+
+        <SignupModal
+          isModalVisible={isModalVisible}
+          setModalVisible={setIsModalVisible}
+          formData={formData}
+          setFormData={setFormData}
+          steps={steps}
+          setSteps={setSteps}
+          path={path}
+        />
+      </ImageBackground>
+    </KeyboardAvoidingView>
   );
 };
 
