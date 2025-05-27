@@ -11,7 +11,7 @@ import Animated, {
 import Colors from "@/constants/Colors";
 
 interface CallWaveButtonProps {
-  partnersLookingFor: number | string;
+  time_slot: string[];
   playersNeeded: number | string;
   shouldAnimate?: boolean;
 }
@@ -55,12 +55,10 @@ const Wave = ({ delay = 0 }: { delay?: number }) => {
 };
 
 const CallWaveButton = ({
-  partnersLookingFor,
+  time_slot,
   playersNeeded,
   shouldAnimate = true,
 }: CallWaveButtonProps) => {
-  console.log("lalar", playersNeeded);
-
   return (
     <View style={{ alignItems: "center" }}>
       <Text style={{ fontWeight: "600", fontSize: 12, color: Colors.primary }}>

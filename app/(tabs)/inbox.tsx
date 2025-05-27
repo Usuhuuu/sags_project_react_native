@@ -12,8 +12,9 @@ import {
   Button,
   LayoutAnimation,
   UIManager,
+  Alert,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import Animated, {
   useSharedValue,
@@ -36,7 +37,11 @@ import { SportHallDataType } from "@/interfaces/listing";
 import SportHall from "@/assets/Data/sportHall.json";
 import CallWaveButton from "../listing/book/CallWaveButton";
 import axiosInstance from "@/hooks/axiosInstance";
-import { useFocusEffect } from "expo-router";
+import { format } from "date-fns";
+import { router, useFocusEffect } from "expo-router";
+import { ActivityIndicator } from "react-native-paper";
+import { mutate } from "swr";
+import { useAuth } from "../(modals)/context/authContext";
 
 const { width } = Dimensions.get("window");
 const SWIPE_WIDTH = width - 170;
@@ -46,6 +51,7 @@ type PartnerBlock = {
   current_player: string;
   num_players: string;
   time_slots: string[];
+  _id: string;
 };
 type PartnerDataType = {
   zaal_ID: string;
@@ -284,36 +290,86 @@ const Page = () => {
   const [selectedSort, setSelectedSort] = useState<string | null>(null);
   const [today, setToday] = useState<string>(new Date().toISOString());
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [visibleSportHalls, setVisibleSportHalls] = useState<
-    SportHallDataType[]
-  >([]);
-  const [page, setPage] = useState(1);
-  const pageSize = 5;
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [partnerLookingData, setPartnerLookingData] = useState<
-    PartnerDataType[]
-  >([]);
+  const [page, setPage] = useState<number>(1);
+  const [showList, setShowList] = useState<boolean>(false);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [partnerLookingData, setPartnerLookingData] = useState<{
+    findPartner: PartnerDataType[];
+  }>();
 
-  useEffect(() => {
-    loadMoreItems();
-  }, [sportHalls]);
+  const visibleSportHallsMap = SportHall.reduce<
+    Record<string, SportHallDataType>
+  >((acc, hall) => {
+    acc[hall.sportHallID] = {
+      ...hall,
+      price: {
+        oneHour: String(hall.price.oneHour),
+        wholeDay: String(hall.price.wholeDay),
+      },
+    };
+    return acc;
+  }, {});
+  const { LoginStatus } = useAuth();
 
-  const loadMoreItems = () => {
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    if (!sportHalls) return;
-    const nextItems = sportHalls.slice(startIndex, endIndex);
-
-    // Only load if there are more items
-    if (nextItems.length > 0) {
-      setVisibleSportHalls((prev) => [...prev, ...nextItems]);
-      setPage((prev) => prev + 1);
+  const fetchPartnerSearching = async () => {
+    try {
+      const [year, month, day] = today.split("T")[0].split("-");
+      const response = await axiosInstance.get(
+        `/timeslots/partner/${year}/${month}/${day}?page=${page}`
+      );
+      setPartnerLookingData((prev) => ({
+        ...prev,
+        findPartner: [
+          ...(prev?.findPartner || []),
+          ...(response.data.findPartner || []),
+        ],
+      }));
+      setShowList(true);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setShowList(true);
     }
   };
 
-  const handleJoin = (sportHallID: string) => {
-    console.log("Joining sport hall with ID:", sportHallID);
-    // Add your join logic here
+  useFocusEffect(
+    useCallback(() => {
+      fetchPartnerSearching();
+    }, [page])
+  );
+
+  const mergedData = partnerLookingData?.findPartner.map((partner) => {
+    const hall = visibleSportHallsMap[partner.zaal_ID];
+    return {
+      ...partner,
+      hallData: hall || null,
+    };
+  });
+
+  const handleJoin = async (roomId: string) => {
+    try {
+      console.log("lalar");
+
+      router.push("/chat");
+      const response = await axiosInstance.post(
+        `/auth/sporthall/join/${roomId}`
+      );
+      console.log(response.data);
+      if (response.status === 200 && response.data.success) {
+        Alert.alert(
+          "Successfully joined group chat",
+          "You can process payment"
+        );
+        mutate(["group_chat", LoginStatus], undefined, { revalidate: true });
+      } else if (response.status === 409 && !response.data.success) {
+        Alert.alert("You are already joined");
+      }
+    } catch (err: any) {
+      console.log(err);
+      if (err.response.status === 409) {
+        Alert.alert("You are already joined");
+      }
+    }
   };
 
   const sortOptions = [
@@ -521,289 +577,338 @@ const Page = () => {
       .replace(/^./, (str) => str.toUpperCase()); // Capitalize first letter
   };
 
-  const fetchPartnerSearching = async () => {
-    try {
-      const [year, month, day] = today.split("T")[0].split("-");
-      let page: number = 1;
-      const response = await axiosInstance.get(
-        `/timeslots/partner/${year}/${month}/${day}?page=${page}`
-      );
-      setPartnerLookingData(response.data.findPartner);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const visibleSportHallsMap = visibleSportHalls.reduce<
-    Record<string, SportHallDataType>
-  >((acc, hall) => {
-    acc[hall.sportHallID] = hall;
-    return acc;
-  }, {});
-
-  const mergedData = partnerLookingData.map((partner) => {
-    const hall = visibleSportHallsMap[partner.zaal_ID];
-    return {
-      ...partner,
-      hallData: hall || null, // attach matching hall or null if not found
-    };
-  });
-
-  useEffect(() => {
-    fetchPartnerSearching();
-  }, []);
-
   return (
-    <FlatList
-      data={mergedData}
-      keyExtractor={(item, index) => `${item.zaal_ID}-${index}`}
-      contentContainerStyle={styles.container}
-      // ✅ List header content (shown once at the top)
-      ListHeaderComponent={
-        <>
-          <Animated.Text style={[styles.swipet, bounceStyle]}>
-            Swipe to find partner
-          </Animated.Text>
-          <Text style={styles.text}>
-            Swipe right to show unfiltered orders sport hall.
-          </Text>
+    <>
+      {showList ? (
+        <FlatList
+          data={mergedData}
+          keyExtractor={(item, index) => `${item.zaal_ID}-${index}`}
+          contentContainerStyle={styles.container}
+          // ✅ List header content (shown once at the top)
+          ListHeaderComponent={
+            <>
+              <Animated.Text style={[styles.swipet, bounceStyle]}>
+                Swipe to find partner
+              </Animated.Text>
+              <Text style={styles.text}>
+                Swipe right to show unfiltered orders sport hall.
+              </Text>
 
-          <View
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
-          >
-            <Animated.View style={[styles.rail, railAnimatedStyle]}>
-              <GestureDetector gesture={panGesture}>
-                <Animated.View style={[styles.swipeButton, animatedStyle]}>
-                  <Text style={styles.swipeText}>→</Text>
-                </Animated.View>
-              </GestureDetector>
-            </Animated.View>
-
-            <View style={styles.containermodal}>
-              <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-                style={styles.sortButton}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
               >
-                <Text style={styles.sortText}>Sort by</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+                <Animated.View style={[styles.rail, railAnimatedStyle]}>
+                  <GestureDetector gesture={panGesture}>
+                    <Animated.View style={[styles.swipeButton, animatedStyle]}>
+                      <Text style={styles.swipeText}>→</Text>
+                    </Animated.View>
+                  </GestureDetector>
+                </Animated.View>
 
-          {/* 🔽 Sort Modal (rendered only once, not inside renderItem) */}
-          <Modal
-            visible={modalVisible}
-            animationType="slide"
-            transparent
-            onRequestClose={() => {
-              setModalVisible(false);
-              setSelectedParent(null);
-            }}
-          >
-            <Pressable
-              style={styles.overlay}
-              onPress={() => {
-                setModalVisible(false);
-                setSelectedParent(null);
-              }}
-            >
-              <View style={styles.modalContainer}>
-                <Text style={styles.modalTitle}>Sort by</Text>
-                <CalendarStrip
-                  style={styles.calendars}
-                  selectedDate={new Date(today)}
-                  calendarAnimation={{ type: "parallel", duration: 30 }}
-                  onDateSelected={(date) => sortSlotGiver(date)}
-                  dateNumberStyle={{
-                    fontSize: 18,
-                    fontWeight: "400",
-                    color: "#464646",
-                  }}
-                  dateNameStyle={{
-                    fontSize: 10,
-                    fontWeight: "400",
-                    color: Colors.littleDark,
-                  }}
-                  calendarHeaderStyle={{
-                    fontSize: 18,
-                    fontWeight: "500",
-                    color: Colors.littleDark,
-                  }}
-                  calendarHeaderContainerStyle={{
-                    width: "100%",
-                    height: "30%",
-                  }}
-                />
-
-                {!selectedParent ? (
-                  sortOptions.map((option) => (
-                    <TouchableOpacity
-                      key={option.label}
-                      style={styles.option}
-                      onPress={() =>
-                        option.children.length > 0
-                          ? setSelectedParent(option.label)
-                          : sortSportHalls(option.label)
-                      }
-                    >
-                      <Text style={styles.optionText}>{option.label}</Text>
-                    </TouchableOpacity>
-                  ))
-                ) : (
-                  <>
-                    <TouchableOpacity onPress={() => setSelectedParent(null)}>
-                      <Text style={{ color: Colors.primary, marginBottom: 10 }}>
-                        ← Back
-                      </Text>
-                    </TouchableOpacity>
-                    {sortOptions
-                      .find((opt) => opt.label === selectedParent)
-                      ?.children.map((child, index) => (
-                        <Animated.View
-                          key={child}
-                          entering={FadeIn.duration(300).delay(index * 100)}
-                        >
-                          <TouchableOpacity
-                            style={styles.option}
-                            onPress={() =>
-                              sortSportHalls(`${selectedParent}:${child}`)
-                            }
-                          >
-                            <Text style={styles.optionText}>{child}</Text>
-                          </TouchableOpacity>
-                        </Animated.View>
-                      ))}
-                  </>
-                )}
-              </View>
-            </Pressable>
-          </Modal>
-        </>
-      }
-      initialNumToRender={5}
-      maxToRenderPerBatch={10}
-      windowSize={5}
-      renderItem={({ item, index }) => {
-        const uniqueKey = `${item.zaal_ID}-${item.day[0]}-${index}`;
-        return (
-          <View key={uniqueKey} style={styles.card}>
-            <TouchableOpacity
-              onPress={() => {
-                LayoutAnimation.configureNext(
-                  LayoutAnimation.Presets.easeInEaseOut
-                );
-                setExpandedId(
-                  expandedId === item.zaal_ID ? null : item.zaal_ID
-                );
-              }}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Image
-                  source={{ uri: item.hallData?.imageUrls[0] }}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
-                <View style={{ flex: 1, justifyContent: "center" }}>
-                  <Text style={styles.title}>{item.hallData?.name}</Text>
-
-                  <CallWaveButton
-                    partnersLookingFor={item.blocks?.[0]?.current_player}
-                    playersNeeded={item.blocks?.[0]?.num_players}
-                  />
+                <View style={styles.containermodal}>
+                  <TouchableOpacity
+                    onPress={() => setModalVisible(true)}
+                    style={styles.sortButton}
+                  >
+                    <Text style={styles.sortText}>Sort by</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-              <View style={{ flex: 1, justifyContent: "center" }}>
-                {expandedId === item.hallData?.sportHallID && (
-                  <View style={styles.content}>
-                    <View>
-                      <Text style={styles.subTitle}>Features:</Text>
-                      <View style={styles.featuresContainer}>
-                        {Object.entries(item.hallData?.feature)
-                          .filter(([_, value]) => value === true)
-                          .map(([key], index) => (
-                            <View key={index} style={styles.featureBadge}>
-                              <Text style={styles.featureText}>
-                                {formatFeatureName(key)}
+
+              {/* 🔽 Sort Modal (rendered only once, not inside renderItem) */}
+              <Modal
+                visible={modalVisible}
+                animationType="slide"
+                transparent
+                onRequestClose={() => {
+                  setModalVisible(false);
+                  setSelectedParent(null);
+                }}
+              >
+                <Pressable
+                  style={styles.overlay}
+                  onPress={() => {
+                    setModalVisible(false);
+                    setSelectedParent(null);
+                  }}
+                >
+                  <View style={styles.modalContainer}>
+                    <Text style={styles.modalTitle}>Sort by</Text>
+                    <CalendarStrip
+                      style={styles.calendars}
+                      selectedDate={new Date(today)}
+                      calendarAnimation={{ type: "parallel", duration: 30 }}
+                      onDateSelected={(date) => sortSlotGiver(date)}
+                      dateNumberStyle={{
+                        fontSize: 18,
+                        fontWeight: "400",
+                        color: "#464646",
+                      }}
+                      dateNameStyle={{
+                        fontSize: 10,
+                        fontWeight: "400",
+                        color: Colors.littleDark,
+                      }}
+                      calendarHeaderStyle={{
+                        fontSize: 18,
+                        fontWeight: "500",
+                        color: Colors.littleDark,
+                      }}
+                      calendarHeaderContainerStyle={{
+                        width: "100%",
+                        height: "30%",
+                      }}
+                    />
+
+                    {!selectedParent ? (
+                      sortOptions.map((option) => (
+                        <TouchableOpacity
+                          key={option.label}
+                          style={styles.option}
+                          onPress={() =>
+                            option.children.length > 0
+                              ? setSelectedParent(option.label)
+                              : sortSportHalls(option.label)
+                          }
+                        >
+                          <Text style={styles.optionText}>{option.label}</Text>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <>
+                        <TouchableOpacity
+                          onPress={() => setSelectedParent(null)}
+                        >
+                          <Text
+                            style={{ color: Colors.primary, marginBottom: 10 }}
+                          >
+                            ← Back
+                          </Text>
+                        </TouchableOpacity>
+                        {sortOptions
+                          .find((opt) => opt.label === selectedParent)
+                          ?.children.map((child, index) => (
+                            <Animated.View
+                              key={child}
+                              entering={FadeIn.duration(300).delay(index * 100)}
+                            >
+                              <TouchableOpacity
+                                style={styles.option}
+                                onPress={() =>
+                                  sortSportHalls(`${selectedParent}:${child}`)
+                                }
+                              >
+                                <Text style={styles.optionText}>{child}</Text>
+                              </TouchableOpacity>
+                            </Animated.View>
+                          ))}
+                      </>
+                    )}
+                  </View>
+                </Pressable>
+              </Modal>
+            </>
+          }
+          initialNumToRender={5}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          renderItem={({ item, index }) => {
+            const uniqueKey = `${item.zaal_ID}-${item.day[0]}-${index}`;
+            const startTime = item.blocks[0].time_slots[0].split("~")[0];
+            const length = item.blocks[0].time_slots.length;
+            const endTime = item.blocks[0].time_slots[length - 1].split("~")[0];
+            const wholeDay = item.blocks[0].time_slots?.some((time_slot) =>
+              time_slot.includes("wholeDay") ? true : false
+            );
+            return (
+              <>
+                {!showList ? (
+                  <>
+                    <ActivityIndicator />
+                  </>
+                ) : (
+                  <View key={uniqueKey} style={styles.card}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        LayoutAnimation.configureNext(
+                          LayoutAnimation.Presets.easeInEaseOut
+                        );
+                        setExpandedIndex((prevIndex) =>
+                          prevIndex === index ? null : index
+                        );
+                      }}
+                    >
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
+                        <Image
+                          source={{ uri: item.hallData?.imageUrls[0] }}
+                          style={styles.image}
+                          resizeMode="cover"
+                        />
+                        <View style={{ flex: 1, justifyContent: "center" }}>
+                          <Text style={styles.title}>
+                            {item.hallData?.name}
+                          </Text>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              flex: 1,
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 10,
+                            }}
+                          >
+                            <Text
+                              style={[styles.title, { textAlign: "center" }]}
+                            >
+                              {format(new Date(item.day[0]), "MMMM d, yyyy")}
+                            </Text>
+                            <Text
+                              style={[styles.title, { textAlign: "center" }]}
+                            >
+                              {wholeDay ? (
+                                <Text>Whole Day</Text>
+                              ) : (
+                                <Text>
+                                  {startTime}-{endTime}
+                                </Text>
+                              )}
+                            </Text>
+                          </View>
+                          <CallWaveButton
+                            time_slot={item.blocks?.[0]?.time_slots}
+                            playersNeeded={item.blocks?.[0]?.num_players}
+                          />
+                        </View>
+                      </View>
+                      <View style={{ flex: 1, justifyContent: "center" }}>
+                        {expandedIndex === index && (
+                          <View style={styles.content}>
+                            <View>
+                              <Text style={styles.subTitle}>Features:</Text>
+                              <View style={styles.featuresContainer}>
+                                {Object.entries(item.hallData?.feature)
+                                  .filter(([_, value]) => value === true)
+                                  .map(([key], index) => (
+                                    <View
+                                      key={index}
+                                      style={styles.featureBadge}
+                                    >
+                                      <Text style={styles.featureText}>
+                                        {formatFeatureName(key)}
+                                      </Text>
+                                    </View>
+                                  ))}
+                              </View>
+
+                              <TouchableOpacity
+                                onPress={() =>
+                                  openGoogleMaps(
+                                    parseFloat(
+                                      item.hallData?.location.latitude ?? "0"
+                                    ),
+                                    parseFloat(
+                                      item.hallData?.location?.longitude ?? "0"
+                                    ),
+                                    item.hallData?.address ?? ""
+                                  )
+                                }
+                                style={{
+                                  marginBottom: 10,
+                                  marginTop: 10,
+                                  padding: 10,
+                                  borderWidth: 1,
+                                  borderRadius: 10,
+                                  borderColor: Colors.primary,
+                                  backgroundColor: Colors.light,
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    color: Colors.primary,
+                                    fontSize: 16,
+                                  }}
+                                >
+                                  📍 Open in Maps
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+
+                            {/* --------- Add Partners Section --------- */}
+                            <View style={{ marginTop: 15 }}>
+                              <Text
+                                style={[styles.subTitle, { marginBottom: 10 }]}
+                              >
+                                Partners Looking For This Hall:
                               </Text>
                             </View>
-                          ))}
+
+                            <View style={styles.down}>
+                              <Text>Do you want to join this sport hall?</Text>
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  gap: 10,
+                                  marginTop: 10,
+                                }}
+                              >
+                                <TouchableOpacity
+                                  onPress={() => handleJoin(item.blocks[0]._id)}
+                                  style={styles.joinButton}
+                                >
+                                  <Text style={styles.buttonText}>Join</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    LayoutAnimation.configureNext(
+                                      LayoutAnimation.Presets.easeInEaseOut
+                                    );
+                                    setExpandedIndex(
+                                      expandedIndex === index ? null : index
+                                    );
+                                  }}
+                                  style={styles.cancelButton}
+                                >
+                                  <Text style={styles.buttonText}>Cancel</Text>
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          </View>
+                        )}
                       </View>
-
-                      <TouchableOpacity
-                        onPress={() =>
-                          openGoogleMaps(
-                            parseFloat(item.hallData?.location.latitude ?? "0"),
-                            parseFloat(
-                              item.hallData?.location?.longitude ?? "0"
-                            ),
-                            item.hallData?.address ?? ""
-                          )
-                        }
-                        style={{
-                          marginBottom: 10,
-                          marginTop: 10,
-                          padding: 10,
-                          borderWidth: 1,
-                          borderRadius: 10,
-                          borderColor: Colors.primary,
-                          backgroundColor: Colors.light,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Text style={{ color: Colors.primary, fontSize: 16 }}>
-                          📍 Open in Maps
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* --------- Add Partners Section --------- */}
-                    <View style={{ marginTop: 15 }}>
-                      <Text style={[styles.subTitle, { marginBottom: 10 }]}>
-                        Partners Looking For This Hall:
-                      </Text>
-                    </View>
-
-                    <View style={styles.down}>
-                      <Text>Do you want to join this sport hall?</Text>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          gap: 10,
-                          marginTop: 10,
-                        }}
-                      >
-                        <TouchableOpacity
-                          onPress={() => handleJoin(item.zaal_ID)}
-                          style={styles.joinButton}
-                        >
-                          <Text style={styles.buttonText}>Join</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          onPress={() => {
-                            LayoutAnimation.configureNext(
-                              LayoutAnimation.Presets.easeInEaseOut
-                            );
-                            setExpandedId(
-                              expandedId === item.zaal_ID ? null : item.zaal_ID
-                            );
-                          }}
-                          style={styles.cancelButton}
-                        >
-                          <Text style={styles.buttonText}>Cancel</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
+                    </TouchableOpacity>
                   </View>
                 )}
-              </View>
-            </TouchableOpacity>
-          </View>
-        );
-      }}
-      onEndReached={loadMoreItems}
-      onEndReachedThreshold={0.5}
-    />
+              </>
+            );
+          }}
+          onEndReached={() => setPage(page + 1)}
+          onEndReachedThreshold={0.1}
+          removeClippedSubviews={true}
+        />
+      ) : (
+        <View
+          style={{
+            justifyContent: "center",
+            alignSelf: "center",
+            flex: 1,
+          }}
+        >
+          <ActivityIndicator
+            size={"large"}
+            color={Colors.primary}
+            style={{ justifyContent: "center", alignSelf: "center" }}
+          />
+        </View>
+      )}
+    </>
   );
 };
 

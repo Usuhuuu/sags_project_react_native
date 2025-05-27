@@ -146,6 +146,14 @@ const FriendRequest = () => {
       ) {
         try {
           profileData = JSON.parse(data.profileData);
+          console.log(profileData);
+          if (
+            profileData.friends.length === 0 &&
+            profileData.recieved_requests.length === 0 &&
+            profileData.send_requests?.length === 0
+          ) {
+            setNoFriend(true);
+          }
         } catch (err) {
           console.error("Error parsing profileData:", err);
         }
