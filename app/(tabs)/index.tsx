@@ -24,20 +24,15 @@ const Page = () => {
   };
 
   // Debug: Log filtered listings before rendering ListingsMap
-  const filteredListings = SportHallData
-  .filter((item: any) =>
+  const filteredListings = SportHallData.filter((item: any) =>
     category === "all" ? true : item.sportType[category.toLowerCase()]
-  )
-  .map((item: any) => ({
+  ).map((item: any) => ({
     ...item,
     availableTimeSlots: item.availableTimeSlots.map((slot: any) => ({
       start_time: slot.start,
       end_time: slot.end,
     })),
   }));
-
-
-  
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -52,8 +47,15 @@ const Page = () => {
             ),
           }}
         />
-        <ListingsMap listings={filteredListings} selectedCategory={selectedCategory} />
-        <ListingBottomSheet listing={items} category={category} bottomSheetY={bottomSheetY} />
+        <ListingsMap
+          listings={filteredListings}
+          selectedCategory={selectedCategory}
+        />
+        <ListingBottomSheet
+          listing={items}
+          category={category}
+          bottomSheetY={bottomSheetY}
+        />
       </View>
     </GestureHandlerRootView>
   );
