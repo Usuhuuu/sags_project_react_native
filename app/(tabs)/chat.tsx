@@ -91,7 +91,7 @@ export const prepareMessages = (
 
       if (!nextMsg) {
         result[currentIndex] = {
-          ...currentMsj,
+          ...tempMsj,
           showTimeGap: false,
           isLastMessage: true,
         };
@@ -142,6 +142,8 @@ export const MemoizedChatItem = React.memo(
     //본인
     const userSelf: boolean =
       item.sender_unique_name === userDatas.unique_user_ID;
+
+    console.log(item);
     return (
       <View>
         {item.showDateSeparator && (
@@ -509,7 +511,7 @@ const ChatComponent: React.FC = () => {
             setIsitReady(false);
             return;
           }
-
+          console.log(message.no_more_message);
           const formattedMessages = prepareMessages(
             message.messages,
             message.nextCursor,
@@ -521,6 +523,10 @@ const ChatComponent: React.FC = () => {
             messages: formattedMessages,
             newSendedMsj: false,
           });
+          if (message.no_more_message) {
+            setLoading(false);
+            setIsitReady(false);
+          }
           setCursor(message.nextCursor);
           setIsitReady(false);
         }

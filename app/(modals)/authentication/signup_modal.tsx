@@ -90,13 +90,11 @@ const SignupModal = ({
   setSteps: React.Dispatch<React.SetStateAction<number>>;
   path: string;
 }) => {
-  const [modalPasswordHide, setModalPasswordHide] = useState<boolean>(true);
   const [disableButton, setDisableButton] = useState<boolean>(true);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [notificationToken, setNotificationToken] = useState<string>("");
 
   const fadeCheckUsername = useRef(new Animated.Value(0)).current;
-  const fadeConfirm = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const { logIn } = useAuth();
