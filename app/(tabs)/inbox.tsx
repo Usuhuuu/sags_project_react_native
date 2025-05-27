@@ -9,12 +9,11 @@ import {
   Pressable,
   Platform,
   Linking,
-  Button,
   LayoutAnimation,
   UIManager,
   Alert,
 } from "react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import Animated, {
   useSharedValue,
@@ -47,7 +46,7 @@ const { width } = Dimensions.get("window");
 const SWIPE_WIDTH = width - 170;
 const BUTTON_WIDTH = 40;
 
-type PartnerBlock = {
+export type PartnerBlock = {
   current_player: string;
   num_players: string;
   time_slots: string[];
