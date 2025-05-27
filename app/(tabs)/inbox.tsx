@@ -293,8 +293,11 @@ const Page = () => {
   const [showList, setShowList] = useState<boolean>(false);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [partnerLookingData, setPartnerLookingData] = useState<{
+    
     findPartner: PartnerDataType[];
   }>();
+  const [sortedMergedData, setSortedMergedData] = useState<typeof mergedData>([]);
+
 
   const visibleSportHallsMap = SportHall.reduce<
     Record<string, SportHallDataType>
@@ -309,6 +312,7 @@ const Page = () => {
     return acc;
   }, {});
   const { LoginStatus } = useAuth();
+  console.log("price", SportHall[0].price);
 
   const fetchPartnerSearching = async () => {
     try {
@@ -372,39 +376,13 @@ const Page = () => {
   };
 
   const sortOptions = [
-    { label: "Distance", children: ["Nearest First", "Farthest First"] },
+   
     { label: "Rating", children: ["Highest First", "Lowest First"] },
     { label: "Price", children: ["Lowest First", "Highest First"] },
   ];
 
   const sortSlotGiver = (date: Date) => {
-    setIsLoading(true);
-
-    try {
-      const selectedDateStr = date.toISOString().split("T")[0];
-      setToday(selectedDateStr);
-
-      // Filter halls with available slots on the selected date AND looking for partner
-      const filtered = SportHall.filter((hall) =>
-        hall.availableTimeSlots.some((slot) =>
-          slot.start_time.startsWith(selectedDateStr)
-        )
-      );
-
-      setSportHalls(
-        filtered.map((hall: any) => ({
-          ...hall,
-          price:
-            typeof hall.price === "object"
-              ? `One Hour: ${hall.price.oneHour}, Whole Day: ${hall.price.wholeDay}`
-              : hall.price,
-        }))
-      );
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+   
   };
   const translateX = useSharedValue(0);
   const isSwiping = useSharedValue(false);
@@ -434,24 +412,36 @@ const Page = () => {
   }, []);
 
   const handleCompleteSwipe = () => {
-    // Reset filters and reload data
-    setIsLoading(true);
+  setIsLoading(true);
+  setPage(1); // Reset pagination
+  setSportHalls(null); // Clear list temporarily
+  setExpandedIndex(null); // Collapse all cards
+  setSelectedSort(null); // Clear sorting
+  setSelectedParent(null); // Clear sorting category
+  setModalVisible(false); // Close modal if open
 
-    setTimeout(() => {
-      // Reset to full unfiltered list
-      setSportHalls(
-        SportHall.map((hall: any) => ({
-          ...hall,
-          price:
-            typeof hall.price === "object"
-              ? `One Hour: ${hall.price.oneHour}, Whole Day: ${hall.price.wholeDay}`
-              : hall.price,
-        }))
-      );
-      setToday(new Date().toISOString());
-      setIsLoading(false);
-    }, 500); // simulate network delay or update
-  };
+  const todayStr = new Date().toISOString().split("T")[0];
+  setToday(todayStr); // Reset calendar to today
+  setPartnerLookingData({ findPartner: [] }); // Clear partner list
+
+  // Repopulate halls from original SportHall list
+  setSportHalls(
+    SportHall.map((hall: any) => ({
+      ...hall,
+      price:
+        typeof hall.price === "object"
+          ? `One Hour: ${hall.price.oneHour}, Whole Day: ${hall.price.wholeDay}`
+          : hall.price,
+    }))
+  ); // Restore full list from SportHall data
+
+  // Optionally delay to simulate load time
+  setTimeout(() => {
+    setIsLoading(false);
+    setShowList(true); // ensure list shows up
+  }, 500);
+};
+
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
@@ -516,45 +506,26 @@ const Page = () => {
     justifyContent: "center",
   }));
 
-  const sortSportHalls = (option: string) => {
-    // option example: "Distance:Nearest First"
-    const [parent, child] = option.split(":");
-    const sorted = [...(sportHalls || [])]; // copy current list
+  const sortMergedByPrice = (order: "lowest" | "highest", type: "oneHour" | "wholeDay") => {
+  const sorted = [...(mergedData || [])].sort((a, b) => {
+    const priceA = parseFloat(a.hallData?.price[type] || "0");
+    const priceB = parseFloat(b.hallData?.price[type] || "0");
 
-    switch (parent) {
-      case "Distance":
-        sorted.sort((a, b) =>
-          child === "Farthest First"
-            ? (b.distance ?? 0) - (a.distance ?? 0)
-            : (a.distance ?? 0) - (b.distance ?? 0)
-        );
-        break;
+    return order === "lowest" ? priceA - priceB : priceB - priceA;
 
-      case "Rating":
-        sorted.sort((a, b) =>
-          child === "Lowest First"
-            ? (a.rating ?? 0) - (b.rating ?? 0)
-            : (b.rating ?? 0) - (a.rating ?? 0)
-        );
-        break;
+  });
 
-      case "Price":
-        sorted.sort((a, b) =>
-          child === "Highest First"
-            ? (b.priceSort ?? 0) - (a.priceSort ?? 0)
-            : (a.priceSort ?? 0) - (b.priceSort ?? 0)
-        );
-        break;
+  setSortedMergedData(sorted);
+  setSelectedSort(`Price:${order === "lowest" ? "Lowest First" : "Highest First"}`);
+  setSelectedParent("Price");
+  setModalVisible(false);
+//console.log("Sorting by:", type, order);
+//console.log("Before sort:", (mergedData || []).map(h => h.hallData?.price[type]));
+//console.log("After sort:", sorted.map(h => h.hallData?.price[type]));
 
-      default:
-        break;
-    }
 
-    setSportHalls(sorted); // update the state to re-render list
-    setSelectedSort(option); // optionally store the selected sort option
-    setModalVisible(false); // close the sort modal
-    setSelectedParent(null); // reset sort sub-menu if any
-  };
+}
+
 
   function openGoogleMaps(arg0: number, arg1: number, address: string): void {
     const scheme = Platform.select({
@@ -580,9 +551,12 @@ const Page = () => {
     <>
       {showList ? (
         <FlatList
-          data={mergedData}
-          keyExtractor={(item, index) => `${item.zaal_ID}-${index}`}
-          contentContainerStyle={styles.container}
+  data={(sortedMergedData && sortedMergedData.length > 0 ? sortedMergedData : mergedData) || []}
+  keyExtractor={(item, index) => {
+   
+    return `${item.zaal_ID}-${index}`;
+  }}
+  contentContainerStyle={styles.container}
           // ✅ List header content (shown once at the top)
           ListHeaderComponent={
             <>
@@ -670,10 +644,11 @@ const Page = () => {
                           onPress={() =>
                             option.children.length > 0
                               ? setSelectedParent(option.label)
-                              : sortSportHalls(option.label)
+                              : sortMergedByPrice("highest", "wholeDay")
                           }
                         >
                           <Text style={styles.optionText}>{option.label}</Text>
+                          
                         </TouchableOpacity>
                       ))
                     ) : (
@@ -696,9 +671,10 @@ const Page = () => {
                             >
                               <TouchableOpacity
                                 style={styles.option}
-                                onPress={() =>
-                                  sortSportHalls(`${selectedParent}:${child}`)
-                                }
+                                onPress={() => {
+                                  // Determine order and type from parent and child
+                                 sortMergedByPrice("lowest", "wholeDay")
+                                }}
                               >
                                 <Text style={styles.optionText}>{child}</Text>
                               </TouchableOpacity>
@@ -908,6 +884,7 @@ const Page = () => {
         </View>
       )}
     </>
+    
   );
 };
 

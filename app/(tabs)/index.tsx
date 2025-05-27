@@ -37,10 +37,7 @@ const Page = () => {
   }));
 
 
-  console.log("Current category:", category);
-  console.log("Filtered listings count:", filteredListings.length);
-  console.log("Selected category state:", selectedCategory);
-  console.log("Filtered listings for map:", filteredListings.length, filteredListings);
+  
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

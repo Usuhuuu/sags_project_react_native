@@ -11,7 +11,7 @@
     },
     "price":{
       "oneHour":1000,
-      "wholeDay":24000
+      "wholeDay":26000
     },
     "availableTimeSlots": [
       { "start_time": "10:00", "end_time": "11:00" },
@@ -127,7 +127,7 @@
     },
     "price":{
       "oneHour":1000,
-      "wholeDay":24000
+      "wholeDay":22000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -177,7 +177,7 @@
     },
     "price":{
       "oneHour":1000,
-      "wholeDay":24000
+      "wholeDay":34000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -226,7 +226,7 @@
     },
     "price":{
       "oneHour":1000,
-      "wholeDay":24000
+      "wholeDay":44000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -275,7 +275,7 @@
     },
     "price":{
       "oneHour":1000,
-      "wholeDay":24000
+      "wholeDay":14000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -324,7 +324,7 @@
     },
     "price":{
       "oneHour":1000,
-      "wholeDay":24000
+      "wholeDay":23000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -373,7 +373,7 @@
     },
     "price":{
       "oneHour":1000,
-      "wholeDay":24000
+      "wholeDay":20000
     },
    "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -422,7 +422,7 @@
     },
     "price":{
       "oneHour":1000,
-      "wholeDay":24000
+      "wholeDay":29000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -471,7 +471,7 @@
     },
     "price":{
       "oneHour":1000,
-      "wholeDay":24000
+      "wholeDay":4000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
