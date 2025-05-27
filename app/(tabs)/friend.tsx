@@ -328,6 +328,37 @@ const FriendRequest = () => {
                     </View>
                   </View>
                   <View style={style.outFriendContainer}>
+                    {currentData === userRequestData &&
+                      uniqueCurrentData.length === 0 && (
+                        <View style={{ padding: 10, alignItems: "center" }}>
+                          <Text
+                            style={{ fontSize: 16, color: Colors.darkGrey }}
+                          >
+                            No friend requests yet.
+                          </Text>
+                        </View>
+                      )}
+
+                    {currentData === friendData &&
+                      uniqueCurrentData.length === 0 && (
+                        <View style={{ padding: 10, alignItems: "center" }}>
+                          <Text
+                            style={{ fontSize: 16, color: Colors.darkGrey }}
+                          >
+                            You don’t have any friends yet.
+                          </Text>
+                        </View>
+                      )}
+                    {currentData === sendRequests &&
+                      uniqueCurrentData.length === 0 && (
+                        <View style={{ padding: 10, alignItems: "center" }}>
+                          <Text
+                            style={{ fontSize: 16, color: Colors.darkGrey }}
+                          >
+                            No send request yet.
+                          </Text>
+                        </View>
+                      )}
                     <FlatList
                       data={uniqueCurrentData}
                       keyExtractor={(item) => item}
@@ -389,7 +420,6 @@ const FriendRequest = () => {
                                 </View>
                               </View>
                             )}
-
                             {currentData === userRequestData && (
                               <View
                                 style={{

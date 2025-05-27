@@ -1,11 +1,10 @@
-import React, { useState, useCallback } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
   ScrollView,
-  TouchableOpacity,
   Modal,
 } from "react-native";
 
