@@ -13,7 +13,7 @@ import CalendarStrip from "react-native-calendar-strip";
 import { axiosInstanceRegular } from "../../hooks/axiosInstance";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useBookingStore } from "../(modals)/context/store";
+import { useBookingStore } from "../(modals)/context/store/bookStore";
 import Calendar from "./book/modal_calendar";
 
 export type FormData = {
@@ -214,7 +214,6 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
     });
     router.push(`/listing/book/${zaal_id}`);
   };
-  console.log(selectedTimeSlots);
 
   return (
     <View style={styles.zahialgaView}>

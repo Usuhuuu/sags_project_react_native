@@ -226,6 +226,12 @@ function RootLayoutNav() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="(modals)/user/[friend_name]"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
@@ -236,12 +242,10 @@ export default Sentry.wrap(() => (
       <LanguageProvider>
         <SavedHallsProvider>
           <CalendarProvider>
-          <RootLayout>
-            
+            <RootLayout>
               <Layout />
-            <TabsLayout />
-            
-          </RootLayout>
+              <TabsLayout />
+            </RootLayout>
           </CalendarProvider>
         </SavedHallsProvider>
       </LanguageProvider>

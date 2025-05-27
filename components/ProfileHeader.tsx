@@ -30,37 +30,23 @@ import ProfileData from "./profileData";
 import Colors from "../constants/Colors";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
-
-import { auth_swr } from "@/hooks/useswr";
-import { useAuth } from "@/app/(modals)/context/authContext";
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { Swipeable } from "react-native-gesture-handler";
+import { FriendProfileType } from "@/app/(tabs)/friend";
 
 const IMG_HEIGHT = 200;
 const { width } = Dimensions.get("window");
-interface UserData {
-  unique_user_ID: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  // Add other fields as needed based on your profileData structure
-}
+
 interface SavedCourt {
   id: string;
   name: string;
-  image: any; // You can use ImageSourcePropType for stricter typing
+  image: any;
   location: string;
 }
 
 interface ProfileHeaderProps {
-  copyToClipboard: () => void;
-  profileImageUri: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  unique_user_ID: string;
+  userData: FriendProfileType;
 }
 const menu = [
   { name: "Saved Halls", icon: require("@/assets/images/saved.png") },
@@ -105,44 +91,16 @@ const _itemSize = width / 3;
 const _spacing = 10;
 const _itemTotalSize = _itemSize + _spacing;
 
-interface Court {
-  id: string;
-  name: string;
-  image: any; // You can use ImageSourcePropType from 'react-native' for stricter typing
-  location: string;
-}
-
-
-
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({
-  copyToClipboard,
-  firstName,
-  unique_user_ID,
-  profileImageUri,
-}) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
   const flatListRef = useRef<FlatList>(null);
 
   const scrollref = useAnimatedRef<Animated.ScrollView>();
   const scrollOffset = useScrollViewOffset(scrollref);
   const navigation = useNavigation();
 
-  const [userData, setUserData] = useState<UserData | null>(null);
   const scrollX = useSharedValue(0);
-  const { LoginStatus, logIn } = useAuth();
   const [selectedItem, setSelectedItem] = useState(menu[1].name); // Default center
 
-  const { data, error } = auth_swr(
-    {
-      item: {
-        pathname: "main",
-        cacheKey: "RoleAndProfile_main",
-        loginStatus: LoginStatus,
-      },
-    },
-    {
-      revalidateOnFocus: true,
-    }
-  );
   useEffect(() => {
     const loadSavedCourts = async () => {
       try {
@@ -230,55 +188,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     );
     setSelectedItem(menu[index]?.name);
   };
-
-
-  
-  useEffect(() => {
-    if (data) {
-      const parsedData =
-        typeof data.profileData == "string"
-          ? JSON.parse(data.profileData)
-          : data.profileData;
-      setUserData(Array.isArray(parsedData) ? parsedData[0] : parsedData);
-      logIn();
-    } else if (error) {
-      console.log("Error fetching user data: Pisda", error);
-    }
-  }, [data, error]);
-
-  useEffect(() => {}, [LoginStatus]);
-
-  useEffect(() => {
-    if (data) {
-      const parsedData =
-        typeof data.profileData == "string"
-          ? JSON.parse(data.profileData)
-          : data.profileData;
-      setUserData(Array.isArray(parsedData) ? parsedData[0] : parsedData);
-      logIn();
-    } else if (error) {
-      //logOut();
-      console.log("Error fetching user data: Pisda", error);
-    }
-  }, [data, error]);
-
-  useEffect(() => {
-    //console.log("LoginStatus changed:", LoginStatus);
-  }, [LoginStatus]);
-
-  useEffect(() => {
-    if (data) {
-      const parsedData =
-        typeof data.profileData == "string"
-          ? JSON.parse(data.profileData)
-          : data.profileData;
-
-      setUserData(Array.isArray(parsedData) ? parsedData[0] : parsedData);
-      logIn();
-    } else if (error) {
-      console.log("Error fetching user data: Pisda", error);
-    }
-  }, [data, error]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -387,7 +296,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <Text style={styles.subHeader}>{userData?.unique_user_ID}</Text>
           <Text style={styles.titleText}>Name :</Text>
           <Text style={styles.subHeader}>
-            {userData?.firstName} {userData?.lastName}
+            {userData?.userNames?.firstName} {userData?.userNames?.lastName}
           </Text>
           <Text style={styles.titleText}>Email :</Text>
           <Text style={styles.subHeader}>{userData?.email}</Text>
@@ -423,33 +332,38 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         {/* Dynamic Section */}
         <Animated.View style={{ marginTop: 30, paddingHorizontal: 20 }}>
           {selectedItem === "Saved Halls" && (
-           <ScrollView
-  style={styles.savedListContainer}
-  contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
->
-  {savedCourts.length > 0 ? (
-    savedCourts.map((court) => (
-      <Swipeable
-        key={court.id}
-        renderRightActions={() => renderRightActions(court.id)}
-      >
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => handleCourtPress(court)}
-          activeOpacity={0.8}
-        >
-          <Image source={{ uri: court.image }} style={styles.cardImage} />
-          <View style={styles.cardTextContainer}>
-            <Text style={styles.cardTitle}>{court.name}</Text>
-            <Text style={styles.cardSubtitle}>{court.location}</Text>
-          </View>
-        </TouchableOpacity>
-      </Swipeable>
-    ))
-  ) : (
-    <Text style={styles.dynamicText}>No saved courts yet.</Text>
-  )}
-</ScrollView>
+            <ScrollView
+              style={styles.savedListContainer}
+              contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
+            >
+              {savedCourts.length > 0 ? (
+                savedCourts.map((court) => (
+                  <Swipeable
+                    key={court.id}
+                    renderRightActions={() => renderRightActions(court.id)}
+                  >
+                    <TouchableOpacity
+                      style={styles.card}
+                      onPress={() => handleCourtPress(court)}
+                      activeOpacity={0.8}
+                    >
+                      <Image
+                        source={{ uri: court.image }}
+                        style={styles.cardImage}
+                      />
+                      <View style={styles.cardTextContainer}>
+                        <Text style={styles.cardTitle}>{court.name}</Text>
+                        <Text style={styles.cardSubtitle}>
+                          {court.location}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </Swipeable>
+                ))
+              ) : (
+                <Text style={styles.dynamicText}>No saved courts yet.</Text>
+              )}
+            </ScrollView>
           )}
           {selectedItem === "Achievements" && <ProfileData />}
           {selectedItem === "Rewards" && (

@@ -1,4 +1,3 @@
-// useBookingStore.ts
 import { create } from "zustand";
 
 type BookingData = {

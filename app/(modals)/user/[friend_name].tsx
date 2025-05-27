@@ -1,10 +1,14 @@
+import { router, Href, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View, TouchableOpacity, Text, Modal } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ProfileHeader from "@/components/ProfileHeader";
 import Colors from "@/constants/Colors";
+import SavedHalls from "@/app/(modals)/SavedHalls";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useAuth } from "../context/authContext";
 import { auth_swr } from "@/hooks/useswr";
-import { useAuth } from "@/app/(modals)/context/authContext";
+import { useFriendStore } from "../context/store/friendStore";
 import { FriendProfileType } from "@/app/(tabs)/friend";
 
 interface ProfileNormalUserProps {
@@ -17,42 +21,18 @@ interface ProfileNormalUserProps {
   ];
 }
 const NormalUser: React.FC<ProfileNormalUserProps> = () => {
-  const [userData, setUserData] = useState<FriendProfileType | null>(null);
-  const { LoginStatus } = useAuth();
-  const { data, error } = auth_swr(
-    {
-      item: {
-        pathname: "main",
-        cacheKey: "RoleAndProfile_main",
-        loginStatus: LoginStatus,
-      },
-    },
-    {
-      revalidateOnFocus: true,
-    }
-  );
-  useEffect(() => {
-    if (data) {
-      const parsedData =
-        typeof data.profileData == "string"
-          ? JSON.parse(data.profileData)
-          : data.profileData;
-      setUserData(Array.isArray(parsedData) ? parsedData[0] : parsedData);
-    } else if (error) {
-      console.log("Error fetching user data: Pisda", error);
-    }
-  }, [data, error]);
+  const friendData = useFriendStore((state) => state.friendDetails);
 
   return (
-    <>
+    <GestureHandlerRootView>
       <LinearGradient
         colors={[Colors.primary, "#ffffff"]}
         style={styles.background}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      <ProfileHeader userData={userData as FriendProfileType} />
-    </>
+      <ProfileHeader userData={friendData as FriendProfileType} />
+    </GestureHandlerRootView>
   );
 };
 

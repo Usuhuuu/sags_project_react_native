@@ -16,7 +16,7 @@ import { InferProps } from "prop-types";
 import { ContextProp } from "react-native-calendars/src/types";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import Colors from "@/constants/Colors";
-import { useBookingStore } from "@/app/(modals)/context/store";
+import { useBookingStore } from "@/app/(modals)/context/store/bookStore";
 import { router } from "expo-router";
 
 type FilterType = "joinable" | "unavailable" | null;
