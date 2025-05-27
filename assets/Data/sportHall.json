@@ -29,6 +29,14 @@
       { "start_time": "22:00", "end_time": "23:00" },
       { "start_time": "23:00", "end_time": "24:00" }
     ],
+    "sportType": {
+  "basketball": false,
+  "volleyball": false,
+  "football": false,
+  "tennis": true,
+  "bowling": false,
+  "golf": false
+},
     "location": {
       "latitude": "47.9182",
       "longitude": "106.9170",
@@ -97,7 +105,15 @@
       "tennis": false,
       "billiards": true,
       "darts": false
-    }
+    },
+    "sportType": {
+  "basketball": true,
+  "volleyball": false,
+  "football": true,
+  "tennis": true,
+  "bowling": false,
+  "golf": false
+}
   },
   {
     "sportHallID": "3",
@@ -138,8 +154,17 @@
       "tennis": true,
       "billiards": false,
       "darts": false
-    }
+    },
+    "sportType": {
+  "basketball": false,
+  "volleyball": false,
+  "football": false,
+  "tennis": true,
+  "bowling": true,
+  "golf": true
+}
   },
+  
   {
     "sportHallID": "4",
     "name": "Таван Богд Фитнесс",
@@ -179,7 +204,15 @@
       "tennis": false,
       "billiards": false,
       "darts": true
-    }
+    },
+    "sportType": {
+  "basketball": false,
+  "volleyball": false,
+  "football": true,
+  "tennis": true,
+  "bowling": false,
+  "golf": false
+}
   },
   {
     "sportHallID": "5",
@@ -220,7 +253,15 @@
       "tennis": false,
       "billiards": true,
       "darts": true
-    }
+    },
+    "sportType": {
+  "basketball": true,
+  "volleyball": true,
+  "football": true,
+  "tennis": true,
+  "bowling": false,
+  "golf": false
+}
   },
   {
     "sportHallID": "6",
@@ -261,7 +302,15 @@
       "tennis": false,
       "billiards": false,
       "darts": false
-    }
+    },
+    "sportType": {
+  "basketball": false,
+  "volleyball": false,
+  "football": false,
+  "tennis": true,
+  "bowling": true,
+  "golf": true
+}
   },
   {
     "sportHallID": "7",
@@ -302,7 +351,15 @@
       "tennis": true,
       "billiards": true,
       "darts": false
-    }
+    },
+    "sportType": {
+  "basketball": true,
+  "volleyball": false,
+  "football": false,
+  "tennis": true,
+  "bowling": false,
+  "golf": false
+}
   },
   {
     "sportHallID": "8",
@@ -343,7 +400,15 @@
       "tennis": false,
       "billiards": false,
       "darts": true
-    }
+    },
+    "sportType": {
+  "basketball": true,
+  "volleyball": false,
+  "football": true,
+  "tennis": true,
+  "bowling": false,
+  "golf": false
+}
   },
   {
     "sportHallID": "9",
@@ -384,7 +449,15 @@
       "tennis": false,
       "billiards": true,
       "darts": false
-    }
+    },
+    "sportType": {
+  "basketball": false,
+  "volleyball": false,
+  "football": false,
+  "tennis": true,
+  "bowling": true,
+  "golf": true
+}
   },
   {
     "sportHallID": "10",
@@ -425,6 +498,14 @@
       "tennis": false,
       "billiards": false,
       "darts": true
-    }
+    },
+    "sportType": {
+  "basketball": true,
+  "volleyball": false,
+  "football": true,
+  "tennis": true,
+  "bowling": false,
+  "golf": true
+}
   }
 ]

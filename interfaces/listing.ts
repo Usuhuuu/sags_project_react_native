@@ -23,6 +23,15 @@ interface SportHallWorkTime {
 }
 
 
+interface SportHallSportType{
+  basketball: boolean;
+  volleyball: boolean;
+  football: boolean;
+  tennis: boolean;
+  bowling: boolean;
+  golf: boolean;
+}
+
 export interface SportHallDataType {
   sportHallID: string;
   name: string;
@@ -47,5 +56,6 @@ export interface SportHallDataType {
   priceSort?: number;
   partnersLookingFor? : string
   playersNeeded?: string;
+  sportType: SportHallSportType;
 
 }

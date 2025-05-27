@@ -17,6 +17,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as SecureStorage from "expo-secure-store";
 import { useRoute } from "@react-navigation/native";
 
+
 const INITIAL_REGION = {
   latitude: 47.918873,
   longitude: 106.917701,
@@ -24,8 +25,15 @@ const INITIAL_REGION = {
   longitudeDelta: 0.1,
 };
 
-const ListingsMap = memo(({ listings }: { listings: SportHallDataType[] }) => {
+interface Props {
+  selectedCategory: string;
+}
+
+const ListingsMap = memo(({ listings, selectedCategory }: { listings: SportHallDataType[]; selectedCategory: string }) => {
   const [hasLocationPermission, setHasLocationPermission] = useState(false);
+  const [filteredHalls, setFilteredHalls] = useState<SportHallDataType[]>([]);
+
+
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -50,6 +58,19 @@ const ListingsMap = memo(({ listings }: { listings: SportHallDataType[] }) => {
       });
     }
   };
+
+ useEffect(() => {
+  if (selectedCategory === "all") {
+    setFilteredHalls(listings);
+  } else {
+    const categoryKey = selectedCategory.toLowerCase();
+    const filtered = listings.filter(
+      (hall) => hall.sportType[categoryKey as keyof typeof hall.sportType]
+    );
+    setFilteredHalls(filtered);
+  }
+}, [selectedCategory, listings]);
+
 
   useEffect(() => {
     const requestLocationPermission = async () => {
@@ -129,7 +150,8 @@ const ListingsMap = memo(({ listings }: { listings: SportHallDataType[] }) => {
         clusterColor=""
         renderCluster={renderCluster}
       >
-        {listings.map((item: SportHallDataType) => (
+       {filteredHalls.map((item: SportHallDataType) => (
+
           <Marker
             key={item.sportHallID}
             onPress={() => onMarkerSelected(item)}

@@ -15,11 +15,32 @@ const Page = () => {
   const items = useMemo(() => listingsData as any[], []);
   const { top } = useSafeAreaInsets();
   const bottomSheetY = useSharedValue(0); // Shared value to track bottom sheet position
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const onDataChanged = (category: string) => {
-    console.log(`CHANGED_`, category);
+    console.log("onDataChanged called with category:", category);
     setCategory(category);
+    setSelectedCategory(category);
   };
+
+  // Debug: Log filtered listings before rendering ListingsMap
+  const filteredListings = SportHallData
+  .filter((item: any) =>
+    category === "all" ? true : item.sportType[category.toLowerCase()]
+  )
+  .map((item: any) => ({
+    ...item,
+    availableTimeSlots: item.availableTimeSlots.map((slot: any) => ({
+      start_time: slot.start,
+      end_time: slot.end,
+    })),
+  }));
+
+
+  console.log("Current category:", category);
+  console.log("Filtered listings count:", filteredListings.length);
+  console.log("Selected category state:", selectedCategory);
+  console.log("Filtered listings for map:", filteredListings.length, filteredListings);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -34,20 +55,8 @@ const Page = () => {
             ),
           }}
         />
-        <ListingsMap
-          listings={SportHallData.map((item: any) => ({
-            ...item,
-            availableTimeSlots: item.availableTimeSlots.map((slot: any) => ({
-              start_time: slot.start,
-              end_time: slot.end,
-            })),
-          }))}
-        />
-        <ListingBottomSheet
-          listing={items}
-          category={category}
-          bottomSheetY={bottomSheetY}
-        />
+        <ListingsMap listings={filteredListings} selectedCategory={selectedCategory} />
+        <ListingBottomSheet listing={items} category={category} bottomSheetY={bottomSheetY} />
       </View>
     </GestureHandlerRootView>
   );
