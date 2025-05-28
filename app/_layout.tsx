@@ -257,6 +257,12 @@ function RootLayoutNav() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="listing/ZaalReview"
+        options={{
+          headerTitle: "Sport HallReview",
+        }}
+      />
     </Stack>
   );
 }

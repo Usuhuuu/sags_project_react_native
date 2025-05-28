@@ -1,54 +1,126 @@
 import React, { useState } from "react";
-import { View, Text, Button, StyleSheet, TouchableOpacity } from "react-native";
-import SwipeableModal from "./book/swipe_modal"; // Adjust path if needed
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function ReviewUpdateScreen() {
-  const [modalVisible, setModalVisible] = useState(false);
-
-  return (
-    <View style={styles.screen}>
-      <TouchableOpacity
-        onPress={() => setModalVisible(true)}
-        style={styles.button}
-      >
-        <Text style={{ color: "white" }}>Open Swipeable Modal</Text>
-      </TouchableOpacity>
-
-      <SwipeableModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-      >
-        <Text style={styles.modalTitle}>Swipe down to close</Text>
-        {[...Array(30)].map((_, i) => (
-          <Text key={i} style={{ marginVertical: 10 }}>
-            Scrollable content line {i + 1}
-          </Text>
-        ))}
-      </SwipeableModal>
-    </View>
-  );
+interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  user: string;
 }
 
+const SportHallReviewPage = () => {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [reviews, setReviews] = useState<Review[]>([
+    {
+      id: "1",
+      rating: 4,
+      comment: "Good sport hall",
+      user: "Anujin",
+    },
+    {
+      id: "2",
+      rating: 5,
+      comment: "its quite cheap and good",
+      user: "Dashka",
+    },
+  ]);
+
+  const handleSubmit = () => {
+    if (rating === 0 || comment.trim() === "") return;
+    const newReview: Review = {
+      id: Date.now().toString(),
+      rating,
+      comment,
+      user: "You",
+    };
+    setReviews([newReview, ...reviews]);
+    setComment("");
+    setRating(0);
+  };
+
+  const renderStars = (count: number, onPress?: (i: number) => void) => {
+    return [...Array(5)].map((_, i) => (
+      <TouchableOpacity key={i} onPress={() => onPress?.(i + 1)}>
+        <Ionicons
+          name={i < count ? "star" : "star-outline"}
+          size={24}
+          color="orange"
+        />
+      </TouchableOpacity>
+    ));
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Leave a Review</Text>
+      <View style={styles.stars}>{renderStars(rating, setRating)}</View>
+      <TextInput
+        style={styles.input}
+        placeholder="Write your comment"
+        value={comment}
+        onChangeText={setComment}
+        multiline
+      />
+      <Button title="Submit Review" onPress={handleSubmit} />
+
+      <Text style={styles.title}>All Reviews</Text>
+      <FlatList
+        data={reviews}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.review}>
+            <Text style={styles.user}>{item.user}</Text>
+            <View style={styles.stars}>{renderStars(item.rating)}</View>
+            <Text>{item.comment}</Text>
+          </View>
+        )}
+      />
+    </View>
+  );
+};
+
+export default SportHallReviewPage;
+
 const styles = StyleSheet.create({
-  screen: {
+  container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#fff",
   },
-  button: {
-    backgroundColor: "#4a90e2",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.3)",
-  },
-  modalTitle: {
-    fontSize: 20,
+  title: {
+    fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
+    marginTop: 20,
+  },
+  stars: {
+    flexDirection: "row",
+    marginVertical: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 8,
+    minHeight: 60,
+    textAlignVertical: "top",
+  },
+  review: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    paddingVertical: 10,
+  },
+  user: {
+    fontWeight: "bold",
   },
 });
