@@ -47,6 +47,7 @@ const SWIPE_WIDTH = width - 170;
 const BUTTON_WIDTH = 40;
 
 export type PartnerBlock = {
+  totalPrice: string;
   current_player: string;
   num_players: string;
   time_slots: string[];
@@ -56,6 +57,7 @@ type PartnerDataType = {
   zaal_ID: string;
   day: string[];
   blocks: PartnerBlock[];
+  hallData: SportHallDataType;
 };
 
 if (Platform.OS === "android") {
@@ -293,12 +295,12 @@ const Page = () => {
   const [showList, setShowList] = useState<boolean>(false);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [partnerLookingData, setPartnerLookingData] = useState<{
-    
     findPartner: PartnerDataType[];
   }>();
-  const [sortedMergedData, setSortedMergedData] = useState<typeof mergedData>([]);
-
-
+  const [sortedMergedData, setSortedMergedData] = useState<PartnerDataType[]>(
+    []
+  );
+  const [mergedData, setMergedData] = useState<PartnerDataType[] | null>(null);
   const visibleSportHallsMap = SportHall.reduce<
     Record<string, SportHallDataType>
   >((acc, hall) => {
@@ -312,13 +314,13 @@ const Page = () => {
     return acc;
   }, {});
   const { LoginStatus } = useAuth();
-  console.log("price", SportHall[0].price);
 
   const fetchPartnerSearching = async () => {
     try {
       const [year, month, day] = today.split("T")[0].split("-");
       const response = await axiosInstanceRegular.get(
-        `/timeslots/partner/${year}/${month}/${day}?page=${page}`
+        `/timeslots/partner/${year}/${month}/${day}?page=${page}`,
+        { timeout: 10000 }
       );
       setPartnerLookingData((prev) => ({
         ...prev,
@@ -341,13 +343,18 @@ const Page = () => {
     }, [page])
   );
 
-  const mergedData = partnerLookingData?.findPartner.map((partner) => {
-    const hall = visibleSportHallsMap[partner.zaal_ID];
-    return {
-      ...partner,
-      hallData: hall || null,
-    };
-  });
+  useEffect(() => {
+    if (partnerLookingData?.findPartner?.length) {
+      const merged = partnerLookingData.findPartner.map((partner) => {
+        const hall = visibleSportHallsMap[partner.zaal_ID];
+        return {
+          ...partner,
+          hallData: hall || null,
+        };
+      });
+      setMergedData(merged);
+    }
+  }, [partnerLookingData]);
 
   const handleJoin = async (roomId: string) => {
     try {
@@ -376,14 +383,11 @@ const Page = () => {
   };
 
   const sortOptions = [
-   
     { label: "Rating", children: ["Highest First", "Lowest First"] },
     { label: "Price", children: ["Lowest First", "Highest First"] },
   ];
 
-  const sortSlotGiver = (date: Date) => {
-   
-  };
+  const sortSlotGiver = (date: Date) => {};
   const translateX = useSharedValue(0);
   const isSwiping = useSharedValue(false);
   const scale = useSharedValue(0);
@@ -412,36 +416,35 @@ const Page = () => {
   }, []);
 
   const handleCompleteSwipe = () => {
-  setIsLoading(true);
-  setPage(1); // Reset pagination
-  setSportHalls(null); // Clear list temporarily
-  setExpandedIndex(null); // Collapse all cards
-  setSelectedSort(null); // Clear sorting
-  setSelectedParent(null); // Clear sorting category
-  setModalVisible(false); // Close modal if open
+    setIsLoading(true);
+    setPage(1); // Reset pagination
+    setSportHalls(null); // Clear list temporarily
+    setExpandedIndex(null); // Collapse all cards
+    setSelectedSort(null); // Clear sorting
+    setSelectedParent(null); // Clear sorting category
+    setModalVisible(false); // Close modal if open
 
-  const todayStr = new Date().toISOString().split("T")[0];
-  setToday(todayStr); // Reset calendar to today
-  setPartnerLookingData({ findPartner: [] }); // Clear partner list
+    const todayStr = new Date().toISOString().split("T")[0];
+    setToday(todayStr); // Reset calendar to today
+    setPartnerLookingData({ findPartner: [] }); // Clear partner list
 
-  // Repopulate halls from original SportHall list
-  setSportHalls(
-    SportHall.map((hall: any) => ({
-      ...hall,
-      price:
-        typeof hall.price === "object"
-          ? `One Hour: ${hall.price.oneHour}, Whole Day: ${hall.price.wholeDay}`
-          : hall.price,
-    }))
-  ); // Restore full list from SportHall data
+    // Repopulate halls from original SportHall list
+    setSportHalls(
+      SportHall.map((hall: any) => ({
+        ...hall,
+        price:
+          typeof hall.price === "object"
+            ? `One Hour: ${hall.price.oneHour}, Whole Day: ${hall.price.wholeDay}`
+            : hall.price,
+      }))
+    ); // Restore full list from SportHall data
 
-  // Optionally delay to simulate load time
-  setTimeout(() => {
-    setIsLoading(false);
-    setShowList(true); // ensure list shows up
-  }, 500);
-};
-
+    // Optionally delay to simulate load time
+    setTimeout(() => {
+      setIsLoading(false);
+      setShowList(true); // ensure list shows up
+    }, 500);
+  };
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
@@ -505,28 +508,39 @@ const Page = () => {
     height: 40,
     justifyContent: "center",
   }));
+  const sortMergedByPrice = (order: "lowest" | "highest") => {
+    const sorted = [...(mergedData || [])].sort((a, b) => {
+      const priceA = parseInt(a?.blocks?.[0]?.totalPrice || "", 10);
+      const priceB = parseInt(b?.blocks?.[0]?.totalPrice || "", 10);
 
-  const sortMergedByPrice = (order: "lowest" | "highest", type: "oneHour" | "wholeDay") => {
-  const sorted = [...(mergedData || [])].sort((a, b) => {
-    const priceA = parseFloat(a.hallData?.price[type] || "0");
-    const priceB = parseFloat(b.hallData?.price[type] || "0");
+      console.log(
+        `Comparing A: zaal_ID=${a?.zaal_ID}, price=${priceA} with B: zaal_ID=${b?.zaal_ID}, price=${priceB}`
+      );
 
-    return order === "lowest" ? priceA - priceB : priceB - priceA;
+      const isANaN = isNaN(priceA);
+      const isBNaN = isNaN(priceB);
 
-  });
+      if (isANaN && isBNaN) return 0;
+      if (isANaN) return 1; // A is invalid, B is valid → A goes last
+      if (isBNaN) return -1; // B is invalid, A is valid → B goes last
 
-  setSortedMergedData(sorted);
-  setSelectedSort(`Price:${order === "lowest" ? "Lowest First" : "Highest First"}`);
-  setSelectedParent("Price");
-  setModalVisible(false);
-//console.log("Sorting by:", type, order);
-//console.log("Before sort:", (mergedData || []).map(h => h.hallData?.price[type]));
-//console.log("After sort:", sorted.map(h => h.hallData?.price[type]));
+      return order === "lowest" ? priceA - priceB : priceB - priceA;
+    });
+    console.log(
+      "Sorted result:",
+      sorted.map((item) => ({
+        zaal_ID: item.zaal_ID,
+        price: item?.blocks?.[0]?.totalPrice,
+      }))
+    );
 
-
-}
-
-
+    setSortedMergedData(sorted);
+    setSelectedSort(
+      `Price:${order === "lowest" ? "Lowest First" : "Highest First"}`
+    );
+    setSelectedParent("Price");
+    setModalVisible(false);
+  };
   function openGoogleMaps(arg0: number, arg1: number, address: string): void {
     const scheme = Platform.select({
       ios: "maps://0,0?q=",
@@ -551,12 +565,12 @@ const Page = () => {
     <>
       {showList ? (
         <FlatList
-  data={(sortedMergedData && sortedMergedData.length > 0 ? sortedMergedData : mergedData) || []}
-  keyExtractor={(item, index) => {
-   
-    return `${item.zaal_ID}-${index}`;
-  }}
-  contentContainerStyle={styles.container}
+          data={sortedMergedData.length ? sortedMergedData : mergedData}
+          extraData={mergedData}
+          keyExtractor={(item, index) => {
+            return `${item.zaal_ID}-${index}-${item.blocks[0].totalPrice}`;
+          }}
+          contentContainerStyle={styles.container}
           // ✅ List header content (shown once at the top)
           ListHeaderComponent={
             <>
@@ -591,7 +605,6 @@ const Page = () => {
                 </View>
               </View>
 
-              {/* 🔽 Sort Modal (rendered only once, not inside renderItem) */}
               <Modal
                 visible={modalVisible}
                 animationType="slide"
@@ -644,11 +657,10 @@ const Page = () => {
                           onPress={() =>
                             option.children.length > 0
                               ? setSelectedParent(option.label)
-                              : sortMergedByPrice("highest", "wholeDay")
+                              : sortMergedByPrice("highest")
                           }
                         >
                           <Text style={styles.optionText}>{option.label}</Text>
-                          
                         </TouchableOpacity>
                       ))
                     ) : (
@@ -672,8 +684,7 @@ const Page = () => {
                               <TouchableOpacity
                                 style={styles.option}
                                 onPress={() => {
-                                  // Determine order and type from parent and child
-                                 sortMergedByPrice("lowest", "wholeDay")
+                                  sortMergedByPrice("lowest");
                                 }}
                               >
                                 <Text style={styles.optionText}>{child}</Text>
@@ -754,6 +765,9 @@ const Page = () => {
                               )}
                             </Text>
                           </View>
+                          <Text style={[styles.title, { textAlign: "center" }]}>
+                            {wholeDay ? <></> : `₮${item.blocks[0].totalPrice}`}
+                          </Text>
                           <CallWaveButton
                             time_slot={item.blocks?.[0]?.time_slots}
                             playersNeeded={item.blocks?.[0]?.num_players}
@@ -884,7 +898,6 @@ const Page = () => {
         </View>
       )}
     </>
-    
   );
 };
 

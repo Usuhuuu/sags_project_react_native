@@ -12,6 +12,17 @@ interface useSWRProps {
   body?: string[];
 }
 
+const onErrorRetry = (
+  error: any,
+  key: string,
+  config: SWRConfiguration,
+  revalidate: () => void,
+  { retryCount }: { retryCount: number }
+) => {
+  if (retryCount >= 5) return;
+  setTimeout(() => revalidate(), 3000);
+};
+
 export const regular_swr = (
   { item }: { item: useSWRProps },
   config?: SWRConfiguration
@@ -26,8 +37,10 @@ export const regular_swr = (
     revalidateOnFocus: config?.revalidateOnFocus ?? false,
     dedupingInterval: config?.dedupingInterval ?? 10000,
     shouldRetryOnError: true,
-    revalidateOnMount: config?.revalidateOnMount ?? false,
+    revalidateOnMount: config?.revalidateOnMount ?? true,
     errorRetryCount: 3,
+    loadingTimeout: 3000,
+    onErrorRetry,
     ...config,
   });
 
@@ -55,6 +68,8 @@ export const auth_swr = (
     shouldRetryOnError: false,
     errorRetryInterval: 4000,
     errorRetryCount: 3,
+    loadingTimeout: 3000,
+    onErrorRetry,
     ...config,
   });
 
@@ -85,6 +100,8 @@ export const post_auth_swr = (
       shouldRetryOnError: false,
       errorRetryInterval: 4000,
       errorRetryCount: 3,
+      loadingTimeout: 3000,
+      onErrorRetry,
       ...config,
     }
   );

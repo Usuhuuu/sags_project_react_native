@@ -34,6 +34,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { Swipeable } from "react-native-gesture-handler";
 import { FriendProfileType } from "@/app/(tabs)/friend";
+import { useTranslation } from "react-i18next";
 
 const IMG_HEIGHT = 200;
 const { width } = Dimensions.get("window");
@@ -44,16 +45,9 @@ interface SavedCourt {
   image: any;
   location: string;
 }
-
 interface ProfileHeaderProps {
   userData: FriendProfileType;
 }
-const menu = [
-  { name: "Saved Halls", icon: require("@/assets/images/saved.png") },
-  { name: "Achievements", icon: require("@/assets/tab-icons/athlete.png") },
-  { name: "Rewards", icon: require("@/assets/tab-icons/athlete.png") },
-];
-
 function CarouselItem({
   item,
   index,
@@ -99,8 +93,24 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
   const navigation = useNavigation();
 
   const scrollX = useSharedValue(0);
-  const [selectedItem, setSelectedItem] = useState(menu[1].name); // Default center
 
+  const { t } = useTranslation();
+  const profileLanguageData: any = t("profilesdaData", { returnObjects: true });
+  const sdaData = Array.isArray(profileLanguageData)
+    ? profileLanguageData[0]
+    : [];
+  const data = sdaData?.profileData[0];
+  console.log(data);
+
+  const menu = [
+    { name: data.savedHalls, icon: require("@/assets/images/saved.png") },
+    {
+      name: data.archievements,
+      icon: require("@/assets/tab-icons/athlete.png"),
+    },
+    { name: data.rewards, icon: require("@/assets/tab-icons/athlete.png") },
+  ];
+  const [selectedItem, setSelectedItem] = useState(menu[1].name); // Default center
   useEffect(() => {
     const loadSavedCourts = async () => {
       try {
@@ -291,14 +301,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
             borderColor: Colors.primary,
           }}
         >
-          <Text style={styles.headerTitle}>Profile</Text>
-          <Text style={styles.titleText}>Username :</Text>
+          <Text style={styles.headerTitle}>{data.profile}</Text>
+          <Text style={styles.titleText}>{data.userName} :</Text>
           <Text style={styles.subHeader}>{userData?.unique_user_ID}</Text>
-          <Text style={styles.titleText}>Name :</Text>
+          <Text style={styles.titleText}>{data.name} :</Text>
           <Text style={styles.subHeader}>
             {userData?.userNames?.firstName} {userData?.userNames?.lastName}
           </Text>
-          <Text style={styles.titleText}>Email :</Text>
+          <Text style={styles.titleText}>{data.email} :</Text>
           <Text style={styles.subHeader}>{userData?.email}</Text>
         </Animated.View>
 
@@ -331,7 +341,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
 
         {/* Dynamic Section */}
         <Animated.View style={{ marginTop: 30, paddingHorizontal: 20 }}>
-          {selectedItem === "Saved Halls" && (
+          {selectedItem === data.savedHalls && (
             <ScrollView
               style={styles.savedListContainer}
               contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
@@ -365,8 +375,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
               )}
             </ScrollView>
           )}
-          {selectedItem === "Achievements" && <ProfileData />}
-          {selectedItem === "Rewards" && (
+          {selectedItem === data.archievements && <ProfileData />}
+          {selectedItem === data.rewards && (
             <Text style={styles.dynamicText}>
               🎁 Rewards or statistics shown here.
             </Text>

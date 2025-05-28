@@ -145,9 +145,7 @@ const RegisterZaal: React.FC = () => {
       const response = await axiosInstance.post("/auth/zaalburtgel", {
         formData,
       });
-      if (response.status === 200 && response.data.success) {
-        Alert.alert("SUCESSFULLY ADDED SPORT HALL");
-      }
+      Alert.alert("SUCESSFULLY ADDED SPORT HALL");
       if (response.status === 400 && !response.data.success) {
         Alert.alert(response.data.message);
       }
@@ -251,6 +249,7 @@ const RegisterZaal: React.FC = () => {
                         width: "50%",
                         height: "45%",
                       }}
+                      key={`${item}-${index}`}
                     >
                       <Image
                         source={{ uri: item }}

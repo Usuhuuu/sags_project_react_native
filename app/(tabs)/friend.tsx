@@ -61,66 +61,6 @@ const FriendRequest = () => {
       ? userRequestData
       : sendRequests;
 
-  const handleAccept = async (friend_ID: string) => {
-    try {
-      const response = await axiosInstance.post("/auth/friend_accept", {
-        friend_unique_ID: friend_ID,
-      });
-      if (response.status == 200) {
-        mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
-        Alert.alert("Success", "Friend request accepted");
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-  const handleCancel = async (friend_ID: string) => {
-    try {
-      const response = await axiosInstance.post("/auth/friend_cancel", {
-        friend_unique_ID: friend_ID,
-      });
-      if (response.status == 200) {
-        mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-  const handleRequestSend = async () => {
-    try {
-      const enterMessageLength = searchQuery.length;
-      if (enterMessageLength < 1) {
-        Alert.alert("Error", "Please enter a valid ID");
-        return;
-      }
-
-      const response = await axiosInstance.post("/auth/friend_request", {
-        friend_unique_ID: searchQuery,
-      });
-      if (response.status === 200) {
-        mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
-        Alert.alert("Success", "Friend request sent");
-      } else if (response.status === 400) {
-        if (response.data.find) {
-          Alert.alert("Error", "Request already sent");
-        } else {
-          Alert.alert("Error", "User not found");
-        }
-      }
-    } catch (err: any) {
-      if (err.response) {
-        if (err.response.status === 400) {
-          Alert.alert("Error", err.response.data.message || "Bad Request");
-        } else {
-          Alert.alert("Error", "Something went wrong. Please try again.");
-        }
-      } else {
-        console.log("Error without response:", err);
-        Alert.alert("Error", "Something went wrong. Please try again.");
-      }
-    }
-  };
-
   const { data, error, isLoading } = auth_swr(
     {
       item: {
@@ -132,6 +72,26 @@ const FriendRequest = () => {
     {
       revalidateOnMount: true,
       refreshInterval: 60 * 1000,
+    }
+  );
+
+  const {
+    data: userInfoData,
+    error: userInfoError,
+    isLoading: userInfoLoading,
+  } = post_auth_swr(
+    {
+      item: {
+        pathname: "/auth/friend_data",
+        cacheKey: "friend_profile_info",
+        loginStatus: LoginStatus && entireFriendData?.length > 0,
+        body: entireFriendData,
+      },
+    },
+    {
+      revalidateOnFocus: true,
+      revalidateOnMount: true,
+      dedupingInterval: 10000,
     }
   );
 
@@ -175,25 +135,6 @@ const FriendRequest = () => {
     setIsitLoading(isLoading);
   }, [data, error, isLoading]);
 
-  const {
-    data: userInfoData,
-    error: userInfoError,
-    isLoading: userInfoLoading,
-  } = post_auth_swr(
-    {
-      item: {
-        pathname: "/auth/friend_data",
-        cacheKey: "friend_profile_info",
-        loginStatus: LoginStatus && entireFriendData?.length > 0,
-        body: entireFriendData,
-      },
-    },
-    {
-      revalidateOnFocus: true,
-      revalidateOnMount: true,
-      dedupingInterval: 10000,
-    }
-  );
   useEffect(() => {
     if (userInfoLoading) {
       setShowFriends(false);
@@ -210,6 +151,76 @@ const FriendRequest = () => {
   }, [userInfoData, userInfoError, userInfoLoading, data, error]);
 
   const uniqueCurrentData = Array.from(new Set(currentData));
+
+  const handleAccept = async (friend_ID: string) => {
+    try {
+      const response = await axiosInstance.post("/auth/friend_accept", {
+        friend_unique_ID: friend_ID,
+      });
+      if (response.status == 200) {
+        mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
+        mutate(["friend_profile_info", LoginStatus], undefined, {
+          revalidate: true,
+        });
+        Alert.alert("Success", "Friend request accepted");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const handleCancel = async (friend_ID: string) => {
+    try {
+      const response = await axiosInstance.post("/auth/friend_cancel", {
+        friend_unique_ID: friend_ID,
+      });
+      if (response.status == 200) {
+        mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
+        mutate(["friend_profile_info", LoginStatus], undefined, {
+          revalidate: true,
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const handleRequestSend = async () => {
+    try {
+      const enterMessageLength = searchQuery.length;
+      if (enterMessageLength < 1) {
+        Alert.alert("Error", "Please enter a valid ID");
+        return;
+      }
+
+      const response = await axiosInstance.post("/auth/friend_request", {
+        friend_unique_ID: searchQuery,
+      });
+      if (response.status === 200) {
+        mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
+        mutate(["friend_profile_info", LoginStatus], undefined, {
+          revalidate: true,
+        });
+
+        Alert.alert("Success", "Friend request sent");
+      } else if (response.status === 400) {
+        if (response.data.find) {
+          Alert.alert("Error", "Request already sent");
+        } else {
+          Alert.alert("Error", "User not found");
+        }
+      }
+    } catch (err: any) {
+      if (err.response) {
+        if (err.response.status === 400) {
+          Alert.alert("Error", err.response.data.message || "Bad Request");
+        } else {
+          Alert.alert("Error", "Something went wrong. Please try again.");
+        }
+      } else {
+        console.log("Error without response:", err);
+        Alert.alert("Error", "Something went wrong. Please try again.");
+      }
+    }
+  };
 
   const handleVisit = (item: string) => {
     console.log(item);

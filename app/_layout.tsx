@@ -11,12 +11,14 @@ import Colors from "@/constants/Colors";
 import { LanguageProvider } from "./(modals)/context/Languages";
 export { ErrorBoundary } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { AuthProvider } from "./(modals)/context/authContext";
+import { AuthProvider, useAuth } from "./(modals)/context/authContext";
 import { SavedHallsProvider } from "@/app/(modals)/context/savedHall";
 import Layout, { TabsLayout } from "./(tabs)/_layout";
 import { CustomErrorBoundary } from "./(modals)/context/errorContext";
 import * as Notifications from "expo-notifications";
 import { CalendarProvider } from "@/interfaces/CalendarContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mutate } from "swr";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -42,6 +44,7 @@ function RootLayout({ children }: RootLayoutProps) {
     ...FontAwesome.font,
   });
   const [fontError, setFontError] = useState<boolean>(false);
+  const { LoginStatus } = useAuth();
 
   useEffect(() => {
     if (error) {
@@ -60,8 +63,30 @@ function RootLayout({ children }: RootLayoutProps) {
 
   useEffect(() => {
     notificationListener.current =
-      Notifications.addNotificationReceivedListener((notification) => {
+      Notifications.addNotificationReceivedListener(async (notification) => {
         const { title, body, data } = notification.request.content;
+        console.log("lalar", notification.request.content);
+
+        if (data.success && data.fetch) {
+          mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
+        }
+        const newNotification = {
+          title: typeof title === "string" ? title : "New Notification",
+          body: typeof body === "string" ? body : "You have a new message",
+          timestamp: Date.now(),
+        };
+        try {
+          const existing = await AsyncStorage.getItem("saved_notifications");
+          const parsed = existing ? JSON.parse(existing) : [];
+          parsed.push(newNotification);
+          await AsyncStorage.setItem(
+            "saved_notifications",
+            JSON.stringify(parsed)
+          );
+          console.log("Notification saved");
+        } catch (error) {
+          console.error("Failed to save notification:", error);
+        }
 
         setNotificationData((prev) => {
           // Avoid setting the same data repeatedly
@@ -189,7 +214,7 @@ function RootLayoutNav() {
         name="listing/notification"
         options={{
           headerShown: true,
-          title: `${t("notificationText")}`,
+          title: `${t("Notifications")}`,
           headerTitleStyle: { fontSize: 28, color: Colors.primary },
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()}>

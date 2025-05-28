@@ -12,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { PieChart } from "react-native-chart-kit";
 import Colors from "@/constants/Colors";
+import { useTranslation } from "react-i18next";
 
 const categories = [
   {
@@ -124,7 +125,12 @@ const ProfileData = () => {
       name: "Remaining",
     },
   ];
-
+  const { t } = useTranslation();
+  const profileLanguageData: any = t("profilesdaData", { returnObjects: true });
+  const sdaData = Array.isArray(profileLanguageData)
+    ? profileLanguageData[0]
+    : [];
+  const data = sdaData.profileData[0];
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -137,7 +143,7 @@ const ProfileData = () => {
       {/* MENU */}
 
       <View style={styles.header}>
-        <Text style={styles.activityTitle}>minii amjilt</Text>
+        <Text style={styles.activityTitle}>{data.miniiAmjilt}</Text>
       </View>
 
       {/* CATEGORIES */}

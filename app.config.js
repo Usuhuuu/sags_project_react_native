@@ -65,7 +65,6 @@ export default {
       "expo-secure-store",
       "expo-localization",
       "expo-notifications",
-      ["expo-calendar", { calendarPermission: "The app needs to access your calendar." }],
       ["expo-camera", {
         cameraPermission: "Allow application to access your camera",
         microphonePermission: "Allow application to access your microphone",

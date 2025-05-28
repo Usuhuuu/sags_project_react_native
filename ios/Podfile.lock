@@ -257,8 +257,6 @@ PODS:
     - ExpoModulesCore
   - ExpoAsset (11.0.5):
     - ExpoModulesCore
-  - ExpoCalendar (14.0.6):
-    - ExpoModulesCore
   - ExpoCamera (16.0.18):
     - ExpoModulesCore
     - ZXingObjC/OneD
@@ -1695,6 +1693,8 @@ PODS:
     - Yoga
   - react-native-maps (1.14.0):
     - React-Core
+  - react-native-month-year-picker (1.9.0):
+    - React
   - react-native-pager-view (6.7.1):
     - DoubleConversion
     - glog
@@ -2162,6 +2162,8 @@ PODS:
   - RNSslPinning (1.5.8):
     - AFNetworking (~> 4.0)
     - React
+  - RNSVG (15.8.0):
+    - React-Core
   - SDWebImage (5.11.1):
     - SDWebImage/Core (= 5.11.1)
   - SDWebImage/Core (5.11.1)
@@ -2232,7 +2234,6 @@ DEPENDENCIES:
   - "ExpoAdapterGoogleSignIn (from `../node_modules/@react-native-google-signin/google-signin/expo/ios`)"
   - ExpoAppleAuthentication (from `../node_modules/expo-apple-authentication/ios`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
-  - ExpoCalendar (from `../node_modules/expo-calendar/ios`)
   - ExpoCamera (from `../node_modules/expo-camera/ios`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - ExpoCrypto (from `../node_modules/expo-crypto/ios`)
@@ -2290,6 +2291,7 @@ DEPENDENCIES:
   - react-native-fbsdk-next (from `../node_modules/react-native-fbsdk-next`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-maps (from `../node_modules/react-native-maps`)
+  - react-native-month-year-picker (from `../node_modules/react-native-month-year-picker`)
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-tracking-transparency (from `../node_modules/react-native-tracking-transparency`)
@@ -2330,6 +2332,7 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNSslPinning (from `../node_modules/react-native-ssl-pinning`)
+  - RNSVG (from `../node_modules/react-native-svg`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2399,8 +2402,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-apple-authentication/ios"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
-  ExpoCalendar:
-    :path: "../node_modules/expo-calendar/ios"
   ExpoCamera:
     :path: "../node_modules/expo-camera/ios"
   ExpoClipboard:
@@ -2512,6 +2513,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-maps:
     :path: "../node_modules/react-native-maps"
+  react-native-month-year-picker:
+    :path: "../node_modules/react-native-month-year-picker"
   react-native-pager-view:
     :path: "../node_modules/react-native-pager-view"
   react-native-safe-area-context:
@@ -2592,6 +2595,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@sentry/react-native"
   RNSslPinning:
     :path: "../node_modules/react-native-ssl-pinning"
+  RNSVG:
+    :path: "../node_modules/react-native-svg"
   stripe-react-native:
     :path: "../node_modules/@stripe/stripe-react-native"
   Yoga:
@@ -2619,7 +2624,6 @@ SPEC CHECKSUMS:
   ExpoAdapterGoogleSignIn: f5ca2b67502442629d99dbe202b6ae821d77c75d
   ExpoAppleAuthentication: 8a661b6f4936affafd830f983ac22463c936dad5
   ExpoAsset: 48386d40d53a8c1738929b3ed509bcad595b5516
-  ExpoCalendar: 12208702ad2461776a5a59b6e51e37ef23f9efac
   ExpoCamera: 0a3e78de7b1ca8c438ee6784fa6f22c5b1b36966
   ExpoClipboard: 243e22ff4161bbffcd3d2db469ae860ddc1156be
   ExpoCrypto: e97e864c8d7b9ce4a000bca45dddb93544a1b2b4
@@ -2685,6 +2689,7 @@ SPEC CHECKSUMS:
   react-native-fbsdk-next: 52f81e60eb3e8e0e06cf9728b4572d3509ca9d01
   react-native-image-picker: 32515318a4ecfbc864f5f94a1c67df1ce4b8d854
   react-native-maps: deb2adbdf309b622f15055b72b8742054929c740
+  react-native-month-year-picker: 8b72e984757e47e08fece220fa09fcdf1816203d
   react-native-pager-view: 63e15e36214c63e76c490fad02c4eb61703973de
   react-native-safe-area-context: df9763c5de6fa38883028e243a0b60123acb8858
   react-native-tracking-transparency: 15eb319f2b982070eb9831582af27d87badfa624
@@ -2725,6 +2730,7 @@ SPEC CHECKSUMS:
   RNScreens: 295d9c0aaeb7f680d03d7e9b476569a4959aae89
   RNSentry: 8c96b2bdad455fed97a50b2faeec5510a771dfb8
   RNSslPinning: 4478c22fed7179a22be2bdd7d7f235fc51bf85dc
+  RNSVG: 8542aa11770b27563714bbd8494a8436385fc85f
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   Sentry: 5eda2559a20fa0c377b695ed9d7c178a47122891

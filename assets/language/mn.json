@@ -9,6 +9,8 @@
         "order": "Захиалга",
         "profile": "Профайл",
         "notificationText": "Мэдэгдэлүүд",
+        "chat": "Чат өрөө",
+        "friends": "Найзууд",
         "yes":"Тийм",
         "cancel":"Үгүй",
         "settings": [
@@ -111,35 +113,58 @@
         ],
         "DrawerScreen": [
             {
-            "userDrawer": [
+                "userDrawer": [
                 {
-                "home": "Нүүр хуудас",
-                "news": "Мэдээ",
-                "academy": "Академи",
-                "settings": "Тохиргоо"
+                    "home": "Нүүр хуудас",
+                    "news": "Мэдээ",
+                    "academy": "Академи",
+                    "settings": "Тохиргоо",
+                    "bookHistory": "Захиалгын түүх"
                 }
-            ],
-            "adminDrawer": [
+                ],
+                "adminDrawer": [
                 {
-                "adminPage": "Нүүр хуудас",
-                "userInfo": "Хэрэглэгчийн мэдээлэл",
-                "news": "Мэдээ",
-                "notificationPage": "Мэдэгдлийн хуудас",
-                "settings": "Тохиргоо"
+                    "adminPage": "Нүүр хуудас",
+                    "userInfo": "Хэрэглэгчийн мэдээлэл",
+                    "news": "Мэдээ",
+                    "notificationPage": "Мэдэгдлийн хуудас",
+                    "settings": "Тохиргоо"
                 }
-            ],
-            "contractorDrawer": [
+                ],
+                "contractorDrawer": [
                 {
-                "contractorPage": "Нүүр хуудас",
-                "userInfo": "Хэрэглэгчийн мэдээлэл",
-                "news": "Мэдээ",
-                "statisticalPage": "Статистикийн хуудас",
-                "notificationPage": "Мэдэгдлийн хуудас",
-                "settings": "Тохиргоо"
+                    "contractorPage": "Нүүр хуудас",
+                    "userInfo": "Хэрэглэгчийн мэдээлэл",
+                    "news": "Мэдээ",
+                    "statisticalPage": "Статистикийн хуудас",
+                    "notificationPage": "Мэдэгдлийн хуудас",
+                    "settings": "Тохиргоо",
+                    "registerSportHall": "Спорт заал бүртгэх",
+                    "bookCheck": "Захиалга шалгах"
                 }
-            ]
+                ]
             }
-        ],
+            ],
+        "profilesdaData": [
+            {
+                "profileData": [
+                {
+                    "profile": "Профайл",
+                    "userName": "Хэрэглэгчийн нэр",
+                    "name": "Нэр",
+                    "email": "Имэйл",
+                    "phoneNumber": "Утасны дугаар",
+                    "editProfile": "Профайл засах",
+                    "saveProfile": "Өөрчлөлтийг хадгалах",
+                    "changePassword": "Нууц үг солих",
+                    "savedHalls": "Хадгалсан заалууд",
+                    "archievements": "Амжилтууд",
+                    "rewards": "Шагналууд",
+                    "miniiAmjilt": "Миний амжилт"
+                }
+                ]
+            }
+            ],
         "RolePage":[{
             "userRole":[
                 {

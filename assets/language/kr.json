@@ -6,7 +6,9 @@
     "data":{
         "home": "홈",
         "together": "함께",
-        "order": "주문",
+        "order": "예약",
+        "chat": "채팅방",
+        "friends": "친구들",
         "profile": "마이패이즈",
         "notificationText": "알림",
         "yes":"예",
@@ -115,7 +117,8 @@
                     "home":"홈",
                     "news":"뉴스",
                     "academy":"학원",
-                    "settings":"설정"
+                    "settings":"설정",
+                    "bookHistory":"예약 기록"
                 }
             ],
             "adminDrawer":[
@@ -135,10 +138,32 @@
                     "news":"뉴스",
                     "statisticalPage":"통계 페이지",
                     "notificationPage":"알림 페이지",
-                    "settings":"설정"
+                    "settings":"설정",
+                    "registerSportHall": "스포츠 홀 등록",
+                    "bookCheck": "예약 확인"
                 }
             ]
         }],
+        "profilesdaData": [
+            {
+            "profileData": [
+                {
+                "profile": "프로필",
+                "userName": "사용자 이름",
+                "name": "이름",
+                "email": "이메일",
+                "phoneNumber": "전화번호",
+                "editProfile": "프로필 수정",
+                "saveProfile": "수정 저장",
+                "changePassword": "비밀번호 변경",
+                "savedHalls": "저장된 홀",
+                "archievements": "업적",
+                "rewards": "보상",
+                "miniiAmjilt":"내 성공"
+                }
+            ]
+            }
+        ],
         "RolePage":[{
             "userRole":[
                 {

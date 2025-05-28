@@ -14,7 +14,6 @@ import { DrawerActions, useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
 
 import Colors from "@/constants/Colors";
-import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import "@/utils/i18";
 import Animated, {

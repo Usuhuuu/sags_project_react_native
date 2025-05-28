@@ -9,6 +9,7 @@
         "order": "Order",
         "profile": "Profile",
         "chat":"Chating Room",
+        "friends":"Friends",
         "yes":"Yes",
         "cancel":"Cancel",
         "settings": [
@@ -115,7 +116,8 @@
                     "home":"Home",
                     "news":"News",
                     "academy":"Academy",
-                    "settings":"Settings"
+                    "settings":"Settings",
+                    "bookHistory":"Book History"
                 }
             ],
             "adminDrawer":[
@@ -135,10 +137,32 @@
                     "news":"News",
                     "statisticalPage":"Statistical Page",
                     "notificationPage":"Notification Page",
-                    "settings":"Settings"
+                    "settings":"Settings",
+                    "registerSportHall":"Register Sport Hall",
+                    "bookCheck":"Booking check"
                 }
             ]
         }],
+        "profilesdaData": [
+            {
+            "profileData": [
+                {
+                "profile": "Profile",
+                "userName": "Username",
+                "name": "Name",
+                "email": "Email",
+                "phoneNumber": "Phone Number",
+                "editProfile": "Edit Profile",
+                "saveProfile": "Save Changes",
+                "changePassword": "Change Password",
+                "savedHalls": "Saved Halls",
+                "archievements": "Achievements",
+                "rewards": "Rewards",
+                "miniiAmjilt": "My Success"
+                }
+                ]
+            }
+        ],
         "RolePage":[{
             "userRole":[
                 {

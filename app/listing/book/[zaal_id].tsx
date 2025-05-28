@@ -22,6 +22,7 @@ import StepIndicator from "react-native-step-indicator";
 import { format } from "date-fns";
 import axiosInstance from "@/hooks/axiosInstance";
 import { AxiosResponse } from "axios";
+import * as Notifications from "expo-notifications";
 
 const customStyles = {
   stepIndicatorSize: 30,
@@ -105,6 +106,22 @@ const TransactionPage = () => {
   const paymentPerPeopleArray: number[] = [];
   const totalBookerPaymentArray: number[] = [];
 
+  const scheduleNotification = async () => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "🏀 Time to Play!",
+        body: "Reminder testing will be received 10 seconds later",
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 10,
+        repeats: false,
+      },
+    });
+  };
+
   const handleOrder = async () => {
     try {
       if (isOrdering) return;
@@ -150,7 +167,7 @@ const TransactionPage = () => {
           ],
         });
       }
-
+      scheduleNotification();
       if (response.status === 200 && response.data.success) {
         Alert.alert("Successfully Booked");
         router.replace("/");

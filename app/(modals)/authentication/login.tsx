@@ -12,7 +12,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 import Colors from "@/constants/Colors";
-import * as AppleAuthentication from "expo-apple-authentication";
 import { Platform } from "react-native";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as Sentry from "@sentry/react-native";
@@ -20,11 +19,9 @@ import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/authContext";
-import { Href } from "expo-router";
 import {
   loginWithFacebook,
   loginWithGoogle,
-  loginWithApple,
 } from "../functions/third_party_instance";
 import SignupModal from "./signup_modal";
 import { TextInput } from "react-native-paper";
@@ -141,7 +138,8 @@ const Page = () => {
         logIn();
         Alert.alert(`${facebookResponse?.data.message}`);
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.log(err.response.data);
       console.log(err);
     }
     return;
@@ -192,7 +190,11 @@ const Page = () => {
         resizeMode="cover"
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 20 }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            padding: 20,
+          }}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.inputContainer}>
@@ -216,7 +218,10 @@ const Page = () => {
               style={styles.input}
               placeholderTextColor={Colors.grey}
             />
-            <TouchableOpacity style={styles.eyeIcon} onPress={handlePasswordToggle}>
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={handlePasswordToggle}
+            >
               <Ionicons
                 name={passwordHide ? "eye-off" : "eye"}
                 size={24}
@@ -240,12 +245,18 @@ const Page = () => {
           </View>
 
           <View style={styles.socialButtons}>
-            <TouchableOpacity style={styles.btnOutline} onPress={handleGoogleLogin}>
+            <TouchableOpacity
+              style={styles.btnOutline}
+              onPress={handleGoogleLogin}
+            >
               <Ionicons name="logo-google" size={24} style={styles.btnIcon} />
               <Text style={styles.btnOutlineText}>Continue with Google</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.btnOutline} onPress={handleFacebookLogin}>
+            <TouchableOpacity
+              style={styles.btnOutline}
+              onPress={handleFacebookLogin}
+            >
               <Ionicons name="logo-facebook" size={24} style={styles.btnIcon} />
               <Text style={styles.btnOutlineText}>Continue with Facebook</Text>
             </TouchableOpacity>

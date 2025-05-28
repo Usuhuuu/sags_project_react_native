@@ -15,7 +15,6 @@ import InfoScreen from "@/components/InfoScreen"; // Example drawer screen
 import Dtraining from "@/components/training";
 import CustomDrawerContent from "@/components/CostumDrawerContent";
 import {
-  AntDesign,
   Entypo,
   Ionicons,
   MaterialCommunityIcons,
@@ -132,8 +131,8 @@ export const TabsLayout = () => {
       <Tabs.Screen
         name="friend"
         options={{
-          tabBarLabel: `${t("Friends")}`,
-          headerTitle: "Friends",
+          tabBarLabel: `${t("friends")}`,
+          headerTitle: `${t("friends")}`,
           headerTitleStyle: { color: Colors.primary, fontSize: 24 },
           headerRight: () => {
             const [modalVisible, setModalVisible] = useState(false);
@@ -174,7 +173,7 @@ export const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name={"chat"}
         options={{
           tabBarLabel: `${t("chat")}`,
           tabBarIcon: ({ focused }) => (
@@ -271,7 +270,7 @@ const Layout = () => {
   const userDrawerLng = drawer?.userDrawer[0];
   const adminDrawerLng = drawer?.adminDrawer[0];
   const contractorDrawerLng = drawer?.contractorDrawer[0];
-  const { LoginStatus, logOut, logIn } = useAuth();
+  const { LoginStatus, logIn } = useAuth();
   const { triggerCalendar } = useCalendar();
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -317,7 +316,7 @@ const Layout = () => {
         icon: "settings",
       },
       {
-        name: "Book History",
+        name: userDrawerLng.bookHistory ?? "sda",
         component: OrderHistory,
         icon: "bookmark-outline",
       },
@@ -368,12 +367,12 @@ const Layout = () => {
         icon: "settings",
       },
       {
-        name: "Register Sport Hall",
+        name: contractorDrawerLng.registerSportHall,
         component: RegisterZaal,
         icon: "add",
       },
       {
-        name: "Booking check",
+        name: contractorDrawerLng.bookCheck,
         component: BookingCheck,
         icon: "calendar",
       },
@@ -465,7 +464,8 @@ const Layout = () => {
                       />
                     </TouchableOpacity>
                   )
-                : () => (
+                : name === "Booking check"
+                ? () => (
                     <TouchableOpacity onPress={() => triggerCalendar()}>
                       <Animated.View
                         style={{ transform: [{ scale: scaleAnim }] }}
@@ -478,7 +478,8 @@ const Layout = () => {
                         />
                       </Animated.View>
                     </TouchableOpacity>
-                  ),
+                  )
+                : undefined,
             headerTitle: name,
             headerTitleStyle: {
               color: Colors.primary,

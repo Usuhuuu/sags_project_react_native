@@ -1,117 +1,125 @@
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Image,
   Alert,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
 } from "react-native";
+import * as Notifications from "expo-notifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import Colors from "@/constants/Colors";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Href, router } from "expo-router";
 import { useTranslation } from "react-i18next";
+import Colors from "@/constants/Colors";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import SwipeableRow from "./book/support_components/swipe_remove";
 
-const notificationsData = [
-  {
-    id: "1",
-    message: "Таны захиалга баталгаажсан.",
-    time: "2 минутын өмнө",
-    avatar: "https://via.placeholder.com/40",
-  },
-  {
-    id: "2",
-    message: "Таны дараагийн захиалгад шинэ санал байна!",
-    time: "1 цагийн өмнө",
-    avatar: "https://via.placeholder.com/40",
-  },
-  {
-    id: "3",
-    message: "Суралцах цагийн 30 минутын өмнө сануулга.",
-    time: "3 цагийн өмнө",
-    avatar: "https://via.placeholder.com/40",
-  },
-  {
-    id: "4",
-    message: "Таны дасгалжуулагчтай шинэ мессеж ирлээ.",
-    time: "5 цагийн өмнө",
-    avatar: "https://via.placeholder.com/40",
-  },
-  {
-    id: "5",
-    message: "Таны дасгал эхлэхэд 10 минут үлдлээ.",
-    time: "1 өдрийн өмнө",
-    avatar: "https://via.placeholder.com/40",
-  },
-];
+// Define NotificationItem type
+type NotificationItem = {
+  id: string;
+  message: string;
+  time: string;
+};
+
 const NotificationScreen = () => {
   const { t } = useTranslation();
+  const [savedNotifications, setSavedNotifications] = useState<
+    NotificationItem[]
+  >([]);
 
   const handleNotificationPress = (message: string) => {
-    Alert.alert(`Та дарахад: ${message}`);
+    Alert.alert(`${message}`);
+  };
+  const deleteNotification = async (id: string) => {
+    const saved = await AsyncStorage.getItem("saved_notifications");
+    const parsed = saved ? JSON.parse(saved) : [];
+
+    const updated = parsed.filter((item: any) => String(item.timestamp) !== id);
+
+    await AsyncStorage.setItem("saved_notifications", JSON.stringify(updated));
+
+    // Update the local state too
+    setSavedNotifications((prev) => prev.filter((item) => item.id !== id));
   };
 
-  return (
-    <SafeAreaProvider>
-      <>
-        <View style={styles.container}>
-          <TouchableOpacity
-            style={[styles.buttons, { gap: 10 }]}
-            onPress={() =>
-              router.push(
-                "/listing/friendRequest" as Href<"listing/friendRequest">
-              )
-            }
-          >
-            <Image
-              source={{ uri: "https://via.placeholder.com/40" }}
-              style={styles.avatar}
-            />
-            <Text style={styles.texts}>
-              {t("NotificationPage.friendRequest")}
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
-          </TouchableOpacity>
+  const getSavedNotifications = async () => {
+    const saved = await AsyncStorage.getItem("saved_notifications");
+    const parsed = saved ? JSON.parse(saved) : [];
+    const transformed = parsed.map((n: any, index: number) => ({
+      id: String(n.timestamp ?? index),
+      message: n.message ?? `${n.title ?? "Notification"}: ${n.body ?? ""}`,
+      time: n.time ?? new Date(n.timestamp).toLocaleString(),
+    }));
+    setSavedNotifications(transformed);
+  };
 
+  useEffect(() => {
+    getSavedNotifications();
+
+    const subscription = Notifications.addNotificationReceivedListener(
+      async (notification) => {
+        const { title, body } = notification.request.content;
+        const timestamp = Date.now();
+
+        const newNotification = {
+          title,
+          body,
+          timestamp,
+        };
+
+        // Save to AsyncStorage
+        const saved = await AsyncStorage.getItem("saved_notifications");
+        const parsed = saved ? JSON.parse(saved) : [];
+        const updated = [newNotification, ...parsed];
+        await AsyncStorage.setItem(
+          "saved_notifications",
+          JSON.stringify(updated)
+        );
+
+        // Update UI state
+        setSavedNotifications((prev) => [
+          {
+            id: String(timestamp),
+            message: `${title ?? "Notification"}: ${body ?? ""}`,
+            time: new Date(timestamp).toLocaleString(),
+          },
+          ...prev,
+        ]);
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <View style={styles.container}>
           <FlatList
-            data={notificationsData}
+            data={savedNotifications}
             contentContainerStyle={{
               top: 10,
               borderColor: Colors.primary,
               borderTopWidth: 1,
             }}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.notificationItem}
-                onPress={() => handleNotificationPress(item.message)}
-              >
-                <View style={styles.notificationContent}>
-                  <Image source={{ uri: item.avatar }} style={styles.avatar} />
-                  <View style={styles.notificationText}>
-                    <Text style={styles.notificationMessage}>
-                      {item.message}
-                    </Text>
-                    <Text style={styles.notificationTime}>{item.time}</Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={Colors.primary}
-                  />
-                </View>
-              </TouchableOpacity>
+              <SwipeableRow
+                item={item}
+                onDelete={() => deleteNotification(item.id)}
+              />
             )}
             keyExtractor={(item) => item.id}
           />
-
           <View style={styles.footer}>
             <Text style={styles.footerButtonText}>google ad</Text>
           </View>
         </View>
-      </>
-    </SafeAreaProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 };
 
