@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import {
   View,
   Text,
@@ -27,6 +27,7 @@ import { differenceInDays, format } from "date-fns";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "../context/authContext";
+import { ObjectId } from "bson";
 
 type ActiveUserType = {
   unique_user_ID: string;
@@ -56,6 +57,7 @@ const DirectChatScreen: React.FC = ({}) => {
     if (!socketRef.current?.connected) return;
 
     const newMessage = {
+      _id: new ObjectId(),
       sender_unique_name: userDataParsed.unique_user_ID,
       message: messageText,
       timestamp: new Date(),
@@ -273,6 +275,7 @@ const DirectChatScreen: React.FC = ({}) => {
             await connectSocket();
           }
           const newMsj: Message = {
+            _id: new ObjectId(),
             sender_unique_name: data.sender_unique_name,
             message: data.message,
             timestamp: new Date(data.timestamp),

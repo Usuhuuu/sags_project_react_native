@@ -4,6 +4,7 @@ import {
   LoginManager,
   Settings,
   AuthenticationToken,
+  AccessToken,
 } from "react-native-fbsdk-next";
 import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
 import * as Sentry from "@sentry/react-native";
@@ -28,19 +29,26 @@ export const loginWithFacebook = async () => {
     }
 
     LoginManager.logOut();
-    const result = await LoginManager.logInWithPermissions([
-      "public_profile",
-      "email",
-    ]);
+    const result = await LoginManager.logInWithPermissions(
+      ["public_profile", "email"],
+      "limited"
+    );
+    console.log(result);
+
     if (result.isCancelled) {
       Alert.alert("Login cancelled");
       return { modalVisible: false, data: null };
     }
-    const data = await AuthenticationToken.getAuthenticationTokenIOS();
+    const data = await (Platform.OS === "ios"
+      ? AuthenticationToken.getAuthenticationTokenIOS().then(
+          (data) => data?.authenticationToken
+        )
+      : AccessToken.getCurrentAccessToken().then((data) => data?.accessToken));
+
     if (data) {
-      const response = await axiosInstanceRegular.post("/auth/facebook", {
+      const response = await axiosInstanceRegular.post("/api/facebook", {
         fbData: {
-          accessToken: data.authenticationToken,
+          accessToken: data,
         },
       });
       if (response.status === 201 && response.data.success) {
@@ -66,6 +74,7 @@ export const loginWithFacebook = async () => {
     }
   } catch (error: any) {
     console.log("Facebook Login Error:", error);
+    console.log("Facebook Login Error:", error.message);
 
     if (error.code) {
       switch (error.code) {
@@ -96,7 +105,7 @@ export const loginWithFacebook = async () => {
 
 export const loginWithGoogle = async (googleAccessToken: string) => {
   try {
-    const response = await axiosInstanceRegular.post("/auth/google", {
+    const response = await axiosInstanceRegular.post("/api/google", {
       accessToken: googleAccessToken,
     });
     const responseData = response.data;

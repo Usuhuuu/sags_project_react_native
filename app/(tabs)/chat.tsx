@@ -29,8 +29,10 @@ import { Avatar } from "react-native-paper";
 import { router, useFocusEffect } from "expo-router";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { AntDesign } from "@expo/vector-icons";
+import { ObjectId } from "bson";
 
 export interface Message {
+  _id: ObjectId;
   sender_unique_name: string;
   groupId?: string;
   message: string;
@@ -147,8 +149,6 @@ export const MemoizedChatItem = React.memo(
     //본인
     const userSelf: boolean =
       item.sender_unique_name === userDatas.unique_user_ID;
-
-    console.log(item);
     return (
       <View>
         {item.showDateSeparator && (
@@ -518,7 +518,6 @@ const ChatComponent: React.FC = () => {
             setIsitReady(false);
             return;
           }
-          console.log(message.no_more_message);
           const formattedMessages = prepareMessages(
             message.messages,
             message.nextCursor,
@@ -543,7 +542,9 @@ const ChatComponent: React.FC = () => {
       socketRef.current?.off("receiveMessage");
 
       socketRef.current?.on("receiveMessage", (data: Message) => {
+        console.log("Recieved Data", data);
         const newMsj: Message = {
+          _id: data._id,
           sender_unique_name: data.sender_unique_name,
           groupId: data.groupId,
           message: data.message,
@@ -619,11 +620,13 @@ const ChatComponent: React.FC = () => {
     if (!socketRef.current?.connected) return;
 
     const newMessage = {
+      _id: new ObjectId(),
       sender_unique_name: userDatas.unique_user_ID,
       groupId: currentChatId.current,
       message: messageText,
       timestamp: new Date(),
     };
+    console.log("Sending message:", newMessage);
     const prevMsj = messagesMap.get(currentChatId.current)?.[0];
     const diff = differenceInDays(
       newMessage.timestamp,

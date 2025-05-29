@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import Constants from "expo-constants";
 import { Alert } from "react-native";
+import Constants from "expo-constants";
 
 const apiUrl =
   Constants.expoConfig?.extra?.apiUrl ??

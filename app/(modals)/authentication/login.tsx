@@ -19,10 +19,7 @@ import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/authContext";
-import {
-  loginWithFacebook,
-  loginWithGoogle,
-} from "../functions/third_party_instance";
+import { loginWithFacebook, loginWithGoogle } from "./third_party_instance";
 import SignupModal from "./signup_modal";
 import { TextInput } from "react-native-paper";
 
@@ -118,6 +115,7 @@ const Page = () => {
     try {
       const facebookResponse = await loginWithFacebook();
       const returnData = facebookResponse?.data;
+      console.log(returnData);
       if (facebookResponse?.modalVisible) {
         setFormData({
           ...formData,

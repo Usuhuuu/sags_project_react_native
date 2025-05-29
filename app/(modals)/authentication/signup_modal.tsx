@@ -21,9 +21,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
 import * as SecureStore from "expo-secure-store";
-import { Avatar, Badge, TextInput } from "react-native-paper";
+import { Avatar, TextInput } from "react-native-paper";
 import { launchImageLibrary } from "react-native-image-picker";
 import StepIndicator from "react-native-step-indicator";
+
 type LoginInput = {
   userName: string;
   firstName: string;

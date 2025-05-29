@@ -100,8 +100,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
     ? profileLanguageData[0]
     : [];
   const data = sdaData?.profileData[0];
-  console.log(data);
-
   const menu = [
     { name: data.savedHalls, icon: require("@/assets/images/saved.png") },
     {

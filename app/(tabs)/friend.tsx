@@ -19,6 +19,7 @@ import { Avatar, Searchbar } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useFriendStore } from "../(modals)/context/store/friendStore";
+
 type FriendName = {
   firstName: string;
   lastName: string;
@@ -136,9 +137,6 @@ const FriendRequest = () => {
   }, [data, error, isLoading]);
 
   useEffect(() => {
-    if (userInfoLoading) {
-      setShowFriends(false);
-    }
     if (userInfoData) {
       setFriendInfo(userInfoData.friendData || []);
       setShowFriends(!showFriends);
@@ -149,6 +147,12 @@ const FriendRequest = () => {
     setShowFriends(true);
     !LoginStatus && setNoFriend(true);
   }, [userInfoData, userInfoError, userInfoLoading, data, error]);
+
+  useEffect(() => {
+    if (userInfoLoading || isLoading) {
+      setShowFriends(false);
+    }
+  }, [userInfoLoading, isLoading]);
 
   const uniqueCurrentData = Array.from(new Set(currentData));
 
