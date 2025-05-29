@@ -14,6 +14,7 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { SportHallDataType } from "@/interfaces/listing";
 import { HashedSportData } from "@/utils/sport_hall_hash";
 import { MaterialIcons } from "@expo/vector-icons"; // install expo/vector-icons if needed
+import Colors from "@/constants/Colors";
 
 type FetchedDataType = {
   _id: string;
@@ -30,8 +31,18 @@ type OtherPoeples = {
 };
 
 const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const OrderHistory = () => {
@@ -62,6 +73,7 @@ const OrderHistory = () => {
       setLoading(false);
     }
   };
+  const handleCancel = (item: string) => {};
 
   useEffect(() => {
     fetchHistory(selectedYear, selectedMonth);
@@ -79,7 +91,9 @@ const OrderHistory = () => {
 
     return (
       <View style={styles.card}>
-        <Text style={styles.hallName}>{item.sport_hall?.name || "🏟️ Sport Hall"}</Text>
+        <Text style={styles.hallName}>
+          {item.sport_hall?.name || "🏟️ Sport Hall"}
+        </Text>
         <View style={styles.infoRow}>
           <Text style={styles.label}>📅 Days:</Text>
           <Text style={styles.value}>{readableDays}</Text>
@@ -101,8 +115,6 @@ const OrderHistory = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Your Bookings</Text>
-
       {/* Year selector */}
       <View style={styles.yearSelector}>
         <TouchableOpacity
@@ -136,7 +148,9 @@ const OrderHistory = () => {
                 pressed && !selected && { backgroundColor: "#d9eaff" },
               ]}
             >
-              <Text style={[styles.monthText, selected && styles.monthTextSelected]}>
+              <Text
+                style={[styles.monthText, selected && styles.monthTextSelected]}
+              >
                 {month.substring(0, 3)}
               </Text>
             </Pressable>
@@ -145,14 +159,20 @@ const OrderHistory = () => {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 32 }} />
+        <ActivityIndicator
+          size="large"
+          color="#007AFF"
+          style={{ marginTop: 32 }}
+        />
       ) : (
         <FlatList
           data={fetchedData}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>You don’t have any bookings yet.</Text>
+            <Text style={styles.emptyText}>
+              You don’t have any bookings yet.
+            </Text>
           }
           renderItem={renderItem}
         />
@@ -165,8 +185,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9fbfd",
-    paddingTop: 50,
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
   },
   header: {
     fontSize: 28,
@@ -179,7 +198,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
   },
   yearButton: {
     paddingHorizontal: 12,
@@ -196,11 +214,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    marginBottom: 28,
+    marginBottom: 10,
   },
   monthItem: {
-    width: 62,
-    height: 42,
+    width: 50,
+    height: 40,
     margin: 6,
     borderRadius: 10,
     backgroundColor: "#e6ecf5",
