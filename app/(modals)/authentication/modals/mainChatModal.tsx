@@ -72,6 +72,9 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
     setActiveUserMember(activeUserData.length);
   }, [activeUserData]);
   const chatInitLang: any = t("chatRoom", { returnObjects: true });
+  const groupChatSettingsLang: any = t("groupChatSettings", {
+    returnObjects: true,
+  });
   const messageData = message.get(currentChatId.current ?? groupID);
   const groupData = groupMap[currentChatId.current ?? groupID];
 
@@ -220,9 +223,7 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                   },
                 ]}
                 renderItem={renderChatItem}
-                keyExtractor={(item, index) =>
-                  `${item.timestamp.toString()}-${index}`
-                }
+                keyExtractor={(item) => item._id.toString()}
                 inverted={true}
                 onEndReached={loadOlderMsj}
                 onEndReachedThreshold={0.2}
@@ -355,7 +356,7 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                 />
               </TouchableOpacity>
               <Text style={{ fontSize: 24, color: Colors.primary }}>
-                Group Chat Settings
+                {groupChatSettingsLang.groupChatSettings}
               </Text>
             </View>
             <ChildModal MemberData={groupData ? [groupData] : []} />

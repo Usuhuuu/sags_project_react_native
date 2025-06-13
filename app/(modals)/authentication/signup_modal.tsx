@@ -161,7 +161,7 @@ const SignupModal = ({
 
   const handleSubmit = async () => {
     try {
-      const response = await axiosInstanceRegular.post(`/auth/${path}`, {
+      const response = await axiosInstanceRegular.post(`/api/${path}`, {
         fbData: {
           userName: formData.userName,
           firstName: formData.firstName,

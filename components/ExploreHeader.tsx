@@ -27,6 +27,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { router } from "expo-router";
 import type { SharedValue } from "react-native-reanimated";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNotificationStore } from "@/app/(modals)/context/store/notificationStore";
 
 // ICON MAP
 const iconMap: { [key: string]: any } = {
@@ -44,6 +46,8 @@ interface Props {
 }
 
 const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
+  const [notificationCount, setNotificationCount] = useState<number>(0);
+
   const navigation = useNavigation();
   const scrollRef = useRef<ScrollView>(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
@@ -51,8 +55,25 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   const sportDetail: any = t("sportTextIcons", { returnObjects: true });
   const windowHeight = Dimensions.get("window").height;
 
-  // Simulated notification count
-  const notificationCount = 8; // Replace with actual notification count from your state or context
+  const loadNotifications = useNotificationStore(
+    (state) => state.loadNotifications
+  );
+  const notifications = useNotificationStore((state) => state.notifications);
+
+  useEffect(() => {
+    loadNotifications();
+
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // If you want to track count:
+  useEffect(() => {
+    setNotificationCount(notifications.length);
+  }, [notifications]);
 
   // Animate icons wrapper up as sheet moves
   const animatedIconStyle = useAnimatedStyle(() => {

@@ -78,7 +78,7 @@
             { "name": "볼링", "icon": "bowling" },
             { "name": "골프", "icon": "golf" }
         ],
-        "login": [
+        "login": 
             {
                 "login": "로그인",
                 "email": "이메일",
@@ -89,9 +89,9 @@
                 "CheckCode": "코드 확인",
                 "forgotPassword": "비밀번호를 잊으셨나요?",
                 "continuewithgoogle": "구글로 계속하기",
-                "continuewithfacebook": "페이스북으로 계속하기"
-            }
-        ],
+                "continuewithfacebook": "페이스북으로 계속하기",
+                "signUp": "회원가입"
+            },
         "Register": [
             {
                 "register": "등록",
@@ -216,6 +216,74 @@
             "aboutUs": "회사 소개",
             "helps": "도움말",
             "contactUs": "서비스 센터"
+        },
+        "chatRoom": {
+            "chatRoom": "채팅방",
+            "sendMsj": "보내기",
+            "message": "메시지",
+            "noMessage": "메시지가 없습니다",
+            "enterMessage": "메시지를 입력하세요",
+            "groupChats": "그룹 채팅",
+            "individualChat": "개인",
+             "noChatYet": "아직 채팅이 없습니다",
+            "onceYouJoin": "게임에 참여하거나 친구가 생기면,",
+            "yourChatWillAppearHere": "여기에 채팅이 표시됩니다"
+        },
+        "friendScreen": {
+            "noFriendRequest": "아직 친구 요청이 없습니다",
+            "noFriendsYet": "아직 친구가 없습니다.",
+            "noFriendsAtAll": "아직 친구 요청이 없습니다.",
+            "noSendRequests": "보낸 요청이 없습니다.",
+            "noFriends": "친구 없음",
+            "accept": "수락",
+            "reject": "거절",
+            "searchPlaceHolder": "친구 검색 및 추가",
+            "friends": "친구",
+            "friendRequest": "친구 요청",
+            "friendRequestSent": "친구 요청 보냄",
+            "noFriendRequestYet": "아직 친구 요청이 없습니다",
+            "wantToMeetNewFriends": "새로운 친구들을 만나고 싶으신가요?",
+            "startDiscoveringPlayersNearby": "주변의 플레이어를 찾아보세요"
+        },
+        "togetherScreen": {
+            "swipeToPartner": "파트너를 찾으려면 스와이프하세요",
+            "swipeDescription": "오른쪽으로 스와이프하면 필터링되지 않은 체육관 예약을 볼 수 있습니다.",
+            "sortBy": "정렬 기준",
+            "back": "뒤로",
+            "rating": "평점",
+            "hightRating": "높은 평점",
+            "lowRating": "낮은 평점",
+            "price": "가격",
+            "hightPrice": "높은 가격",
+            "lowPrice": "낮은 가격",
+            "partnerLookingFor": "파트너를 찾고 있어요",
+            "feature": "기능",
+            "openInMap": "지도에서 열기",
+            "partnerLookingForThisHall": "이 체육관을 찾는 파트너",
+            "doYouWantJoinThisHall": "이 체육관에 참여하시겠습니까?",
+            "join": "참여",
+            "cancel": "취소",
+            "alreadyJoined": "이미 이 체육관에 참여하셨습니다",
+             "wholeDay":"종일"
+        },
+        "Notifications":"알림",
+        "groupChatSettings": {
+            "groupChatSettings": "그룹 채팅 설정",
+            "changeGroupName": "그룹 이름 변경",
+            "members": "멤버",
+            "searchInChannel": "채널에서 검색",
+            "notifications": "알림",
+            "leaveGroup": "그룹 나가기",
+            "reportGroup": "그룹 신고",
+            "editGroupName": "그룹 채팅 이름 수정",
+            "thisNameWillBeVisibleToAll": "이 이름은 그룹의 모든 멤버에게 보입니다.",
+            "chatMembers": "채팅 멤버",
+            "addMembers": "멤버 추가",
+            "save": "저장",
+            "cancel": "취소",
+            "nameMustbeLessThan100Characters": "이름은 100자 미만이어야 합니다.",
+            "copyLink": "링크 복사",
+            "close": "닫기"
         }
     }
 }

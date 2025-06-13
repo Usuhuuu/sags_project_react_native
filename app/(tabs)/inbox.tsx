@@ -41,12 +41,15 @@ import { router, useFocusEffect } from "expo-router";
 import { ActivityIndicator } from "react-native-paper";
 import { mutate } from "swr";
 import { useAuth } from "../(modals)/context/authContext";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 const SWIPE_WIDTH = width - 170;
 const BUTTON_WIDTH = 40;
 
 export type PartnerBlock = {
+  end_time: any;
+  start_time: any;
   totalPrice: string;
   current_player: string;
   num_players: string;
@@ -329,29 +332,45 @@ const Page = () => {
           ...(response.data.findPartner || []),
         ],
       }));
+      if (response.data.message === "last") {
+        console.log("Reached last page, not incrementing page anymore.");
+        return; // Don't call setPage()
+      }
+
       setShowList(true);
-    } catch (err) {
+    } catch (err: any) {
       console.log(err);
     } finally {
       setShowList(true);
     }
   };
-
   useFocusEffect(
     useCallback(() => {
       fetchPartnerSearching();
     }, [page])
   );
-
   useEffect(() => {
     if (partnerLookingData?.findPartner?.length) {
-      const merged = partnerLookingData.findPartner.map((partner) => {
+      const seen = new Set();
+
+      const merged = partnerLookingData.findPartner.flatMap((partner) => {
         const hall = visibleSportHallsMap[partner.zaal_ID];
-        return {
-          ...partner,
-          hallData: hall || null,
-        };
+
+        return partner.blocks
+          .filter((block) => {
+            const key = `${partner.zaal_ID}_${block.start_time}_${block.end_time}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          })
+          .map((block) => ({
+            zaal_ID: partner.zaal_ID,
+            day: partner.day,
+            blocks: [block],
+            hallData: hall || null,
+          }));
       });
+
       setMergedData(merged);
     }
   }, [partnerLookingData]);
@@ -359,7 +378,6 @@ const Page = () => {
   const handleJoin = async (roomId: string) => {
     try {
       console.log("lalar");
-
       router.push("/chat");
       const response = await axiosInstance.post(
         `/auth/sporthall/join/${roomId}`
@@ -371,20 +389,32 @@ const Page = () => {
           "You can process payment"
         );
         mutate(["group_chat", LoginStatus], undefined, { revalidate: true });
+
+        router.push("/chat");
       } else if (response.status === 409 && !response.data.success) {
-        Alert.alert("You are already joined");
+        Alert.alert(PartnerLanguage.alreadyJoined);
       }
     } catch (err: any) {
       console.log(err);
       if (err.response.status === 409) {
-        Alert.alert("You are already joined");
+        Alert.alert(PartnerLanguage.alreadyJoined);
       }
     }
   };
+  const { t } = useTranslation();
+  const PartnerLanguage: any = t("togetherScreen", {
+    returnObjects: true,
+  });
 
   const sortOptions = [
-    { label: "Rating", children: ["Highest First", "Lowest First"] },
-    { label: "Price", children: ["Lowest First", "Highest First"] },
+    {
+      label: PartnerLanguage.rating,
+      children: ["Highest First", "Lowest First"],
+    },
+    {
+      label: PartnerLanguage.price,
+      children: ["Lowest First", "Highest First"],
+    },
   ];
 
   const sortSlotGiver = (date: Date) => {};
@@ -575,10 +605,10 @@ const Page = () => {
           ListHeaderComponent={
             <>
               <Animated.Text style={[styles.swipet, bounceStyle]}>
-                Swipe to find partner
+                {PartnerLanguage.swipeToPartner}
               </Animated.Text>
               <Text style={styles.text}>
-                Swipe right to show unfiltered orders sport hall.
+                {PartnerLanguage.swipeDescription}
               </Text>
 
               <View
@@ -600,7 +630,9 @@ const Page = () => {
                     onPress={() => setModalVisible(true)}
                     style={styles.sortButton}
                   >
-                    <Text style={styles.sortText}>Sort by</Text>
+                    <Text style={styles.sortText}>
+                      {PartnerLanguage.sortBy}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -622,7 +654,9 @@ const Page = () => {
                   }}
                 >
                   <View style={styles.modalContainer}>
-                    <Text style={styles.modalTitle}>Sort by</Text>
+                    <Text style={styles.modalTitle}>
+                      {PartnerLanguage.sortBy}
+                    </Text>
                     <CalendarStrip
                       style={styles.calendars}
                       selectedDate={new Date(today)}
@@ -671,7 +705,7 @@ const Page = () => {
                           <Text
                             style={{ color: Colors.primary, marginBottom: 10 }}
                           >
-                            ← Back
+                            ← {PartnerLanguage.back}
                           </Text>
                         </TouchableOpacity>
                         {sortOptions
@@ -757,7 +791,7 @@ const Page = () => {
                               style={[styles.title, { textAlign: "center" }]}
                             >
                               {wholeDay ? (
-                                <Text>Whole Day</Text>
+                                <Text>{PartnerLanguage.wholeDay}</Text>
                               ) : (
                                 <Text>
                                   {startTime}-{endTime}
@@ -778,7 +812,9 @@ const Page = () => {
                         {expandedIndex === index && (
                           <View style={styles.content}>
                             <View>
-                              <Text style={styles.subTitle}>Features:</Text>
+                              <Text style={styles.subTitle}>
+                                {PartnerLanguage.feature}:
+                              </Text>
                               <View style={styles.featuresContainer}>
                                 {Object.entries(item.hallData?.feature)
                                   .filter(([_, value]) => value === true)
@@ -824,7 +860,7 @@ const Page = () => {
                                     fontSize: 16,
                                   }}
                                 >
-                                  📍 Open in Maps
+                                  📍 {PartnerLanguage.openInMap}
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -834,12 +870,14 @@ const Page = () => {
                               <Text
                                 style={[styles.subTitle, { marginBottom: 10 }]}
                               >
-                                Partners Looking For This Hall:
+                                {PartnerLanguage.partnerLookingForThisHall}:
                               </Text>
                             </View>
 
                             <View style={styles.down}>
-                              <Text>Do you want to join this sport hall?</Text>
+                              <Text>
+                                {PartnerLanguage.doYouWantJoinThisHall}
+                              </Text>
                               <View
                                 style={{
                                   flexDirection: "row",
@@ -851,7 +889,9 @@ const Page = () => {
                                   onPress={() => handleJoin(item.blocks[0]._id)}
                                   style={styles.joinButton}
                                 >
-                                  <Text style={styles.buttonText}>Join</Text>
+                                  <Text style={styles.buttonText}>
+                                    {PartnerLanguage.join}
+                                  </Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
@@ -865,7 +905,9 @@ const Page = () => {
                                   }}
                                   style={styles.cancelButton}
                                 >
-                                  <Text style={styles.buttonText}>Cancel</Text>
+                                  <Text style={styles.buttonText}>
+                                    {PartnerLanguage.cancel}
+                                  </Text>
                                 </TouchableOpacity>
                               </View>
                             </View>

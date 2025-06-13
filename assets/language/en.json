@@ -76,7 +76,7 @@
             { "name": "Bowling", "icon": "bowling"},
             { "name": "Golf","icon": "golf" }
         ],
-        "login": [
+        "login": 
             {
                 "login": "Login",
                 "email": "Email",
@@ -87,9 +87,9 @@
                 "CheckCode": "Check Code",
                 "forgotPassword": "Forgot Password",
                 "continuewithgoogle": "Continue with Google",
-                "continuewithfacebook": "Continue with Facebook"
-            }
-        ],
+                "continuewithfacebook": "Continue with Facebook",
+                "signUp": "Sign Up"
+            },
         "Register":[
             {
                 "register": "Register",
@@ -180,15 +180,7 @@
                 }
             ]
         }],
-        "NotificationPage":{
-            "friendRequest":"Friend Request",
-            "noFriendRequest":"No Friend Request",
-            "ReceivedFriendRequest":"Received Friend Request",
-            "noFriends":"No Friends",
-            "accept":"Accept",
-            "reject":"Reject",
-            "friendList":"Friend List"
-        },
+        
         "userLogout":{
             "logoutAlert":"Logout",
             "logoutMessage":"Are you sure you want to logout?",
@@ -219,7 +211,68 @@
             "sendMsj": "Send",
             "message": "Message",
             "noMessage": "No Message",
-            "enterMessage": "Enter Message"
+            "enterMessage": "Enter Message",
+            "groupChats":"Group Chats",
+            "individualChat":"Individual Chat",
+            "noChatYet":"No Chat Yet",
+            "onceYouJoin":"Once you join a game or make a frind,",
+            "yourChatWillAppearHere":"your chat will appear here"
+        },
+        "friendScreen":{
+            "noFriendRequest":"No Friend Requests yet.",
+            "noFriendsYet":" You don’t have any friends yet.",
+            "noFriendsAtAll":"No friend requests yet.",
+            "noSendRequests":"No send request yet.",
+            "noFriends":"No Friends",
+            "accept":"Accept",
+            "reject":"Reject",
+            "searchPlaceHolder":"Search & Add Friends",
+            "friends":"Friends",
+            "friendRequest": "Friend Request",
+            "friendRequestSent": "Friend Request Sent",
+            "noFriendRequestYet": "No Friend Request Yet",
+            "wantToMeetNewFriends":"Want to meet new friends?",
+            "startDiscoveringPlayersNearby":"Start discovering players nearby"
+        },
+        "togetherScreen":{
+            "swipeToPartner":"Swipe to find a partner",
+            "swipeDescription":" Swipe right to show unfiltered orders sport hall.",
+            "sortBy":"Sort By",
+            "back":"Back",
+            "rating":"Rating",
+            "hightFirst":"Highest First",
+            "lowFirst":"Lowest First",
+            "price":"Price",
+            "hightPrice":"Highest First",
+            "lowPrice":"Lowest First",
+            "partnerLookingFor":"Partner Looking For",
+            "feature":"Feature",
+            "openInMap":"Open in Map",
+            "partnerLookingForThisHall":"Partner looking for this hall",
+            "doYouWantJoinThisHall":"Do you want to join this hall?",
+            "join":"Join",
+            "cancel":"Cancel",
+            "alreadyJoined":"You have already joined this hall",
+            "wholeDay":"Whole Day"
+        },
+        "Notifications":"Notifications",
+        "groupChatSettings":{
+            "groupChatSettings":"Group Chat Settings",
+            "changeGroupName":"Change Group Name",
+            "members":"Members",
+            "searchInChannel":"Search in Channel",
+            "notifications":"Notification",
+            "leaveGroup":"Leave Group",
+            "reportGroup":"Report Group",
+            "editGroupName":"Edit Group Chat Name",
+            "thisNameWillBeVisibleToAll":"This name will be visible to all members of the group.",
+            "chatMembers":"Chat Members",
+            "addMembers":"Add Members",
+            "save":"Save",
+            "cancel":"Cancel",
+            "nameMustbeLessThan100":"Name must be less than 100 characters",
+            "copyLink":"Copy Link",
+            "close":"Close"
         }
         
     }

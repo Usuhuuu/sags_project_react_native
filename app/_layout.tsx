@@ -19,6 +19,7 @@ import * as Notifications from "expo-notifications";
 import { CalendarProvider } from "@/interfaces/CalendarContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { mutate } from "swr";
+import { useNotificationStore } from "./(modals)/context/store/notificationStore";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -62,69 +63,67 @@ function RootLayout({ children }: RootLayoutProps) {
     useRef<Notifications.Subscription | null>(null);
 
   useEffect(() => {
-    notificationListener.current =
-      Notifications.addNotificationReceivedListener(async (notification) => {
-        const { title, body, data } = notification.request.content;
-        console.log("lalar", notification.request.content);
+    const addNotification = useNotificationStore.getState().addNotification;
 
-        if (data.success && data.fetch) {
-          mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
-        }
+    const listener = Notifications.addNotificationReceivedListener(
+      async (notification) => {
+        const { title, body, data } = notification.request.content;
+        const timestamp = Date.now();
+
         const newNotification = {
           title: typeof title === "string" ? title : "New Notification",
           body: typeof body === "string" ? body : "You have a new message",
-          timestamp: Date.now(),
+          timestamp,
         };
+
         try {
-          const existing = await AsyncStorage.getItem("saved_notifications");
-          const parsed = existing ? JSON.parse(existing) : [];
-          parsed.push(newNotification);
-          await AsyncStorage.setItem(
-            "saved_notifications",
-            JSON.stringify(parsed)
-          );
-          console.log("Notification saved");
+          await addNotification(newNotification);
+          console.log("Notification saved to Zustand and AsyncStorage");
         } catch (error) {
           console.error("Failed to save notification:", error);
         }
 
+        // Optional: trigger SWR revalidation if needed
+        if (data?.success && data?.fetch) {
+          mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
+        }
+
+        // Optionally update local state for immediate UI updates
         setNotificationData((prev) => {
-          // Avoid setting the same data repeatedly
           if (
             prev?.title === title &&
             prev?.body === body &&
             JSON.stringify(prev?.data) === JSON.stringify(data)
           ) {
-            return prev;
+            return prev; // Skip duplicate
           }
 
           return {
-            title: typeof title === "string" ? title : "New Notification",
-            body: typeof body === "string" ? body : "You have a new message",
+            title: newNotification.title,
+            body: newNotification.body,
             data: {
               ...data,
               isLocal: true,
             },
           };
         });
-      });
+      }
+    );
 
-    notificationResponseListener.current =
+    const responseListener =
       Notifications.addNotificationResponseReceivedListener((response) => {
         const { data } = response.notification.request.content;
-        if (data.targetScreen) {
+        if (data?.targetScreen) {
           router.push(data.targetScreen);
         }
       });
 
     return () => {
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(
-          notificationListener.current
-        );
-      }
+      listener.remove();
+      responseListener.remove();
     };
   }, []);
+
   Notifications.setNotificationHandler({
     handleNotification: async () => {
       return {

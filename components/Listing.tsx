@@ -8,9 +8,8 @@ import {
   TouchableOpacity,
   ListRenderItem,
   ImageBackground,
-  StyleProp,
 } from "react-native";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import Colors from "@/constants/Colors";
 import {

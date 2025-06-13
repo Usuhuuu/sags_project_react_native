@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Colors from "@/constants/Colors";
@@ -14,19 +14,15 @@ type SwipeableRowProps = {
 };
 
 const SwipeableRow: React.FC<SwipeableRowProps> = ({ item, onDelete }) => {
-  const handleSwipeOpen = (direction: string) => {
-    if (direction === "right") {
-      onDelete(item.id);
-    }
-  };
-
   return (
     <Swipeable
-      onSwipeableOpen={(direction) => handleSwipeOpen(direction)}
       renderRightActions={() => (
-        <View style={styles.deleteAction}>
-          <Ionicons name="trash" size={24} color="#fff" />
-        </View>
+        <TouchableOpacity
+          style={styles.deleteAction}
+          onPress={() => onDelete(item.id)}
+        >
+          <Ionicons name="close" size={24} color="#fff" />
+        </TouchableOpacity>
       )}
     >
       <View style={styles.notificationItem}>
@@ -130,7 +126,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  deleteAction: {},
+  deleteAction: {
+    backgroundColor: "#ff1515",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    marginVertical: 10,
+    width: 64,
+  },
 });
 
 export default SwipeableRow;

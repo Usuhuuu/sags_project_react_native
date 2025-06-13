@@ -15,7 +15,6 @@ import { Colors } from "react-native/Libraries/NewAppScreen";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as SecureStorage from "expo-secure-store";
-import axios from "axios";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import { HashedSportData } from "@/utils/sport_hall_hash";
 

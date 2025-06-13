@@ -15,6 +15,7 @@ import { HelperText, TextInput } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import axiosInstance from "@/hooks/axiosInstance";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 interface ChangeNameModalProps {
   changeNameModalVisible: boolean;
@@ -64,6 +65,10 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
       }
     }
   };
+  const { t } = useTranslation();
+  const groupChatSettings: any = t("groupChatSettings", {
+    returnObjects: true,
+  });
 
   return (
     <View
@@ -83,7 +88,7 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
           <Text
             style={{ alignSelf: "center", fontSize: 24, fontWeight: "500" }}
           >
-            Edit Group Chat Name
+            {groupChatSettings.editGroupName}
           </Text>
           <View>
             <TextInput
@@ -106,7 +111,7 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
                 visible={hasError}
                 style={{ marginLeft: 10 }}
               >
-                Name must be less than 100 characters.
+                {groupChatSettings.nameMustbeLessThan100}
               </HelperText>
             )}
           </View>
@@ -117,7 +122,7 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
             }}
           >
             <Text style={{ color: "grey" }}>
-              This name will be visible to all members.
+              {groupChatSettings.thisNameWillBeVisibleToAll}
             </Text>
             <Text style={{ color: "grey" }}>{chatName.length}/100</Text>
           </View>
@@ -143,7 +148,9 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
                 },
               ]}
             >
-              <Text style={{ fontSize: 20, fontWeight: "400" }}>Cancel</Text>
+              <Text style={{ fontSize: 20, fontWeight: "400" }}>
+                {groupChatSettings.cancel}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -161,7 +168,7 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
               <Text
                 style={{ color: Colors.white, fontSize: 20, fontWeight: "500" }}
               >
-                Save
+                {groupChatSettings.save}
               </Text>
             </TouchableOpacity>
           </View>

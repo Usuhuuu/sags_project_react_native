@@ -78,8 +78,7 @@
             { "name": "Боулинг", "icon": "bowling" },
             { "name": "Гольф", "icon": "golf" }
         ],
-        "login": [
-            {
+        "login": {
                 "login": "Нэвтрэх",
                 "email": "Имэйл & Хэрэглэгчийн ID",
                 "password": "Нууц үг",
@@ -89,9 +88,9 @@
                 "CheckCode": "шалгах код",
                 "forgotPassword": "Нууц үг мартсан",
                 "continuewithgoogle": "Google-р нэвтрэх",
-                "continuewithfacebook": "Facebook-р нэвтрэх"
-            }
-        ],
+                "continuewithfacebook": "Facebook-р нэвтрэх",
+                "signUp": "Бүртгүүлэх"
+            },
         "Register": [
             {
                 "register": "Бүртгүүлэх",
@@ -217,6 +216,76 @@
             "aboutUs": "Бидний тухай",
             "helps": "Тусламж",
             "contactUs": "Холбоо барих"
+        },
+        "chatRoom": {
+            "chatRoom": "Чат өрөө",
+            "sendMsj": "Илгээх",
+            "message": "Мессеж",
+            "noMessage": "Мессеж алга байна",
+            "enterMessage": "Мессежээ оруулна уу",
+            "groupChats": "Бүлгийн чат",
+            "individualChat": "Хувийн чат",
+            "noChatYet": "Чат хараахан байхгүй байна",
+            "onceYouJoin": "Та тоглоомд нэгдэж эсвэл найзтай болмогц,",
+            "yourChatWillAppearHere": "таны чат энд харагдана"
+        },
+        "friendScreen": {
+            "friends": "Найзууд",
+            "friendRequest": "Найзын хүсэлт",
+            "friendRequestSent": "Илгээсэн хүсэлтүүд",
+            "noFriendRequest": "Найзын хүсэлт алга байна",
+            "noFriendsYet": "Та одоогоор найзгүй байна.",
+            "noFriendsAtAll": "Найзын хүсэлт ирээгүй байна.",
+            "noSendRequests": "Илгээсэн хүсэлт алга байна.",
+            "noFriends": "Найз байхгүй",
+            "accept": "Зөвшөөрөх",
+            "reject": "Татгалзах",
+            "searchPlaceHolder": "Найз хайх эсвэл нэмэх",
+             "noFriendRequestYet": "Найзын хүсэлт хараахан алга",
+            "wantToMeetNewFriends": "Шинэ найзуудтай танилцахыг хүсэж байна уу?",
+            "startDiscoveringPlayersNearby": "Ойр орчмын тоглогчдыг олж эхлээрэй"
+            
+        },
+        "togetherScreen": {
+            "swipeToPartner": "Хамтрагч олоход свайп хийнэ үү",
+            "swipeDescription": "Баруун тийш свайп хийж шүүгдээгүй захиалгуудыг үзэх.",
+            "sortBy": "Эрэмбэлэх",
+            "back": "Буцах",
+            "rating": "Үнэлгээ",
+            "hightRating": "Өндөр үнэлгээ",
+            "lowRating": "Бага үнэлгээ",
+            "price": "Үнэ",
+            "hightPrice": "Өндөр үнэ",
+            "lowPrice": "Бага үнэ",
+            "partnerLookingFor": "Хамтрагч хайж байна",
+            "feature": "Онцлог",
+            "openInMap": "Газрын зураг дээр нээх",
+            "partnerLookingForThisHall": "Энэ зааланд хамтрагч хайж байна",
+            "doYouWantJoinThisHall": "Та энэ зааланд нэгдэхийг хүсэж байна уу?",
+            "join": "Нэгдэх",
+            "cancel": "Цуцлах",
+            "alreadyJoined": "Та энэ зааланд аль хэдийн нэгдсэн байна",
+            "wholeDay": "Бүтэн өдөр"
+        },
+        "Notifications": "Мэдэгдлүүд",
+        "groupChatSettings": {
+            "groupChatSettings": "Бүлгийн Чатын Тохиргоо",
+            "changeGroupName": "Бүлгийн Нэрийг Өөрчлөх",
+            "members": "Гишүүд",
+            "searchInChannel": "Сувганаас Хайх",
+            "notifications": "Мэдэгдэл",
+            "leaveGroup": "Бүлгээс Гарах",
+            "reportGroup": "Бүлгийг Илгээх",
+            "editGroupName": "Бүлгийн чатны нэрийг засах",
+            "thisNameWillBeVisibleToAll": "Энэ нэр бүлгийн бүх гишүүдэд харагдана.",
+            "chatMembers": "Чатын гишүүд",
+            "addMembers": "Гишүүд нэмэх",
+            "save": "Хадгалах",
+            "cancel": "Болих",
+            "nameMustbeLessThan100": "Нэр 100-аас бага байх ёстой",
+            "groupName": "Бүлгийн нэр",
+            "close": "Хаах",
+            "copyLink": "Холбоосыг хуулбарлах"
         }
 
     }

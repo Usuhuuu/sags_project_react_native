@@ -17,6 +17,7 @@ import QRCode from "react-native-qrcode-svg";
 import * as Clipboard from "expo-clipboard";
 import { useAuth } from "@/app/(modals)/context/authContext";
 import { GroupChat } from "@/app/(tabs)/chat";
+import { useTranslation } from "react-i18next";
 
 interface MemberModalProps {
   memberModalVisible: boolean;
@@ -88,11 +89,15 @@ const MemberModal: React.FC<MemberModalProps> = ({
       Alert.alert("Link copied to clipboard");
     }
   };
+  const { t } = useTranslation();
+  const groupChatSettings: any = t("groupChatSettings", {
+    returnObjects: true,
+  });
 
   return (
     <View style={{ backgroundColor: Colors.light, flex: 1 }}>
       <View style={styles.modalBody}>
-        <Text style={styles.headerText}>CHAT MEMBERS</Text>
+        <Text style={styles.headerText}>{groupChatSettings.chatMembers}</Text>
         <FlatList
           data={displayedMembers}
           keyExtractor={(item) => item.unique_user_ID}
@@ -132,7 +137,9 @@ const MemberModal: React.FC<MemberModalProps> = ({
             <View style={styles.plusIconContainer}>
               <AntDesign name="plus" size={30} color="#3f3f3f" />
             </View>
-            <Text style={styles.addButtonText}>Add Member</Text>
+            <Text style={styles.addButtonText}>
+              {groupChatSettings.addMembers}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -170,11 +177,13 @@ const MemberModal: React.FC<MemberModalProps> = ({
                     fontSize: 15,
                   }}
                 >
-                  Copy Link
+                  {groupChatSettings.copyLink}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setQrLink(null)}>
-                <Text style={{ color: "red", marginTop: 10 }}>Close</Text>
+                <Text style={{ color: "red", marginTop: 10 }}>
+                  {groupChatSettings.close}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -36,8 +36,8 @@ const FriendRequest = () => {
   const [userRequestData, setUserRequestData] = useState<string[]>([]);
   const [sendRequests, setSendRequests] = useState<string[]>([]);
   const [friendShow, setFriendShow] = useState<
-    "Friend" | "Friend Request" | "Send Request"
-  >("Friend Request");
+    "friend" | "friendRequest" | "sendRequest"
+  >("friendRequest");
   const [friendInfo, setFriendInfo] = useState<FriendProfileType[]>([]);
   const [entireFriendData, setEntireFriendData] = useState<any>(null);
   const [showFriends, setShowFriends] = useState<boolean>(false);
@@ -48,17 +48,18 @@ const FriendRequest = () => {
 
   const { t } = useTranslation();
   const { LoginStatus } = useAuth();
+  const FriendLanguage: any = t("friendScreen", { returnObjects: true });
 
-  const options: ("Friend" | "Friend Request" | "Send Request")[] = [
-    "Friend",
-    "Friend Request",
-    "Send Request",
-  ];
+  const options = [
+    { id: "friend", label: FriendLanguage.friends },
+    { id: "friendRequest", label: FriendLanguage.friendRequest },
+    { id: "sendRequest", label: FriendLanguage.friendRequestSent },
+  ] as const;
 
   const currentData =
-    friendShow === "Friend"
+    friendShow === "friend"
       ? friendData
-      : friendShow === "Friend Request"
+      : friendShow === "friendRequest"
       ? userRequestData
       : sendRequests;
 
@@ -98,7 +99,6 @@ const FriendRequest = () => {
 
   useEffect(() => {
     if (data) {
-      // Check if profileData exists and is a valid JSON string
       let profileData: {
         friends: string[];
         recieved_requests: string[];
@@ -130,6 +130,7 @@ const FriendRequest = () => {
         ...(profileData.send_requests || []),
       ];
       setEntireFriendData(allValues);
+      mutate(["friend_profile_info", LoginStatus]);
     } else if (error) {
       console.log("Error fetching user friend data:", error);
     }
@@ -153,6 +154,16 @@ const FriendRequest = () => {
       setShowFriends(false);
     }
   }, [userInfoLoading, isLoading]);
+
+  useEffect(() => {
+    if (
+      Array.isArray(entireFriendData) &&
+      entireFriendData.length > 0 &&
+      LoginStatus
+    ) {
+      mutate(["friend_profile_info", LoginStatus], undefined, true);
+    }
+  }, [entireFriendData, LoginStatus]);
 
   const uniqueCurrentData = Array.from(new Set(currentData));
 
@@ -235,7 +246,6 @@ const FriendRequest = () => {
     useFriendStore.getState().setFriendDetails(passData[0]);
     router.push(`/(modals)/user/${item}`);
   };
-
   return (
     <View style={{ backgroundColor: Colors.lightGrey, flex: 1 }}>
       {noFriend ? (
@@ -253,7 +263,7 @@ const FriendRequest = () => {
               resizeMode="contain"
             />
             <Text style={{ fontWeight: "bold", fontSize: 30 }}>
-              No friend requests yet.
+              {FriendLanguage.noFriendRequestYet}
             </Text>
             <Text
               style={{
@@ -262,7 +272,7 @@ const FriendRequest = () => {
                 color: Colors.darkGrey,
               }}
             >
-              Want to meet new friends?
+              {FriendLanguage.wantToMeetNewFriends}
             </Text>
             <Text
               style={{
@@ -271,7 +281,7 @@ const FriendRequest = () => {
                 color: Colors.darkGrey,
               }}
             >
-              Start discovering players nearby.
+              {FriendLanguage.startDiscoveringPlayersNearby}
             </Text>
           </View>
         </View>
@@ -290,7 +300,7 @@ const FriendRequest = () => {
                 <View style={style.subContainer}>
                   <Searchbar
                     mode="bar"
-                    placeholder="Search & Add Friends"
+                    placeholder={FriendLanguage.searchPlaceHolder}
                     value={searchQuery}
                     onChangeText={(text) => setSearchQuery(text)}
                     style={{
@@ -303,7 +313,12 @@ const FriendRequest = () => {
                     placeholderTextColor={Colors.darkGrey}
                     right={() => (
                       <TouchableOpacity onPress={() => handleRequestSend()}>
-                        <Text>sda</Text>
+                        <Ionicons
+                          name="send"
+                          size={24}
+                          color={Colors.primary}
+                          style={{ marginRight: 10 }}
+                        />
                       </TouchableOpacity>
                     )}
                   />
@@ -312,31 +327,31 @@ const FriendRequest = () => {
                     <View style={style.friendContainer}>
                       {options.map((label) => (
                         <TouchableOpacity
-                          key={label}
+                          key={label.id}
                           style={[
                             style.innerFriend,
                             {
                               backgroundColor:
-                                friendShow === label
+                                friendShow === label.id
                                   ? Colors.secondary
                                   : Colors.white,
                             },
                           ]}
                           onPress={() => {
-                            setFriendShow(label);
+                            setFriendShow(label.id);
                           }}
                         >
                           <Text
                             style={{
                               fontSize: 16,
                               color:
-                                friendShow === label
+                                friendShow === label.id
                                   ? Colors.white
                                   : Colors.darkGrey,
                               writingDirection: "ltr",
                             }}
                           >
-                            {label}
+                            {label.label}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -349,7 +364,7 @@ const FriendRequest = () => {
                           <Text
                             style={{ fontSize: 16, color: Colors.darkGrey }}
                           >
-                            No friend requests yet.
+                            {FriendLanguage.noFriendRequest}
                           </Text>
                         </View>
                       )}
@@ -360,7 +375,7 @@ const FriendRequest = () => {
                           <Text
                             style={{ fontSize: 16, color: Colors.darkGrey }}
                           >
-                            You don’t have any friends yet.
+                            {FriendLanguage.noFriendsYet}
                           </Text>
                         </View>
                       )}
@@ -370,7 +385,7 @@ const FriendRequest = () => {
                           <Text
                             style={{ fontSize: 16, color: Colors.darkGrey }}
                           >
-                            No send request yet.
+                            {FriendLanguage.noSendRequests}
                           </Text>
                         </View>
                       )}

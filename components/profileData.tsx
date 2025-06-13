@@ -47,6 +47,15 @@ const categories = [
   },
 ];
 
+const iconMap: { [key: string]: any } = {
+  basketball: require("../assets/sport-icons/basketball.png"),
+  football: require("../assets/sport-icons/football.png"),
+  volleyball: require("../assets/sport-icons/volleyball.png"),
+  tennis: require("../assets/sport-icons/table-tennis.png"),
+  bowling: require("../assets/sport-icons/lanes.png"),
+  golf: require("../assets/sport-icons/golf.png"),
+};
+
 const ProfileData = () => {
   const menuScrollRef = useRef<ScrollView>(null);
   const categoryScrollRef = useRef<ScrollView>(null);
@@ -62,6 +71,7 @@ const ProfileData = () => {
   }>(null);
   const [showDetails, setShowDetails] = useState(false);
   const animatedHeight = useRef(new Animated.Value(0)).current;
+  const { t } = useTranslation();
 
   const selectMenu = (index: number) => {
     const selected = menuItemsRef.current[index];
@@ -125,12 +135,12 @@ const ProfileData = () => {
       name: "Remaining",
     },
   ];
-  const { t } = useTranslation();
   const profileLanguageData: any = t("profilesdaData", { returnObjects: true });
   const sdaData = Array.isArray(profileLanguageData)
     ? profileLanguageData[0]
     : [];
   const data = sdaData.profileData[0];
+  const sportDetail: any = t("sportTextIcons", { returnObjects: true });
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -152,7 +162,7 @@ const ProfileData = () => {
         horizontal
         showsHorizontalScrollIndicator={false}
       >
-        {categories.map((item, index) => (
+        {sportDetail.map((item: any, index: number) => (
           <TouchableOpacity
             key={index}
             ref={(el) => (categoryItemsRef.current[index] = el)}
@@ -166,7 +176,7 @@ const ProfileData = () => {
             }}
           >
             <View style={styles.iconContainer}>
-              <Image source={item.source} style={iconStyles} />
+              <Image source={iconMap[item.icon]} style={iconStyles} />
             </View>
             <Text style={styles.titleText}>{item.name}</Text>
           </TouchableOpacity>

@@ -9,6 +9,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import Colors from "@/constants/Colors";
+import { useTranslation } from "react-i18next";
 
 interface CallWaveButtonProps {
   time_slot: string[];
@@ -59,10 +60,14 @@ const CallWaveButton = ({
   playersNeeded,
   shouldAnimate = true,
 }: CallWaveButtonProps) => {
+  const { t } = useTranslation();
+  const PartnerLanguage: any = t("togetherScreen", {
+    returnObjects: true,
+  });
   return (
     <View style={{ alignItems: "center" }}>
       <Text style={{ fontWeight: "600", fontSize: 12, color: Colors.primary }}>
-        partners looking for
+        {PartnerLanguage.partnerLookingFor}
       </Text>
 
       <View

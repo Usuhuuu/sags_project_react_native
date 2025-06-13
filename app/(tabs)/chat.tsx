@@ -319,7 +319,6 @@ const ChatComponent: React.FC = () => {
       revalidateOnMount: true,
     }
   );
-
   const {
     data: chatData,
     error: chatError,
@@ -347,12 +346,10 @@ const ChatComponent: React.FC = () => {
         ...(chatData.chatGroupIDs.directChat || []),
       ];
       const map = {} as { [groupId: string]: GroupChat };
-
       allGroups.forEach((groupID: any) => {
         const groupChatName = groupID.group_chat_name;
         const regex =
           /(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\s+[–-]\s+(\d{2}:\d{2})/;
-
         if (typeof groupChatName === "string") {
           const match = groupChatName.match(regex);
           if (match) {
@@ -376,7 +373,6 @@ const ChatComponent: React.FC = () => {
             return;
           }
         }
-
         if (groupID.individualChat && Array.isArray(groupID.members)) {
           const otherMember = groupID.members.find(
             (member: string) => member !== userDatas.unique_user_ID
@@ -389,8 +385,6 @@ const ChatComponent: React.FC = () => {
           };
           return;
         }
-
-        // Fallback
         map[groupID._id] = {
           group_ID: groupID._id,
           members: groupID.members,
@@ -471,8 +465,8 @@ const ChatComponent: React.FC = () => {
 
       const seen = new Set();
       const unique = combined.filter((msj) => {
-        const key = `${msj.sender_unique_name}-${msj.timestamp}-${msj.message}`;
-        if (seen.has(key)) return false;
+        const key = msj._id?.toString();
+        if (!key || seen.has(key)) return false;
         seen.add(key);
         return true;
       });
@@ -511,7 +505,6 @@ const ChatComponent: React.FC = () => {
         { timer: Date.now() },
         (message: MessageHistory) => {
           setIsitReady(true);
-
           if (message.nextCursor === null && message.messages.length === 0) {
             console.log(message.messages.length);
             setLoading(false);
@@ -523,7 +516,6 @@ const ChatComponent: React.FC = () => {
             message.nextCursor,
             message.no_more_message
           );
-
           saveMessageToMap({
             chat_ID: currentChatId.current,
             messages: formattedMessages,
@@ -538,9 +530,7 @@ const ChatComponent: React.FC = () => {
         }
       );
       setmainModalShow(true);
-      // 🧼 Clean previous listener
       socketRef.current?.off("receiveMessage");
-
       socketRef.current?.on("receiveMessage", (data: Message) => {
         console.log("Recieved Data", data);
         const newMsj: Message = {
@@ -719,6 +709,8 @@ const ChatComponent: React.FC = () => {
     },
     { individualChat: [], group_chat: [] }
   );
+  const chatInitLang: any = t("chatRoom", { returnObjects: true });
+
   return (
     <View style={{ width: width }}>
       {noChatExist ? (
@@ -746,17 +738,17 @@ const ChatComponent: React.FC = () => {
           </View>
           <View style={{ alignItems: "center" }}>
             <Text style={{ fontWeight: "bold", fontSize: 30 }}>
-              No Chats Yet
+              {chatInitLang.noChatYet}
             </Text>
             <Text
               style={{ fontSize: 20, fontWeight: 300, color: Colors.darkGrey }}
             >
-              Once you join a game or make a frind,
+              {chatInitLang.onceYouJoin}
             </Text>
             <Text
               style={{ fontSize: 20, fontWeight: 300, color: Colors.darkGrey }}
             >
-              your chats will appear here
+              {chatInitLang.yourChatWillAppearHere}
             </Text>
           </View>
         </View>
@@ -806,7 +798,7 @@ const ChatComponent: React.FC = () => {
                           color: Colors.primary,
                         }}
                       >
-                        Group Chats
+                        {chatInitLang.groupChats}
                       </Text>
                       <View style={styles.textContainer}>
                         <Text
@@ -835,7 +827,7 @@ const ChatComponent: React.FC = () => {
                     </TouchableOpacity>
 
                     {(!showFullGroupChats
-                      ? result.group_chat.slice(0, 1)
+                      ? result.group_chat.slice(0, 3)
                       : result.group_chat
                     ).map((item) => {
                       return (
@@ -911,7 +903,7 @@ const ChatComponent: React.FC = () => {
                           color: Colors.primary,
                         }}
                       >
-                        Individual
+                        {chatInitLang.individualChat}
                       </Text>
                       <View style={styles.textContainer}>
                         <Text
@@ -939,7 +931,7 @@ const ChatComponent: React.FC = () => {
                       </View>
                     </TouchableOpacity>
                     {(!showFullIndividualChats
-                      ? result.individualChat.slice(0, 1)
+                      ? result.individualChat.slice(0, 3)
                       : result.individualChat
                     ).map((item) => {
                       return (

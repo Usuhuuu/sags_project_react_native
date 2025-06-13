@@ -17,6 +17,7 @@ import ChangeNameModal from "./innerModals/changeNameModal";
 import MemberModal from "./innerModals/memberModal";
 import { GroupChat } from "@/app/(tabs)/chat";
 import * as Notification from "expo-notifications";
+import { useTranslation } from "react-i18next";
 
 type childModalNested = {
   id: string;
@@ -38,11 +39,14 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
     MemberData.length > 0 ? MemberData[0].group_chat_name : ""
   );
   const [baseModalVisible, setBaseModalVisible] = useState<boolean>(false);
-
+  const { t } = useTranslation();
+  const childModalLanguage: any = t("groupChatSettings", {
+    returnObjects: true,
+  });
   const childModalNested: childModalNested[] = [
     {
       id: "1",
-      title: "Change Group Name",
+      title: childModalLanguage.changeGroupName,
       icon: <Feather name="edit" size={30} color={Colors.primary} />,
       onPress: () => {
         setChangeNameModalVisible(true);
@@ -51,7 +55,7 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
     },
     {
       id: "2",
-      title: "Members",
+      title: childModalLanguage.members,
       icon: <Ionicons name="people" size={30} color={Colors.primary} />,
       onPress: () => {
         setMemberModalVisible(true);
@@ -60,7 +64,7 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
     },
     {
       id: "3",
-      title: "Search in Channel",
+      title: childModalLanguage.searchInChannel,
       icon: <Ionicons name="search" size={30} color={Colors.primary} />,
       onPress: () => {
         setMemberModalVisible(true);
@@ -69,7 +73,7 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
     },
     {
       id: "4",
-      title: "Notification",
+      title: childModalLanguage.notifications,
       icon: <Ionicons name="notifications" size={30} color={Colors.primary} />,
       onPress: () => {
         setMemberModalVisible(true);
@@ -78,7 +82,7 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
     },
     {
       id: "5",
-      title: "Leave Channel",
+      title: childModalLanguage.leaveGroup,
       icon: <Ionicons name="exit" size={30} color={Colors.primary} />,
       onPress: () => {
         setMemberModalVisible(true);
@@ -87,7 +91,7 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
     },
     {
       id: "6",
-      title: "Report Channel",
+      title: childModalLanguage.reportGroup,
       icon: <Ionicons name="flag" size={30} color={Colors.primary} />,
       onPress: () => {
         setMemberModalVisible(true);

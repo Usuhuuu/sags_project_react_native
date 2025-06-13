@@ -198,23 +198,23 @@ const Page = () => {
           <View style={styles.inputContainer}>
             <TextInput
               autoCapitalize="none"
-              placeholder="Email"
+              placeholder={loginDetails.email}
               value={email}
               onChangeText={setEmail}
               style={styles.input}
-              placeholderTextColor={Colors.grey}
+              placeholderTextColor={Colors.darkGrey}
             />
           </View>
 
           <View style={styles.inputContainer}>
             <TextInput
               autoCapitalize="none"
-              placeholder="Password"
+              placeholder={loginDetails.password}
               secureTextEntry={passwordHide}
               value={password}
               onChangeText={setPassword}
               style={styles.input}
-              placeholderTextColor={Colors.grey}
+              placeholderTextColor={Colors.darkGrey}
             />
             <TouchableOpacity
               style={styles.eyeIcon}
@@ -233,7 +233,7 @@ const Page = () => {
             onPress={handleSubmit}
             disabled={loading}
           >
-            <Text style={styles.buttonText}>Login</Text>
+            <Text style={styles.buttonText}>{loginDetails.login}</Text>
           </TouchableOpacity>
 
           <View style={styles.separatorView}>
@@ -248,7 +248,9 @@ const Page = () => {
               onPress={handleGoogleLogin}
             >
               <Ionicons name="logo-google" size={24} style={styles.btnIcon} />
-              <Text style={styles.btnOutlineText}>Continue with Google</Text>
+              <Text style={styles.btnOutlineText}>
+                {loginDetails.continuewithgoogle}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -256,7 +258,9 @@ const Page = () => {
               onPress={handleFacebookLogin}
             >
               <Ionicons name="logo-facebook" size={24} style={styles.btnIcon} />
-              <Text style={styles.btnOutlineText}>Continue with Facebook</Text>
+              <Text style={styles.btnOutlineText}>
+                {loginDetails.continuewithfacebook}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -264,7 +268,7 @@ const Page = () => {
               onPress={() => setIsModalVisible(true)}
             >
               <Ionicons name="person-add" size={24} style={styles.btnIcon} />
-              <Text style={styles.btnOutlineText}>Sign up</Text>
+              <Text style={styles.btnOutlineText}>{loginDetails.signUp}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
