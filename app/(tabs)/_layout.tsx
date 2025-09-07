@@ -32,7 +32,7 @@ import RegisterZaal from "@/components/profileScreens/contractorScreen/register_
 import MailComponent from "@/components/profileScreens/drawerScreen/mail";
 import { useSharedValue } from "react-native-reanimated";
 import BookingCheck from "@/components/profileScreens/contractorScreen/booking_check";
-import { useCalendar } from "@/interfaces/CalendarContext";
+import { useCalendar } from "@/app/(modals)/context/CalendarContext";
 import { Animated, Easing } from "react-native";
 import OrderHistory from "@/components/profileScreens/drawerScreen/order_history";
 

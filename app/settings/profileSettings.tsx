@@ -16,13 +16,11 @@ import i18n from "@/utils/i18";
 import * as SecureStorage from "expo-secure-store";
 import { useAuth } from "../(modals)/context/authContext";
 import { router } from "expo-router";
-import { useNavigation, CommonActions } from "@react-navigation/native";
 
 const ProfileSettings: React.FC = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [forceRerender, setForceRerender] = useState(false);
   const { logOut, LoginStatus } = useAuth();
-  const routers = useNavigation;
 
   const { t } = useTranslation();
   const settingsDet: any = t("settings", { returnObjects: true });

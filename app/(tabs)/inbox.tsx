@@ -323,8 +323,9 @@ const Page = () => {
       const [year, month, day] = today.split("T")[0].split("-");
       const response = await axiosInstanceRegular.get(
         `/timeslots/partner/${year}/${month}/${day}?page=${page}`,
-        { timeout: 10000 }
+        { timeout: 500 }
       );
+      console.log(response.data);
       setPartnerLookingData((prev) => ({
         ...prev,
         findPartner: [
@@ -334,7 +335,7 @@ const Page = () => {
       }));
       if (response.data.message === "last") {
         console.log("Reached last page, not incrementing page anymore.");
-        return; // Don't call setPage()
+        return;
       }
 
       setShowList(true);
@@ -377,7 +378,6 @@ const Page = () => {
 
   const handleJoin = async (roomId: string) => {
     try {
-      console.log("lalar");
       router.push("/chat");
       const response = await axiosInstance.post(
         `/auth/sporthall/join/${roomId}`
@@ -389,7 +389,6 @@ const Page = () => {
           "You can process payment"
         );
         mutate(["group_chat", LoginStatus], undefined, { revalidate: true });
-
         router.push("/chat");
       } else if (response.status === 409 && !response.data.success) {
         Alert.alert(PartnerLanguage.alreadyJoined);
@@ -601,7 +600,6 @@ const Page = () => {
             return `${item.zaal_ID}-${index}-${item.blocks[0].totalPrice}`;
           }}
           contentContainerStyle={styles.container}
-          // ✅ List header content (shown once at the top)
           ListHeaderComponent={
             <>
               <Animated.Text style={[styles.swipet, bounceStyle]}>

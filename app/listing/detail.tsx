@@ -204,7 +204,6 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
     const zaal_id = sportHallID;
     console.log("checking");
     setIsOrderScreenVisible(false);
-    console.log(formData);
     useBookingStore.getState().setBookingDetails({
       ...formData,
       sportHallID: zaal_id,

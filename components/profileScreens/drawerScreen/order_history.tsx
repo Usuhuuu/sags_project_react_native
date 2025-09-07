@@ -15,6 +15,7 @@ import { SportHallDataType } from "@/interfaces/listing";
 import { HashedSportData } from "@/utils/sport_hall_hash";
 import { MaterialIcons } from "@expo/vector-icons"; // install expo/vector-icons if needed
 import Colors from "@/constants/Colors";
+import { format, parseISO } from "date-fns";
 
 type FetchedDataType = {
   _id: string;
@@ -88,6 +89,7 @@ const OrderHistory = () => {
   const renderItem = ({ item }: { item: FetchedDataType }) => {
     const readableDays = item.day.join(", ");
     const readableBlocks = item.blocks.map((b) => b.time_slots).join(", ");
+    console.log(readableBlocks);
 
     return (
       <View style={styles.card}>
@@ -100,7 +102,25 @@ const OrderHistory = () => {
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.label}>⏱ Blocks:</Text>
-          <Text style={styles.value}>{readableBlocks}</Text>
+          <View
+            style={[
+              styles.value,
+              {
+                flex: 1,
+              },
+            ]}
+          >
+            <Text
+              style={{
+                width: "100%",
+                flexDirection: "column",
+                flexWrap: "wrap",
+              }}
+              ellipsizeMode="tail"
+            >
+              {readableBlocks}
+            </Text>
+          </View>
         </View>
         <TouchableOpacity
           style={styles.cancelButton}

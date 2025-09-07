@@ -181,6 +181,7 @@ const TransactionPage = () => {
         Alert.alert("Please Login");
       } else {
         Alert.alert("Booking failed try again later");
+        console.log(err);
       }
     } finally {
       setIsOrdering(false);

@@ -13,7 +13,6 @@ import {
   Modal,
 } from "react-native";
 import {
-  Message,
   prepareMessages,
   MemoizedChatItem,
   newMessagePrepareFunction,
@@ -28,6 +27,7 @@ import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "../context/authContext";
 import { ObjectId } from "bson";
+import { Message } from "@/interfaces/chatType";
 
 type ActiveUserType = {
   unique_user_ID: string;

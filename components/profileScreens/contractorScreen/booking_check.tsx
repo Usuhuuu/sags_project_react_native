@@ -13,7 +13,7 @@ import CalendarStrip from "react-native-calendar-strip";
 import * as SecureStorage from "expo-secure-store";
 import SportHallTimeSlot from "@/assets/Data/sport_hall_timeslot.json";
 import { Calendar } from "react-native-calendars";
-import { useCalendar } from "@/interfaces/CalendarContext";
+import { useCalendar } from "@/app/(modals)/context/CalendarContext";
 import moment from "moment";
 
 const BookingCheck = () => {
@@ -87,13 +87,13 @@ const BookingCheck = () => {
 
         // Check for overlap
         const isTimeSlotBooked = (start: string, end: string) => {
-            return bookedRanges.some(
-            (block: { start: string; end: string }) => start < block.end && end > block.start
-            );
+          return bookedRanges.some(
+            (block: { start: string; end: string }) =>
+              start < block.end && end > block.start
+          );
         };
 
-        const localSlots =
-          SportHallTimeSlot?.[0]?.availableTimeSlots ?? [];
+        const localSlots = SportHallTimeSlot?.[0]?.availableTimeSlots ?? [];
 
         const updatedSlots = localSlots.map((slot: any) => ({
           ...slot,
@@ -136,7 +136,9 @@ const BookingCheck = () => {
   };
 
   return (
-    <View style={{ width: "100%", height: "95%", backgroundColor: Colors.white }}>
+    <View
+      style={{ width: "100%", height: "95%", backgroundColor: Colors.white }}
+    >
       {/* Modal Calendar */}
       <Modal
         animationType="slide"
@@ -160,7 +162,10 @@ const BookingCheck = () => {
               }}
               style={{ borderRadius: 10 }}
             />
-            <TouchableOpacity style={styles.closeButton} onPress={resetCalendar}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={resetCalendar}
+            >
               <Text style={styles.closeText}>Close</Text>
             </TouchableOpacity>
           </View>

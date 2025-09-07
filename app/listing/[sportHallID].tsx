@@ -137,8 +137,12 @@ const DetailsPage = () => {
   };
 
   const handleViewReviews = () => {
-    router.push(`/listing/ZaalReview`);
-    //`/listing/ZaalReview?reviews=${listing.number_of_reviews}&rating=${listing.review_scores_rating}`
+    router.push({
+      pathname: `/listing/review/[zaalReview]`,
+      params: {
+        zaalReview: listing?.sportHallID ?? "",
+      },
+    });
   };
 
   const handleSaveCourt = async () => {
@@ -397,15 +401,9 @@ const DetailsPage = () => {
                 }}
               >
                 <MaterialIcons name="sports-score" size={18} color="red" />
-                <Text style={{ fontSize: 12 }}>
-                  {}
-                  review oruulan sda
-                </Text>
+                <Text style={{ fontSize: 12 }}>review oruulan sda</Text>
                 <TouchableOpacity onPress={handleViewReviews}>
-                  <Text style={styles.ratings}>
-                    {/* {listing.number_of_reviews} reviews */}
-                    total review sda
-                  </Text>
+                  <Text style={styles.ratings}>total review sda</Text>
                 </TouchableOpacity>
               </View>
             </View>

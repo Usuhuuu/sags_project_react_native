@@ -1,6 +1,6 @@
 import "@/utils/i18";
 import "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { router, Stack, useRouter } from "expo-router";
@@ -16,7 +16,7 @@ import { SavedHallsProvider } from "@/app/(modals)/context/savedHall";
 import Layout, { TabsLayout } from "./(tabs)/_layout";
 import { CustomErrorBoundary } from "./(modals)/context/errorContext";
 import * as Notifications from "expo-notifications";
-import { CalendarProvider } from "@/interfaces/CalendarContext";
+import { CalendarProvider } from "@/app/(modals)/context/CalendarContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { mutate } from "swr";
 import { useNotificationStore } from "./(modals)/context/store/notificationStore";
@@ -257,9 +257,25 @@ function RootLayoutNav() {
         }}
       />
       <Stack.Screen
-        name="listing/ZaalReview"
+        name="listing/review/[zaalReview]"
         options={{
-          headerTitle: "Sport HallReview",
+          headerTitle: "Sport Hall Review",
+          headerTitleStyle: { color: Colors.primary },
+          headerRight: () => (
+            <TouchableOpacity>
+              <AntDesign name="edit" size={24} color="black" />
+            </TouchableOpacity>
+          ),
+          headerShadowVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="listing/review/util/inner_zaal_review"
+        options={{
+          headerShown: true,
+          headerShadowVisible: false,
+          headerTitle: "Zaal Review",
+          headerTitleStyle: { color: Colors.primary },
         }}
       />
     </Stack>

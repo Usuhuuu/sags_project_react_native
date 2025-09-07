@@ -10,6 +10,7 @@ import {
   Image,
   Alert,
   ScrollView,
+  TextInput,
 } from "react-native";
 import { Socket } from "socket.io-client";
 import * as Sentry from "@sentry/react-native";
@@ -28,45 +29,15 @@ import MainChatModal from "@/app/(modals)/authentication/modals/mainChatModal";
 import { Avatar } from "react-native-paper";
 import { router, useFocusEffect } from "expo-router";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, FontAwesome } from "@expo/vector-icons";
 import { ObjectId } from "bson";
-
-export interface Message {
-  _id: ObjectId;
-  sender_unique_name: string;
-  groupId?: string;
-  message: string;
-  timestamp: Date;
-  showDateSeparator?: boolean;
-  showTimeGap?: boolean;
-  no_more_message?: boolean;
-  isLastMessage?: boolean;
-  showAvatar?: boolean;
-}
-
-export interface GroupChat {
-  group_ID?: string | undefined;
-  group_chat_name: string;
-  members: string[];
-  chat_image: string;
-  sportHallName?: string;
-  date?: string;
-  startTime?: string;
-  endTime?: string;
-  individualChat?: string | undefined;
-}
-
-type MessageHistory = {
-  nextCursor: Date | null;
-  messages: Message[];
-  groupId: string;
-  no_more_message: boolean;
-};
-
-export interface ActiveUserType {
-  unique_user_ID: string;
-  status: string;
-}
+import {
+  ChatSeparator,
+  Message,
+  GroupChat,
+  MessageHistory,
+  ActiveUserType,
+} from "@/interfaces/chatType";
 
 export const prepareMessages = (
   messages: Message[],
@@ -298,6 +269,10 @@ const ChatComponent: React.FC = () => {
     new Map()
   );
   const [refreshFlag, setRefreshFlag] = useState(false);
+  const [chatSeparator, setChatSeparator] = useState<ChatSeparator>(
+    ChatSeparator.PERSONAL
+  );
+  const [chatSearchValue, setChatSearchValue] = useState<string>("");
 
   const { t } = useTranslation();
   const { LoginStatus } = useAuth();
@@ -784,53 +759,149 @@ const ChatComponent: React.FC = () => {
                       alignItems: "center",
                     }}
                   >
-                    <TouchableOpacity
-                      onPress={() => {
-                        setShowFullGroupChats(!showFullGroupChats);
-                        setShowFullIndividualChats(false);
+                    <View
+                      style={{
+                        flexDirection: "column",
+                        width: "90%",
                       }}
-                      style={styles.showHiderContainer}
                     >
-                      <Text
+                      <View
                         style={{
-                          fontSize: 20,
-                          fontWeight: 400,
-                          color: Colors.primary,
+                          flexDirection: "row",
+                          backgroundColor: Colors.lightGrey,
+                          borderRadius: 20,
+                          padding: 2,
                         }}
                       >
-                        {chatInitLang.groupChats}
-                      </Text>
-                      <View style={styles.textContainer}>
-                        <Text
+                        <TouchableOpacity
+                          onPress={() => {
+                            setChatSeparator(ChatSeparator.GROUP);
+                          }}
                           style={{
-                            fontSize: 16,
-                            fontWeight: "bold",
-                            color: Colors.primary,
+                            backgroundColor:
+                              chatSeparator === ChatSeparator.GROUP
+                                ? Colors.white
+                                : Colors.lightGrey,
+                            borderRadius: 20,
+                            width: "50%",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            padding: 7,
                           }}
                         >
-                          {result.group_chat.length}
-                        </Text>
-                        {showFullGroupChats ? (
-                          <AntDesign
-                            name="caretdown"
-                            size={24}
-                            color={Colors.primary}
-                          />
-                        ) : (
-                          <AntDesign
-                            name="caretup"
-                            size={24}
-                            color={Colors.primary}
-                          />
-                        )}
+                          <Text
+                            style={{
+                              color:
+                                chatSeparator === ChatSeparator.GROUP
+                                  ? Colors.dark
+                                  : Colors.darkGrey,
+                            }}
+                          >
+                            {chatInitLang.groupChats}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() =>
+                            setChatSeparator(ChatSeparator.PERSONAL)
+                          }
+                          style={{
+                            backgroundColor:
+                              chatSeparator === ChatSeparator.PERSONAL
+                                ? Colors.white
+                                : Colors.lightGrey,
+                            borderRadius: 20,
+                            width: "50%",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            padding: 7,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color:
+                                chatSeparator === ChatSeparator.PERSONAL
+                                  ? Colors.dark
+                                  : Colors.darkGrey,
+                            }}
+                          >
+                            {chatInitLang.individualChat}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
-                    </TouchableOpacity>
-
-                    {(!showFullGroupChats
-                      ? result.group_chat.slice(0, 3)
-                      : result.group_chat
-                    ).map((item) => {
-                      return (
+                      <View
+                        style={{
+                          borderRadius: 10,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          marginVertical: 5,
+                          width: "100%",
+                          gap: 5,
+                          height: 40,
+                        }}
+                      >
+                        <TouchableOpacity
+                          style={{
+                            flexDirection: "row",
+                            gap: 5,
+                            alignItems: "center",
+                            justifyContent: "space-around",
+                            backgroundColor: Colors.lightGrey,
+                            width: "85%",
+                            borderRadius: 10,
+                            padding: 5,
+                          }}
+                        >
+                          <FontAwesome
+                            name="search"
+                            size={18}
+                            color={Colors.littleDarkGrey}
+                          />
+                          <TextInput
+                            placeholder={
+                              chatInitLang.search
+                                ? chatInitLang.search
+                                : "Search"
+                            }
+                            placeholderTextColor={Colors.darkGrey}
+                            value={chatSearchValue}
+                            onChangeText={(text) => setChatSearchValue(text)}
+                            style={{
+                              width: "90%",
+                              padding: 5,
+                              justifyContent: "center",
+                              alignItems: "center",
+                            }}
+                          />
+                        </TouchableOpacity>
+                        <View
+                          style={{
+                            backgroundColor: Colors.lightGrey,
+                            width: "15%",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            borderRadius: 10,
+                            height: 40,
+                          }}
+                        >
+                          <TouchableOpacity
+                            onPress={() => {}}
+                            style={{ padding: 10 }}
+                          >
+                            <Text
+                              style={{
+                                color: Colors.darkGrey,
+                                fontWeight: "600",
+                                fontSize: width > 400 ? 16 : 14,
+                              }}
+                            >
+                              Filter
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                    {chatSeparator === ChatSeparator.GROUP &&
+                      result.group_chat.map((item) => (
                         <View key={item.group_ID} style={styles.groupItem}>
                           <TouchableOpacity
                             onPress={() => {
@@ -887,115 +958,71 @@ const ChatComponent: React.FC = () => {
                             </View>
                           </TouchableOpacity>
                         </View>
-                      );
-                    })}
-                    <TouchableOpacity
-                      onPress={() => {
-                        setShowFullGroupChats(false);
-                        setShowFullIndividualChats(!showFullIndividualChats);
-                      }}
-                      style={styles.showHiderContainer}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 16,
-                          fontWeight: "bold",
-                          color: Colors.primary,
-                        }}
-                      >
-                        {chatInitLang.individualChat}
-                      </Text>
-                      <View style={styles.textContainer}>
-                        <Text
-                          style={{
-                            fontSize: 20,
-                            fontWeight: "bold",
-                            color: Colors.primary,
-                          }}
-                        >
-                          {result.individualChat.length}
-                        </Text>
-                        {showFullIndividualChats ? (
-                          <AntDesign
-                            name="caretdown"
-                            size={24}
-                            color={Colors.primary}
-                          />
-                        ) : (
-                          <AntDesign
-                            name="caretup"
-                            size={24}
-                            color={Colors.primary}
-                          />
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                    {(!showFullIndividualChats
-                      ? result.individualChat.slice(0, 3)
-                      : result.individualChat
-                    ).map((item) => {
-                      return (
-                        <View
-                          key={item.individualChat}
-                          style={styles.groupItem}
-                        >
-                          <TouchableOpacity
-                            onPress={() => {
-                              if (item.individualChat) {
-                                router.push(
-                                  `/(modals)/chat/${item.group_chat_name}`
-                                );
-                              } else {
-                                joinSpecificChat(item.group_ID ?? "");
-                              }
-                            }}
-                            style={{
-                              flexDirection: "row",
-                              padding: 5,
-                              gap: 5,
-                            }}
+                      ))}
+                    {chatSeparator === ChatSeparator.PERSONAL &&
+                      result.individualChat.map((item) => {
+                        return (
+                          <View
+                            key={item.individualChat}
+                            style={styles.groupItem}
                           >
-                            <Avatar.Image
-                              size={40}
-                              source={require("@/assets/images/sportHall_Icon_full_primary.png")}
-                              theme={{
-                                colors: { primary: Colors.white },
+                            <TouchableOpacity
+                              onPress={() => {
+                                if (item.individualChat) {
+                                  router.push(
+                                    `/(modals)/chat/${item.group_chat_name}`
+                                  );
+                                } else {
+                                  joinSpecificChat(item.group_ID ?? "");
+                                }
                               }}
-                            />
-                            <View
                               style={{
-                                flex: 1,
-                                flexWrap: "wrap",
                                 flexDirection: "row",
+                                padding: 5,
                                 gap: 5,
                               }}
                             >
-                              {item.sportHallName &&
-                              item.date &&
-                              item.startTime &&
-                              item.endTime ? (
-                                <>
-                                  <Text style={{ fontWeight: 600 }}>
-                                    {item.sportHallName}
-                                  </Text>
-                                  <Text style={{ fontWeight: 800 }}>-</Text>
-                                  <Text style={{ fontWeight: 300 }}>
-                                    {item.date
-                                      ? format(new Date(item.date), "MMMM dd")
-                                      : ""}
-                                  </Text>
-                                  <Text>
-                                    {item.startTime} - {item.endTime}
-                                  </Text>
-                                </>
-                              ) : (
-                                <Text>{item.group_chat_name}</Text>
-                              )}
-                            </View>
-                          </TouchableOpacity>
-                        </View>
-                      );
-                    })}
+                              <Avatar.Image
+                                size={40}
+                                source={require("@/assets/images/sportHall_Icon_full_primary.png")}
+                                theme={{
+                                  colors: { primary: Colors.white },
+                                }}
+                              />
+                              <View
+                                style={{
+                                  flex: 1,
+                                  flexWrap: "wrap",
+                                  flexDirection: "row",
+                                  gap: 5,
+                                }}
+                              >
+                                {item.sportHallName &&
+                                item.date &&
+                                item.startTime &&
+                                item.endTime ? (
+                                  <>
+                                    <Text style={{ fontWeight: 600 }}>
+                                      {item.sportHallName}
+                                    </Text>
+                                    <Text style={{ fontWeight: 800 }}>-</Text>
+                                    <Text style={{ fontWeight: 300 }}>
+                                      {item.date
+                                        ? format(new Date(item.date), "MMMM dd")
+                                        : ""}
+                                    </Text>
+                                    <Text>
+                                      {item.startTime} - {item.endTime}
+                                    </Text>
+                                  </>
+                                ) : (
+                                  <Text>{item.group_chat_name}</Text>
+                                )}
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      })}
                   </ScrollView>
                 </View>
               )}

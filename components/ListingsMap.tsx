@@ -9,28 +9,18 @@ import React, { memo, useEffect, useState, useCallback } from "react";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
 import { SportHallDataType } from "@/interfaces/listing";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import MapViewClustering from "react-native-map-clustering";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as SecureStorage from "expo-secure-store";
-import { axiosInstanceRegular } from "@/hooks/axiosInstance";
-import { HashedSportData } from "@/utils/sport_hall_hash";
 
 const INITIAL_REGION = {
   latitude: 47.918873,
   longitude: 106.917701,
   latitudeDelta: 0.1,
   longitudeDelta: 0.1,
-};
-type FetchTodayType = {
-  _id: string;
-  blocks: {
-    _id: string;
-  };
-  zaal_ID: string;
-  sport_hall: SportHallDataType;
 };
 
 const ListingsMap = memo(
@@ -43,7 +33,6 @@ const ListingsMap = memo(
   }) => {
     const [hasLocationPermission, setHasLocationPermission] = useState(false);
     const [filteredHalls, setFilteredHalls] = useState<SportHallDataType[]>([]);
-    const [todayPartnerData, setTodayPartnerData] = useState<FetchTodayType>();
     const [userLocation, setUserLocation] = useState<{
       latitude: number;
       longitude: number;
@@ -133,33 +122,6 @@ const ListingsMap = memo(
         );
       },
       [] // Dependencies are empty since renderCluster doesn't depend on props/state
-    );
-    const fetchToday = async () => {
-      const today = new Date().toISOString().split("T")[0];
-      try {
-        const response = await axiosInstanceRegular.get(
-          `/book/partner/${today}`
-        );
-        if (response.status === 200 && response.data.success) {
-          const result = response.data.todayPartners.map(
-            (hall: FetchTodayType) => {
-              const temp = HashedSportData[hall.zaal_ID];
-              return {
-                ...hall,
-                sport_hall: temp,
-              };
-            }
-          );
-          setTodayPartnerData(result);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    useFocusEffect(
-      useCallback(() => {
-        fetchToday();
-      }, [])
     );
 
     return (
