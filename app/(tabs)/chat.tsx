@@ -16,12 +16,7 @@ import { Socket } from "socket.io-client";
 import * as Sentry from "@sentry/react-native";
 import Colors from "@/constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  format,
-  parseISO,
-  differenceInDays,
-  differenceInMinutes,
-} from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../(modals)/context/authContext";
 import { auth_swr, regular_swr } from "../../hooks/useswr";
@@ -29,8 +24,7 @@ import MainChatModal from "@/app/(modals)/authentication/modals/mainChatModal";
 import { Avatar } from "react-native-paper";
 import { router, useFocusEffect } from "expo-router";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
-import { AntDesign, FontAwesome } from "@expo/vector-icons";
-import { ObjectId } from "bson";
+import { FontAwesome } from "@expo/vector-icons";
 import {
   ChatSeparator,
   Message,
@@ -38,212 +32,12 @@ import {
   MessageHistory,
   ActiveUserType,
 } from "@/interfaces/chatType";
-
-export const prepareMessages = (
-  messages: Message[],
-  cursorValue: Date | null,
-  no_more_message: boolean
-) => {
-  if (messages.length < 20 || cursorValue === null) {
-  }
-  const result = [...messages];
-  const dateGroups: Record<string, number[]> = {};
-
-  result.forEach((msg, index) => {
-    const dateKey = format(parseISO(msg.timestamp.toString()), "yyyy-MM-dd");
-    if (!dateGroups[dateKey]) dateGroups[dateKey] = [];
-    dateGroups[dateKey].push(index);
-  });
-
-  const dates = Object.keys(dateGroups);
-
-  dates.forEach((dateKey, i) => {
-    const indexes = dateGroups[dateKey];
-    const isLastDate = i === dates.length - 1;
-    let currentMsjIndex: number = indexes[0];
-    let currentMsj: Message = result[currentMsjIndex];
-
-    indexes.forEach((currentIndex, i) => {
-      const tempMsj = result[currentIndex];
-      const nextMsg = result[currentIndex + 1];
-
-      if (!nextMsg) {
-        result[currentIndex] = {
-          ...tempMsj,
-          showTimeGap: false,
-          isLastMessage: true,
-        };
-        return;
-      }
-
-      const diff = differenceInMinutes(
-        parseISO(currentMsj.timestamp.toString()),
-        parseISO(nextMsg.timestamp.toString())
-      );
-
-      const isDifferentUser =
-        currentMsj.sender_unique_name !== nextMsg.sender_unique_name;
-
-      if (diff > 30 || isDifferentUser) {
-        result[currentIndex] = {
-          ...tempMsj,
-          showTimeGap: true,
-        };
-
-        result[currentMsjIndex] = {
-          ...result[currentMsjIndex],
-          showAvatar: true,
-        };
-
-        currentMsj = nextMsg;
-        currentMsjIndex = currentIndex + 1;
-      } else {
-        result[currentIndex] = {
-          ...tempMsj,
-          showTimeGap: false,
-        };
-      }
-    });
-    const lastIndex = indexes[indexes.length - 1];
-    if (!isLastDate || (isLastDate && no_more_message)) {
-      result[lastIndex] = {
-        ...result[lastIndex],
-        showDateSeparator: true,
-      };
-    }
-  });
-  return result;
-};
-
-export const MemoizedChatItem = React.memo(
-  ({ item, userDatas }: { item: Message; userDatas: any }) => {
-    //본인
-    const userSelf: boolean =
-      item.sender_unique_name === userDatas.unique_user_ID;
-    return (
-      <View>
-        {item.showDateSeparator && (
-          <View style={styles.dateSeparator}>
-            <View style={styles.line} />
-            <Text style={styles.dateText}>
-              {format(new Date(item.timestamp), "EEEE MMMM dd")}
-            </Text>
-            <View style={styles.line} />
-          </View>
-        )}
-
-        <View
-          style={[
-            styles.msjContainer,
-            {
-              alignItems: userSelf ? "flex-end" : "flex-start",
-              paddingVertical: 3,
-            },
-          ]}
-        >
-          <View style={{ flexDirection: "row" }}>
-            {/* Show avatar only if NOT userSelf and there's a time gap */}
-            <View style={{ width: 30, marginRight: 6 }}>
-              {!userSelf && item.showAvatar && (
-                <Avatar.Icon size={30} icon={"account"} />
-              )}
-            </View>
-
-            <View>
-              {!userSelf && item.showTimeGap && (
-                <Text style={[styles.userNameText, { marginBottom: 4 }]}>
-                  {item.sender_unique_name}
-                </Text>
-              )}
-
-              <View
-                style={[
-                  styles.msjInside,
-                  userSelf
-                    ? {
-                        borderBottomLeftRadius: 10,
-                        borderBottomRightRadius: 10,
-                        borderTopLeftRadius: 10,
-                        backgroundColor: Colors.primary,
-                        borderColor: Colors.primary,
-                        marginLeft: 50,
-                      }
-                    : {
-                        borderBottomLeftRadius: 10,
-                        borderBottomRightRadius: 10,
-                        borderTopRightRadius: 10,
-                        backgroundColor: Colors.white,
-                        borderColor: Colors.white,
-                        marginRight: 100,
-                      },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.messageText,
-                    {
-                      color: userSelf ? Colors.light : Colors.dark,
-                    },
-                  ]}
-                >
-                  {item.message}
-                </Text>
-              </View>
-              {!userSelf && item.showAvatar && (
-                <Text
-                  style={{
-                    fontSize: 11,
-                    color: Colors.dark,
-                    fontWeight: "300",
-                    marginTop: 2,
-                    alignSelf: userSelf ? "flex-end" : "flex-start",
-                  }}
-                >
-                  {format(item.timestamp, "hh:mm a")}
-                </Text>
-              )}
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  },
-  (prev, next) =>
-    prev.item.message === next.item.message &&
-    prev.item.timestamp === next.item.timestamp
-);
-
-export const newMessagePrepareFunction = (
-  messages: Message,
-  messagesMap: Map<string, Message[]>,
-  currentChatId: React.RefObject<string>
-) => {
-  const existingMessages = currentChatId.current
-    ? messagesMap.get(currentChatId.current)
-    : undefined;
-  const prevMsj = existingMessages?.[0];
-  console.log(existingMessages);
-  console.log("new-msj-prepare", prevMsj);
-  const diff = differenceInDays(
-    parseISO(messages.timestamp.toString()),
-    prevMsj ? parseISO(prevMsj.timestamp.toString()) : new Date()
-  );
-  console.log(diff);
-  if (diff > 0 || diff < 0) {
-    return [
-      {
-        ...messages,
-        showDateSeparator: true,
-      },
-    ];
-  }
-  return [
-    {
-      ...messages,
-      showDateSeparator: false,
-    },
-  ];
-};
+import { generatedId } from "../(modals)/chat/util/objectID";
+import {
+  MemoizedChatItem,
+  newMessagePrepareFunction,
+  prepareMessages,
+} from "../(modals)/chat/util/message_function";
 
 const ChatComponent: React.FC = () => {
   const [chatGroups, setChatGroups] = useState<{ [key: string]: GroupChat }>(
@@ -259,8 +53,6 @@ const ChatComponent: React.FC = () => {
   const [activeUserData, setActiveUserData] = useState<ActiveUserType[]>([]);
   const [fullScreenShow, setFullScreenShow] = useState<boolean>(false);
   const [noChatExist, setNoChatExist] = useState<boolean>(false);
-  const [showFullGroupChats, setShowFullGroupChats] = useState(false);
-  const [showFullIndividualChats, setShowFullIndividualChats] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList | null>(null);
@@ -357,6 +149,7 @@ const ChatComponent: React.FC = () => {
             members: groupID.members,
             group_chat_name: otherMember || "Direct Chat",
             chat_image: groupID.chat_image,
+            notUser: groupID.notUser || [],
           };
           return;
         }
@@ -585,7 +378,7 @@ const ChatComponent: React.FC = () => {
     if (!socketRef.current?.connected) return;
 
     const newMessage = {
-      _id: new ObjectId(),
+      _id: generatedId(),
       sender_unique_name: userDatas.unique_user_ID,
       groupId: currentChatId.current,
       message: messageText,
@@ -969,9 +762,7 @@ const ChatComponent: React.FC = () => {
                             <TouchableOpacity
                               onPress={() => {
                                 if (item.individualChat) {
-                                  router.push(
-                                    `/(modals)/chat/${item.group_chat_name}`
-                                  );
+                                  router.push(`/(modals)/chat/${item.notUser}`);
                                 } else {
                                   joinSpecificChat(item.group_ID ?? "");
                                 }
@@ -1016,7 +807,7 @@ const ChatComponent: React.FC = () => {
                                     </Text>
                                   </>
                                 ) : (
-                                  <Text>{item.group_chat_name}</Text>
+                                  <Text>{item.notUser}</Text>
                                 )}
                               </View>
                             </TouchableOpacity>

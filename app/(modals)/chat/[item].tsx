@@ -16,7 +16,7 @@ import {
   prepareMessages,
   MemoizedChatItem,
   newMessagePrepareFunction,
-} from "@/app/(tabs)/chat";
+} from "@/app/(modals)/chat/util/message_function";
 import { Socket } from "socket.io-client";
 import Colors from "@/constants/Colors";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -26,8 +26,8 @@ import { differenceInDays, format } from "date-fns";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "../context/authContext";
-import { ObjectId } from "bson";
 import { Message } from "@/interfaces/chatType";
+import { generatedId } from "./util/objectID";
 
 type ActiveUserType = {
   unique_user_ID: string;
@@ -57,7 +57,7 @@ const DirectChatScreen: React.FC = ({}) => {
     if (!socketRef.current?.connected) return;
 
     const newMessage = {
-      _id: new ObjectId(),
+      _id: generatedId(),
       sender_unique_name: userDataParsed.unique_user_ID,
       message: messageText,
       timestamp: new Date(),
@@ -98,7 +98,6 @@ const DirectChatScreen: React.FC = ({}) => {
       animated: true,
     });
   };
-
   const loadOlderMsj = async () => {
     if (!socketRef.current?.connected || !cursor) return;
 
@@ -274,8 +273,9 @@ const DirectChatScreen: React.FC = ({}) => {
           if (!socketRef.current?.connected) {
             await connectSocket();
           }
+
           const newMsj: Message = {
-            _id: new ObjectId(),
+            _id: generatedId(),
             sender_unique_name: data.sender_unique_name,
             message: data.message,
             timestamp: new Date(data.timestamp),

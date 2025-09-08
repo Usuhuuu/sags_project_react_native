@@ -32,6 +32,7 @@ export interface GroupChat {
   startTime?: string;
   endTime?: string;
   individualChat?: string | undefined;
+  notUser?: string[] | undefined;
 }
 
 export type MessageHistory = {
