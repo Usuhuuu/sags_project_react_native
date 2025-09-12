@@ -16,13 +16,6 @@ export const prepareMessages = (
   no_more_message: boolean
 ) => {
   if (messages.length < 20 || cursorValue === null) {
-    return messages.map((msg, index) => ({
-      ...msg,
-      showDateSeparator: index === messages.length - 1,
-      showAvatar: true,
-      showTimeGap: true,
-      isLastMessage: index === messages.length - 1,
-    }));
   }
   const result = [...messages];
   const dateGroups: Record<string, number[]> = {};

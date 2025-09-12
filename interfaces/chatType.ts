@@ -1,4 +1,3 @@
-import { ObjectId } from "bson";
 
 export enum ChatSeparator {
     PERSONAL = "personal",
@@ -10,7 +9,7 @@ export type ChatSeparatorValue = `${ChatSeparator}`;
 
 
 export interface Message {
-  _id: ObjectId;
+  _id: string;
   sender_unique_name: string;
   groupId?: string;
   message: string;
@@ -33,6 +32,15 @@ export interface GroupChat {
   endTime?: string;
   individualChat?: string | undefined;
   notUser?: string[] | undefined;
+  latestMessage?: {
+    _id?: string;
+    sender_unique_name?: string;
+    message?: string;
+    timestamp?: Date;
+    seenBy?: string[];
+  };
+  unseenCount?: number;
+  isGroup?: boolean;
 }
 
 export type MessageHistory = {

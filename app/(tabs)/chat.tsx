@@ -16,12 +16,17 @@ import { Socket } from "socket.io-client";
 import * as Sentry from "@sentry/react-native";
 import Colors from "@/constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { format, differenceInDays } from "date-fns";
+import {
+  format,
+  differenceInDays,
+  parseISO,
+  formatDistanceToNowStrict,
+} from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../(modals)/context/authContext";
 import { auth_swr, regular_swr } from "../../hooks/useswr";
 import MainChatModal from "@/app/(modals)/authentication/modals/mainChatModal";
-import { Avatar } from "react-native-paper";
+import { Avatar, Badge } from "react-native-paper";
 import { router, useFocusEffect } from "expo-router";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { FontAwesome } from "@expo/vector-icons";
@@ -38,6 +43,10 @@ import {
   newMessagePrepareFunction,
   prepareMessages,
 } from "../(modals)/chat/util/message_function";
+import { useChatStore } from "../(modals)/context/store/chatStore";
+import { useTimeChanging } from "../(modals)/chat/util/time_changing";
+import PersonalChat from "../(modals)/chat/components/personal_chat";
+import GroupChatComponent from "../(modals)/chat/components/group_chat";
 
 const ChatComponent: React.FC = () => {
   const [chatGroups, setChatGroups] = useState<{ [key: string]: GroupChat }>(
@@ -104,6 +113,11 @@ const ChatComponent: React.FC = () => {
     }
   );
 
+  const storeChatId = useChatStore((state) => state.chatID);
+  const storeMessage = useChatStore((state) => state.receivedMessages);
+
+  // chat data process
+
   useEffect(() => {
     if (chatLoading) {
       setLoading(true);
@@ -150,6 +164,8 @@ const ChatComponent: React.FC = () => {
             group_chat_name: otherMember || "Direct Chat",
             chat_image: groupID.chat_image,
             notUser: groupID.notUser || [],
+            latestMessage: groupID.latestMessage || undefined,
+            unseenCount: groupID.unseenCount || 0,
           };
           return;
         }
@@ -173,6 +189,26 @@ const ChatComponent: React.FC = () => {
       Sentry.captureException(chatError);
     }
   }, [chatData, chatError, userLoading]);
+
+  useEffect(() => {
+    if (!storeChatId || storeMessage.length === 0) return;
+
+    setChatGroups((prev) => {
+      const latestMsg = storeMessage[storeMessage.length - 1];
+      return {
+        ...prev,
+        [storeChatId]: {
+          ...prev[storeChatId],
+          latestMessage: {
+            sender_unique_name: latestMsg.sender_unique_name,
+            message: latestMsg.message,
+            timestamp: latestMsg.timestamp,
+          },
+          unseenCount: (prev[storeChatId]?.unseenCount || 0) + 1,
+        },
+      };
+    });
+  }, [storeChatId, storeMessage]);
 
   useEffect(() => {
     if (userLoading) {
@@ -259,6 +295,9 @@ const ChatComponent: React.FC = () => {
     if (currentChatId.current) {
       socketRef.current?.emit("leave_group", currentChatId.current);
     }
+    socketRef.current?.emit("register", (callBackData: any) => {
+      if (!callBackData.success) return router.back();
+    });
 
     socketRef.current?.emit("joinGroup", { item: groupId }, (data: any) => {
       console.log(data);
@@ -339,7 +378,6 @@ const ChatComponent: React.FC = () => {
         socketRef.current = socket;
       };
       initSocket();
-
       return () => {
         socketRef.current?.off("receiveMessage");
         socketRef.current?.emit("leave_group", currentChatId.current);
@@ -693,127 +731,18 @@ const ChatComponent: React.FC = () => {
                         </View>
                       </View>
                     </View>
-                    {chatSeparator === ChatSeparator.GROUP &&
-                      result.group_chat.map((item) => (
-                        <View key={item.group_ID} style={styles.groupItem}>
-                          <TouchableOpacity
-                            onPress={() => {
-                              if (item.individualChat) {
-                                router.push(
-                                  `/(modals)/chat/${item.group_chat_name}`
-                                );
-                              } else {
-                                joinSpecificChat(item.group_ID ?? "");
-                              }
-                            }}
-                            style={{
-                              flexDirection: "row",
-                              padding: 5,
-                              gap: 5,
-                            }}
-                          >
-                            <Avatar.Image
-                              size={40}
-                              source={require("@/assets/images/sportHall_Icon_full_primary.png")}
-                              theme={{
-                                colors: { primary: Colors.white },
-                              }}
-                            />
-                            <View
-                              style={{
-                                flex: 1,
-                                flexWrap: "wrap",
-                                flexDirection: "row",
-                                gap: 5,
-                              }}
-                            >
-                              {item.sportHallName &&
-                              item.date &&
-                              item.startTime &&
-                              item.endTime ? (
-                                <>
-                                  <Text style={{ fontWeight: 600 }}>
-                                    {item.sportHallName}
-                                  </Text>
-                                  <Text style={{ fontWeight: 800 }}>-</Text>
-                                  <Text style={{ fontWeight: 300 }}>
-                                    {item.date
-                                      ? format(new Date(item.date), "MMMM dd")
-                                      : ""}
-                                  </Text>
-                                  <Text>
-                                    {item.startTime} - {item.endTime}
-                                  </Text>
-                                </>
-                              ) : (
-                                <Text>{item.group_chat_name}</Text>
-                              )}
-                            </View>
-                          </TouchableOpacity>
-                        </View>
-                      ))}
-                    {chatSeparator === ChatSeparator.PERSONAL &&
-                      result.individualChat.map((item) => {
-                        return (
-                          <View
-                            key={item.individualChat}
-                            style={styles.groupItem}
-                          >
-                            <TouchableOpacity
-                              onPress={() => {
-                                if (item.individualChat) {
-                                  router.push(`/(modals)/chat/${item.notUser}`);
-                                } else {
-                                  joinSpecificChat(item.group_ID ?? "");
-                                }
-                              }}
-                              style={{
-                                flexDirection: "row",
-                                padding: 5,
-                                gap: 5,
-                              }}
-                            >
-                              <Avatar.Image
-                                size={40}
-                                source={require("@/assets/images/sportHall_Icon_full_primary.png")}
-                                theme={{
-                                  colors: { primary: Colors.white },
-                                }}
-                              />
-                              <View
-                                style={{
-                                  flex: 1,
-                                  flexWrap: "wrap",
-                                  flexDirection: "row",
-                                  gap: 5,
-                                }}
-                              >
-                                {item.sportHallName &&
-                                item.date &&
-                                item.startTime &&
-                                item.endTime ? (
-                                  <>
-                                    <Text style={{ fontWeight: 600 }}>
-                                      {item.sportHallName}
-                                    </Text>
-                                    <Text style={{ fontWeight: 800 }}>-</Text>
-                                    <Text style={{ fontWeight: 300 }}>
-                                      {item.date
-                                        ? format(new Date(item.date), "MMMM dd")
-                                        : ""}
-                                    </Text>
-                                    <Text>
-                                      {item.startTime} - {item.endTime}
-                                    </Text>
-                                  </>
-                                ) : (
-                                  <Text>{item.notUser}</Text>
-                                )}
-                              </View>
-                            </TouchableOpacity>
-                          </View>
-                        );
-                      })}
+                    {chatSeparator === ChatSeparator.GROUP && (
+                      <GroupChatComponent
+                        chats={result.group_chat}
+                        join_function={joinSpecificChat}
+                      />
+                    )}
+                    {chatSeparator === ChatSeparator.PERSONAL && (
+                      <PersonalChat
+                        chats={result.individualChat}
+                        join_function={joinSpecificChat}
+                      />
+                    )}
                   </ScrollView>
                 </View>
               )}

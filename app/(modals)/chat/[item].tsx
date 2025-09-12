@@ -22,17 +22,13 @@ import Colors from "@/constants/Colors";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Avatar } from "react-native-paper";
-import { differenceInDays, format } from "date-fns";
+import { differenceInDays } from "date-fns";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "../context/authContext";
 import { Message } from "@/interfaces/chatType";
 import { generatedId } from "./util/objectID";
-
-type ActiveUserType = {
-  unique_user_ID: string;
-  status: string;
-};
+import { useChatStore } from "@/app/(modals)/context/store/chatStore";
 
 const DirectChatScreen: React.FC = ({}) => {
   const { item } = useLocalSearchParams();
@@ -42,7 +38,7 @@ const DirectChatScreen: React.FC = ({}) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [isitReady, setIsitReady] = useState<boolean>(false);
   const [childModalVisible, setChildModalVisible] = useState<boolean>(false);
-  const [activeUserData, setActiveUserData] = useState<ActiveUserType[]>([]);
+  const [activeUserData, setActiveUserData] = useState<string[]>([]);
   const [refreshFlag, setRefreshFlag] = useState<boolean>(false);
 
   const socketRef = useRef<Socket | null>(null);
@@ -55,7 +51,6 @@ const DirectChatScreen: React.FC = ({}) => {
   const sendMessage = async (messageText: string) => {
     if (!messageText.trim()) return;
     if (!socketRef.current?.connected) return;
-
     const newMessage = {
       _id: generatedId(),
       sender_unique_name: userDataParsed.unique_user_ID,
@@ -216,14 +211,14 @@ const DirectChatScreen: React.FC = ({}) => {
   const [menuVisible, setMenuVisible] = React.useState(false);
 
   const initIndividualChat = async () => {
-    socketRef.current = getSocket();
     if (!socketRef.current?.connected) {
       const socket = await connectSocket();
-      if (socket) {
-        socketRef.current = socket;
-      }
+      if (socket) socketRef.current = socket;
     }
     setIsitReady(true);
+    socketRef.current?.emit("register", (callBackData: any) => {
+      if (!callBackData.success) return router.back();
+    });
     socketRef.current?.emit(
       "directChatJoin",
       {
@@ -273,6 +268,17 @@ const DirectChatScreen: React.FC = ({}) => {
           if (!socketRef.current?.connected) {
             await connectSocket();
           }
+          console.log("New direct message received: ON ITEM FILE", data);
+
+          const setChatID = useChatStore.getState().setChatID;
+          const addMessage = useChatStore.getState().addMessage;
+
+          setChatID(data.chatID);
+          addMessage({
+            sender_unique_name: data.sender_unique_name,
+            message: data.message,
+            timestamp: data.timestamp,
+          });
 
           const newMsj: Message = {
             _id: generatedId(),
@@ -304,23 +310,11 @@ const DirectChatScreen: React.FC = ({}) => {
   }, [item]);
 
   useEffect(() => {
-    if (socketRef.current?.connected) {
-      socketRef.current.on("direct-activity-change", (data) => {
-        setActiveUserData(
-          data
-            .filter(
-              (filterData: any) =>
-                filterData.unique_user_ID === item &&
-                filterData.status === "active"
-            )
-            .map((data: any) => ({
-              unique_user_ID: data.unique_user_ID,
-              status: data.status,
-            }))
-        );
-      });
-    }
-    socketRef.current = getSocket();
+    const socket = getSocket();
+    socketRef.current = socket;
+    socketRef.current?.on("direct-activity-change", (data) => {
+      setActiveUserData(data);
+    });
 
     return () => {
       socketRef.current?.off("direct-activity-change");
@@ -391,13 +385,16 @@ const DirectChatScreen: React.FC = ({}) => {
                       </Text>
                       <Text
                         style={{
-                          color:
-                            activeUserData[0]?.status === "active"
-                              ? "green"
-                              : Colors.darkGrey,
+                          color: activeUserData.includes(
+                            Array.isArray(item) ? item[0] : (item as string)
+                          )
+                            ? "green"
+                            : Colors.darkGrey,
                         }}
                       >
-                        {activeUserData[0]?.status === "active"
+                        {activeUserData.includes(
+                          Array.isArray(item) ? item[0] : (item as string)
+                        )
                           ? "Online"
                           : "Offline"}
                       </Text>
