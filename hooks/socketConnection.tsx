@@ -65,6 +65,9 @@ export const connectSocket = async (): Promise<Socket | null> => {
       clearTimeout(timeout);
       isConnecting = false;
       resolve(socket);
+      socket?.emit("register", (callBackData: any) => {
+        if (!callBackData.success) return;
+      });
     });
 
     socket.on("disconnect", (reason) => {

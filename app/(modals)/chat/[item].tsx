@@ -64,7 +64,6 @@ const DirectChatScreen: React.FC = ({}) => {
       newMessage.timestamp,
       prevMsj?.timestamp || new Date(0)
     );
-    console.log("Time Difference", diff);
     if (diff > 0 || diff < 0) {
       const newMsjPrepared = {
         ...newMessage,
@@ -241,8 +240,6 @@ const DirectChatScreen: React.FC = ({}) => {
           (message: any) => {
             setIsitReady(true);
             if (message.nextCursor === null && message.messages.length === 0) {
-              console.log(message.messages.length);
-              console.log("pisda");
               setLoading(false);
               setIsitReady(false);
               return;
@@ -268,8 +265,6 @@ const DirectChatScreen: React.FC = ({}) => {
           if (!socketRef.current?.connected) {
             await connectSocket();
           }
-          console.log("New direct message received: ON ITEM FILE", data);
-
           const setChatID = useChatStore.getState().setChatID;
           const addMessage = useChatStore.getState().addMessage;
 

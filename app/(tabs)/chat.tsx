@@ -16,17 +16,11 @@ import { Socket } from "socket.io-client";
 import * as Sentry from "@sentry/react-native";
 import Colors from "@/constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  format,
-  differenceInDays,
-  parseISO,
-  formatDistanceToNowStrict,
-} from "date-fns";
+import { differenceInDays } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../(modals)/context/authContext";
 import { auth_swr, regular_swr } from "../../hooks/useswr";
 import MainChatModal from "@/app/(modals)/authentication/modals/mainChatModal";
-import { Avatar, Badge } from "react-native-paper";
 import { router, useFocusEffect } from "expo-router";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { FontAwesome } from "@expo/vector-icons";
@@ -44,9 +38,9 @@ import {
   prepareMessages,
 } from "../(modals)/chat/util/message_function";
 import { useChatStore } from "../(modals)/context/store/chatStore";
-import { useTimeChanging } from "../(modals)/chat/util/time_changing";
 import PersonalChat from "../(modals)/chat/components/personal_chat";
 import GroupChatComponent from "../(modals)/chat/components/group_chat";
+import FilterModal from "../(modals)/chat/components/filter_modal";
 
 const ChatComponent: React.FC = () => {
   const [chatGroups, setChatGroups] = useState<{ [key: string]: GroupChat }>(
@@ -74,6 +68,7 @@ const ChatComponent: React.FC = () => {
     ChatSeparator.PERSONAL
   );
   const [chatSearchValue, setChatSearchValue] = useState<string>("");
+  const [showFilterVisible, setShowFilterVisible] = useState<boolean>(false);
 
   const { t } = useTranslation();
   const { LoginStatus } = useAuth();
@@ -117,7 +112,6 @@ const ChatComponent: React.FC = () => {
   const storeMessage = useChatStore((state) => state.receivedMessages);
 
   // chat data process
-
   useEffect(() => {
     if (chatLoading) {
       setLoading(true);
@@ -218,7 +212,6 @@ const ChatComponent: React.FC = () => {
         typeof userData.profileData == "string"
           ? JSON.parse(userData.profileData)
           : userData.profileData;
-      console.log(userDatas);
       setUserDatas(Array.isArray(parsedData) ? parsedData[0] : parsedData);
     } else if (userError) {
       Sentry.captureException(chatError);
@@ -300,7 +293,6 @@ const ChatComponent: React.FC = () => {
     });
 
     socketRef.current?.emit("joinGroup", { item: groupId }, (data: any) => {
-      console.log(data);
       if (!data.success) {
         Alert.alert("You are not allow to join this chat");
         return;
@@ -313,7 +305,6 @@ const ChatComponent: React.FC = () => {
         (message: MessageHistory) => {
           setIsitReady(true);
           if (message.nextCursor === null && message.messages.length === 0) {
-            console.log(message.messages.length);
             setLoading(false);
             setIsitReady(false);
             return;
@@ -339,7 +330,6 @@ const ChatComponent: React.FC = () => {
       setmainModalShow(true);
       socketRef.current?.off("receiveMessage");
       socketRef.current?.on("receiveMessage", (data: Message) => {
-        console.log("Recieved Data", data);
         const newMsj: Message = {
           _id: data._id,
           sender_unique_name: data.sender_unique_name,
@@ -393,6 +383,7 @@ const ChatComponent: React.FC = () => {
     }
   }, [mainModalShow]);
 
+  //User Active and recieve msj with connect to socket
   useEffect(() => {
     if (!socketRef.current) return;
     socketRef.current?.on("user-active-change", (data) => {
@@ -405,16 +396,36 @@ const ChatComponent: React.FC = () => {
           }))
       );
     });
+    socketRef.current.on("directMessageReceived", (data) => {
+      setChatGroups((prev) => {
+        return {
+          ...prev,
+          [data.chatID]: {
+            ...prev[data.chatID],
+            latestMessage: {
+              sender_unique_name: data.sender_unique_name,
+              message: data.message,
+              timestamp: data.timestamp,
+            },
+            unseenCount: (prev[data.chatID].unseenCount || 0) + 1,
+          },
+        };
+      });
+    });
+
+    (async () => {
+      socketRef.current = await connectSocket();
+    })();
+
     return () => {
       socketRef.current?.off("user-active-change");
+      socketRef.current?.off("directMessageReceived");
     };
   }, [socketRef.current]);
 
   const sendMessage = async (messageText: string) => {
     if (!messageText.trim()) return;
-
     if (!socketRef.current?.connected) return;
-
     const newMessage = {
       _id: generatedId(),
       sender_unique_name: userDatas.unique_user_ID,
@@ -422,7 +433,6 @@ const ChatComponent: React.FC = () => {
       message: messageText,
       timestamp: new Date(),
     };
-    console.log("Sending message:", newMessage);
     const prevMsj = messagesMap.get(currentChatId.current)?.[0];
     const diff = differenceInDays(
       newMessage.timestamp,
@@ -433,8 +443,6 @@ const ChatComponent: React.FC = () => {
         ...newMessage,
         showDateSeparator: true,
       };
-      console.log(currentChatId);
-
       saveMessageToMap({
         chat_ID: currentChatId.current,
         messages: [newMsjPrepared],
@@ -445,7 +453,6 @@ const ChatComponent: React.FC = () => {
         ...newMessage,
         showDateSeparator: false,
       };
-
       saveMessageToMap({
         chat_ID: currentChatId.current,
         messages: [newMsjPrepared],
@@ -501,6 +508,7 @@ const ChatComponent: React.FC = () => {
       }
     );
   };
+
   const result = Object.values(chatGroups).reduce(
     (
       acc: { individualChat: GroupChat[]; group_chat: GroupChat[] },
@@ -715,7 +723,9 @@ const ChatComponent: React.FC = () => {
                           }}
                         >
                           <TouchableOpacity
-                            onPress={() => {}}
+                            onPress={() => {
+                              setShowFilterVisible(!showFilterVisible);
+                            }}
                             style={{ padding: 10 }}
                           >
                             <Text
@@ -767,6 +777,10 @@ const ChatComponent: React.FC = () => {
                 groupID={currentChatId.current}
                 refreshFlag={refreshFlag}
                 currentChatId={currentChatId}
+              />
+              <FilterModal
+                showFilterVisible={showFilterVisible}
+                setShowFilterVisible={setShowFilterVisible}
               />
             </View>
           )}

@@ -1,13 +1,9 @@
-import { router, Href, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { StyleSheet, View, TouchableOpacity, Text, Modal } from "react-native";
+import React from "react";
+import { StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ProfileHeader from "@/components/ProfileHeader";
 import Colors from "@/constants/Colors";
-import SavedHalls from "@/app/(modals)/SavedHalls";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useAuth } from "../context/authContext";
-import { auth_swr } from "@/hooks/useswr";
 import { useFriendStore } from "../context/store/friendStore";
 import { FriendProfileType } from "@/app/(tabs)/friend";
 

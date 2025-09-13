@@ -1,29 +1,5 @@
 import { useEffect, useState } from "react";
-import { formatDistanceToNowStrict, interval, parseISO } from "date-fns";
-
-export const useTimeChanging = (initTime: string | Date, interval = 30000) => {
-  const [time, setTime] = useState<string>("");
-  useEffect(() => {
-    if (!initTime) return;
-    const data = typeof initTime === "string" ? parseISO(initTime) : initTime;
-    const updateTime = () => {
-      setTime(
-        formatDistanceToNowStrict(time, {
-          addSuffix: true,
-          roundingMethod: "floor",
-          unit: "minute",
-        })
-      );
-    };
-
-    updateTime();
-    const timer = setInterval(updateTime, interval);
-
-    return () => clearInterval(timer);
-  }, [initTime, interval]);
-
-  return time;
-};
+import { formatDistanceToNowStrict } from "date-fns";
 
 export function useHybridTime(timestamp?: string | Date) {
   const [timeAgo, setTimeAgo] = useState("");
