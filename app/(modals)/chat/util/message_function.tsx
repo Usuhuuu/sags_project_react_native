@@ -1,5 +1,11 @@
 import Colors from "@/constants/Colors";
-import { Message } from "@/interfaces/chatType";
+import {
+  LoadOlderMsjProp,
+  Message,
+  MessageHistory,
+  MessageToMap,
+  SendMessageProp,
+} from "@/interfaces/chatType";
 import {
   differenceInDays,
   differenceInMinutes,
@@ -9,6 +15,7 @@ import {
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Avatar } from "react-native-paper";
+import { generatedId } from "./objectID";
 
 export const prepareMessages = (
   messages: Message[],
@@ -213,6 +220,157 @@ export const MemoizedChatItem = React.memo(
     prev.item.message === next.item.message &&
     prev.item.timestamp === next.item.timestamp
 );
+
+export const loadOlderMsj = async ({
+  socketRef,
+  cursor,
+  setCursor,
+  loading,
+  setLoading,
+  saveMessageToMap,
+  currentChatId,
+  setMessagesMap,
+  setRefreshFlag,
+}: LoadOlderMsjProp) => {
+  if (!socketRef.current?.connected || !cursor) return;
+  socketRef.current?.emit(
+    "directChatHistory",
+    { timer: cursor },
+    (response: MessageHistory) => {
+      if (
+        !response.messages ||
+        response.messages.length === 0 ||
+        response.nextCursor == null
+      ) {
+        setLoading(false);
+        return;
+      }
+      const formattedMessages = prepareMessages(
+        response.messages,
+        response.nextCursor,
+        response.no_more_message
+      );
+      saveMessageToMap({
+        chat_ID: currentChatId.current ?? "",
+        messages: formattedMessages,
+        newSendedMsj: false,
+        setMessagesMap,
+        setRefreshFlag,
+      });
+      setCursor(response.nextCursor);
+      setLoading(false);
+    }
+  );
+};
+
+export const saveMessageToMap = ({
+  chat_ID,
+  messages,
+  newSendedMsj,
+  setMessagesMap,
+  setRefreshFlag,
+}: MessageToMap) => {
+  setMessagesMap((prevMsj) => {
+    const newMap = new Map(prevMsj);
+    const prev = newMap.get(chat_ID) || [];
+    let existingMessages = [...prev];
+
+    const previewMessage = existingMessages[0];
+
+    if (previewMessage && newSendedMsj) {
+      const newMsj = messages[0];
+      if (previewMessage.sender_unique_name === newMsj.sender_unique_name) {
+        const updatedFirstMessage = {
+          ...previewMessage,
+          showAvatar: !previewMessage.showAvatar,
+        };
+
+        // Create a new array to trigger re-render
+        existingMessages = [updatedFirstMessage, ...existingMessages.slice(1)];
+
+        messages = [{ ...newMsj, showAvatar: true }];
+        setRefreshFlag((prev) => !prev);
+      } else {
+        messages = [{ ...newMsj, showAvatar: true, showTimeGap: true }];
+        console.log("kakarr");
+      }
+    }
+
+    const combined = !newSendedMsj
+      ? [...existingMessages, ...messages]
+      : [...messages, ...existingMessages];
+
+    const seen = new Set();
+    const unique = combined.filter((msj) => {
+      const key = `${msj.sender_unique_name}-${msj.timestamp}-${msj.message}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    newMap.set(chat_ID, [...unique]);
+    return newMap;
+  });
+};
+
+export const sendMessage = async ({
+  messageText,
+  socketRef,
+  userDataParsed,
+  messagesMap,
+  currentChatId,
+  setMessagesMap,
+  setRefreshFlag,
+  setNewMessage,
+  flatListRef,
+}: SendMessageProp) => {
+  if (!messageText.trim()) return;
+  if (!socketRef.current?.connected) return;
+  const newMessage = {
+    _id: generatedId(),
+    sender_unique_name: userDataParsed.unique_user_ID,
+    message: messageText,
+    timestamp: new Date(),
+  };
+
+  const prevMsj = messagesMap.get(currentChatId.current)?.[0];
+
+  const diff = differenceInDays(
+    newMessage.timestamp,
+    prevMsj?.timestamp || new Date(0)
+  );
+  if (diff > 0 || diff < 0) {
+    const newMsjPrepared = {
+      ...newMessage,
+      showDateSeparator: true,
+    };
+    saveMessageToMap({
+      chat_ID: currentChatId.current,
+      messages: [newMsjPrepared],
+      newSendedMsj: true,
+      setMessagesMap,
+      setRefreshFlag,
+    });
+  } else {
+    const newMsjPrepared = {
+      ...newMessage,
+      showDateSeparator: false,
+    };
+    saveMessageToMap({
+      chat_ID: currentChatId.current,
+      messages: [newMsjPrepared],
+      newSendedMsj: true,
+      setMessagesMap,
+      setRefreshFlag,
+    });
+  }
+  socketRef.current.emit("directChatSend", newMessage);
+  setNewMessage("");
+  flatListRef.current?.scrollToIndex({
+    index: 0,
+    animated: true,
+  });
+};
 
 const styles = StyleSheet.create({
   container: {

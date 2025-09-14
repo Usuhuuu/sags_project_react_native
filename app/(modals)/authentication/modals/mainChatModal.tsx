@@ -16,11 +16,11 @@ import {
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import ChildModal from "./childModal";
-import { ActiveUserType, GroupChat, Message } from "@/app/(tabs)/chat";
 import { Avatar } from "react-native-paper";
 import { Socket } from "socket.io-client";
 import { useTranslation } from "react-i18next";
 import { format, parseISO } from "date-fns";
+import { ActiveUserType, GroupChat, Message } from "@/interfaces/chatType";
 
 interface MainChatModalProps {
   mainModalShow: boolean;

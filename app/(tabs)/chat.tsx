@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../(modals)/context/authContext";
 import { auth_swr, regular_swr } from "../../hooks/useswr";
 import MainChatModal from "@/app/(modals)/authentication/modals/mainChatModal";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { FontAwesome } from "@expo/vector-icons";
 import {
@@ -36,7 +36,8 @@ import {
   MemoizedChatItem,
   newMessagePrepareFunction,
   prepareMessages,
-} from "../(modals)/chat/util/message_function";
+  saveMessageToMap,
+} from "@/app/(modals)/chat/util/message_function";
 import { useChatStore } from "../(modals)/context/store/chatStore";
 import PersonalChat from "../(modals)/chat/components/personal_chat";
 import GroupChatComponent from "../(modals)/chat/components/group_chat";
@@ -218,61 +219,6 @@ const ChatComponent: React.FC = () => {
     }
   }, [userData, userError, userLoading]);
 
-  const saveMessageToMap = ({
-    chat_ID,
-    messages,
-    newSendedMsj,
-  }: {
-    chat_ID: string;
-    messages: Message[];
-    newSendedMsj: boolean;
-  }) => {
-    setMessagesMap((prevMsj) => {
-      const newMap = new Map(prevMsj);
-      const prev = newMap.get(chat_ID) || [];
-      let existingMessages = [...prev];
-
-      const previewMessage = existingMessages[0];
-
-      if (previewMessage && newSendedMsj) {
-        const newMsj = messages[0];
-        if (previewMessage.sender_unique_name === newMsj.sender_unique_name) {
-          const updatedFirstMessage = {
-            ...previewMessage,
-            showAvatar: !previewMessage.showAvatar,
-          };
-
-          // Create a new array to trigger re-render
-          existingMessages = [
-            updatedFirstMessage,
-            ...existingMessages.slice(1),
-          ];
-
-          messages = [{ ...newMsj, showAvatar: true }];
-          setRefreshFlag((prev) => !prev);
-        } else {
-          messages = [{ ...newMsj, showAvatar: true, showTimeGap: true }];
-          console.log("kakarr");
-        }
-      }
-
-      const combined = !newSendedMsj
-        ? [...existingMessages, ...messages]
-        : [...messages, ...existingMessages];
-
-      const seen = new Set();
-      const unique = combined.filter((msj) => {
-        const key = msj._id?.toString();
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-
-      newMap.set(chat_ID, [...unique]);
-      return newMap;
-    });
-  };
-
   const joinSpecificChat = async (groupId: string) => {
     socketRef.current = getSocket();
     if (!socketRef || !socketRef.current?.connected) {
@@ -288,10 +234,6 @@ const ChatComponent: React.FC = () => {
     if (currentChatId.current) {
       socketRef.current?.emit("leave_group", currentChatId.current);
     }
-    socketRef.current?.emit("register", (callBackData: any) => {
-      if (!callBackData.success) return router.back();
-    });
-
     socketRef.current?.emit("joinGroup", { item: groupId }, (data: any) => {
       if (!data.success) {
         Alert.alert("You are not allow to join this chat");
@@ -318,6 +260,8 @@ const ChatComponent: React.FC = () => {
             chat_ID: currentChatId.current,
             messages: formattedMessages,
             newSendedMsj: false,
+            setMessagesMap: setMessagesMap,
+            setRefreshFlag: setRefreshFlag,
           });
           if (message.no_more_message) {
             setLoading(false);
@@ -347,6 +291,8 @@ const ChatComponent: React.FC = () => {
           chat_ID: currentChatId.current,
           messages: preparedMsj,
           newSendedMsj: true,
+          setMessagesMap: setMessagesMap,
+          setRefreshFlag: setRefreshFlag,
         });
 
         flatListRef.current?.scrollToIndex({
@@ -397,6 +343,7 @@ const ChatComponent: React.FC = () => {
       );
     });
     socketRef.current.on("directMessageReceived", (data) => {
+      console.log("Pisdas", data);
       setChatGroups((prev) => {
         return {
           ...prev,
@@ -447,6 +394,8 @@ const ChatComponent: React.FC = () => {
         chat_ID: currentChatId.current,
         messages: [newMsjPrepared],
         newSendedMsj: true,
+        setMessagesMap: setMessagesMap,
+        setRefreshFlag: setRefreshFlag,
       });
     } else {
       const newMsjPrepared = {
@@ -457,6 +406,8 @@ const ChatComponent: React.FC = () => {
         chat_ID: currentChatId.current,
         messages: [newMsjPrepared],
         newSendedMsj: true,
+        setMessagesMap: setMessagesMap,
+        setRefreshFlag: setRefreshFlag,
       });
     }
     setNewMessage("");
@@ -501,6 +452,8 @@ const ChatComponent: React.FC = () => {
           chat_ID: currentChatId.current,
           messages: formattedMessages,
           newSendedMsj: false,
+          setMessagesMap: setMessagesMap,
+          setRefreshFlag: setRefreshFlag,
         });
 
         setCursor(message.nextCursor);

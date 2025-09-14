@@ -1,6 +1,6 @@
 import Colors from "@/constants/Colors";
 import { GroupChat } from "@/interfaces/chatType";
-import { format, formatDistanceToNowStrict } from "date-fns";
+import { format } from "date-fns";
 import { router } from "expo-router";
 import React from "react";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";

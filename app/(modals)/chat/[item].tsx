@@ -16,25 +16,26 @@ import {
   prepareMessages,
   MemoizedChatItem,
   newMessagePrepareFunction,
+  loadOlderMsj,
+  saveMessageToMap,
+  sendMessage,
 } from "@/app/(modals)/chat/util/message_function";
 import { Socket } from "socket.io-client";
 import Colors from "@/constants/Colors";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Avatar } from "react-native-paper";
-import { differenceInDays } from "date-fns";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "../context/authContext";
 import { Message } from "@/interfaces/chatType";
 import { generatedId } from "./util/objectID";
-import { useChatStore } from "@/app/(modals)/context/store/chatStore";
 
 const DirectChatScreen: React.FC = ({}) => {
   const { item } = useLocalSearchParams();
   const [newMessage, setNewMessage] = useState<string>("");
   const [userDataParsed, setuserDataParsed] = useState<any>([]);
-  const [cursor, setCursor] = useState(null);
+  const [cursor, setCursor] = useState<Date | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [isitReady, setIsitReady] = useState<boolean>(false);
   const [childModalVisible, setChildModalVisible] = useState<boolean>(false);
@@ -48,77 +49,6 @@ const DirectChatScreen: React.FC = ({}) => {
     new Map()
   );
 
-  const sendMessage = async (messageText: string) => {
-    if (!messageText.trim()) return;
-    if (!socketRef.current?.connected) return;
-    const newMessage = {
-      _id: generatedId(),
-      sender_unique_name: userDataParsed.unique_user_ID,
-      message: messageText,
-      timestamp: new Date(),
-    };
-
-    const prevMsj = messagesMap.get(currentChatId.current)?.[0];
-
-    const diff = differenceInDays(
-      newMessage.timestamp,
-      prevMsj?.timestamp || new Date(0)
-    );
-    if (diff > 0 || diff < 0) {
-      const newMsjPrepared = {
-        ...newMessage,
-        showDateSeparator: true,
-      };
-      saveMessageToMap({
-        chat_ID: currentChatId.current,
-        messages: [newMsjPrepared],
-        newSendedMsj: true,
-      });
-    } else {
-      const newMsjPrepared = {
-        ...newMessage,
-        showDateSeparator: false,
-      };
-      saveMessageToMap({
-        chat_ID: currentChatId.current,
-        messages: [newMsjPrepared],
-        newSendedMsj: true,
-      });
-    }
-    socketRef.current.emit("directChatSend", newMessage);
-    setNewMessage("");
-    flatListRef.current?.scrollToIndex({
-      index: 0,
-      animated: true,
-    });
-  };
-  const loadOlderMsj = async () => {
-    if (!socketRef.current?.connected || !cursor) return;
-
-    socketRef.current?.emit("directChatHistory", { timer: cursor });
-    socketRef.current?.once("directChatHistory", (message) => {
-      if (
-        !message.messages ||
-        message.messages.length === 0 ||
-        message.nextCursor == null
-      ) {
-        setLoading(false);
-        return;
-      }
-      const formattedMessages = prepareMessages(
-        message.messages,
-        message.nextCursor,
-        message.no_more_message
-      );
-      saveMessageToMap({
-        chat_ID: currentChatId.current,
-        messages: formattedMessages,
-        newSendedMsj: false,
-      });
-      setCursor(message.nextCursor);
-      setLoading(false);
-    });
-  };
   const { LoginStatus } = useAuth();
   const {
     data: userData,
@@ -151,156 +81,96 @@ const DirectChatScreen: React.FC = ({}) => {
     [userDataParsed]
   );
 
-  const saveMessageToMap = ({
-    chat_ID,
-    messages,
-    newSendedMsj,
-  }: {
-    chat_ID: string;
-    messages: Message[];
-    newSendedMsj: boolean;
-  }) => {
-    setMessagesMap((prevMsj) => {
-      const newMap = new Map(prevMsj);
-      const prev = newMap.get(chat_ID) || [];
-      let existingMessages = [...prev];
-
-      const previewMessage = existingMessages[0];
-
-      if (previewMessage && newSendedMsj) {
-        const newMsj = messages[0];
-        if (previewMessage.sender_unique_name === newMsj.sender_unique_name) {
-          const updatedFirstMessage = {
-            ...previewMessage,
-            showAvatar: !previewMessage.showAvatar,
-          };
-
-          // Create a new array to trigger re-render
-          existingMessages = [
-            updatedFirstMessage,
-            ...existingMessages.slice(1),
-          ];
-
-          messages = [{ ...newMsj, showAvatar: true }];
-          setRefreshFlag((prev) => !prev);
-        } else {
-          messages = [{ ...newMsj, showAvatar: true, showTimeGap: true }];
-          console.log("kakarr");
-        }
-      }
-
-      const combined = !newSendedMsj
-        ? [...existingMessages, ...messages]
-        : [...messages, ...existingMessages];
-
-      const seen = new Set();
-      const unique = combined.filter((msj) => {
-        const key = `${msj.sender_unique_name}-${msj.timestamp}-${msj.message}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-
-      newMap.set(chat_ID, [...unique]);
-      return newMap;
-    });
-  };
-
   const width = Dimensions.get("window").width;
   const [menuVisible, setMenuVisible] = React.useState(false);
 
-  const initIndividualChat = async () => {
-    if (!socketRef.current?.connected) {
-      const socket = await connectSocket();
-      if (socket) socketRef.current = socket;
-    }
-    setIsitReady(true);
-    socketRef.current?.emit("register", (callBackData: any) => {
-      if (!callBackData.success) return router.back();
-    });
-    socketRef.current?.emit(
-      "directChatJoin",
-      {
-        initFriend: item,
-      },
-      (callBackData: any) => {
-        currentChatId.current = callBackData.callBackData;
-        if (!callBackData.success) {
-          setIsitReady(false);
+  useEffect(() => {
+    const initIndividualChat = async () => {
+      if (!socketRef.current?.connected) {
+        const socket = await connectSocket();
+        if (socket) socketRef.current = socket;
+      }
+      setIsitReady(true);
+      socketRef.current?.emit(
+        "directChatJoin",
+        {
+          initFriend: item,
+        },
+        (callBackData: any) => {
+          currentChatId.current = callBackData.callBackData;
+          if (!callBackData.success) {
+            setIsitReady(false);
 
-          return;
-        }
-        socketRef.current?.emit("direct-active-user");
-        socketRef.current?.emit(
-          "directChatHistory",
-          {
-            timer: new Date(),
-            initFriend: item,
-          },
-          (message: any) => {
-            setIsitReady(true);
-            if (message.nextCursor === null && message.messages.length === 0) {
-              setLoading(false);
+            return;
+          }
+          socketRef.current?.emit("direct-active-user");
+          socketRef.current?.emit(
+            "directChatHistory",
+            {
+              timer: new Date(),
+              initFriend: item,
+            },
+            (message: any) => {
+              setIsitReady(true);
+              if (
+                message.nextCursor === null &&
+                message.messages.length === 0
+              ) {
+                setLoading(false);
+                setIsitReady(false);
+                return;
+              }
+
+              const formatMessages = prepareMessages(
+                message.messages,
+                message.nextCursor,
+                message.no_more_message
+              );
+
+              saveMessageToMap({
+                chat_ID: currentChatId.current,
+                messages: formatMessages,
+                newSendedMsj: false,
+                setMessagesMap,
+                setRefreshFlag,
+              });
+
+              setCursor(message.nextCursor);
               setIsitReady(false);
-              return;
             }
+          );
+          socketRef.current?.on("directMessageReceived", async (data) => {
+            if (!socketRef.current?.connected) {
+              await connectSocket();
+            }
+            console.log("pisdas1", data);
 
-            const formatMessages = prepareMessages(
-              message.messages,
-              message.nextCursor,
-              message.no_more_message
+            const newMsj: Message = {
+              _id: generatedId(),
+              sender_unique_name: data.sender_unique_name,
+              message: data.message,
+              timestamp: new Date(data.timestamp),
+            };
+            const preparedNewMsj = newMessagePrepareFunction(
+              newMsj,
+              messagesMap,
+              currentChatId
             );
-
             saveMessageToMap({
               chat_ID: currentChatId.current,
-              messages: formatMessages,
-              newSendedMsj: false,
+              messages: preparedNewMsj,
+              newSendedMsj: true,
+              setMessagesMap,
+              setRefreshFlag,
             });
-
-            setCursor(message.nextCursor);
-            setIsitReady(false);
-          }
-        );
-        socketRef.current?.on("directMessageReceived", async (data) => {
-          if (!socketRef.current?.connected) {
-            await connectSocket();
-          }
-          const setChatID = useChatStore.getState().setChatID;
-          const addMessage = useChatStore.getState().addMessage;
-
-          setChatID(data.chatID);
-          addMessage({
-            sender_unique_name: data.sender_unique_name,
-            message: data.message,
-            timestamp: data.timestamp,
+            flatListRef.current?.scrollToIndex({
+              index: 0,
+              animated: true,
+            });
           });
-
-          const newMsj: Message = {
-            _id: generatedId(),
-            sender_unique_name: data.sender_unique_name,
-            message: data.message,
-            timestamp: new Date(data.timestamp),
-          };
-          const preparedNewMsj = newMessagePrepareFunction(
-            newMsj,
-            messagesMap,
-            currentChatId
-          );
-
-          saveMessageToMap({
-            chat_ID: currentChatId.current,
-            messages: preparedNewMsj,
-            newSendedMsj: true,
-          });
-          flatListRef.current?.scrollToIndex({
-            index: 0,
-            animated: true,
-          });
-        });
-      }
-    );
-  };
-  useEffect(() => {
+        }
+      );
+    };
     initIndividualChat();
   }, [item]);
 
@@ -426,7 +296,17 @@ const DirectChatScreen: React.FC = ({}) => {
                 onEndReached={() => {
                   if (!loading) {
                     setLoading(true);
-                    loadOlderMsj();
+                    loadOlderMsj({
+                      socketRef,
+                      cursor,
+                      setCursor,
+                      loading,
+                      setLoading,
+                      saveMessageToMap,
+                      currentChatId,
+                      setMessagesMap,
+                      setRefreshFlag,
+                    });
                   }
                 }}
                 extraData={refreshFlag}
@@ -510,7 +390,19 @@ const DirectChatScreen: React.FC = ({}) => {
 
                   <TouchableOpacity
                     style={styles.sendButton}
-                    onPress={() => sendMessage(newMessage)}
+                    onPress={() =>
+                      sendMessage({
+                        messageText: newMessage,
+                        socketRef: socketRef,
+                        userDataParsed: userDataParsed,
+                        messagesMap: messagesMap,
+                        currentChatId: currentChatId,
+                        setMessagesMap: setMessagesMap,
+                        setRefreshFlag: setRefreshFlag,
+                        setNewMessage: setNewMessage,
+                        flatListRef: flatListRef,
+                      })
+                    }
                   >
                     <Ionicons name="send" size={32} color={Colors.primary} />
                   </TouchableOpacity>
