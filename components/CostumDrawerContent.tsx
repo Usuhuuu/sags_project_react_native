@@ -35,7 +35,7 @@ const CustomDrawerContent = (props: any) => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const { bottom } = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { LoginStatus, logIn } = useAuth();
+  const { LoginStatus, logIn, logOut } = useAuth();
 
   const router = useRouter();
 
@@ -53,25 +53,24 @@ const CustomDrawerContent = (props: any) => {
     }
   );
 
-  const handleNotification = async () => {
-    let token: string =
-      (await SecureStorage.getItemAsync("notificationToken")) || "";
-    if (token === "") {
-      const { status } = await Notification.requestPermissionsAsync();
-      const tokens = await Notification.getExpoPushTokenAsync();
-      if (status === "granted") {
-        token = (await Notification.getExpoPushTokenAsync()).data;
-        await SecureStorage.setItemAsync("notificationToken", token);
-      } else {
-        console.log("Notification permission not granted");
-      }
-    } else {
-    }
-  };
-
   useEffect(() => {
+    const handleNotification = async () => {
+      let token: string =
+        (await SecureStorage.getItemAsync("notificationToken")) || "";
+      if (token === "") {
+        const { status } = await Notification.requestPermissionsAsync();
+        const tokens = await Notification.getExpoPushTokenAsync();
+        if (status === "granted") {
+          token = (await Notification.getExpoPushTokenAsync()).data;
+          await SecureStorage.setItemAsync("notificationToken", token);
+        } else {
+          console.log("Notification permission not granted");
+        }
+      } else {
+      }
+    };
     handleNotification();
-  });
+  }, []);
 
   useEffect(() => {
     const requestTracking = async () => {
@@ -97,10 +96,6 @@ const CustomDrawerContent = (props: any) => {
   }, [data, error]);
 
   useEffect(() => {
-    //console.log("LoginStatus changed:", LoginStatus);
-  }, [LoginStatus]);
-
-  useEffect(() => {
     if (data) {
       const parsedData =
         typeof data.profileData == "string"
@@ -110,6 +105,7 @@ const CustomDrawerContent = (props: any) => {
       setUserData(Array.isArray(parsedData) ? parsedData[0] : parsedData);
       logIn();
     } else if (error) {
+      //logOut
       console.log("Error fetching user data: Pisda", error);
     }
   }, [data, error]);

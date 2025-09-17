@@ -86,23 +86,34 @@ axiosInstance.interceptors.response.use(
             {},
             { headers: { Authorization: `Bearer ${refreshToken}` } }
           );
-          if (newAccessToken.status == 400) {
-            await SecureStore.deleteItemAsync("Tokens");
-            Alert.alert(`${newAccessToken.data.message} pisda`);
-          } else if (
-            newAccessToken.status == 200 &&
-            newAccessToken.data.success
-          ) {
-            await SecureStore.setItemAsync(
-              "Tokens",
-              JSON.stringify({
-                accessToken: newAccessToken.data.newAccessToken,
-                refreshToken,
-              })
-            );
+          switch (true) {
+            case newAccessToken.status === 400 &&
+              newAccessToken.data.loginAgain:
+              await SecureStore.deleteItemAsync("Tokens");
+              Alert.alert(`${newAccessToken.data.message} pisda`);
+              break;
 
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-            return axiosInstance(originalRequest);
+            case newAccessToken.status === 400 &&
+              !newAccessToken.data.loginAgain:
+              // handle 400
+
+              await SecureStore.deleteItemAsync("Tokens");
+              Alert.alert(`${newAccessToken.data.message}`);
+              break;
+
+            case newAccessToken.status === 200 && !newAccessToken.data.success:
+              await SecureStore.setItemAsync(
+                "Tokens",
+                JSON.stringify({
+                  accessToken: newAccessToken.data.newAccessToken,
+                  refreshToken,
+                })
+              );
+              originalRequest.headers.Authorization = `Bearer ${newAccessToken.data.newAccessToken}`;
+              return axiosInstance(originalRequest);
+
+            default:
+              break;
           }
         } catch (refreshError) {}
       }

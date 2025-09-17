@@ -2,10 +2,11 @@ import Colors from "@/constants/Colors";
 import { GroupChat } from "@/interfaces/chatType";
 import { format } from "date-fns";
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { Avatar, Badge } from "react-native-paper";
 import { useHybridTime } from "../util/time_changing";
+import { useChatStore } from "../../context/store/chatStore";
 
 function PersonalChat({
   chats,

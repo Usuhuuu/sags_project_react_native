@@ -1,9 +1,9 @@
 import Colors from "@/constants/Colors";
 import {
+  ChatSeparator,
   LoadOlderMsjProp,
   Message,
   MessageHistory,
-  MessageToMap,
   SendMessageProp,
 } from "@/interfaces/chatType";
 import {
@@ -210,6 +210,19 @@ export const MemoizedChatItem = React.memo(
                   {format(item.timestamp, "hh:mm a")}
                 </Text>
               )}
+              {userSelf && item.showAvatar && (
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: Colors.dark,
+                    fontWeight: "300",
+                    marginTop: 2,
+                    alignSelf: userSelf ? "flex-end" : "flex-start",
+                  }}
+                >
+                  {format(item.timestamp, "hh:mm a")}
+                </Text>
+              )}
             </View>
           </View>
         </View>
@@ -225,16 +238,16 @@ export const loadOlderMsj = async ({
   socketRef,
   cursor,
   setCursor,
-  loading,
   setLoading,
   saveMessageToMap,
   currentChatId,
-  setMessagesMap,
-  setRefreshFlag,
+  chatSeparator,
 }: LoadOlderMsjProp) => {
   if (!socketRef.current?.connected || !cursor) return;
   socketRef.current?.emit(
-    "directChatHistory",
+    chatSeparator === ChatSeparator.PERSONAL
+      ? "directChatHistory"
+      : "chatHistory",
     { timer: cursor },
     (response: MessageHistory) => {
       if (
@@ -251,11 +264,9 @@ export const loadOlderMsj = async ({
         response.no_more_message
       );
       saveMessageToMap({
-        chat_ID: currentChatId.current ?? "",
+        chatID: currentChatId.current ?? "",
         messages: formattedMessages,
         newSendedMsj: false,
-        setMessagesMap,
-        setRefreshFlag,
       });
       setCursor(response.nextCursor);
       setLoading(false);
@@ -263,66 +274,15 @@ export const loadOlderMsj = async ({
   );
 };
 
-export const saveMessageToMap = ({
-  chat_ID,
-  messages,
-  newSendedMsj,
-  setMessagesMap,
-  setRefreshFlag,
-}: MessageToMap) => {
-  setMessagesMap((prevMsj) => {
-    const newMap = new Map(prevMsj);
-    const prev = newMap.get(chat_ID) || [];
-    let existingMessages = [...prev];
-
-    const previewMessage = existingMessages[0];
-
-    if (previewMessage && newSendedMsj) {
-      const newMsj = messages[0];
-      if (previewMessage.sender_unique_name === newMsj.sender_unique_name) {
-        const updatedFirstMessage = {
-          ...previewMessage,
-          showAvatar: !previewMessage.showAvatar,
-        };
-
-        // Create a new array to trigger re-render
-        existingMessages = [updatedFirstMessage, ...existingMessages.slice(1)];
-
-        messages = [{ ...newMsj, showAvatar: true }];
-        setRefreshFlag((prev) => !prev);
-      } else {
-        messages = [{ ...newMsj, showAvatar: true, showTimeGap: true }];
-        console.log("kakarr");
-      }
-    }
-
-    const combined = !newSendedMsj
-      ? [...existingMessages, ...messages]
-      : [...messages, ...existingMessages];
-
-    const seen = new Set();
-    const unique = combined.filter((msj) => {
-      const key = `${msj.sender_unique_name}-${msj.timestamp}-${msj.message}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
-    newMap.set(chat_ID, [...unique]);
-    return newMap;
-  });
-};
-
 export const sendMessage = async ({
-  messageText,
   socketRef,
+  messageText,
   userDataParsed,
   messagesMap,
   currentChatId,
-  setMessagesMap,
-  setRefreshFlag,
   setNewMessage,
   flatListRef,
+  addMessageToMap,
 }: SendMessageProp) => {
   if (!messageText.trim()) return;
   if (!socketRef.current?.connected) return;
@@ -344,24 +304,20 @@ export const sendMessage = async ({
       ...newMessage,
       showDateSeparator: true,
     };
-    saveMessageToMap({
-      chat_ID: currentChatId.current,
+    addMessageToMap({
+      chatID: currentChatId.current,
       messages: [newMsjPrepared],
       newSendedMsj: true,
-      setMessagesMap,
-      setRefreshFlag,
     });
   } else {
     const newMsjPrepared = {
       ...newMessage,
       showDateSeparator: false,
     };
-    saveMessageToMap({
-      chat_ID: currentChatId.current,
+    addMessageToMap({
+      chatID: currentChatId.current,
       messages: [newMsjPrepared],
       newSendedMsj: true,
-      setMessagesMap,
-      setRefreshFlag,
     });
   }
   socketRef.current.emit("directChatSend", newMessage);

@@ -10,11 +10,11 @@ export enum ChatSeparator {
 export type ChatSeparatorValue = `${ChatSeparator}`;
 
 export interface MessageToMap {
-  chat_ID: string;
+  chatID: string;
   messages: Message[];
   newSendedMsj: boolean;
-  setMessagesMap: React.Dispatch<React.SetStateAction<Map<string, Message[]>>>;
-  setRefreshFlag: React.Dispatch<React.SetStateAction<boolean>>;
+  setMessagesMap?: React.Dispatch<React.SetStateAction<Map<string, Message[]>>>;
+  setRefreshFlag?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface LoadOlderMsjProp {
@@ -25,8 +25,8 @@ export interface LoadOlderMsjProp {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   saveMessageToMap: (args: MessageToMap) => void;
   currentChatId: React.RefObject<string>;
-  setMessagesMap: React.Dispatch<React.SetStateAction<Map<string, Message[]>>>;
-  setRefreshFlag: React.Dispatch<React.SetStateAction<boolean>>;
+  setRefreshFlag?: React.Dispatch<React.SetStateAction<boolean>>;
+  chatSeparator: ChatSeparatorValue;
 }
 
 export interface SendMessageProp {
@@ -35,10 +35,9 @@ export interface SendMessageProp {
   userDataParsed: any;
   messagesMap: Map<string, Message[]>;
   currentChatId: React.MutableRefObject<string>;
-  setMessagesMap: React.Dispatch<React.SetStateAction<Map<string, Message[]>>>;
-  setRefreshFlag: React.Dispatch<React.SetStateAction<boolean>>;
   setNewMessage: React.Dispatch<React.SetStateAction<string>>;
   flatListRef: React.MutableRefObject<FlatList | null>;
+  addMessageToMap: (args: MessageToMap) => void;
 }
 
 export interface Message {
@@ -52,6 +51,7 @@ export interface Message {
   no_more_message?: boolean;
   isLastMessage?: boolean;
   showAvatar?: boolean;
+  seenBy?: string[];
 }
 
 export interface GroupChat {

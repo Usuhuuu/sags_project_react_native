@@ -20,7 +20,12 @@ import { Avatar } from "react-native-paper";
 import { Socket } from "socket.io-client";
 import { useTranslation } from "react-i18next";
 import { format, parseISO } from "date-fns";
-import { ActiveUserType, GroupChat, Message } from "@/interfaces/chatType";
+import {
+  ActiveUserType,
+  GroupChat,
+  LoadOlderMsjProp,
+  Message,
+} from "@/interfaces/chatType";
 
 interface MainChatModalProps {
   mainModalShow: boolean;

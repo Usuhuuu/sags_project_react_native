@@ -17,7 +17,6 @@ import {
   MemoizedChatItem,
   newMessagePrepareFunction,
   loadOlderMsj,
-  saveMessageToMap,
   sendMessage,
 } from "@/app/(modals)/chat/util/message_function";
 import { Socket } from "socket.io-client";
@@ -28,8 +27,9 @@ import { ActivityIndicator, Avatar } from "react-native-paper";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "../context/authContext";
-import { Message } from "@/interfaces/chatType";
+import { ChatSeparator, Message } from "@/interfaces/chatType";
 import { generatedId } from "./util/objectID";
+import { useChatStore } from "../context/store/chatStore";
 
 const DirectChatScreen: React.FC = ({}) => {
   const { item } = useLocalSearchParams();
@@ -37,7 +37,7 @@ const DirectChatScreen: React.FC = ({}) => {
   const [userDataParsed, setuserDataParsed] = useState<any>([]);
   const [cursor, setCursor] = useState<Date | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [isitReady, setIsitReady] = useState<boolean>(false);
+  const [isitReady, setIsitReady] = useState<boolean>(true);
   const [childModalVisible, setChildModalVisible] = useState<boolean>(false);
   const [activeUserData, setActiveUserData] = useState<string[]>([]);
   const [refreshFlag, setRefreshFlag] = useState<boolean>(false);
@@ -45,9 +45,13 @@ const DirectChatScreen: React.FC = ({}) => {
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList | null>(null);
   const currentChatId = useRef<string>("");
-  const [messagesMap, setMessagesMap] = useState<Map<string, Message[]>>(
-    new Map()
-  );
+
+  // Message fetched from Zustang State
+  const { messagesMap, addMessageToMap } = useChatStore();
+  const messagesMapData = messagesMap.get(currentChatId.current);
+  useEffect(() => {
+    console.log(messagesMapData?.length);
+  }, [messagesMapData]);
 
   const { LoginStatus } = useAuth();
   const {
@@ -74,15 +78,8 @@ const DirectChatScreen: React.FC = ({}) => {
     }
   }, [userData, userError, userLoading]);
 
-  const renderChatItem = useCallback(
-    ({ item }: { item: Message }) => {
-      return <MemoizedChatItem item={item} userDatas={userDataParsed} />;
-    },
-    [userDataParsed]
-  );
-
   const width = Dimensions.get("window").width;
-  const [menuVisible, setMenuVisible] = React.useState(false);
+  const [menuVisible, setMenuVisible] = useState<boolean>(false);
 
   useEffect(() => {
     const initIndividualChat = async () => {
@@ -90,87 +87,109 @@ const DirectChatScreen: React.FC = ({}) => {
         const socket = await connectSocket();
         if (socket) socketRef.current = socket;
       }
-      setIsitReady(true);
+      //setIsitReady(true);
       socketRef.current?.emit(
         "directChatJoin",
-        {
-          initFriend: item,
-        },
+        { initFriend: item },
         (callBackData: any) => {
           currentChatId.current = callBackData.callBackData;
           if (!callBackData.success) {
             setIsitReady(false);
-
             return;
           }
+
           socketRef.current?.emit("direct-active-user");
-          socketRef.current?.emit(
-            "directChatHistory",
-            {
-              timer: new Date(),
-              initFriend: item,
-            },
-            (message: any) => {
-              setIsitReady(true);
-              if (
-                message.nextCursor === null &&
-                message.messages.length === 0
-              ) {
-                setLoading(false);
+          const cacheMsj = messagesMap.get(currentChatId.current);
+
+          // If cache is missing or empty, fetch from server
+          if (!Array.isArray(cacheMsj) || cacheMsj.length === 0) {
+            console.log(
+              "Cache empty, fetching from server...",
+              cacheMsj?.length
+            );
+            socketRef.current?.emit(
+              "directChatHistory",
+              { timer: new Date(), initFriend: item },
+              (message: any) => {
+                if (
+                  message.messages.length === 0 &&
+                  message.nextCursor === null
+                ) {
+                  setLoading(false);
+                  setIsitReady(false);
+                  return;
+                }
+
+                const formatMessages = prepareMessages(
+                  message.messages,
+                  message.nextCursor,
+                  message.no_more_message
+                );
+
+                addMessageToMap({
+                  chatID: currentChatId.current,
+                  messages: formatMessages,
+                  newSendedMsj: false,
+                });
+
+                setCursor(message.nextCursor);
                 setIsitReady(false);
-                return;
               }
+            );
+          } else {
+            socketRef.current?.emit(
+              "direct_message_recovery",
+              (callback: any) => {
+                console.log("PISDA", callback);
+                if (callback.length > 0) {
+                  const formatMessages = prepareMessages(
+                    callback.messages,
+                    callback.nextCursor,
+                    callback.no_more_message
+                  );
 
-              const formatMessages = prepareMessages(
-                message.messages,
-                message.nextCursor,
-                message.no_more_message
-              );
+                  addMessageToMap({
+                    chatID: currentChatId.current,
+                    messages: formatMessages,
+                    newSendedMsj: false,
+                  });
+                  setIsitReady(false);
+                  setCursor(callback.nextCursor);
+                } else {
+                  console.log("No Message");
+                }
+              }
+            );
+            console.log("Using cached messages", cacheMsj.length);
+          }
+          setIsitReady(false);
 
-              saveMessageToMap({
-                chat_ID: currentChatId.current,
-                messages: formatMessages,
-                newSendedMsj: false,
-                setMessagesMap,
-                setRefreshFlag,
-              });
-
-              setCursor(message.nextCursor);
-              setIsitReady(false);
-            }
-          );
-          socketRef.current?.on("directMessageReceived", async (data) => {
-            if (!socketRef.current?.connected) {
-              await connectSocket();
-            }
-            console.log("pisdas1", data);
-
+          socketRef.current?.on("directMessageReceived", (data) => {
             const newMsj: Message = {
               _id: generatedId(),
               sender_unique_name: data.sender_unique_name,
               message: data.message,
               timestamp: new Date(data.timestamp),
             };
+
             const preparedNewMsj = newMessagePrepareFunction(
               newMsj,
               messagesMap,
               currentChatId
             );
-            saveMessageToMap({
-              chat_ID: currentChatId.current,
+
+            addMessageToMap({
+              chatID: currentChatId.current,
               messages: preparedNewMsj,
               newSendedMsj: true,
-              setMessagesMap,
-              setRefreshFlag,
             });
-            flatListRef.current?.scrollToIndex({
-              index: 0,
-              animated: true,
-            });
+
+            flatListRef.current?.scrollToIndex({ index: 0, animated: true });
           });
         }
       );
     };
+
     initIndividualChat();
   }, [item]);
 
@@ -186,269 +205,254 @@ const DirectChatScreen: React.FC = ({}) => {
     };
   }, []);
 
-  const messagesMapData = messagesMap.get(currentChatId.current);
-  return (
-    <>
-      {isitReady ? (
+  const flatRenderFunction = useCallback(
+    ({ item }: { item: Message }) => {
+      return <MemoizedChatItem item={item} userDatas={userDataParsed} />;
+    },
+    [userDataParsed]
+  );
+
+  return isitReady ? (
+    <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
+      <ActivityIndicator size={40} color={Colors.primary} />
+    </View>
+  ) : (
+    <SafeAreaProvider>
+      <SafeAreaView style={{ backgroundColor: Colors.white }}>
         <View
-          style={{ alignItems: "center", justifyContent: "center", flex: 1 }}
+          style={{
+            height: "100%",
+            width: width,
+          }}
         >
-          <ActivityIndicator size={40} color={Colors.primary} />
-        </View>
-      ) : (
-        <SafeAreaProvider>
-          <SafeAreaView style={{ backgroundColor: Colors.white }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderBottomColor: Colors.lightGrey,
+              borderBottomWidth: 1,
+              maxWidth: "100%",
+              marginHorizontal: 10,
+              height: "10%",
+            }}
+          >
             <View
               style={{
-                height: "100%",
-                width: width,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 5,
               }}
             >
+              <TouchableOpacity
+                onPress={() => {
+                  socketRef.current?.emit("direct-inactive-user");
+                  router.back();
+                }}
+              >
+                <Ionicons
+                  name="arrow-back-sharp"
+                  size={24}
+                  color={Colors.primary}
+                />
+              </TouchableOpacity>
+              <View
+                style={{
+                  flexDirection: "row",
+                  paddingLeft: 10,
+                }}
+              >
+                <Avatar.Image source={{ uri: userDataParsed.userImage }} />
+                <View style={{ gap: 5, alignSelf: "center" }}>
+                  <Text style={{ fontSize: 20, fontWeight: "500" }}>
+                    {typeof item === "string"
+                      ? item.toUpperCase()[0] + item.slice(1)
+                      : ""}
+                  </Text>
+                  <Text
+                    style={{
+                      color: activeUserData.includes(
+                        Array.isArray(item) ? item[0] : (item as string)
+                      )
+                        ? "green"
+                        : Colors.darkGrey,
+                    }}
+                  >
+                    {activeUserData.includes(
+                      Array.isArray(item) ? item[0] : (item as string)
+                    )
+                      ? "Online"
+                      : "Offline"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setChildModalVisible(true);
+              }}
+            >
+              <Feather name="more-vertical" size={30} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            ref={flatListRef}
+            data={messagesMapData}
+            renderItem={flatRenderFunction}
+            keyExtractor={(item) => `${item.timestamp.toString()}`}
+            inverted
+            style={[
+              {
+                backgroundColor: Colors.lightGrey,
+                paddingBottom: 40,
+              },
+            ]}
+            onEndReachedThreshold={0.5}
+            onEndReached={() => {
+              if (!loading) {
+                setLoading(true);
+                loadOlderMsj({
+                  socketRef,
+                  cursor,
+                  setCursor,
+                  loading,
+                  setLoading,
+                  saveMessageToMap: addMessageToMap,
+                  currentChatId,
+                  setRefreshFlag,
+                  chatSeparator: ChatSeparator.PERSONAL,
+                });
+              }
+            }}
+            extraData={refreshFlag}
+          />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={100 / 2 + 10}
+          >
+            <View style={[styles.inputContainer]}>
+              <View>
+                <TouchableOpacity
+                  onPress={() => {
+                    setMenuVisible(!menuVisible);
+                  }}
+                  style={{
+                    backgroundColor: Colors.lightGrey,
+                    padding: 7,
+                    borderRadius: 20,
+                  }}
+                >
+                  <AntDesign name="plus" size={24} color={Colors.darkGrey} />
+                </TouchableOpacity>
+                {menuVisible && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      backgroundColor: "white",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 4,
+                      elevation: 5,
+                      top: -80,
+                      flex: 1,
+                      left: 0,
+                      right: 0,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      padding: 5,
+                      width: 40,
+                      gap: 10,
+                      borderRadius: 10,
+                    }}
+                  >
+                    <TouchableOpacity onPress={() => console.log("Option 1")}>
+                      <Ionicons
+                        name="camera"
+                        size={24}
+                        color={Colors.primary}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => console.log("Option 2")}>
+                      <Ionicons
+                        name="camera"
+                        size={24}
+                        color={Colors.primary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.input}>
+                <TextInput
+                  value={newMessage}
+                  onChangeText={(newMsj) => setNewMessage(newMsj)}
+                  maxLength={2000}
+                  style={{ flex: 1 }}
+                  placeholderTextColor={Colors.darkGrey}
+                  clearTextOnFocus={false}
+                  multiline
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.sendButton}
+                onPress={() =>
+                  sendMessage({
+                    messageText: newMessage,
+                    socketRef: socketRef,
+                    userDataParsed: userDataParsed,
+                    messagesMap: messagesMap,
+                    currentChatId: currentChatId,
+                    setNewMessage: setNewMessage,
+                    flatListRef: flatListRef,
+                    addMessageToMap: addMessageToMap,
+                  })
+                }
+              >
+                <Ionicons name="send" size={32} color={Colors.primary} />
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+        <Modal
+          animationType="fade"
+          visible={childModalVisible}
+          style={{ zIndex: 2 }}
+        >
+          <SafeAreaProvider style={{ backgroundColor: Colors.white }}>
+            <SafeAreaView style={{ width: width, height: "100%" }}>
               <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  borderBottomColor: Colors.lightGrey,
+                  paddingHorizontal: 16,
+                  borderBottomColor: "#ddd",
                   borderBottomWidth: 1,
-                  maxWidth: "100%",
-                  marginHorizontal: 10,
                   height: "10%",
                 }}
               >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 5,
-                  }}
-                >
-                  <TouchableOpacity
-                    onPress={() => {
-                      socketRef.current?.emit("direct-inactive-user");
-                      router.back();
-                    }}
-                  >
-                    <Ionicons
-                      name="arrow-back-sharp"
-                      size={24}
-                      color={Colors.primary}
-                    />
-                  </TouchableOpacity>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      paddingLeft: 10,
-                    }}
-                  >
-                    <Avatar.Image source={{ uri: userDataParsed.userImage }} />
-                    <View style={{ gap: 5, alignSelf: "center" }}>
-                      <Text style={{ fontSize: 20, fontWeight: "500" }}>
-                        {typeof item === "string"
-                          ? item.toUpperCase()[0] + item.slice(1)
-                          : ""}
-                      </Text>
-                      <Text
-                        style={{
-                          color: activeUserData.includes(
-                            Array.isArray(item) ? item[0] : (item as string)
-                          )
-                            ? "green"
-                            : Colors.darkGrey,
-                        }}
-                      >
-                        {activeUserData.includes(
-                          Array.isArray(item) ? item[0] : (item as string)
-                        )
-                          ? "Online"
-                          : "Offline"}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
                 <TouchableOpacity
                   onPress={() => {
-                    setChildModalVisible(true);
+                    setChildModalVisible(false);
                   }}
                 >
-                  <Feather
-                    name="more-vertical"
-                    size={30}
+                  <Ionicons
+                    name="arrow-back-sharp"
+                    size={24}
                     color={Colors.primary}
                   />
                 </TouchableOpacity>
+                <Text style={{ fontSize: 24, color: Colors.primary }}>
+                  Group Chat Settings
+                </Text>
               </View>
-              <FlatList
-                ref={flatListRef}
-                data={messagesMapData}
-                renderItem={renderChatItem}
-                keyExtractor={(item, index) =>
-                  `${item.timestamp.toString()}-${index}`
-                }
-                inverted
-                style={[
-                  {
-                    backgroundColor: Colors.lightGrey,
-                    paddingBottom: 40,
-                  },
-                ]}
-                onEndReachedThreshold={0.5}
-                onEndReached={() => {
-                  if (!loading) {
-                    setLoading(true);
-                    loadOlderMsj({
-                      socketRef,
-                      cursor,
-                      setCursor,
-                      loading,
-                      setLoading,
-                      saveMessageToMap,
-                      currentChatId,
-                      setMessagesMap,
-                      setRefreshFlag,
-                    });
-                  }
-                }}
-                extraData={refreshFlag}
-              />
-              <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={100 / 2 + 10}
-              >
-                <View style={[styles.inputContainer]}>
-                  <View>
-                    <TouchableOpacity
-                      onPress={() => {
-                        setMenuVisible(!menuVisible);
-                      }}
-                      style={{
-                        backgroundColor: Colors.lightGrey,
-                        padding: 7,
-                        borderRadius: 20,
-                      }}
-                    >
-                      <AntDesign
-                        name="plus"
-                        size={24}
-                        color={Colors.darkGrey}
-                      />
-                    </TouchableOpacity>
-                    {menuVisible && (
-                      <View
-                        style={{
-                          position: "absolute",
-                          backgroundColor: "white",
-                          shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: 0.25,
-                          shadowRadius: 4,
-                          elevation: 5,
-                          top: -80,
-                          flex: 1,
-                          left: 0,
-                          right: 0,
-                          justifyContent: "center",
-                          alignItems: "center",
-                          padding: 5,
-                          width: 40,
-                          gap: 10,
-                          borderRadius: 10,
-                        }}
-                      >
-                        <TouchableOpacity
-                          onPress={() => console.log("Option 1")}
-                        >
-                          <Ionicons
-                            name="camera"
-                            size={24}
-                            color={Colors.primary}
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => console.log("Option 2")}
-                        >
-                          <Ionicons
-                            name="camera"
-                            size={24}
-                            color={Colors.primary}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.input}>
-                    <TextInput
-                      value={newMessage}
-                      onChangeText={(newMsj) => setNewMessage(newMsj)}
-                      maxLength={2000}
-                      style={{ flex: 1 }}
-                      placeholderTextColor={Colors.darkGrey}
-                      clearTextOnFocus={false}
-                      multiline
-                    />
-                  </View>
-
-                  <TouchableOpacity
-                    style={styles.sendButton}
-                    onPress={() =>
-                      sendMessage({
-                        messageText: newMessage,
-                        socketRef: socketRef,
-                        userDataParsed: userDataParsed,
-                        messagesMap: messagesMap,
-                        currentChatId: currentChatId,
-                        setMessagesMap: setMessagesMap,
-                        setRefreshFlag: setRefreshFlag,
-                        setNewMessage: setNewMessage,
-                        flatListRef: flatListRef,
-                      })
-                    }
-                  >
-                    <Ionicons name="send" size={32} color={Colors.primary} />
-                  </TouchableOpacity>
-                </View>
-              </KeyboardAvoidingView>
-            </View>
-            <Modal
-              animationType="fade"
-              visible={childModalVisible}
-              style={{ zIndex: 2 }}
-            >
-              <SafeAreaProvider style={{ backgroundColor: Colors.white }}>
-                <SafeAreaView style={{ width: width, height: "100%" }}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      paddingHorizontal: 16,
-                      borderBottomColor: "#ddd",
-                      borderBottomWidth: 1,
-                      height: "10%",
-                    }}
-                  >
-                    <TouchableOpacity
-                      onPress={() => {
-                        setChildModalVisible(false);
-                      }}
-                    >
-                      <Ionicons
-                        name="arrow-back-sharp"
-                        size={24}
-                        color={Colors.primary}
-                      />
-                    </TouchableOpacity>
-                    <Text style={{ fontSize: 24, color: Colors.primary }}>
-                      Group Chat Settings
-                    </Text>
-                  </View>
-                </SafeAreaView>
-              </SafeAreaProvider>
-            </Modal>
-          </SafeAreaView>
-        </SafeAreaProvider>
-      )}
-    </>
+            </SafeAreaView>
+          </SafeAreaProvider>
+        </Modal>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 

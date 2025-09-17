@@ -36,12 +36,11 @@ import {
   MemoizedChatItem,
   newMessagePrepareFunction,
   prepareMessages,
-  saveMessageToMap,
 } from "@/app/(modals)/chat/util/message_function";
-import { useChatStore } from "../(modals)/context/store/chatStore";
 import PersonalChat from "../(modals)/chat/components/personal_chat";
 import GroupChatComponent from "../(modals)/chat/components/group_chat";
 import FilterModal from "../(modals)/chat/components/filter_modal";
+import { useChatStore } from "../(modals)/context/store/chatStore";
 
 const ChatComponent: React.FC = () => {
   const [chatGroups, setChatGroups] = useState<{ [key: string]: GroupChat }>(
@@ -61,9 +60,8 @@ const ChatComponent: React.FC = () => {
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList | null>(null);
   const currentChatId = useRef<string>("");
-  const [messagesMap, setMessagesMap] = useState<Map<string, Message[]>>(
-    new Map()
-  );
+
+  //setMessagesMap
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [chatSeparator, setChatSeparator] = useState<ChatSeparator>(
     ChatSeparator.PERSONAL
@@ -73,6 +71,8 @@ const ChatComponent: React.FC = () => {
 
   const { t } = useTranslation();
   const { LoginStatus } = useAuth();
+
+  const { messagesMap, addMessageToMap } = useChatStore();
 
   const {
     data: userData,
@@ -108,9 +108,6 @@ const ChatComponent: React.FC = () => {
       revalidateOnMount: true,
     }
   );
-
-  const storeChatId = useChatStore((state) => state.chatID);
-  const storeMessage = useChatStore((state) => state.receivedMessages);
 
   // chat data process
   useEffect(() => {
@@ -186,26 +183,6 @@ const ChatComponent: React.FC = () => {
   }, [chatData, chatError, userLoading]);
 
   useEffect(() => {
-    if (!storeChatId || storeMessage.length === 0) return;
-
-    setChatGroups((prev) => {
-      const latestMsg = storeMessage[storeMessage.length - 1];
-      return {
-        ...prev,
-        [storeChatId]: {
-          ...prev[storeChatId],
-          latestMessage: {
-            sender_unique_name: latestMsg.sender_unique_name,
-            message: latestMsg.message,
-            timestamp: latestMsg.timestamp,
-          },
-          unseenCount: (prev[storeChatId]?.unseenCount || 0) + 1,
-        },
-      };
-    });
-  }, [storeChatId, storeMessage]);
-
-  useEffect(() => {
     if (userLoading) {
       setLoading(true);
     } else if (userData) {
@@ -256,12 +233,10 @@ const ChatComponent: React.FC = () => {
             message.nextCursor,
             message.no_more_message
           );
-          saveMessageToMap({
-            chat_ID: currentChatId.current,
+          addMessageToMap({
+            chatID: currentChatId.current,
             messages: formattedMessages,
             newSendedMsj: false,
-            setMessagesMap: setMessagesMap,
-            setRefreshFlag: setRefreshFlag,
           });
           if (message.no_more_message) {
             setLoading(false);
@@ -287,12 +262,10 @@ const ChatComponent: React.FC = () => {
           currentChatId
         );
 
-        saveMessageToMap({
-          chat_ID: currentChatId.current,
+        addMessageToMap({
+          chatID: currentChatId.current,
           messages: preparedMsj,
           newSendedMsj: true,
-          setMessagesMap: setMessagesMap,
-          setRefreshFlag: setRefreshFlag,
         });
 
         flatListRef.current?.scrollToIndex({
@@ -390,24 +363,20 @@ const ChatComponent: React.FC = () => {
         ...newMessage,
         showDateSeparator: true,
       };
-      saveMessageToMap({
-        chat_ID: currentChatId.current,
+      addMessageToMap({
+        chatID: currentChatId.current,
         messages: [newMsjPrepared],
         newSendedMsj: true,
-        setMessagesMap: setMessagesMap,
-        setRefreshFlag: setRefreshFlag,
       });
     } else {
       const newMsjPrepared = {
         ...newMessage,
         showDateSeparator: false,
       };
-      saveMessageToMap({
-        chat_ID: currentChatId.current,
+      addMessageToMap({
+        chatID: currentChatId.current,
         messages: [newMsjPrepared],
         newSendedMsj: true,
-        setMessagesMap: setMessagesMap,
-        setRefreshFlag: setRefreshFlag,
       });
     }
     setNewMessage("");
@@ -448,12 +417,10 @@ const ChatComponent: React.FC = () => {
           message.nextCursor,
           message.no_more_message
         );
-        saveMessageToMap({
-          chat_ID: currentChatId.current,
+        addMessageToMap({
+          chatID: currentChatId.current,
           messages: formattedMessages,
           newSendedMsj: false,
-          setMessagesMap: setMessagesMap,
-          setRefreshFlag: setRefreshFlag,
         });
 
         setCursor(message.nextCursor);
@@ -476,6 +443,7 @@ const ChatComponent: React.FC = () => {
     },
     { individualChat: [], group_chat: [] }
   );
+
   const chatInitLang: any = t("chatRoom", { returnObjects: true });
 
   return (
