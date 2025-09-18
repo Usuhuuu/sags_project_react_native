@@ -48,10 +48,12 @@ const DirectChatScreen: React.FC = ({}) => {
 
   // Message fetched from Zustang State
   const { messagesMap, addMessageToMap } = useChatStore();
+
   const messagesMapData = messagesMap.get(currentChatId.current);
+
   useEffect(() => {
-    console.log(messagesMapData?.length);
-  }, [messagesMapData]);
+    console.log(messagesMapData?.messages.length);
+  }, []);
 
   const { LoginStatus } = useAuth();
   const {
@@ -100,13 +102,12 @@ const DirectChatScreen: React.FC = ({}) => {
 
           socketRef.current?.emit("direct-active-user");
           const cacheMsj = messagesMap.get(currentChatId.current);
-
-          // If cache is missing or empty, fetch from server
-          if (!Array.isArray(cacheMsj) || cacheMsj.length === 0) {
-            console.log(
-              "Cache empty, fetching from server...",
-              cacheMsj?.length
-            );
+          console.log("lalar", cacheMsj?.messages?.length);
+          if (
+            !cacheMsj ||
+            cacheMsj.messages.length === 0 ||
+            !cacheMsj.no_more_message
+          ) {
             socketRef.current?.emit(
               "directChatHistory",
               { timer: new Date(), initFriend: item },
@@ -119,19 +120,17 @@ const DirectChatScreen: React.FC = ({}) => {
                   setIsitReady(false);
                   return;
                 }
-
                 const formatMessages = prepareMessages(
                   message.messages,
                   message.nextCursor,
                   message.no_more_message
                 );
-
                 addMessageToMap({
                   chatID: currentChatId.current,
                   messages: formatMessages,
                   newSendedMsj: false,
+                  no_more_message: message.no_more_message,
                 });
-
                 setCursor(message.nextCursor);
                 setIsitReady(false);
               }
@@ -140,7 +139,6 @@ const DirectChatScreen: React.FC = ({}) => {
             socketRef.current?.emit(
               "direct_message_recovery",
               (callback: any) => {
-                console.log("PISDA", callback);
                 if (callback.length > 0) {
                   const formatMessages = prepareMessages(
                     callback.messages,
@@ -160,7 +158,7 @@ const DirectChatScreen: React.FC = ({}) => {
                 }
               }
             );
-            console.log("Using cached messages", cacheMsj.length);
+            console.log("Using cached messages", cacheMsj.messages.length);
           }
           setIsitReady(false);
 
@@ -297,7 +295,7 @@ const DirectChatScreen: React.FC = ({}) => {
           </View>
           <FlatList
             ref={flatListRef}
-            data={messagesMapData}
+            data={messagesMapData?.messages}
             renderItem={flatRenderFunction}
             keyExtractor={(item) => `${item.timestamp.toString()}`}
             inverted
@@ -317,7 +315,7 @@ const DirectChatScreen: React.FC = ({}) => {
                   setCursor,
                   loading,
                   setLoading,
-                  saveMessageToMap: addMessageToMap,
+                  addMessageToMap,
                   currentChatId,
                   setRefreshFlag,
                   chatSeparator: ChatSeparator.PERSONAL,

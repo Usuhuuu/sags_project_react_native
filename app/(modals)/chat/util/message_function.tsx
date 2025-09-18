@@ -4,6 +4,7 @@ import {
   LoadOlderMsjProp,
   Message,
   MessageHistory,
+  MessageMapState,
   SendMessageProp,
 } from "@/interfaces/chatType";
 import {
@@ -95,13 +96,13 @@ export const prepareMessages = (
 
 export const newMessagePrepareFunction = (
   messages: Message,
-  messagesMap: Map<string, Message[]>,
+  messagesMap: Map<string, MessageMapState>,
   currentChatId: React.RefObject<string>
 ) => {
   const existingMessages = currentChatId.current
     ? messagesMap.get(currentChatId.current)
     : undefined;
-  const prevMsj = existingMessages?.[0];
+  const prevMsj = existingMessages?.messages[0];
   const diff = differenceInDays(
     parseISO(messages.timestamp.toString()),
     prevMsj ? parseISO(prevMsj.timestamp.toString()) : new Date()
@@ -239,7 +240,7 @@ export const loadOlderMsj = async ({
   cursor,
   setCursor,
   setLoading,
-  saveMessageToMap,
+  addMessageToMap,
   currentChatId,
   chatSeparator,
 }: LoadOlderMsjProp) => {
@@ -258,15 +259,18 @@ export const loadOlderMsj = async ({
         setLoading(false);
         return;
       }
+
       const formattedMessages = prepareMessages(
         response.messages,
         response.nextCursor,
         response.no_more_message
       );
-      saveMessageToMap({
+      console.log(formattedMessages.length);
+      addMessageToMap({
         chatID: currentChatId.current ?? "",
         messages: formattedMessages,
         newSendedMsj: false,
+        no_more_message: response.no_more_message,
       });
       setCursor(response.nextCursor);
       setLoading(false);
@@ -293,7 +297,7 @@ export const sendMessage = async ({
     timestamp: new Date(),
   };
 
-  const prevMsj = messagesMap.get(currentChatId.current)?.[0];
+  const prevMsj = messagesMap.get(currentChatId.current)?.messages[0];
 
   const diff = differenceInDays(
     newMessage.timestamp,

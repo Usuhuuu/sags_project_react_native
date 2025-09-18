@@ -13,8 +13,7 @@ export interface MessageToMap {
   chatID: string;
   messages: Message[];
   newSendedMsj: boolean;
-  setMessagesMap?: React.Dispatch<React.SetStateAction<Map<string, Message[]>>>;
-  setRefreshFlag?: React.Dispatch<React.SetStateAction<boolean>>;
+  no_more_message?: boolean;
 }
 
 export interface LoadOlderMsjProp {
@@ -23,7 +22,12 @@ export interface LoadOlderMsjProp {
   setCursor: React.Dispatch<React.SetStateAction<Date | null>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  saveMessageToMap: (args: MessageToMap) => void;
+  addMessageToMap: (params: {
+    chatID: string;
+    messages: Message[];
+    newSendedMsj?: boolean;
+    no_more_message?: boolean;
+  }) => void;
   currentChatId: React.RefObject<string>;
   setRefreshFlag?: React.Dispatch<React.SetStateAction<boolean>>;
   chatSeparator: ChatSeparatorValue;
@@ -33,11 +37,11 @@ export interface SendMessageProp {
   socketRef: React.MutableRefObject<Socket | null>;
   messageText: string;
   userDataParsed: any;
-  messagesMap: Map<string, Message[]>;
+  messagesMap: Map<string, MessageMapState>;
   currentChatId: React.MutableRefObject<string>;
   setNewMessage: React.Dispatch<React.SetStateAction<string>>;
   flatListRef: React.MutableRefObject<FlatList | null>;
-  addMessageToMap: (args: MessageToMap) => void;
+  addMessageToMap: (params: MessageToMap) => void;
 }
 
 export interface Message {
@@ -87,4 +91,8 @@ export interface ActiveUserType {
   unique_user_ID: string;
   status: string;
 }
+export type MessageMapState = {
+  messages: Message[];
+  no_more_message?: boolean;
+};
 
