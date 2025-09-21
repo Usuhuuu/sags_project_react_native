@@ -17,10 +17,9 @@ import Layout, { TabsLayout } from "./(tabs)/_layout";
 import { CustomErrorBoundary } from "./(modals)/context/errorContext";
 import * as Notifications from "expo-notifications";
 import { CalendarProvider } from "@/app/(modals)/context/CalendarContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { mutate } from "swr";
 import { useNotificationStore } from "./(modals)/context/store/notificationStore";
-
+import { NotifierRoot, NotifierWrapper } from "react-native-notifier";
 export const unstable_settings = {
   initialRouteName: "(tabs)",
 };
@@ -281,7 +280,6 @@ function RootLayoutNav() {
     </Stack>
   );
 }
-
 export default Sentry.wrap(() => (
   <CustomErrorBoundary>
     <AuthProvider>
@@ -289,8 +287,11 @@ export default Sentry.wrap(() => (
         <SavedHallsProvider>
           <CalendarProvider>
             <RootLayout>
-              <Layout />
-              <TabsLayout />
+              <NotifierWrapper>
+                <Layout />
+                <TabsLayout />
+                <NotifierRoot />
+              </NotifierWrapper>
             </RootLayout>
           </CalendarProvider>
         </SavedHallsProvider>

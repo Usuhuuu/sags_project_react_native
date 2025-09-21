@@ -5,7 +5,6 @@ import ProfileHeader from "@/components/ProfileHeader";
 import Colors from "@/constants/Colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useFriendStore } from "../context/store/friendStore";
-import { FriendProfileType } from "@/app/(tabs)/friend";
 
 interface ProfileNormalUserProps {
   copyToClipboard: () => void;
@@ -27,7 +26,7 @@ const NormalUser: React.FC<ProfileNormalUserProps> = () => {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      <ProfileHeader userData={friendData as FriendProfileType} />
+      {friendData && <ProfileHeader userData={friendData} />}
     </GestureHandlerRootView>
   );
 };

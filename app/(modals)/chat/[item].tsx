@@ -35,25 +35,28 @@ const DirectChatScreen: React.FC = ({}) => {
   const { item } = useLocalSearchParams();
   const [newMessage, setNewMessage] = useState<string>("");
   const [userDataParsed, setuserDataParsed] = useState<any>([]);
-  const [cursor, setCursor] = useState<Date | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [isitReady, setIsitReady] = useState<boolean>(true);
   const [childModalVisible, setChildModalVisible] = useState<boolean>(false);
   const [activeUserData, setActiveUserData] = useState<string[]>([]);
-  const [refreshFlag, setRefreshFlag] = useState<boolean>(false);
 
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList | null>(null);
   const currentChatId = useRef<string>("");
 
   // Message fetched from Zustang State
-  const { messagesMap, addMessageToMap } = useChatStore();
+  const { addMessageToMap, messagesMap } = useChatStore();
 
-  const messagesMapData = messagesMap.get(currentChatId.current);
+  const messagesMapData = useChatStore((state) =>
+    state.messagesMap.get(currentChatId.current)
+  );
 
+  const [cursor, setCursor] = useState<Date | null>(null);
   useEffect(() => {
-    console.log(messagesMapData?.messages.length);
-  }, []);
+    if (messagesMapData?.cursor) {
+      setCursor(messagesMapData.cursor);
+    }
+  }, [messagesMapData?.cursor, cursor]);
 
   const { LoginStatus } = useAuth();
   const {
@@ -101,12 +104,11 @@ const DirectChatScreen: React.FC = ({}) => {
           }
 
           socketRef.current?.emit("direct-active-user");
-          const cacheMsj = messagesMap.get(currentChatId.current);
-          console.log("lalar", cacheMsj?.messages?.length);
+          const cacheMsj = messagesMapData;
+
           if (
             !cacheMsj ||
-            cacheMsj.messages.length === 0 ||
-            !cacheMsj.no_more_message
+            (cacheMsj.messages.length === 0 && !cacheMsj.no_more_message)
           ) {
             socketRef.current?.emit(
               "directChatHistory",
@@ -130,6 +132,7 @@ const DirectChatScreen: React.FC = ({}) => {
                   messages: formatMessages,
                   newSendedMsj: false,
                   no_more_message: message.no_more_message,
+                  cursor: cursor,
                 });
                 setCursor(message.nextCursor);
                 setIsitReady(false);
@@ -150,11 +153,10 @@ const DirectChatScreen: React.FC = ({}) => {
                     chatID: currentChatId.current,
                     messages: formatMessages,
                     newSendedMsj: false,
+                    cursor: cursor,
                   });
                   setIsitReady(false);
                   setCursor(callback.nextCursor);
-                } else {
-                  console.log("No Message");
                 }
               }
             );
@@ -180,6 +182,7 @@ const DirectChatScreen: React.FC = ({}) => {
               chatID: currentChatId.current,
               messages: preparedNewMsj,
               newSendedMsj: true,
+              cursor: cursor,
             });
 
             flatListRef.current?.scrollToIndex({ index: 0, animated: true });
@@ -305,7 +308,7 @@ const DirectChatScreen: React.FC = ({}) => {
                 paddingBottom: 40,
               },
             ]}
-            onEndReachedThreshold={0.5}
+            onEndReachedThreshold={0.2}
             onEndReached={() => {
               if (!loading) {
                 setLoading(true);
@@ -317,12 +320,10 @@ const DirectChatScreen: React.FC = ({}) => {
                   setLoading,
                   addMessageToMap,
                   currentChatId,
-                  setRefreshFlag,
                   chatSeparator: ChatSeparator.PERSONAL,
                 });
               }
             }}
-            extraData={refreshFlag}
           />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -405,6 +406,7 @@ const DirectChatScreen: React.FC = ({}) => {
                     setNewMessage: setNewMessage,
                     flatListRef: flatListRef,
                     addMessageToMap: addMessageToMap,
+                    cursor: cursor,
                   })
                 }
               >

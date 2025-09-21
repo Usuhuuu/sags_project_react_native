@@ -101,7 +101,7 @@ axiosInstance.interceptors.response.use(
               Alert.alert(`${newAccessToken.data.message}`);
               break;
 
-            case newAccessToken.status === 200 && !newAccessToken.data.success:
+            case newAccessToken.status === 200 && newAccessToken.data.success:
               await SecureStore.setItemAsync(
                 "Tokens",
                 JSON.stringify({
@@ -115,7 +115,9 @@ axiosInstance.interceptors.response.use(
             default:
               break;
           }
-        } catch (refreshError) {}
+        } catch (refreshError) {
+          console.log("Try again later sda");
+        }
       }
     }
 

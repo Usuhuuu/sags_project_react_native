@@ -25,6 +25,7 @@ import {
   GroupChat,
   LoadOlderMsjProp,
   Message,
+  MessageMapState,
 } from "@/interfaces/chatType";
 
 interface MainChatModalProps {
@@ -33,7 +34,7 @@ interface MainChatModalProps {
   isitReady: boolean;
   setChildModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
   childModalVisible: boolean;
-  message: Map<string, Message[]>;
+  message: Map<string, MessageMapState>;
   loadOlderMsj: () => void;
   loading: boolean;
   flatListRef: React.RefObject<FlatList>;
@@ -45,7 +46,6 @@ interface MainChatModalProps {
   activeUserData: ActiveUserType[];
   socketRef: React.RefObject<Socket | null>;
   groupID: string;
-  refreshFlag: boolean;
   currentChatId: React.RefObject<string>;
 }
 
@@ -66,7 +66,6 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
   groupMap,
   activeUserData,
   groupID,
-  refreshFlag,
   currentChatId,
 }) => {
   const { t } = useTranslation();
@@ -221,7 +220,7 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={messageData}
+                data={messageData?.messages}
                 style={[
                   {
                     backgroundColor: Colors.lightGrey,
@@ -238,7 +237,6 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                 maxToRenderPerBatch={20}
                 windowSize={10}
                 removeClippedSubviews={true}
-                extraData={refreshFlag}
               />
               <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}

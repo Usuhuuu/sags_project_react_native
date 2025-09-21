@@ -1,3 +1,4 @@
+import { MessageAddType } from "@/app/(modals)/context/store/chatStore";
 import { FlatList } from "react-native";
 import { Socket } from "socket.io-client";
 
@@ -22,27 +23,11 @@ export interface LoadOlderMsjProp {
   setCursor: React.Dispatch<React.SetStateAction<Date | null>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  addMessageToMap: (params: {
-    chatID: string;
-    messages: Message[];
-    newSendedMsj?: boolean;
-    no_more_message?: boolean;
-  }) => void;
+  addMessageToMap: (params: MessageAddType) => void;
   currentChatId: React.RefObject<string>;
-  setRefreshFlag?: React.Dispatch<React.SetStateAction<boolean>>;
   chatSeparator: ChatSeparatorValue;
 }
 
-export interface SendMessageProp {
-  socketRef: React.MutableRefObject<Socket | null>;
-  messageText: string;
-  userDataParsed: any;
-  messagesMap: Map<string, MessageMapState>;
-  currentChatId: React.MutableRefObject<string>;
-  setNewMessage: React.Dispatch<React.SetStateAction<string>>;
-  flatListRef: React.MutableRefObject<FlatList | null>;
-  addMessageToMap: (params: MessageToMap) => void;
-}
 
 export interface Message {
   _id: string;
@@ -94,5 +79,18 @@ export interface ActiveUserType {
 export type MessageMapState = {
   messages: Message[];
   no_more_message?: boolean;
+  cursor: Date|null
 };
 
+
+export interface SendMessageProp {
+  socketRef: React.MutableRefObject<Socket | null>;
+  messageText: string;
+  userDataParsed: any;
+  messagesMap: Map<string, MessageMapState>;
+  currentChatId: React.MutableRefObject<string>;
+  setNewMessage: React.Dispatch<React.SetStateAction<string>>;
+  flatListRef: React.MutableRefObject<FlatList | null>;
+  addMessageToMap: (params: MessageAddType) => void;
+  cursor: Date | null
+}

@@ -7,7 +7,7 @@ import SportHallData from "@/assets/Data/sportHall.json";
 import ListingBottomSheet from "@/components/ListingBottomSheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { useSharedValue } from "react-native-reanimated";
+import { useSharedValue } from "react-native-reanimated";
 
 const Page = () => {
   const listingsData = require("@/assets/Data/sportHall.json");

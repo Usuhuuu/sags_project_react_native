@@ -33,8 +33,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { Swipeable } from "react-native-gesture-handler";
-import { FriendProfileType } from "@/app/(tabs)/friend";
 import { useTranslation } from "react-i18next";
+import { FriendsType } from "@/interfaces/friendType";
 
 const IMG_HEIGHT = 200;
 const { width } = Dimensions.get("window");
@@ -46,7 +46,7 @@ interface SavedCourt {
   location: string;
 }
 interface ProfileHeaderProps {
-  userData: FriendProfileType;
+  userData: FriendsType;
 }
 function CarouselItem({
   item,

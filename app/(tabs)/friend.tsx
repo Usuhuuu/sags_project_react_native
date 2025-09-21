@@ -1,588 +1,223 @@
-import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
+  View,
   StyleSheet,
   Text,
-  View,
   TouchableOpacity,
-  FlatList,
-  Alert,
+  TextInput,
 } from "react-native";
-import { Image } from "react-native";
-import { mutate } from "swr";
-import Colors from "@/constants/Colors";
-import axiosInstance from "../../hooks/axiosInstance";
-import { useTranslation } from "react-i18next";
+import React, { useEffect, useState } from "react";
+import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "../(modals)/context/authContext";
-import { auth_swr, post_auth_swr } from "../../hooks/useswr";
-import { Avatar, Searchbar } from "react-native-paper";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useFriendStore } from "../(modals)/context/store/friendStore";
-
-type FriendName = {
-  firstName: string;
-  lastName: string;
-};
-export type FriendProfileType = {
-  unique_user_ID: string;
-  email: string;
-  userImage?: string;
-  userNames?: FriendName;
-};
+import { Friend_Status, FriendSeparator } from "@/interfaces/friendType";
+import { ActivityIndicator } from "react-native-paper";
+import Colors from "@/constants/Colors";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import Friend_Separator from "../(modals)/friend/components/friendSeparator";
+import Friend_Add_Modal from "../(modals)/friend/components/friend_add";
 
 const FriendRequest = () => {
-  const [friendData, setFriendData] = useState<string[]>([]);
-  const [userRequestData, setUserRequestData] = useState<string[]>([]);
-  const [sendRequests, setSendRequests] = useState<string[]>([]);
-  const [friendShow, setFriendShow] = useState<
-    "friend" | "friendRequest" | "sendRequest"
-  >("friendRequest");
-  const [friendInfo, setFriendInfo] = useState<FriendProfileType[]>([]);
-  const [entireFriendData, setEntireFriendData] = useState<any>(null);
-  const [showFriends, setShowFriends] = useState<boolean>(false);
-  const [noFriend, setNoFriend] = useState<boolean>(false);
+  const [friendSeparator, setFriendSeparator] = useState<FriendSeparator>(
+    FriendSeparator.FRIENDS
+  );
+  const [friends, setFriends] = useState<Friend_Status>({} as Friend_Status);
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [modalDisplay, setModalDisplay] = useState<boolean>(false);
 
-  const [isitLoading, setIsitLoading] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-
-  const { t } = useTranslation();
   const { LoginStatus } = useAuth();
-  const FriendLanguage: any = t("friendScreen", { returnObjects: true });
-
-  const options = [
-    { id: "friend", label: FriendLanguage.friends },
-    { id: "friendRequest", label: FriendLanguage.friendRequest },
-    { id: "sendRequest", label: FriendLanguage.friendRequestSent },
-  ] as const;
-
-  const currentData =
-    friendShow === "friend"
-      ? friendData
-      : friendShow === "friendRequest"
-      ? userRequestData
-      : sendRequests;
-
-  const { data, error, isLoading } = auth_swr(
+  const {
+    data: userData,
+    error: userError,
+    isLoading: userLoading,
+  } = auth_swr(
     {
       item: {
         pathname: "friends",
-        cacheKey: "User_Friend",
+        cacheKey: "profile_friends",
         loginStatus: LoginStatus,
       },
     },
     {
       revalidateOnMount: true,
-      refreshInterval: 60 * 1000,
-    }
-  );
-
-  const {
-    data: userInfoData,
-    error: userInfoError,
-    isLoading: userInfoLoading,
-  } = post_auth_swr(
-    {
-      item: {
-        pathname: "/auth/friend_data",
-        cacheKey: "friend_profile_info",
-        loginStatus: LoginStatus && entireFriendData?.length > 0,
-        body: entireFriendData,
-      },
-    },
-    {
-      revalidateOnFocus: true,
-      revalidateOnMount: true,
-      dedupingInterval: 10000,
+      revalidateOnReconnect: true,
     }
   );
 
   useEffect(() => {
-    if (data) {
-      let profileData: {
-        friends: string[];
-        recieved_requests: string[];
-        send_requests?: string[];
-      } = { friends: [], recieved_requests: [] };
-      if (
-        typeof data.profileData === "string" &&
-        data.profileData.trim() !== ""
-      ) {
-        try {
-          profileData = JSON.parse(data.profileData);
-          if (
-            profileData.friends.length === 0 &&
-            profileData.recieved_requests.length === 0 &&
-            profileData.send_requests?.length === 0
-          ) {
-            setNoFriend(true);
-          }
-        } catch (err) {
-          console.error("Error parsing profileData:", err);
-        }
-      }
-      setFriendData(profileData.friends || []);
-      setUserRequestData(profileData.recieved_requests || []);
-      setSendRequests(profileData.send_requests || []);
-      const allValues: string[] = [
-        ...(profileData.friends || []),
-        ...(profileData.recieved_requests || []),
-        ...(profileData.send_requests || []),
-      ];
-      setEntireFriendData(allValues);
-      mutate(["friend_profile_info", LoginStatus]);
-    } else if (error) {
-      console.log("Error fetching user friend data:", error);
+    if (userError) {
+      console.log("error on Friends");
+    } else if (userData) {
+      setFriends(userData.profileData);
     }
-    setIsitLoading(isLoading);
-  }, [data, error, isLoading]);
+  }, [userData, userError]);
 
-  useEffect(() => {
-    if (userInfoData) {
-      setFriendInfo(userInfoData.friendData || []);
-      setShowFriends(!showFriends);
-    } else if (userInfoError) {
-      setFriendInfo([]);
-      setShowFriends(true);
-    }
-    setShowFriends(true);
-    !LoginStatus && setNoFriend(true);
-  }, [userInfoData, userInfoError, userInfoLoading, data, error]);
+  return userLoading ? (
+    <View style={friend_style.container}>
+      <ActivityIndicator size={"large"} />
+    </View>
+  ) : (
+    <View style={friend_style.container}>
+      {/* Separator Section */}
+      <View style={{ margin: 10 }}>
+        <View style={friend_style.separator_container}>
+          <TouchableOpacity
+            style={[
+              friend_style.separator_list,
+              {
+                backgroundColor:
+                  friendSeparator === FriendSeparator.FRIENDS
+                    ? Colors.white
+                    : Colors.lightGrey,
+              },
+            ]}
+            onPress={() => setFriendSeparator(FriendSeparator.FRIENDS)}
+          >
+            <Text
+              style={{
+                color:
+                  FriendSeparator.FRIENDS === friendSeparator
+                    ? Colors.dark
+                    : Colors.darkGrey,
+                fontSize: 14,
+              }}
+            >
+              Friends
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              friend_style.separator_list,
+              {
+                backgroundColor:
+                  friendSeparator === FriendSeparator.REQUESTS
+                    ? Colors.white
+                    : Colors.lightGrey,
+              },
+            ]}
+            onPress={() => setFriendSeparator(FriendSeparator.REQUESTS)}
+          >
+            <Text
+              style={{
+                color:
+                  FriendSeparator.REQUESTS === friendSeparator
+                    ? Colors.dark
+                    : Colors.darkGrey,
+                fontSize: 14,
+              }}
+            >
+              Friend Request
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              friend_style.separator_list,
+              {
+                backgroundColor:
+                  friendSeparator === FriendSeparator.SENDED
+                    ? Colors.white
+                    : Colors.lightGrey,
+              },
+            ]}
+            onPress={() => setFriendSeparator(FriendSeparator.SENDED)}
+          >
+            <Text
+              style={{
+                color:
+                  FriendSeparator.SENDED === friendSeparator
+                    ? Colors.dark
+                    : Colors.darkGrey,
 
-  useEffect(() => {
-    if (userInfoLoading || isLoading) {
-      setShowFriends(false);
-    }
-  }, [userInfoLoading, isLoading]);
-
-  useEffect(() => {
-    if (
-      Array.isArray(entireFriendData) &&
-      entireFriendData.length > 0 &&
-      LoginStatus
-    ) {
-      mutate(["friend_profile_info", LoginStatus], undefined, true);
-    }
-  }, [entireFriendData, LoginStatus]);
-
-  const uniqueCurrentData = Array.from(new Set(currentData));
-
-  const handleAccept = async (friend_ID: string) => {
-    try {
-      const response = await axiosInstance.post("/auth/friend_accept", {
-        friend_unique_ID: friend_ID,
-      });
-      if (response.status == 200) {
-        mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
-        mutate(["friend_profile_info", LoginStatus], undefined, {
-          revalidate: true,
-        });
-        Alert.alert("Success", "Friend request accepted");
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-  const handleCancel = async (friend_ID: string) => {
-    try {
-      const response = await axiosInstance.post("/auth/friend_cancel", {
-        friend_unique_ID: friend_ID,
-      });
-      if (response.status == 200) {
-        mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
-        mutate(["friend_profile_info", LoginStatus], undefined, {
-          revalidate: true,
-        });
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-  const handleRequestSend = async () => {
-    try {
-      const enterMessageLength = searchQuery.length;
-      if (enterMessageLength < 1) {
-        Alert.alert("Error", "Please enter a valid ID");
-        return;
-      }
-
-      const response = await axiosInstance.post("/auth/friend_request", {
-        friend_unique_ID: searchQuery,
-      });
-      if (response.status === 200) {
-        mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
-        mutate(["friend_profile_info", LoginStatus], undefined, {
-          revalidate: true,
-        });
-
-        Alert.alert("Success", "Friend request sent");
-      } else if (response.status === 400) {
-        if (response.data.find) {
-          Alert.alert("Error", "Request already sent");
-        } else {
-          Alert.alert("Error", "User not found");
-        }
-      }
-    } catch (err: any) {
-      if (err.response) {
-        if (err.response.status === 400) {
-          Alert.alert("Error", err.response.data.message || "Bad Request");
-        } else {
-          Alert.alert("Error", "Something went wrong. Please try again.");
-        }
-      } else {
-        console.log("Error without response:", err);
-        Alert.alert("Error", "Something went wrong. Please try again.");
-      }
-    }
-  };
-
-  const handleVisit = (item: string) => {
-    console.log(item);
-    const passData = friendInfo.filter(
-      (friend) => friend.unique_user_ID === item
-    );
-
-    useFriendStore.getState().setFriendDetails(passData[0]);
-    router.push(`/(modals)/user/${item}`);
-  };
-  return (
-    <View style={{ backgroundColor: Colors.lightGrey, flex: 1 }}>
-      {noFriend ? (
+                fontSize: 14,
+              }}
+            >
+              Sended
+            </Text>
+          </TouchableOpacity>
+        </View>
+        {/* Search and send Section */}
         <View
           style={{
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100%",
+            flexDirection: "row",
+            justifyContent: "space-around",
+            gap: "2%",
           }}
         >
-          <View style={{ justifyContent: "center", alignItems: "center" }}>
-            <Image
-              source={require("@/assets/images/profileIcons/no_friend_image.png")}
-              style={{ width: 300, height: 400 }}
-              resizeMode="contain"
+          <View style={friend_style.searchContainer}>
+            <FontAwesome
+              name="search"
+              size={18}
+              color={Colors.littleDarkGrey}
             />
-            <Text style={{ fontWeight: "bold", fontSize: 30 }}>
-              {FriendLanguage.noFriendRequestYet}
-            </Text>
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: 300,
-                color: Colors.darkGrey,
-              }}
-            >
-              {FriendLanguage.wantToMeetNewFriends}
-            </Text>
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: 300,
-                color: Colors.darkGrey,
-              }}
-            >
-              {FriendLanguage.startDiscoveringPlayersNearby}
-            </Text>
+            <TouchableOpacity>
+              <TextInput
+                value={searchValue}
+                onChangeText={(text) => setSearchValue(text)}
+                placeholder={"Search"}
+                placeholderTextColor={Colors.darkGrey}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={friend_style.searchSection_sendSection}>
+            <TouchableOpacity onPress={() => setModalDisplay(!modalDisplay)}>
+              <Ionicons
+                name="person-add-outline"
+                size={24}
+                color={Colors.darkGrey}
+              />
+            </TouchableOpacity>
           </View>
         </View>
-      ) : (
-        <>
-          {isitLoading ? (
-            <ActivityIndicator size="large" color={Colors.primary} />
-          ) : (
-            <View
-              style={{
-                width: "100%",
-                height: "100%",
-              }}
-            >
-              {showFriends ? (
-                <View style={style.subContainer}>
-                  <Searchbar
-                    mode="bar"
-                    placeholder={FriendLanguage.searchPlaceHolder}
-                    value={searchQuery}
-                    onChangeText={(text) => setSearchQuery(text)}
-                    style={{
-                      width: "100%",
-                      backgroundColor: Colors.white,
-                      borderRadius: 10,
-                      borderBottomColor: Colors.white,
-                      marginTop: 10,
-                    }}
-                    placeholderTextColor={Colors.darkGrey}
-                    right={() => (
-                      <TouchableOpacity onPress={() => handleRequestSend()}>
-                        <Ionicons
-                          name="send"
-                          size={24}
-                          color={Colors.primary}
-                          style={{ marginRight: 10 }}
-                        />
-                      </TouchableOpacity>
-                    )}
-                  />
-
-                  <View style={style.allFriendContainer}>
-                    <View style={style.friendContainer}>
-                      {options.map((label) => (
-                        <TouchableOpacity
-                          key={label.id}
-                          style={[
-                            style.innerFriend,
-                            {
-                              backgroundColor:
-                                friendShow === label.id
-                                  ? Colors.secondary
-                                  : Colors.white,
-                            },
-                          ]}
-                          onPress={() => {
-                            setFriendShow(label.id);
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 16,
-                              color:
-                                friendShow === label.id
-                                  ? Colors.white
-                                  : Colors.darkGrey,
-                              writingDirection: "ltr",
-                            }}
-                          >
-                            {label.label}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-                  <View style={style.outFriendContainer}>
-                    {currentData === userRequestData &&
-                      uniqueCurrentData.length === 0 && (
-                        <View style={{ padding: 10, alignItems: "center" }}>
-                          <Text
-                            style={{ fontSize: 16, color: Colors.darkGrey }}
-                          >
-                            {FriendLanguage.noFriendRequest}
-                          </Text>
-                        </View>
-                      )}
-
-                    {currentData === friendData &&
-                      uniqueCurrentData.length === 0 && (
-                        <View style={{ padding: 10, alignItems: "center" }}>
-                          <Text
-                            style={{ fontSize: 16, color: Colors.darkGrey }}
-                          >
-                            {FriendLanguage.noFriendsYet}
-                          </Text>
-                        </View>
-                      )}
-                    {currentData === sendRequests &&
-                      uniqueCurrentData.length === 0 && (
-                        <View style={{ padding: 10, alignItems: "center" }}>
-                          <Text
-                            style={{ fontSize: 16, color: Colors.darkGrey }}
-                          >
-                            {FriendLanguage.noSendRequests}
-                          </Text>
-                        </View>
-                      )}
-                    <FlatList
-                      data={uniqueCurrentData}
-                      keyExtractor={(item) => item}
-                      renderItem={({ item }) => {
-                        const matchedFriend = friendInfo?.find(
-                          (friend) => friend.unique_user_ID === item
-                        );
-                        return (
-                          <View
-                            style={{
-                              backgroundColor: Colors.grey,
-                              marginHorizontal: 20,
-                              padding: 15,
-                              borderRadius: 10,
-                              marginTop: 10,
-                              flexDirection: "row",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                            }}
-                          >
-                            {matchedFriend && (
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                }}
-                              >
-                                <Avatar.Image
-                                  source={{ uri: matchedFriend.userImage }}
-                                  size={60}
-                                  style={{
-                                    backgroundColor: Colors.primary,
-                                  }}
-                                />
-                                <View
-                                  style={{
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                  }}
-                                >
-                                  <Text
-                                    style={{
-                                      fontSize: 16,
-                                      color: Colors.dark,
-                                      fontWeight: "bold",
-                                      alignSelf: "flex-start",
-                                    }}
-                                  >
-                                    {item.charAt(0).toUpperCase() +
-                                      item.slice(1)}
-                                  </Text>
-                                  <Text
-                                    style={{
-                                      fontSize: 16,
-                                      color: Colors.darkGrey,
-                                    }}
-                                  >
-                                    {matchedFriend.email}
-                                  </Text>
-                                </View>
-                              </View>
-                            )}
-                            {currentData === userRequestData && (
-                              <View
-                                style={{
-                                  flexDirection: "column",
-                                }}
-                              >
-                                <TouchableOpacity
-                                  style={{
-                                    backgroundColor: Colors.secondary,
-                                    borderRadius: 10,
-                                    padding: 10,
-                                    width: 90,
-                                    alignItems: "center",
-                                  }}
-                                  onPress={() => handleAccept(item)}
-                                >
-                                  <Text
-                                    style={{
-                                      color: Colors.white,
-                                      fontSize: 17,
-                                    }}
-                                  >
-                                    Accept
-                                  </Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                  style={{
-                                    borderRadius: 10,
-                                    width: 90,
-                                    alignItems: "center",
-                                  }}
-                                  onPress={() => handleCancel(item)}
-                                >
-                                  <Text
-                                    style={{
-                                      color: Colors.darkGrey,
-                                      fontSize: 17,
-                                    }}
-                                  >
-                                    Cancel
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
-                            )}
-                            {currentData === friendData && (
-                              <View style={{ flexDirection: "row", gap: 5 }}>
-                                <TouchableOpacity
-                                  onPress={() =>
-                                    router.push(`/(modals)/chat/${item}`)
-                                  }
-                                >
-                                  <Ionicons
-                                    name="chatbubble-sharp"
-                                    size={25}
-                                    color={Colors.primary}
-                                  />
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    console.log(item);
-                                    handleVisit(item);
-                                  }}
-                                >
-                                  <Ionicons
-                                    name="person-circle-outline"
-                                    size={25}
-                                    color={Colors.primary}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                            )}
-                          </View>
-                        );
-                      }}
-                    />
-                  </View>
-                </View>
-              ) : (
-                <View
-                  style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: "100%",
-                  }}
-                >
-                  <ActivityIndicator size={"large"} color={Colors.primary} />
-                </View>
-              )}
-            </View>
-          )}
-        </>
-      )}
+      </View>
+      <View>
+        <Friend_Separator data={friends} screen_type={friendSeparator} />
+        <Friend_Add_Modal
+          modalDisplay={modalDisplay}
+          setModalDisplay={setModalDisplay}
+        />
+      </View>
     </View>
   );
 };
 
-const style = StyleSheet.create({
-  subContainer: {
-    backgroundColor: Colors.lightGrey,
-    marginHorizontal: 10,
-    flex: 1,
-  },
-  allFriendContainer: {
-    flexDirection: "row",
-    marginTop: 10,
-  },
-  searchContainer: {
-    flex: 1,
-    flexDirection: "row",
-    height: 50,
-    backgroundColor: Colors.dark,
-  },
-  friendContainer: {
-    flexDirection: "row",
+export default FriendRequest;
+
+const friend_style = StyleSheet.create({
+  container: {
+    backgroundColor: Colors.white,
     width: "100%",
-    marginTop: 10,
-    height: 70,
+    height: "100%",
+  },
+  separator_container: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: Colors.lightGrey,
+    padding: 2,
+    width: "100%",
+    gap: 5,
     borderRadius: 10,
   },
-  innerFriend: {
+  separator_list: {
+    width: "32%",
     justifyContent: "center",
     alignItems: "center",
-    gap: 5,
-    padding: 15,
-    width: "33.3%",
-  },
-  outFriendContainer: {
-    width: "100%",
-    height: "70%",
-    backgroundColor: Colors.white,
+    padding: 10,
     borderRadius: 10,
-    marginTop: 20,
+  },
+  searchContainer: {
+    backgroundColor: Colors.lightGrey,
+    padding: 10,
+    marginTop: 5,
+    flexDirection: "row",
+    gap: 10,
+    borderRadius: 10,
+    width: "80%",
+  },
+  searchSection_sendSection: {
+    width: "18%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.lightGrey,
+    marginTop: 5,
+    flexDirection: "row",
+    borderRadius: 10,
   },
 });
-export default FriendRequest;

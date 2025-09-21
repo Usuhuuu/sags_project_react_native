@@ -232,7 +232,12 @@ export const MemoizedChatItem = React.memo(
   },
   (prev, next) =>
     prev.item.message === next.item.message &&
-    prev.item.timestamp === next.item.timestamp
+    prev.item.timestamp === next.item.timestamp &&
+    prev.item.showDateSeparator === next.item.showDateSeparator &&
+    prev.item.showAvatar === next.item.showAvatar &&
+    prev.item.showTimeGap === next.item.showTimeGap &&
+    prev.item.sender_unique_name === next.item.sender_unique_name &&
+    prev.userDatas.unique_user_ID === next.userDatas.unique_user_ID
 );
 
 export const loadOlderMsj = async ({
@@ -265,12 +270,12 @@ export const loadOlderMsj = async ({
         response.nextCursor,
         response.no_more_message
       );
-      console.log(formattedMessages.length);
       addMessageToMap({
         chatID: currentChatId.current ?? "",
         messages: formattedMessages,
         newSendedMsj: false,
         no_more_message: response.no_more_message,
+        cursor: response.nextCursor,
       });
       setCursor(response.nextCursor);
       setLoading(false);
@@ -287,6 +292,7 @@ export const sendMessage = async ({
   setNewMessage,
   flatListRef,
   addMessageToMap,
+  cursor,
 }: SendMessageProp) => {
   if (!messageText.trim()) return;
   if (!socketRef.current?.connected) return;
@@ -312,6 +318,7 @@ export const sendMessage = async ({
       chatID: currentChatId.current,
       messages: [newMsjPrepared],
       newSendedMsj: true,
+      cursor: cursor,
     });
   } else {
     const newMsjPrepared = {
@@ -322,6 +329,7 @@ export const sendMessage = async ({
       chatID: currentChatId.current,
       messages: [newMsjPrepared],
       newSendedMsj: true,
+      cursor: cursor,
     });
   }
   socketRef.current.emit("directChatSend", newMessage);

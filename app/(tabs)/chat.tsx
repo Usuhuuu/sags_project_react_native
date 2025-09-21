@@ -62,7 +62,6 @@ const ChatComponent: React.FC = () => {
   const currentChatId = useRef<string>("");
 
   //setMessagesMap
-  const [refreshFlag, setRefreshFlag] = useState(false);
   const [chatSeparator, setChatSeparator] = useState<ChatSeparator>(
     ChatSeparator.PERSONAL
   );
@@ -72,7 +71,11 @@ const ChatComponent: React.FC = () => {
   const { t } = useTranslation();
   const { LoginStatus } = useAuth();
 
-  const { messagesMap, addMessageToMap } = useChatStore();
+  const { addMessageToMap } = useChatStore();
+
+  const messagesMap = useChatStore((state) => {
+    return state.messagesMap;
+  });
 
   const {
     data: userData,
@@ -237,6 +240,8 @@ const ChatComponent: React.FC = () => {
             chatID: currentChatId.current,
             messages: formattedMessages,
             newSendedMsj: false,
+            no_more_message: message.no_more_message,
+            cursor: cursor,
           });
           if (message.no_more_message) {
             setLoading(false);
@@ -266,6 +271,7 @@ const ChatComponent: React.FC = () => {
           chatID: currentChatId.current,
           messages: preparedMsj,
           newSendedMsj: true,
+          cursor: cursor,
         });
 
         flatListRef.current?.scrollToIndex({
@@ -317,6 +323,7 @@ const ChatComponent: React.FC = () => {
     });
     socketRef.current.on("directMessageReceived", (data) => {
       console.log("Pisdas", data);
+
       setChatGroups((prev) => {
         return {
           ...prev,
@@ -353,7 +360,7 @@ const ChatComponent: React.FC = () => {
       message: messageText,
       timestamp: new Date(),
     };
-    const prevMsj = messagesMap.get(currentChatId.current)?.[0];
+    const prevMsj = messagesMap.get(currentChatId.current)?.messages[0];
     const diff = differenceInDays(
       newMessage.timestamp,
       prevMsj?.timestamp || new Date(0)
@@ -367,6 +374,7 @@ const ChatComponent: React.FC = () => {
         chatID: currentChatId.current,
         messages: [newMsjPrepared],
         newSendedMsj: true,
+        cursor: cursor,
       });
     } else {
       const newMsjPrepared = {
@@ -377,6 +385,7 @@ const ChatComponent: React.FC = () => {
         chatID: currentChatId.current,
         messages: [newMsjPrepared],
         newSendedMsj: true,
+        cursor: cursor,
       });
     }
     setNewMessage("");
@@ -421,6 +430,8 @@ const ChatComponent: React.FC = () => {
           chatID: currentChatId.current,
           messages: formattedMessages,
           newSendedMsj: false,
+          no_more_message: message.no_more_message,
+          cursor: cursor,
         });
 
         setCursor(message.nextCursor);
@@ -696,7 +707,6 @@ const ChatComponent: React.FC = () => {
                 activeUserData={activeUserData}
                 socketRef={socketRef}
                 groupID={currentChatId.current}
-                refreshFlag={refreshFlag}
                 currentChatId={currentChatId}
               />
               <FilterModal

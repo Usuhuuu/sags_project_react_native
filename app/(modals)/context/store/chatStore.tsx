@@ -1,38 +1,36 @@
 import { Message, MessageMapState } from "@/interfaces/chatType";
 import { create } from "zustand";
 
-interface MessageMapProp {
+export interface MessageMapProp {
   messagesMap: Map<string, MessageMapState>;
-  setMessagesMap: (chatID: string, messages: Message[]) => void;
-  addMessageToMap: (params: {
-    chatID: string;
-    messages: Message[];
-    newSendedMsj?: boolean;
-    no_more_message?: boolean;
-  }) => void;
+  addMessageToMap: (params: MessageAddType) => void;
 }
+export type MessageAddType = {
+  chatID: string;
+  messages: Message[];
+  newSendedMsj?: boolean;
+  no_more_message?: boolean;
+  cursor: Date | null;
+};
 
 export const useChatStore = create<MessageMapProp>((set) => ({
   messagesMap: new Map<string, MessageMapState>(),
 
-  // Replace messages for a chatID
-  setMessagesMap: (chatID, messages) =>
-    set((state) => {
-      const newMap = new Map(state.messagesMap);
-      const prev = newMap.get(chatID) || {
-        messages: [],
-      };
-      newMap.set(chatID, { ...prev, messages });
-      return { messagesMap: newMap };
-    }),
-
   // Add message(s) to chatID
-  addMessageToMap: ({ chatID, messages, newSendedMsj, no_more_message }) =>
+
+  addMessageToMap: ({
+    chatID,
+    messages,
+    newSendedMsj,
+    no_more_message,
+    cursor,
+  }) =>
     set((state) => {
       const newMap = new Map(state.messagesMap);
       const prevMessages = newMap.get(chatID) || {
         messages: [],
         no_more_message: false,
+        cursor: null,
       };
       let existingMessages = [...prevMessages.messages];
 
@@ -70,7 +68,11 @@ export const useChatStore = create<MessageMapProp>((set) => ({
         return true;
       });
 
-      newMap.set(chatID, { messages: unique, no_more_message });
+      newMap.set(chatID, {
+        messages: unique,
+        no_more_message: prevMessages.no_more_message,
+        cursor: cursor ?? prevMessages.cursor,
+      });
       return { messagesMap: newMap };
     }),
 }));

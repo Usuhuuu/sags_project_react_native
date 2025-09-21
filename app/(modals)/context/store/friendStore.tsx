@@ -1,9 +1,9 @@
+import { FriendsType } from "@/interfaces/friendType";
 import { create } from "zustand";
-import { FriendProfileType } from "@/app/(tabs)/friend";
 
 type FriendState = {
-  friendDetails: FriendProfileType | null;
-  setFriendDetails: (data: FriendProfileType) => void;
+  friendDetails: FriendsType | null;
+  setFriendDetails: (data: FriendsType) => void;
   clearFriendDetails: () => void;
 };
 
