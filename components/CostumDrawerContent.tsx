@@ -50,6 +50,7 @@ const CustomDrawerContent = (props: any) => {
     {
       revalidateOnFocus: true,
       revalidateOnMount: true,
+      errorRetryInterval: 3000,
     }
   );
 

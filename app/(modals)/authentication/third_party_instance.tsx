@@ -46,11 +46,17 @@ export const loginWithFacebook = async () => {
       : AccessToken.getCurrentAccessToken().then((data) => data?.accessToken));
 
     if (data) {
-      const response = await axiosInstanceRegular.post("/api/facebook", {
-        fbData: {
-          accessToken: data,
+      const response = await axiosInstanceRegular.post(
+        "/api/facebook",
+        {
+          fbData: {
+            accessToken: data,
+          },
         },
-      });
+        {
+          timeout: 5000,
+        }
+      );
       if (response.status === 201 && response.data.success) {
         return {
           modalVisible: true,

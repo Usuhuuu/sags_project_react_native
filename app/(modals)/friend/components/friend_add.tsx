@@ -1,6 +1,5 @@
 import Colors from "@/constants/Colors";
 import axiosInstance from "@/hooks/axiosInstance";
-import { Ionicons } from "@expo/vector-icons";
 import React, { SetStateAction, useState } from "react";
 import {
   Modal,
@@ -9,9 +8,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from "react-native";
-import { Notifier, Easing, NotifierComponents } from "react-native-notifier";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 interface FriendAddModalProp {
   modalDisplay: boolean;
@@ -49,8 +47,6 @@ const Friend_Add_Modal = ({
           });
         }
       } else {
-        console.log("false");
-
         Notifier.showNotification({
           title: "Invalid username",
           description: "Please enter at least 6 characters",

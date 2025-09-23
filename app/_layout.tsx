@@ -19,7 +19,10 @@ import * as Notifications from "expo-notifications";
 import { CalendarProvider } from "@/app/(modals)/context/CalendarContext";
 import { mutate } from "swr";
 import { useNotificationStore } from "./(modals)/context/store/notificationStore";
-import { NotifierRoot, NotifierWrapper } from "react-native-notifier";
+import { NotifierRoot } from "react-native-notifier";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
 export const unstable_settings = {
   initialRouteName: "(tabs)",
 };
@@ -281,21 +284,24 @@ function RootLayoutNav() {
   );
 }
 export default Sentry.wrap(() => (
-  <CustomErrorBoundary>
-    <AuthProvider>
-      <LanguageProvider>
-        <SavedHallsProvider>
-          <CalendarProvider>
-            <RootLayout>
-              <NotifierWrapper>
-                <Layout />
-                <TabsLayout />
-                <NotifierRoot />
-              </NotifierWrapper>
-            </RootLayout>
-          </CalendarProvider>
-        </SavedHallsProvider>
-      </LanguageProvider>
-    </AuthProvider>
-  </CustomErrorBoundary>
+  <GestureHandlerRootView>
+    <SafeAreaProvider>
+      <NotifierRoot />
+
+      <CustomErrorBoundary>
+        <AuthProvider>
+          <LanguageProvider>
+            <SavedHallsProvider>
+              <CalendarProvider>
+                <RootLayout>
+                  <Layout />
+                  <TabsLayout />
+                </RootLayout>
+              </CalendarProvider>
+            </SavedHallsProvider>
+          </LanguageProvider>
+        </AuthProvider>
+      </CustomErrorBoundary>
+    </SafeAreaProvider>
+  </GestureHandlerRootView>
 ));

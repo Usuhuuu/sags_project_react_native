@@ -115,7 +115,6 @@ const Page = () => {
     try {
       const facebookResponse = await loginWithFacebook();
       const returnData = facebookResponse?.data;
-      console.log(returnData);
       if (facebookResponse?.modalVisible) {
         setFormData({
           ...formData,

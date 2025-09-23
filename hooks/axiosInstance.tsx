@@ -30,7 +30,7 @@ const tokenWithRetry = async (
 
 export const axiosInstance = axios.create({
   baseURL: apiUrl,
-  timeout: 1000,
+  timeout: 3000,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -40,7 +40,7 @@ export const axiosInstance = axios.create({
 
 export const axiosInstanceRegular = axios.create({
   baseURL: apiUrl,
-  timeout: 1000,
+  timeout: 3000,
   headers: {
     "Content-Type": "application/json",
     "x-app-source": "MobileApp",

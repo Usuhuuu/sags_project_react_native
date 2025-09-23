@@ -161,16 +161,22 @@ const SignupModal = ({
 
   const handleSubmit = async () => {
     try {
-      const response = await axiosInstanceRegular.post(`/api/${path}`, {
-        fbData: {
-          userName: formData.userName,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          signUpTimer: formData.signUpTimer,
-          userNotificationToken: notificationToken,
+      const response = await axiosInstanceRegular.post(
+        `/api/${path}`,
+        {
+          fbData: {
+            userName: formData.userName,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            signUpTimer: formData.signUpTimer,
+            userNotificationToken: notificationToken,
+          },
         },
-      });
+        {
+          timeout: 5000,
+        }
+      );
       if (response.status === 200 && response.data.success) {
         await SecureStore.setItemAsync(
           "Tokens",
