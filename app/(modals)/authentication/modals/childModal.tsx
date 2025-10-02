@@ -15,7 +15,7 @@ import { Avatar, Switch } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ChangeNameModal from "./innerModals/changeNameModal";
 import MemberModal from "./innerModals/memberModal";
-import { GroupChat } from "@/app/(tabs)/chat";
+import { GroupChat } from "@/interfaces/chatType";
 import * as Notification from "expo-notifications";
 import { useTranslation } from "react-i18next";
 

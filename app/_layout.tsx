@@ -22,6 +22,11 @@ import { useNotificationStore } from "./(modals)/context/store/notificationStore
 import { NotifierRoot } from "react-native-notifier";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  calendarPermission,
+  cameraPermission,
+  requestLocationPermission,
+} from "@/hooks/permissions";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -64,6 +69,7 @@ function RootLayout({ children }: RootLayoutProps) {
   const notificationResponseListener =
     useRef<Notifications.Subscription | null>(null);
 
+  // Notification Section
   useEffect(() => {
     const addNotification = useNotificationStore.getState().addNotification;
 
@@ -154,6 +160,12 @@ function RootLayout({ children }: RootLayoutProps) {
       console.log("Notification data:", notificationData);
     }
   }, [notificationData]);
+
+  useEffect(() => {
+    calendarPermission();
+    cameraPermission();
+    requestLocationPermission();
+  }, []);
 
   if (!loaded || fontError) {
     // Show a loading/fallback UI if fonts are still loading or if there's an error
@@ -286,7 +298,7 @@ function RootLayoutNav() {
 export default Sentry.wrap(() => (
   <GestureHandlerRootView>
     <SafeAreaProvider>
-      <NotifierRoot />
+      <NotifierRoot useRNScreensOverlay={true} />
 
       <CustomErrorBoundary>
         <AuthProvider>

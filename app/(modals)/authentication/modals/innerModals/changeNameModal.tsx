@@ -1,9 +1,8 @@
-import { GroupChat } from "@/app/(tabs)/chat";
+import { GroupChat } from "@/interfaces/chatType";
 import Colors from "@/constants/Colors";
 import React, { useEffect } from "react";
 import {
   View,
-  Modal,
   Text,
   TouchableOpacity,
   StyleSheet,
@@ -26,8 +25,6 @@ interface ChangeNameModalProps {
 }
 
 const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
-  changeNameModalVisible,
-  setChangeNameModalVisible,
   groupName,
   setGroupName,
   MemberData,

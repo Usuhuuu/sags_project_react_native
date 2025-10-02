@@ -16,7 +16,7 @@ import axiosInstance from "@/hooks/axiosInstance";
 import QRCode from "react-native-qrcode-svg";
 import * as Clipboard from "expo-clipboard";
 import { useAuth } from "@/app/(modals)/context/authContext";
-import { GroupChat } from "@/app/(tabs)/chat";
+import { GroupChat } from "@/interfaces/chatType";
 import { useTranslation } from "react-i18next";
 
 interface MemberModalProps {

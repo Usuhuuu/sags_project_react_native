@@ -10,7 +10,7 @@ export type FriendSeparatorValue = `${FriendSeparator}`;
 export interface Friend_Status {
     friends: string[],
     recieved_requests: string[],
-    send_requests: string[],
+    sended_requests: string[],
 }
 
 export interface FriendsType {

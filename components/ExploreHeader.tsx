@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
-
 import Colors from "@/constants/Colors";
 import { useTranslation } from "react-i18next";
 import "@/utils/i18";
@@ -27,7 +26,6 @@ import Animated, {
 } from "react-native-reanimated";
 import { router } from "expo-router";
 import type { SharedValue } from "react-native-reanimated";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNotificationStore } from "@/app/(modals)/context/store/notificationStore";
 
 // ICON MAP

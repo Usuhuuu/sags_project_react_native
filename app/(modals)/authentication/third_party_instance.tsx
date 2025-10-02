@@ -12,21 +12,13 @@ import {
   isErrorWithCode,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import { getTrackingStatus } from "react-native-tracking-transparency";
+import { trackingStatusPermission } from "@/hooks/permissions";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 export const loginWithFacebook = async () => {
   try {
     Settings.initializeSDK();
-    if (Platform.OS === "ios") {
-      const trackStatus = await getTrackingStatus();
-      if (trackStatus === "authorized" || trackStatus === "unavailable") {
-        await Settings.setAdvertiserTrackingEnabled(true);
-      } else if (trackStatus === "denied") {
-        await Settings.setAdvertiserTrackingEnabled(false);
-      }
-    } else {
-      await Settings.setAdvertiserTrackingEnabled(true);
-    }
+    trackingStatusPermission();
 
     LoginManager.logOut();
     const result = await LoginManager.logInWithPermissions(
@@ -74,7 +66,7 @@ export const loginWithFacebook = async () => {
 
         return {
           modalVisible: false,
-          data: { message: response.data.message },
+          data: { message: response.data.message, success: true },
         };
       }
     }
@@ -85,20 +77,45 @@ export const loginWithFacebook = async () => {
     if (error.code) {
       switch (error.code) {
         case 1:
-          Alert.alert("Network error");
+          Notifier.showNotification({
+            title: "Facebook Login Failed",
+            description: "Network Error",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "error" },
+          });
           break;
         case 190:
-          Alert.alert("Invalid Access Token");
+          Notifier.showNotification({
+            title: "Facebook Login Failed",
+            description: "Invalid Token",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "error" },
+          });
           break;
         case 10:
-          Alert.alert("App not set up correctly");
+          Notifier.showNotification({
+            title: "Facebook Login Failed",
+            description: "App not set up correctly",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "error" },
+          });
           break;
         case 429:
-          Alert.alert("Too Many Requests");
+          Notifier.showNotification({
+            title: "Facebook Login Failed",
+            description: "Too Many Requests",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "error" },
+          });
           break;
         default:
           Sentry.captureException(error);
-          Alert.alert("Unknown Error", "Something went wrong.");
+          Notifier.showNotification({
+            title: "Facebook Login Failed",
+            description: "Something went wrong. Try again later.",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "error" },
+          });
       }
     } else {
       Alert.alert("Login failed", "Please try again later.");
@@ -132,7 +149,7 @@ export const loginWithGoogle = async (googleAccessToken: string) => {
       return {
         modalVisible: false,
         success: true,
-        data: { message: responseData.message },
+        data: { message: responseData.message, success: true },
       };
     } else if (
       response.status === 201 &&

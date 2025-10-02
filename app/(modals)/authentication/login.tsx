@@ -22,6 +22,7 @@ import { useAuth } from "../context/authContext";
 import { loginWithFacebook, loginWithGoogle } from "./third_party_instance";
 import SignupModal from "./signup_modal";
 import { TextInput } from "react-native-paper";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 type LoginInput = {
   userName: string;
@@ -78,19 +79,45 @@ const Page = () => {
               refreshToken: response.data.refreshToken,
             })
           );
+          console.log(response.data.message);
+          Notifier.showNotification({
+            title: "Login " + response.data.success ? "Success" : "Failed",
+            description: response.data.message,
+            Component: NotifierComponents.Alert,
+            componentProps: {
+              alertType: response.data.success ? "success" : "error",
+            },
+          });
           logIn();
         } catch (err) {
           Sentry.captureException(err);
         }
         router.replace("..");
       } else if (!response.data.userNotFound && !response.data.success) {
-        Alert.alert(`${response.data.message}`);
+        Notifier.showNotification({
+          title: "Login " + response.data.success ? "Success" : "Failed",
+          description: response.data.message,
+          Component: NotifierComponents.Alert,
+          componentProps: {
+            alertType: response.data.success ? "success" : "error",
+          },
+        });
       } else if (response.status == 404) {
-        Alert.alert("Check your internet connection");
+        Notifier.showNotification({
+          title: "Login " + response.data.success ? "Success" : "Failed",
+          description: "Check your internet connection",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
       }
     } catch (err: any) {
       console.log("Pisda", err?.response);
-      Alert.alert("Login Failed", "Please Try Again");
+      Notifier.showNotification({
+        title: "Login Failed",
+        description: "Please Try Again",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "error" },
+      });
       Sentry.captureException(err);
     } finally {
       setLoading(false);
@@ -134,6 +161,14 @@ const Page = () => {
       ) {
         logIn();
         Alert.alert(`${facebookResponse?.data.message}`);
+        Notifier.showNotification({
+          title: "Facebook Login",
+          description: facebookResponse?.data.message,
+          Component: NotifierComponents.Alert,
+          componentProps: {
+            alertType: facebookResponse.data.success ? "success" : "error",
+          },
+        });
       }
     } catch (err: any) {
       console.log(err.response.data);
@@ -169,6 +204,14 @@ const Page = () => {
         ) {
           logIn();
           Alert.alert(`${responseGoogle?.data.message}`);
+          Notifier.showNotification({
+            title: "Google Login",
+            description: responseGoogle?.data.message,
+            Component: NotifierComponents.Alert,
+            componentProps: {
+              alertType: responseData.success ? "success" : "error",
+            },
+          });
         }
       }
     } catch (err) {

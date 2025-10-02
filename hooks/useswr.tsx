@@ -65,7 +65,7 @@ export const auth_swr = (
     revalidateOnFocus: config?.revalidateOnFocus ?? false,
     revalidateOnMount: config?.revalidateOnMount ?? false,
     dedupingInterval: config?.dedupingInterval ?? 10000,
-    shouldRetryOnError: false,
+    shouldRetryOnError: true,
     errorRetryInterval: 4000,
     errorRetryCount: 3,
     loadingTimeout: 3000,

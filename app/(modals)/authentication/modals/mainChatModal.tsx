@@ -23,7 +23,6 @@ import { format, parseISO } from "date-fns";
 import {
   ActiveUserType,
   GroupChat,
-  LoadOlderMsjProp,
   Message,
   MessageMapState,
 } from "@/interfaces/chatType";

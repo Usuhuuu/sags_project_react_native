@@ -10,6 +10,8 @@ import {
   TextInput,
 } from "react-native";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { mutate } from "swr";
+import { useAuth } from "../../context/authContext";
 
 interface FriendAddModalProp {
   modalDisplay: boolean;
@@ -21,14 +23,13 @@ const Friend_Add_Modal = ({
   setModalDisplay,
 }: FriendAddModalProp) => {
   const [textInPutValue, setTextInPutValue] = useState<string>("");
-
+  const { LoginStatus } = useAuth();
   const sendRequest = async () => {
     try {
       if (textInPutValue.length > 5) {
         const response = await axiosInstance.post("/auth/friend_request", {
           friend_unique_ID: textInPutValue.trim(),
         });
-
         if (response.status === 200 && response.data.success) {
           Notifier.showNotification({
             title: "Friend request sent",
@@ -38,6 +39,7 @@ const Friend_Add_Modal = ({
           });
           setTextInPutValue("");
           setModalDisplay(false);
+          mutate(["profile_friends", LoginStatus]);
         } else {
           Notifier.showNotification({
             title: "Request failed",
@@ -64,9 +66,13 @@ const Friend_Add_Modal = ({
       });
     }
   };
-
   return (
-    <Modal visible={modalDisplay} transparent animationType="fade">
+    <Modal
+      visible={modalDisplay}
+      transparent
+      animationType="fade"
+      presentationStyle="overFullScreen"
+    >
       <View style={styles.overlay}>
         <View style={styles.modalBox}>
           <View style={{ gap: 10 }}>

@@ -2,7 +2,6 @@ import React from "react";
 import { router } from "expo-router";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { Avatar, Badge } from "react-native-paper";
-import { useHybridTime } from "../util/time_changing";
 import { GroupChat } from "@/interfaces/chatType";
 import Colors from "@/constants/Colors";
 import { format } from "date-fns";

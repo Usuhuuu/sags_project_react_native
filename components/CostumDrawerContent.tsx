@@ -20,8 +20,7 @@ import { Ionicons, Fontisto, AntDesign } from "@expo/vector-icons";
 import { useAuth } from "@/app/(modals)/context/authContext";
 import { auth_swr } from "@/hooks/useswr";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
-import * as Notification from "expo-notifications";
-import * as SecureStorage from "expo-secure-store";
+import { notificationPermission } from "@/hooks/permissions";
 
 const CustomDrawerContent = (props: any) => {
   interface UserData {
@@ -35,10 +34,9 @@ const CustomDrawerContent = (props: any) => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const { bottom } = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { LoginStatus, logIn, logOut } = useAuth();
+  const { LoginStatus, logIn } = useAuth();
 
   const router = useRouter();
-
   const { data, error } = auth_swr(
     {
       item: {
@@ -51,26 +49,12 @@ const CustomDrawerContent = (props: any) => {
       revalidateOnFocus: true,
       revalidateOnMount: true,
       errorRetryInterval: 3000,
+      loadingTimeout: 5000,
     }
   );
 
   useEffect(() => {
-    const handleNotification = async () => {
-      let token: string =
-        (await SecureStorage.getItemAsync("notificationToken")) || "";
-      if (token === "") {
-        const { status } = await Notification.requestPermissionsAsync();
-        const tokens = await Notification.getExpoPushTokenAsync();
-        if (status === "granted") {
-          token = (await Notification.getExpoPushTokenAsync()).data;
-          await SecureStorage.setItemAsync("notificationToken", token);
-        } else {
-          console.log("Notification permission not granted");
-        }
-      } else {
-      }
-    };
-    handleNotification();
+    notificationPermission();
   }, []);
 
   useEffect(() => {

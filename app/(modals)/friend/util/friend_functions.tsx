@@ -3,16 +3,31 @@ import { FriendSeparator, FriendsType } from "@/interfaces/friendType";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Image } from "react-native";
 import { useFriendStore } from "@/app/(modals)/context/store/friendStore";
 
 export const FriendItem = React.memo(
   ({ item, userStatus }: { item: FriendsType; userStatus: string }) => {
     const { setFriendDetails } = useFriendStore();
-
     return (
-      <View style={friend_separator.container}>
+      <View
+        style={{
+          margin: 10,
+          padding: 15,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginVertical: 7,
+          borderRadius: 5,
+          backgroundColor: Colors.white,
+          shadowColor: Colors.dark,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 4,
+        }}
+      >
         <View
           style={{
             flexDirection: "row",
@@ -28,7 +43,7 @@ export const FriendItem = React.memo(
           </View>
           <Text style={{ color: Colors.dark, fontSize: 16, fontWeight: 500 }}>
             {item.unique_user_ID.charAt(0).toUpperCase() +
-              item.unique_user_ID.slice(1)}
+              item.unique_user_ID.slice(1) || "PISDA"}
           </Text>
         </View>
         <View style={{ flexDirection: "row", gap: 5 }}>
@@ -68,14 +83,3 @@ export const FriendItem = React.memo(
   },
   (prev, next) => prev.item.unique_user_ID === next.item.unique_user_ID
 );
-
-const friend_separator = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.lightGrey,
-    margin: 10,
-    padding: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-});

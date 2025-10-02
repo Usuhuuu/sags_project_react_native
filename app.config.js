@@ -70,6 +70,9 @@ export default {
         microphonePermission: "Allow application to access your microphone",
         recordAudioAndroid: true
       }],
+      ["expo-calendar", {
+        calendarPermission: "The app needs to access your calendar."
+      }],
       [
         "@react-native-google-signin/google-signin",
         {

@@ -257,6 +257,8 @@ PODS:
     - ExpoModulesCore
   - ExpoAsset (11.0.5):
     - ExpoModulesCore
+  - ExpoCalendar (14.0.6):
+    - ExpoModulesCore
   - ExpoCamera (16.0.18):
     - ExpoModulesCore
     - ZXingObjC/OneD
@@ -279,7 +281,7 @@ PODS:
     - ExpoModulesCore
   - ExpoLinearGradient (13.0.2):
     - ExpoModulesCore
-  - ExpoLocalization (15.0.3):
+  - ExpoLocalization (17.0.7):
     - ExpoModulesCore
   - ExpoModulesCore (2.2.3):
     - DoubleConversion
@@ -2174,42 +2176,6 @@ PODS:
     - SDWebImage/Core (~> 5.10)
   - Sentry/HybridSDK (8.53.2)
   - SocketRocket (0.7.1)
-  - Stripe (23.28.3):
-    - StripeApplePay (= 23.28.3)
-    - StripeCore (= 23.28.3)
-    - StripePayments (= 23.28.3)
-    - StripePaymentsUI (= 23.28.3)
-    - StripeUICore (= 23.28.3)
-  - stripe-react-native (0.38.6):
-    - React-Core
-    - Stripe (~> 23.28.0)
-    - StripeApplePay (~> 23.28.0)
-    - StripeFinancialConnections (~> 23.28.0)
-    - StripePayments (~> 23.28.0)
-    - StripePaymentSheet (~> 23.28.0)
-    - StripePaymentsUI (~> 23.28.0)
-  - StripeApplePay (23.28.3):
-    - StripeCore (= 23.28.3)
-  - StripeCore (23.28.3)
-  - StripeFinancialConnections (23.28.3):
-    - StripeCore (= 23.28.3)
-    - StripeUICore (= 23.28.3)
-  - StripePayments (23.28.3):
-    - StripeCore (= 23.28.3)
-    - StripePayments/Stripe3DS2 (= 23.28.3)
-  - StripePayments/Stripe3DS2 (23.28.3):
-    - StripeCore (= 23.28.3)
-  - StripePaymentSheet (23.28.3):
-    - StripeApplePay (= 23.28.3)
-    - StripeCore (= 23.28.3)
-    - StripePayments (= 23.28.3)
-    - StripePaymentsUI (= 23.28.3)
-  - StripePaymentsUI (23.28.3):
-    - StripeCore (= 23.28.3)
-    - StripePayments (= 23.28.3)
-    - StripeUICore (= 23.28.3)
-  - StripeUICore (23.28.3):
-    - StripeCore (= 23.28.3)
   - Yoga (0.0.0)
   - ZXingObjC/Core (3.6.9)
   - ZXingObjC/OneD (3.6.9):
@@ -2236,6 +2202,7 @@ DEPENDENCIES:
   - "ExpoAdapterGoogleSignIn (from `../node_modules/@react-native-google-signin/google-signin/expo/ios`)"
   - ExpoAppleAuthentication (from `../node_modules/expo-apple-authentication/ios`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoCalendar (from `../node_modules/expo-calendar/ios`)
   - ExpoCamera (from `../node_modules/expo-camera/ios`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - ExpoCrypto (from `../node_modules/expo-crypto/ios`)
@@ -2336,7 +2303,6 @@ DEPENDENCIES:
   - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNSslPinning (from `../node_modules/react-native-ssl-pinning`)
   - RNSVG (from `../node_modules/react-native-svg`)
-  - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2358,14 +2324,6 @@ SPEC REPOS:
     - SDWebImageWebPCoder
     - Sentry
     - SocketRocket
-    - Stripe
-    - StripeApplePay
-    - StripeCore
-    - StripeFinancialConnections
-    - StripePayments
-    - StripePaymentSheet
-    - StripePaymentsUI
-    - StripeUICore
     - ZXingObjC
 
 EXTERNAL SOURCES:
@@ -2405,6 +2363,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-apple-authentication/ios"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoCalendar:
+    :path: "../node_modules/expo-calendar/ios"
   ExpoCamera:
     :path: "../node_modules/expo-camera/ios"
   ExpoClipboard:
@@ -2602,8 +2562,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-ssl-pinning"
   RNSVG:
     :path: "../node_modules/react-native-svg"
-  stripe-react-native:
-    :path: "../node_modules/@stripe/stripe-react-native"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2629,6 +2587,7 @@ SPEC CHECKSUMS:
   ExpoAdapterGoogleSignIn: 2d18762fc21b37216b3afdf39ad4aea5352f22e9
   ExpoAppleAuthentication: 8a661b6f4936affafd830f983ac22463c936dad5
   ExpoAsset: 48386d40d53a8c1738929b3ed509bcad595b5516
+  ExpoCalendar: 12208702ad2461776a5a59b6e51e37ef23f9efac
   ExpoCamera: 0a3e78de7b1ca8c438ee6784fa6f22c5b1b36966
   ExpoClipboard: 243e22ff4161bbffcd3d2db469ae860ddc1156be
   ExpoCrypto: a9f1d75baeea6ef8b03c1660621585196c382e85
@@ -2639,7 +2598,7 @@ SPEC CHECKSUMS:
   ExpoHead: 1a1b30c6c1d125e9b8a199ca305c16a1dc041624
   ExpoKeepAwake: b0171a73665bfcefcfcc311742a72a956e6aa680
   ExpoLinearGradient: 4c44b3803b441724874b232e6520b51ca6a50db1
-  ExpoLocalization: 1b4195ed48148c7f52ce790d3965cc19483fcbf2
+  ExpoLocalization: b852a5d8ec14c5349c1593eca87896b5b3ebfcca
   ExpoModulesCore: 725faec070d590810d2ea5983d9f78f7cf6a38ec
   ExpoSecureStore: 6506992a9f53c94ea716c54d4a63144965945c2c
   ExpoSystemUI: 2072307375696c398a5d75633bdd5143fadc3d26
@@ -2741,15 +2700,6 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   Sentry: 59993bffde4a1ac297ba6d268dc4bbce068d7c1b
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  Stripe: cdf416cf2efe286f532a6306de0fcaa0ecc8c71a
-  stripe-react-native: cfd043258216a17eaf49b3cdd67954f90438b7e9
-  StripeApplePay: efb62ffc08e6cd4f161d77ddb45de2451075c54e
-  StripeCore: 9731f05e327c3dcaf7d7abd116840ceaa9482bbe
-  StripeFinancialConnections: 46c0049aaab3a179193502bce4a8096eb7b73f55
-  StripePayments: dd1867a620b0b8b5e294e9ff2f1f7b7770765f47
-  StripePaymentSheet: d155dfde74e90784d054deffb4f561a1f6dd638f
-  StripePaymentsUI: c24f990b03a68a7f6fe704b15dd487e7bb6b603e
-  StripeUICore: f2d514e900c37436dc5427fdf2c29d68ab1c2935
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 

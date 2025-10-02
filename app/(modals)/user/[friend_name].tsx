@@ -17,7 +17,6 @@ interface ProfileNormalUserProps {
 }
 const NormalUser: React.FC<ProfileNormalUserProps> = () => {
   const friendData = useFriendStore((state) => state.friendDetails);
-
   return (
     <GestureHandlerRootView>
       <LinearGradient
