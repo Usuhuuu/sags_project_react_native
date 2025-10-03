@@ -31,7 +31,7 @@ type LoginInput = {
   lastName: string;
   email: string;
   userID: string;
-  signUpTimer: string;
+  signUpTimer?: string;
 };
 
 const initSteps = [

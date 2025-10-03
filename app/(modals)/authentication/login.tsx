@@ -30,13 +30,12 @@ type LoginInput = {
   lastName: string;
   email: string;
   userID: string;
-  signUpTimer: string;
+  signUpTimer?: string;
 };
 
 const Page = () => {
   const { t } = useTranslation();
   const loginDetails: any = t("login", { returnObjects: true });
-  const login = loginDetails[0];
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -94,8 +93,9 @@ const Page = () => {
         }
         router.replace("..");
       } else if (!response.data.userNotFound && !response.data.success) {
+        console.log(response.data.success);
         Notifier.showNotification({
-          title: "Login " + response.data.success ? "Success" : "Failed",
+          title: `Login ${response.data.success ? "Success" : "Failed"} `,
           description: response.data.message,
           Component: NotifierComponents.Alert,
           componentProps: {
@@ -104,7 +104,7 @@ const Page = () => {
         });
       } else if (response.status == 404) {
         Notifier.showNotification({
-          title: "Login " + response.data.success ? "Success" : "Failed",
+          title: `Login ${response.data.success ? "Success" : "Failed"} `,
           description: "Check your internet connection",
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "error" },

@@ -1,9 +1,10 @@
-import useSWR, { SWRConfiguration } from "swr";
+import useSWR, { mutate, SWRConfiguration } from "swr";
 import {
   fetchRoleAndProfile,
   normalFetch,
   postFetch,
 } from "@/hooks/profile_data_fetch";
+import { useEffect } from "react";
 
 interface useSWRProps {
   pathname: string;
@@ -28,11 +29,13 @@ export const regular_swr = (
   config?: SWRConfiguration
 ) => {
   const { pathname, cacheKey, loginStatus } = item;
+  const swrKey = loginStatus ? [cacheKey, loginStatus] : null;
+
   const {
     data: userData,
     error: userError,
     isLoading: userLoading,
-  } = useSWR(loginStatus ? [cacheKey, loginStatus] : null, {
+  } = useSWR(swrKey, {
     fetcher: () => normalFetch(`${pathname}`),
     revalidateOnFocus: config?.revalidateOnFocus ?? false,
     dedupingInterval: config?.dedupingInterval ?? 10000,
@@ -43,7 +46,9 @@ export const regular_swr = (
     onErrorRetry,
     ...config,
   });
-
+  if (!loginStatus) {
+    mutate([cacheKey, true], undefined, { revalidate: false });
+  }
   return {
     data: userData,
     error: userError,
@@ -56,27 +61,33 @@ export const auth_swr = (
   config?: SWRConfiguration
 ) => {
   const { pathname, cacheKey, loginStatus } = item;
-  const {
-    data: userData,
-    error: userError,
-    isLoading: userLoading,
-  } = useSWR(loginStatus ? [cacheKey, loginStatus] : null, {
-    fetcher: () => fetchRoleAndProfile(`${pathname}`, loginStatus ?? false),
-    revalidateOnFocus: config?.revalidateOnFocus ?? false,
-    revalidateOnMount: config?.revalidateOnMount ?? false,
-    dedupingInterval: config?.dedupingInterval ?? 10000,
-    shouldRetryOnError: true,
-    errorRetryInterval: 4000,
-    errorRetryCount: 3,
-    loadingTimeout: 3000,
-    onErrorRetry,
-    ...config,
-  });
+
+  // ✅ Only fetch when logged in
+  const swrKey = loginStatus ? [cacheKey, true] : null;
+
+  const { data, error, isLoading } = useSWR(
+    swrKey,
+    () => fetchRoleAndProfile(`${pathname}`, true),
+    {
+      revalidateOnFocus: config?.revalidateOnFocus ?? false,
+      revalidateOnMount: config?.revalidateOnMount ?? false,
+      dedupingInterval: config?.dedupingInterval ?? 10000,
+      shouldRetryOnError: true,
+      errorRetryInterval: 4000,
+      errorRetryCount: 3,
+      loadingTimeout: 3000,
+      onErrorRetry,
+      ...config,
+    }
+  );
+  if (!loginStatus) {
+    mutate([cacheKey, true], undefined, { revalidate: false });
+  }
 
   return {
-    data: userData,
-    error: userError,
-    isLoading: userLoading,
+    data,
+    error,
+    isLoading,
   };
 };
 
@@ -105,6 +116,10 @@ export const post_auth_swr = (
       ...config,
     }
   );
+
+  if (!loginStatus) {
+    mutate([cacheKey, true], undefined, { revalidate: false });
+  }
 
   return {
     data: userData,

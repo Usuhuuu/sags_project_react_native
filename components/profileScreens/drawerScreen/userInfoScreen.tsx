@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { TextInput } from "react-native-paper";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 const UserInfoScreen = () => {
   const { t } = useTranslation();
@@ -109,6 +110,19 @@ const UserInfoScreen = () => {
         "/auth/updateProfile",
         formData
       );
+      if (response.status === 200 && response.data.success) {
+        Notifier.showNotification({
+          title: "Successfully Updated User Profile",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "success" },
+        });
+      } else if (response.status === 400 && !response.data.success) {
+        Notifier.showNotification({
+          title: "Successfully Updated User Profile",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
+      }
     } catch (err) {
       console.log(err);
     }
