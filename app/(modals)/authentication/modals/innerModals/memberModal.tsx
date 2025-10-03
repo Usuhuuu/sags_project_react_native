@@ -18,6 +18,7 @@ import * as Clipboard from "expo-clipboard";
 import { useAuth } from "@/app/(modals)/context/authContext";
 import { GroupChat } from "@/interfaces/chatType";
 import { useTranslation } from "react-i18next";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 interface MemberModalProps {
   memberModalVisible: boolean;
@@ -77,7 +78,12 @@ const MemberModal: React.FC<MemberModalProps> = ({
         const { link } = generateLink.data;
         setQrLink(link);
       } else if (generateLink.status === 400 && !generateLink.data.success) {
-        Alert.alert(generateLink.data.message);
+        Notifier.showNotification({
+          title: `Failed`,
+          description: generateLink.data.message,
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
       }
     } catch (err) {
       console.error("Error adding member:", err);
@@ -86,7 +92,10 @@ const MemberModal: React.FC<MemberModalProps> = ({
   const handleCopyLink = async () => {
     if (qrLink) {
       await Clipboard.setStringAsync(qrLink);
-      Alert.alert("Link copied to clipboard");
+      Notifier.showNotification({
+        title: "Successfully copied link",
+        Component: NotifierComponents.Notification,
+      });
     }
   };
   const { t } = useTranslation();

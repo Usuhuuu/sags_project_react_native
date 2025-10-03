@@ -41,6 +41,7 @@ import PersonalChat from "../(modals)/chat/components/personal_chat";
 import GroupChatComponent from "../(modals)/chat/components/group_chat";
 import FilterModal from "../(modals)/chat/components/filter_modal";
 import { useChatStore } from "../(modals)/context/store/chatStore";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 const ChatComponent: React.FC = () => {
   const [chatGroups, setChatGroups] = useState<{ [key: string]: GroupChat }>(
@@ -216,7 +217,12 @@ const ChatComponent: React.FC = () => {
     }
     socketRef.current?.emit("joinGroup", { item: groupId }, (data: any) => {
       if (!data.success) {
-        Alert.alert("You are not allow to join this chat");
+        Notifier.showNotification({
+          title: "Oops",
+          description: "You are not allow to join this chat",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
         return;
       }
       currentChatId.current = groupId;

@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import axiosInstance from "@/hooks/axiosInstance";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 interface ChangeNameModalProps {
   changeNameModalVisible: boolean;
@@ -56,9 +57,19 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
       if (response.status === 200 && response.data.success) {
         setGroupName(chatName);
         router.replace("/");
-        Alert.alert("Group name updated successfully");
+        Notifier.showNotification({
+          title: "Updated Successfully",
+          description: "Group name updated successfully",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "success" },
+        });
       } else {
-        Alert.alert("Failed to update group name", "Please try again later");
+        Notifier.showNotification({
+          title: "Failed to update group name",
+          description: "Please try again later",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
       }
     }
   };

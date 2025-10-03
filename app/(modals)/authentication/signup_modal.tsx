@@ -24,6 +24,7 @@ import * as SecureStore from "expo-secure-store";
 import { Avatar, TextInput } from "react-native-paper";
 import { launchImageLibrary } from "react-native-image-picker";
 import StepIndicator from "react-native-step-indicator";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 type LoginInput = {
   userName: string;
@@ -186,7 +187,12 @@ const SignupModal = ({
           })
         );
         setModalVisible(false);
-        Alert.alert("Success", "Account created successfully");
+        Notifier.showNotification({
+          title: "Success",
+          description: "Account Created Successfully",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "success" },
+        });
         logIn();
       }
     } catch (err) {
@@ -451,7 +457,12 @@ const SignupModal = ({
                     setSteps(steps + 1);
                     fadeInStep();
                   } else {
-                    Alert.alert("Please check your username");
+                    Notifier.showNotification({
+                      title: "Oops",
+                      description: "Please check your username",
+                      Component: NotifierComponents.Alert,
+                      componentProps: { alertType: "warn" },
+                    });
                   }
                 }}
               >
@@ -530,7 +541,12 @@ const SignupModal = ({
                       setSteps(steps + 1);
                       fadeInStep();
                     } else {
-                      Alert.alert("Please check your username");
+                      Notifier.showNotification({
+                        title: "Oops",
+                        description: "Please check your username",
+                        Component: NotifierComponents.Alert,
+                        componentProps: { alertType: "warn" },
+                      });
                     }
                   }}
                 >

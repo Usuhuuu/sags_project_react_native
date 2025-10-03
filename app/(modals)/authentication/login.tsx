@@ -160,7 +160,6 @@ const Page = () => {
         "Successfully logged in with Facebook"
       ) {
         logIn();
-        Alert.alert(`${facebookResponse?.data.message}`);
         Notifier.showNotification({
           title: "Facebook Login",
           description: facebookResponse?.data.message,
@@ -203,7 +202,6 @@ const Page = () => {
           responseData?.message === "Successfully logged in with Google"
         ) {
           logIn();
-          Alert.alert(`${responseGoogle?.data.message}`);
           Notifier.showNotification({
             title: "Google Login",
             description: responseGoogle?.data.message,

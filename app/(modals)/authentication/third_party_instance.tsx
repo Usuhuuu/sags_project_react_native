@@ -28,7 +28,12 @@ export const loginWithFacebook = async () => {
     console.log(result);
 
     if (result.isCancelled) {
-      Alert.alert("Login cancelled");
+      Notifier.showNotification({
+        title: "Login Cancelled",
+        description: "Try again later",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "warn" },
+      });
       return { modalVisible: false, data: null };
     }
     const data = await (Platform.OS === "ios"
@@ -118,7 +123,12 @@ export const loginWithFacebook = async () => {
           });
       }
     } else {
-      Alert.alert("Login failed", "Please try again later.");
+      Notifier.showNotification({
+        title: "Login failed",
+        description: "Please try again later",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "error" },
+      });
       Sentry.captureException(error);
     }
 
@@ -167,11 +177,26 @@ export const loginWithGoogle = async (googleAccessToken: string) => {
     if (isErrorWithCode(err)) {
       switch (err.code) {
         case statusCodes.IN_PROGRESS:
-          Alert.alert("progressing");
+          Notifier.showNotification({
+            title: "Login progressing",
+            description: "Please Wait a few minut",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
         case statusCodes.SIGN_IN_CANCELLED:
-          Alert.alert("User canceled process");
+          Notifier.showNotification({
+            title: "Login Cancelled",
+            description: "Try again later",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
         case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-          Alert.alert("service not available");
+          Notifier.showNotification({
+            title: "Login Failed",
+            description: "Serves has problem, try again later",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "error" },
+          });
       }
     } else {
       Sentry.captureException("Server Has Problem Try Again Later ");
