@@ -21,9 +21,6 @@ const NotificationScreen = () => {
     NotificationItem[]
   >([]);
 
-  const handleNotificationPress = (message: string) => {
-    Alert.alert(`${message}`);
-  };
   const deleteNotification = async (id: string) => {
     const saved = await AsyncStorage.getItem("saved_notifications");
     const parsed = saved ? JSON.parse(saved) : [];

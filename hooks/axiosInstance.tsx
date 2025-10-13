@@ -90,7 +90,6 @@ axiosInstance.interceptors.response.use(
             case newAccessToken.status === 400 &&
               newAccessToken.data.loginAgain:
               await SecureStore.deleteItemAsync("Tokens");
-              Alert.alert(`${newAccessToken.data.message} pisda`);
               break;
 
             case newAccessToken.status === 400 &&
@@ -98,7 +97,6 @@ axiosInstance.interceptors.response.use(
               // handle 400
 
               await SecureStore.deleteItemAsync("Tokens");
-              Alert.alert(`${newAccessToken.data.message}`);
               break;
 
             case newAccessToken.status === 200 && newAccessToken.data.success:

@@ -11,7 +11,6 @@ import {
   Linking,
   LayoutAnimation,
   UIManager,
-  Alert,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 
@@ -42,6 +41,7 @@ import { ActivityIndicator } from "react-native-paper";
 import { mutate } from "swr";
 import { useAuth } from "../(modals)/context/authContext";
 import { useTranslation } from "react-i18next";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 const { width } = Dimensions.get("window");
 const SWIPE_WIDTH = width - 170;
@@ -71,8 +71,10 @@ if (Platform.OS === "android") {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: Colors.lightGrey,
     paddingBottom: 60,
+    width: "100%",
+    height: "100%",
   },
   card: {
     backgroundColor: "#fff",
@@ -382,21 +384,31 @@ const Page = () => {
       const response = await axiosInstance.post(
         `/auth/sporthall/join/${roomId}`
       );
-      console.log(response.data);
       if (response.status === 200 && response.data.success) {
-        Alert.alert(
-          "Successfully joined group chat",
-          "You can process payment"
-        );
+        Notifier.showNotification({
+          title: "Successfully joined group chat",
+          description: "You can process payment",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "success" },
+        });
         mutate(["group_chat", LoginStatus], undefined, { revalidate: true });
         router.push("/chat");
       } else if (response.status === 409 && !response.data.success) {
-        Alert.alert(PartnerLanguage.alreadyJoined);
+        Notifier.showNotification({
+          title: "Warning",
+          description: PartnerLanguage.alreadyJoined,
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
       }
     } catch (err: any) {
-      console.log(err);
       if (err.response.status === 409) {
-        Alert.alert(PartnerLanguage.alreadyJoined);
+        Notifier.showNotification({
+          title: "Warning",
+          description: PartnerLanguage.alreadyJoined,
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
       }
     }
   };

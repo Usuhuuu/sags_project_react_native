@@ -30,6 +30,26 @@ export const calendarPermission = async () => {
   }
 };
 
+export const reminderPermission = async () => {
+  try {
+    const permissionsString = await AsyncStorage.getItem("Permissions");
+    const permissions = permissionsString ? JSON.parse(permissionsString) : {};
+    const savedStatus = permissions.reminder;
+    if (savedStatus && ["denied", "granted"].includes(savedStatus)) {
+      return;
+    } else {
+      const { status } = await Calendar.requestRemindersPermissionsAsync();
+      const updatedPermissions = { ...permissions, reminder: status };
+      await AsyncStorage.setItem(
+        "Permissions",
+        JSON.stringify(updatedPermissions)
+      );
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 export const cameraPermission = async () => {
   try {
     const permissionsString = await AsyncStorage.getItem("Permissions");

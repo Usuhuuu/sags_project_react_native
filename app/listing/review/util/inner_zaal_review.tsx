@@ -17,6 +17,7 @@ import SportHallData from "@/assets/Data/sportHall.json";
 import { SportHallDataType } from "@/interfaces/listing";
 import { useLocalSearchParams } from "expo-router";
 import axiosInstance from "@/hooks/axiosInstance";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 const Inner_Zaal_Review = () => {
   const [rating, setRating] = useState<number>(0);
@@ -37,12 +38,22 @@ const Inner_Zaal_Review = () => {
         }
       );
       if (response.status === 200 && response.data.success) {
-        Alert.alert("Review submitted successfully!");
+        Notifier.showNotification({
+          title: "Successfully Submitted",
+          description: "Review submitted successfully",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "success" },
+        });
         setText("");
         setRating(0);
         setImageUrl([]);
       } else if (!response.data.success && response.status === 400) {
-        Alert.alert("Error submitting review", response.data.message);
+        Notifier.showNotification({
+          title: "Error on submitting",
+          description: "Error submitting review",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
       }
     } catch (err) {
       console.log(err);
@@ -132,7 +143,12 @@ const Inner_Zaal_Review = () => {
                   { mediaType: "mixed", includeBase64: true },
                   (response) => {
                     if (imageUrl.length == 10) {
-                      Alert.alert("Only Upload 10 Images");
+                      Notifier.showNotification({
+                        title: "Warning",
+                        description: "Only Upload 10 Images",
+                        Component: NotifierComponents.Alert,
+                        componentProps: { alertType: "warn" },
+                      });
                       return;
                     }
                     if (response.assets && response.assets[0].uri) {

@@ -15,6 +15,7 @@ import SportHallTimeSlot from "@/assets/Data/sport_hall_timeslot.json";
 import { Calendar } from "react-native-calendars";
 import { useCalendar } from "@/app/(modals)/context/CalendarContext";
 import moment from "moment";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 const BookingCheck = () => {
   const [today, setToday] = useState(moment());
@@ -104,11 +105,26 @@ const BookingCheck = () => {
       }
     } catch (err: any) {
       if (err.response?.status === 400) {
-        Alert.alert("You don't have any sport hall");
+        Notifier.showNotification({
+          title: "Failed",
+          description: "You don't have any sport hall",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
       } else if (err.response?.status === 419) {
-        Alert.alert("Expired Session");
+        Notifier.showNotification({
+          title: "Failed",
+          description: "Expired Session",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
       } else {
-        Alert.alert("Something went wrong");
+        Notifier.showNotification({
+          title: "Failed",
+          description: "Server has problem, try again later",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
       }
     }
   };

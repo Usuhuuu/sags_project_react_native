@@ -112,7 +112,6 @@ interface OrderScreenProps {
 }
 const OrderScreen: React.FC<OrderScreenProps> = ({
   formData,
-  setFormData,
   baseTimeSlot,
   sportHallID,
   setIsOrderScreenVisible,
@@ -200,6 +199,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   useEffect(() => {
     dateSlotGiver(new Date());
   }, []);
+  const baseTime_start = baseTimeSlot[0].start_time;
+  const baseTime_end = baseTimeSlot[baseTimeSlot.length - 1].end_time;
   const handleOrder = () => {
     const zaal_id = sportHallID;
     console.log("checking");
@@ -210,6 +211,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       selectedTimeSlots: selectedTimeSlots,
       date: today,
       workTime: formData.workTime,
+      baseTime_startAndEnd: `${baseTime_start}~${baseTime_end}`,
     });
     router.push(`/listing/book/${zaal_id}`);
   };

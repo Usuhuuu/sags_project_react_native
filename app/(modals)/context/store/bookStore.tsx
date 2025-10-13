@@ -10,6 +10,7 @@ type BookingData = {
   };
   selectedTimeSlots: string[];
   workTime?: string;
+  baseTime_startAndEnd: string;
 };
 
 type BookingState = {

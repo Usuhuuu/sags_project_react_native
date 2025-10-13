@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
+  ActivityIndicator,
 } from "react-native";
 import Colors from "@/constants/Colors";
 import {
@@ -22,7 +22,8 @@ import StepIndicator from "react-native-step-indicator";
 import { format } from "date-fns";
 import axiosInstance from "@/hooks/axiosInstance";
 import { AxiosResponse } from "axios";
-import * as Notifications from "expo-notifications";
+import { Notifier, NotifierComponents } from "react-native-notifier";
+import { scheduleNotificationForEvent } from "@/utils/calendarReminder";
 
 const customStyles = {
   stepIndicatorSize: 30,
@@ -80,9 +81,9 @@ const groupConnectedTimeSlots = (slots: string[]) => {
       groups.push(currentGroup);
     }
   }
-
   return groups;
 };
+
 const TransactionPage = () => {
   const [steps, setSteps] = useState<number>(0);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[][]>([]);
@@ -91,9 +92,9 @@ const TransactionPage = () => {
   );
   const [wholeDayPeople, setWholeDayPeople] = useState<number>(0);
   const [wholeDay, setWholeDay] = useState<boolean>(false);
+  const [waiting, setWaiting] = useState<boolean>(false);
 
   const bookingDetails = useBookingStore((state) => state.bookingDetails);
-
   useEffect(() => {
     bookingDetails?.selectedTimeSlots.includes("WHOLE_DAY")
       ? setWholeDay(true)
@@ -106,36 +107,27 @@ const TransactionPage = () => {
   const paymentPerPeopleArray: number[] = [];
   const totalBookerPaymentArray: number[] = [];
 
-  const scheduleNotification = async () => {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "🏀 Time to Play!",
-        body: "Reminder testing will be received 10 seconds later",
-        sound: true,
-        priority: Notifications.AndroidNotificationPriority.HIGH,
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: 10,
-        repeats: false,
-      },
-    });
-  };
-
   const handleOrder = async () => {
     try {
       if (isOrdering) return;
       setIsOrdering(true);
       if (!bookingDetails) {
-        Alert.alert("Missing booking details.");
+        Notifier.showNotification({
+          title: "Booking Failed",
+          description: "Missing booking details.",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
         return;
       }
 
       const dateOnly = bookingDetails.date.split("T")[0];
       let response: AxiosResponse;
 
+      setWaiting(!waiting);
+      let reservationBlocks;
       if (!wholeDay) {
-        const reservationBlocks = selectedTimeSlots.map((group, index) => {
+        reservationBlocks = selectedTimeSlots.map((group, index) => {
           const [startTime] = group[0].split("~");
           const [, endTime] = group[group.length - 1].split("~");
 
@@ -148,41 +140,94 @@ const TransactionPage = () => {
           };
         });
 
-        response = await axiosInstance.post("/auth/book", {
-          sport_hall_id: bookingDetails.sportHallID,
-          date: dateOnly,
-          reserved_blocks: reservationBlocks,
-        });
+        response = await axiosInstance.post(
+          "/auth/book",
+          {
+            sport_hall_id: bookingDetails.sportHallID,
+            date: dateOnly,
+            reserved_blocks: reservationBlocks,
+          },
+          {
+            timeout: 10000,
+          }
+        );
       } else {
-        response = await axiosInstance.post("/auth/book", {
-          sport_hall_id: bookingDetails.sportHallID,
-          date: dateOnly,
-          reserved_blocks: [
-            {
-              wholeDay: true,
-              num_players: wholeDayPeople,
-              current_player: 0,
-              time_slots: ["wholeDay"],
-            },
-          ],
-        });
+        response = await axiosInstance.post(
+          "/auth/book",
+          {
+            sport_hall_id: bookingDetails.sportHallID,
+            date: dateOnly,
+            reserved_blocks: [
+              {
+                wholeDay: true,
+                num_players: wholeDayPeople,
+                current_player: 0,
+                time_slots: ["wholeDay"],
+              },
+            ],
+          },
+          { timeout: 10000 }
+        );
       }
-      scheduleNotification();
+
       if (response.status === 200 && response.data.success) {
-        Alert.alert("Successfully Booked");
+        Notifier.showNotification({
+          title: "Successfully Booked",
+          description: "Check Booking from Order Section",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "success" },
+        });
         router.replace("/");
+        if (wholeDay) {
+          if (!reservationBlocks) return;
+          for (const blocks of reservationBlocks) {
+            const endDate = new Date(`${dateOnly}T${blocks.end_time}:80`);
+            const startDate = new Date(`${dateOnly}T${blocks.start_time}:80`);
+            scheduleNotificationForEvent({
+              endDate: endDate,
+              startDate: startDate,
+            });
+          }
+        } else {
+          const [start, end] = bookingDetails?.baseTime_startAndEnd.split("~");
+          const endDate = new Date(`${dateOnly}T${end}:80`);
+          const startDate = new Date(`${dateOnly}T${start}:80`);
+          scheduleNotificationForEvent({
+            endDate: endDate,
+            startDate: startDate,
+          });
+        }
       } else if (response.status === 400 && !response.data.success) {
-        Alert.alert("Already Booked");
+        Notifier.showNotification({
+          title: "Already Booked",
+          description: "Already booked, Book the different time",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
       }
     } catch (err: any) {
-      if (err?.response?.status === 400) {
-        Alert.alert("Already Booked");
+      console.log(err.response.data);
+      if (
+        !err.response.data.success &&
+        [400, 409].includes(err.response.status)
+      ) {
+        Notifier.showNotification({
+          title: "Failed Booked",
+          description: err.response.data.message,
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
       } else if (err.message === "Token not found after retries") {
-        Alert.alert("Please Login");
-      } else {
-        Alert.alert("Booking failed try again later");
         console.log(err);
+        Notifier.showNotification({
+          title: "Please Login",
+          description: "Please Login to process to book",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
       }
+
+      setWaiting(false);
     } finally {
       setIsOrdering(false);
     }
@@ -190,442 +235,91 @@ const TransactionPage = () => {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ backgroundColor: Colors.white }}>
-        <View style={{ height: "100%" }}>
-          {/* Header */}
-          <View
-            style={{
-              height: "10%",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              maxWidth: "100%",
-              marginHorizontal: 10,
-            }}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                router.back();
-              }}
-            >
-              <Ionicons
-                name="arrow-back-sharp"
-                size={24}
-                color={Colors.primary}
-              />
-            </TouchableOpacity>
-            {/* Step Indicator */}
+      {waiting ? (
+        <View
+          style={{
+            height: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size={"large"} color={Colors.primary} />
+        </View>
+      ) : (
+        <SafeAreaView style={{ backgroundColor: Colors.white }}>
+          <View style={{ height: "100%" }}>
+            {/* Header */}
             <View
               style={{
-                flex: 1,
+                height: "10%",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                maxWidth: "100%",
+                marginHorizontal: 10,
               }}
             >
-              <StepIndicator
-                customStyles={customStyles}
-                currentPosition={steps}
-                stepCount={3}
-              />
+              <TouchableOpacity
+                onPress={() => {
+                  router.back();
+                }}
+              >
+                <Ionicons
+                  name="arrow-back-sharp"
+                  size={24}
+                  color={Colors.primary}
+                />
+              </TouchableOpacity>
+              {/* Step Indicator */}
+              <View
+                style={{
+                  flex: 1,
+                }}
+              >
+                <StepIndicator
+                  customStyles={customStyles}
+                  currentPosition={steps}
+                  stepCount={3}
+                />
+              </View>
+              <TouchableOpacity onPress={() => {}}>
+                <Feather
+                  name="more-vertical"
+                  size={30}
+                  color={Colors.primary}
+                />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={() => {}}>
-              <Feather name="more-vertical" size={30} color={Colors.primary} />
-            </TouchableOpacity>
-          </View>
-          {/* Body */}
-          <ScrollView
-            style={{
-              backgroundColor: Colors.white,
-              width: "100%",
-              height: "90%",
-            }}
-          >
-            {steps === 0 && (
-              <View style={styles.innerContainer}>
-                <Text
-                  style={{ fontSize: 24, fontWeight: 400, textAlign: "left" }}
-                >
-                  {bookingDetails?.name}
-                </Text>
-                {/* check section */}
-                <View
-                  style={{
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    width: "70%",
-                    borderColor: Colors.littleDark,
-                  }}
-                >
+            {/* Body */}
+            <ScrollView
+              style={{
+                backgroundColor: Colors.white,
+                width: "100%",
+                height: "90%",
+              }}
+            >
+              {steps === 0 && (
+                <View style={styles.innerContainer}>
+                  <Text
+                    style={{ fontSize: 24, fontWeight: 400, textAlign: "left" }}
+                  >
+                    {bookingDetails?.name}
+                  </Text>
+                  {/* check section */}
                   <View
                     style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      padding: 20,
-                      borderBottomWidth: 1,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      width: "70%",
+                      borderColor: Colors.littleDark,
                     }}
                   >
-                    <Text style={{ fontSize: 18, fontWeight: 300 }}>Date</Text>
-                    <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                      {bookingDetails?.date
-                        ? format(new Date(bookingDetails.date), "MMMM d, yyyy")
-                        : ""}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "column",
-                    }}
-                  >
-                    {wholeDay ? (
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          padding: 20,
-                        }}
-                      >
-                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                          Time
-                        </Text>
-                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                          {bookingDetails?.workTime}
-                        </Text>
-                      </View>
-                    ) : (
-                      <>
-                        {selectedTimeSlots.map((group, index) => {
-                          const startTime = group[0].split("~")[0];
-                          const endTime = group[group.length - 1].split("~")[1];
-                          const isLast = index === selectedTimeSlots.length - 1;
-                          return (
-                            <View
-                              key={index}
-                              style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                padding: 20,
-                                borderBottomWidth: isLast ? 0 : 1,
-                              }}
-                            >
-                              <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                                Time {index + 1}
-                              </Text>
-                              <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                                {startTime} – {endTime}
-                              </Text>
-                            </View>
-                          );
-                        })}
-                      </>
-                    )}
-                  </View>
-                </View>
-                {/* price section */}
-                <View
-                  style={{
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    width: "70%",
-                    borderColor: Colors.littleDark,
-                  }}
-                >
-                  {!wholeDay && (
                     <View
                       style={{
                         flexDirection: "row",
                         justifyContent: "space-between",
                         padding: 20,
                         borderBottomWidth: 1,
-                        alignItems: "center",
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          gap: 5,
-                          alignItems: "center",
-                        }}
-                      >
-                        <MaterialCommunityIcons
-                          name="clock-time-nine-outline"
-                          size={24}
-                          color="black"
-                        />
-                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                          1 Hour
-                        </Text>
-                      </View>
-                      <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                        ₮{bookingDetails?.price.oneHour}
-                      </Text>
-                    </View>
-                  )}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      padding: 20,
-                    }}
-                  >
-                    <Text>TOTAL</Text>
-                    <Text>
-                      ₮
-                      {wholeDay
-                        ? bookingDetails?.price?.wholeDay
-                        : (bookingDetails?.selectedTimeSlots.length ?? 0) *
-                          Number(bookingDetails?.price.oneHour)}
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    width: "90%",
-                    justifyContent: "center",
-                    gap: 20,
-                    alignItems: "center",
-                    flex: 1,
-                  }}
-                >
-                  <View></View>
-                  <TouchableOpacity
-                    style={[
-                      styles.buttons,
-                      { backgroundColor: Colors.primary },
-                    ]}
-                    onPress={() => setSteps(steps + 1)}
-                  >
-                    <Text style={{ color: Colors.white }}>Next</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-            {steps === 1 && (
-              <View style={[styles.innerContainer, {}]}>
-                <View
-                  style={{
-                    width: "90%",
-                    gap: 10,
-                  }}
-                >
-                  {wholeDay ? (
-                    <View
-                      style={{
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        padding: 10,
-                        gap: 5,
-                        borderWidth: 1,
-                        borderColor: Colors.littleDark,
-                        borderRadius: 5,
-                      }}
-                    >
-                      <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                        {bookingDetails?.workTime}
-                      </Text>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          borderWidth: 1,
-                          padding: 5,
-                          borderColor: Colors.littleDark,
-                        }}
-                      >
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 5,
-                          }}
-                        >
-                          <MaterialIcons
-                            name="people-alt"
-                            size={24}
-                            color="black"
-                          />
-                          <Text>Peoples Needed</Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                          }}
-                        >
-                          <TouchableOpacity
-                            onPress={() => {
-                              setWholeDayPeople(wholeDayPeople + 1);
-                            }}
-                          >
-                            <AntDesign name="plus" size={20} color="black" />
-                          </TouchableOpacity>
-                          <Text style={{ fontSize: 20 }}>{wholeDayPeople}</Text>
-                          <TouchableOpacity
-                            onPress={() => {
-                              setWholeDayPeople(wholeDayPeople - 1);
-                            }}
-                          >
-                            <AntDesign name="minus" size={20} color="black" />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </View>
-                  ) : (
-                    <>
-                      {selectedTimeSlots.map((group, index) => {
-                        const startTime = group[0].split("~")[0];
-                        const endTime = group[group.length - 1].split("~")[1];
-                        const isLast = index === selectedTimeSlots.length - 1;
-                        return (
-                          <View
-                            key={index}
-                            style={{
-                              flexDirection: "column",
-                              justifyContent: "space-between",
-                              padding: 10,
-                              gap: 5,
-                              borderWidth: 1,
-                              borderColor: Colors.littleDark,
-                              borderRadius: 5,
-                            }}
-                          >
-                            <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                              Session {index + 1}
-                            </Text>
-                            <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                              {startTime} – {endTime}
-                            </Text>
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                borderWidth: 1,
-                                padding: 5,
-                                borderColor: Colors.littleDark,
-                              }}
-                            >
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  gap: 5,
-                                }}
-                              >
-                                <MaterialIcons
-                                  name="people-alt"
-                                  size={24}
-                                  color="black"
-                                />
-                                <Text>Peoples Needed</Text>
-                              </View>
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    setPlayersNeeded((prev) => ({
-                                      ...prev,
-                                      [index]: (prev[index] || 0) + 1,
-                                    }));
-                                  }}
-                                >
-                                  <AntDesign
-                                    name="plus"
-                                    size={20}
-                                    color="black"
-                                  />
-                                </TouchableOpacity>
-                                <Text style={{ fontSize: 20 }}>
-                                  {playersNeeded[index] || 0}{" "}
-                                </Text>
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    setPlayersNeeded((prev) => ({
-                                      ...prev,
-                                      [index]: (prev[index] || 0) - 1,
-                                    }));
-                                  }}
-                                >
-                                  <AntDesign
-                                    name="minus"
-                                    size={20}
-                                    color="black"
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          </View>
-                        );
-                      })}
-                    </>
-                  )}
-                </View>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    width: "90%",
-                    justifyContent: "center",
-                    gap: 20,
-                    alignItems: "center",
-                    flex: 1,
-                  }}
-                >
-                  <TouchableOpacity
-                    style={styles.buttons}
-                    onPress={() => setSteps(steps - 1)}
-                  >
-                    <Text>Preview</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.buttons,
-                      { backgroundColor: Colors.primary },
-                    ]}
-                    onPress={() => setSteps(steps + 1)}
-                  >
-                    <Text style={{ color: Colors.white }}>Next</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-            {steps === 2 && (
-              <View style={[styles.innerContainer, {}]}>
-                <View
-                  style={{
-                    width: "90%",
-                    gap: 10,
-                  }}
-                >
-                  <Text style={{ fontSize: 24 }}>Booking Confirmation</Text>
-
-                  <View
-                    style={{
-                      gap: 10,
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        borderWidth: 1,
-                        padding: 20,
-                        borderRadius: 5,
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                        {bookingDetails?.name}
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        borderWidth: 1,
-                        padding: 20,
-                        borderRadius: 5,
-                        justifyContent: "space-between",
                       }}
                     >
                       <Text style={{ fontSize: 18, fontWeight: 300 }}>
@@ -640,108 +334,28 @@ const TransactionPage = () => {
                           : ""}
                       </Text>
                     </View>
-                  </View>
-                  <Text style={{ fontSize: 24 }}>Times & Player Needed</Text>
-                  <View style={{ gap: 10 }}>
-                    {wholeDay ? (
-                      <View
-                        style={{
-                          flexDirection: "column",
-                          justifyContent: "space-between",
-                          gap: 5,
-                          borderWidth: 1,
-                          borderColor: Colors.littleDark,
-                          borderRadius: 5,
-                        }}
-                      >
+                    <View
+                      style={{
+                        flexDirection: "column",
+                      }}
+                    >
+                      {wholeDay ? (
                         <View
                           style={{
                             flexDirection: "row",
                             justifyContent: "space-between",
                             padding: 20,
-                            borderBottomWidth: 1,
-                            alignItems: "center",
-                          }}
-                        >
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              gap: 5,
-                              alignItems: "center",
-                            }}
-                          >
-                            <MaterialCommunityIcons
-                              name="clock-time-nine-outline"
-                              size={24}
-                              color="black"
-                            />
-                            <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                              Whole Day
-                            </Text>
-                          </View>
-                          <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                            ₮{bookingDetails?.price.wholeDay}
-                          </Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            padding: 20,
-                            borderBottomWidth: 1,
-                            alignItems: "center",
                           }}
                         >
                           <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                            Peoples
+                            Time
                           </Text>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontSize: 18,
-                                fontWeight: 300,
-                              }}
-                            >
-                              {wholeDayPeople}
-                            </Text>
-                            <MaterialIcons
-                              name="people-alt"
-                              size={24}
-                              color={Colors.dark}
-                            />
-                          </View>
-                        </View>
-                        <View
-                          style={{
-                            marginTop: 10,
-                            padding: 10,
-                            gap: 5,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 18,
-                              fontWeight: "bold",
-                              textAlign: "center",
-                            }}
-                          >
-                            Booker's Total: ₮
-                            {wholeDayPeople <= 0
-                              ? bookingDetails?.price.wholeDay
-                              : Number(bookingDetails?.price.wholeDay) /
-                                wholeDayPeople}
+                          <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                            {bookingDetails?.workTime}
                           </Text>
                         </View>
-                      </View>
-                    ) : (
-                      <>
-                        <View style={{ gap: 10 }}>
+                      ) : (
+                        <>
                           {selectedTimeSlots.map((group, index) => {
                             const startTime = group[0].split("~")[0];
                             const endTime =
@@ -754,23 +368,374 @@ const TransactionPage = () => {
                                 style={{
                                   flexDirection: "row",
                                   justifyContent: "space-between",
-                                  padding: 10,
-                                  gap: 5,
-                                  borderWidth: 1,
-                                  borderColor: Colors.littleDark,
-                                  borderRadius: 5,
+                                  padding: 20,
+                                  borderBottomWidth: isLast ? 0 : 1,
                                 }}
                               >
                                 <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                                  {startTime} – {endTime}
+                                  Time {index + 1}
                                 </Text>
                                 <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                                  {playersNeeded[index] || 0} Person
+                                  {startTime} – {endTime}
                                 </Text>
                               </View>
                             );
                           })}
+                        </>
+                      )}
+                    </View>
+                  </View>
+                  {/* price section */}
+                  <View
+                    style={{
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      width: "70%",
+                      borderColor: Colors.littleDark,
+                    }}
+                  >
+                    {!wholeDay && (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          padding: 20,
+                          borderBottomWidth: 1,
+                          alignItems: "center",
+                        }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            gap: 5,
+                            alignItems: "center",
+                          }}
+                        >
+                          <MaterialCommunityIcons
+                            name="clock-time-nine-outline"
+                            size={24}
+                            color="black"
+                          />
+                          <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                            1 Hour
+                          </Text>
                         </View>
+                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                          ₮{bookingDetails?.price.oneHour}
+                        </Text>
+                      </View>
+                    )}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        padding: 20,
+                      }}
+                    >
+                      <Text>TOTAL</Text>
+                      <Text>
+                        ₮
+                        {wholeDay
+                          ? bookingDetails?.price?.wholeDay
+                          : (bookingDetails?.selectedTimeSlots.length ?? 0) *
+                            Number(bookingDetails?.price.oneHour)}
+                      </Text>
+                    </View>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      width: "90%",
+                      justifyContent: "center",
+                      gap: 20,
+                      alignItems: "center",
+                      flex: 1,
+                    }}
+                  >
+                    <View></View>
+                    <TouchableOpacity
+                      style={[
+                        styles.buttons,
+                        { backgroundColor: Colors.primary },
+                      ]}
+                      onPress={() => setSteps(steps + 1)}
+                    >
+                      <Text style={{ color: Colors.white }}>Next</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+              {steps === 1 && (
+                <View style={[styles.innerContainer, {}]}>
+                  <View
+                    style={{
+                      width: "90%",
+                      gap: 10,
+                    }}
+                  >
+                    {wholeDay ? (
+                      <View
+                        style={{
+                          flexDirection: "column",
+                          justifyContent: "space-between",
+                          padding: 10,
+                          gap: 5,
+                          borderWidth: 1,
+                          borderColor: Colors.littleDark,
+                          borderRadius: 5,
+                        }}
+                      >
+                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                          {bookingDetails?.workTime}
+                        </Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            borderWidth: 1,
+                            padding: 5,
+                            borderColor: Colors.littleDark,
+                          }}
+                        >
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 5,
+                            }}
+                          >
+                            <MaterialIcons
+                              name="people-alt"
+                              size={24}
+                              color="black"
+                            />
+                            <Text>Peoples Needed</Text>
+                          </View>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                            }}
+                          >
+                            <TouchableOpacity
+                              onPress={() => {
+                                if (wholeDayPeople < 20) {
+                                  setWholeDayPeople(wholeDayPeople + 1);
+                                } else {
+                                  Notifier.showNotification({
+                                    title: "Oops",
+                                    description:
+                                      "Needed people must be belov 20",
+                                    Component: NotifierComponents.Alert,
+                                    componentProps: { alertType: "warn" },
+                                  });
+                                }
+                              }}
+                            >
+                              <AntDesign name="plus" size={20} color="black" />
+                            </TouchableOpacity>
+                            <Text style={{ fontSize: 20 }}>
+                              {wholeDayPeople}
+                            </Text>
+                            <TouchableOpacity
+                              onPress={() => {
+                                if (wholeDayPeople > 0)
+                                  setWholeDayPeople(wholeDayPeople - 1);
+                              }}
+                            >
+                              <AntDesign name="minus" size={20} color="black" />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </View>
+                    ) : (
+                      <>
+                        {selectedTimeSlots.map((group, index) => {
+                          const startTime = group[0].split("~")[0];
+                          const endTime = group[group.length - 1].split("~")[1];
+                          return (
+                            <View
+                              key={index}
+                              style={{
+                                flexDirection: "column",
+                                justifyContent: "space-between",
+                                padding: 10,
+                                gap: 5,
+                                borderWidth: 1,
+                                borderColor: Colors.littleDark,
+                                borderRadius: 5,
+                              }}
+                            >
+                              <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                                Session {index + 1}
+                              </Text>
+                              <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                                {startTime} – {endTime}
+                              </Text>
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  borderWidth: 1,
+                                  padding: 5,
+                                  borderColor: Colors.littleDark,
+                                }}
+                              >
+                                <View
+                                  style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 5,
+                                  }}
+                                >
+                                  <MaterialIcons
+                                    name="people-alt"
+                                    size={24}
+                                    color="black"
+                                  />
+                                  <Text>Peoples Needed</Text>
+                                </View>
+                                <View
+                                  style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      if (playersNeeded[index] < 20) {
+                                        setPlayersNeeded((prev) => ({
+                                          ...prev,
+                                          [index]: (prev[index] || 0) + 1,
+                                        }));
+                                      } else {
+                                        Notifier.showNotification({
+                                          title: "Oops",
+                                          description:
+                                            "Needed people must be belov 20",
+                                          Component: NotifierComponents.Alert,
+                                          componentProps: { alertType: "warn" },
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <AntDesign
+                                      name="plus"
+                                      size={20}
+                                      color="black"
+                                    />
+                                  </TouchableOpacity>
+                                  <Text style={{ fontSize: 20 }}>
+                                    {playersNeeded[index] || 0}{" "}
+                                  </Text>
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      setPlayersNeeded((prev) => ({
+                                        ...prev,
+                                        [index]: Math.max(
+                                          (prev[index] || 0) - 1,
+                                          0
+                                        ),
+                                      }));
+                                    }}
+                                  >
+                                    <AntDesign
+                                      name="minus"
+                                      size={20}
+                                      color="black"
+                                    />
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            </View>
+                          );
+                        })}
+                      </>
+                    )}
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      width: "90%",
+                      justifyContent: "center",
+                      gap: 20,
+                      alignItems: "center",
+                      flex: 1,
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={styles.buttons}
+                      onPress={() => setSteps(steps - 1)}
+                    >
+                      <Text>Preview</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.buttons,
+                        { backgroundColor: Colors.primary },
+                      ]}
+                      onPress={() => setSteps(steps + 1)}
+                    >
+                      <Text style={{ color: Colors.white }}>Next</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+              {steps === 2 && (
+                <View style={[styles.innerContainer, {}]}>
+                  <View
+                    style={{
+                      width: "90%",
+                      gap: 10,
+                    }}
+                  >
+                    <Text style={{ fontSize: 24 }}>Booking Confirmation</Text>
+
+                    <View
+                      style={{
+                        gap: 10,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          borderWidth: 1,
+                          padding: 20,
+                          borderRadius: 5,
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                          {bookingDetails?.name}
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          borderWidth: 1,
+                          padding: 20,
+                          borderRadius: 5,
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                          Date
+                        </Text>
+                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                          {bookingDetails?.date
+                            ? format(
+                                new Date(bookingDetails.date),
+                                "MMMM d, yyyy"
+                              )
+                            : ""}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={{ fontSize: 24 }}>Times & Player Needed</Text>
+                    <View style={{ gap: 10 }}>
+                      {wholeDay ? (
                         <View
                           style={{
                             flexDirection: "column",
@@ -803,167 +768,299 @@ const TransactionPage = () => {
                                 color="black"
                               />
                               <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                                1 Hour
+                                Whole Day
                               </Text>
                             </View>
                             <Text style={{ fontSize: 18, fontWeight: 300 }}>
-                              ₮{bookingDetails?.price.oneHour}
+                              ₮{bookingDetails?.price.wholeDay}
                             </Text>
                           </View>
-                          <View>
-                            {(() => {
-                              return (
-                                <>
-                                  {selectedTimeSlots.map((group, index) => {
-                                    const startTime = group[0].split("~")[0];
-                                    const endTime =
-                                      group[group.length - 1].split("~")[1];
-
-                                    const getHour = (time: string) => {
-                                      const [hourStr] = time.split(":");
-                                      return parseInt(hourStr, 10);
-                                    };
-
-                                    const startHour = getHour(startTime);
-                                    const endHour = getHour(endTime);
-                                    const durationHours = endHour - startHour;
-
-                                    const costPerHour = 1000;
-                                    const totalCost =
-                                      durationHours * costPerHour;
-
-                                    const totalPeople =
-                                      (playersNeeded[index] || 0) + 1;
-
-                                    const paymentPerPeople =
-                                      totalPeople > 0
-                                        ? totalCost / totalPeople
-                                        : 0;
-
-                                    // Add to booker’s total
-                                    paymentPerPeopleArray.push(
-                                      paymentPerPeople
-                                    );
-                                    totalBookerPaymentArray.push(
-                                      paymentPerPeople
-                                    );
-
-                                    return (
-                                      <View
-                                        key={index}
-                                        style={{
-                                          flexDirection: "column",
-                                          justifyContent: "space-evenly",
-                                          padding: 10,
-                                        }}
-                                      >
-                                        <Text
-                                          style={{
-                                            fontSize: 16,
-                                            fontWeight: "300",
-                                          }}
-                                        >
-                                          Session {index + 1}:
-                                        </Text>
-                                        <View
-                                          style={{
-                                            flexDirection: "row",
-                                            justifyContent: "space-around",
-                                          }}
-                                        >
-                                          <Text
-                                            style={{
-                                              fontSize: 18,
-                                              fontWeight: 300,
-                                            }}
-                                          >
-                                            {durationHours} hours
-                                          </Text>
-                                          <Text
-                                            style={{
-                                              fontSize: 18,
-                                              fontWeight: 300,
-                                            }}
-                                          >
-                                            {totalPeople} players
-                                          </Text>
-                                          <Text
-                                            style={{
-                                              fontSize: 18,
-                                              fontWeight: 300,
-                                            }}
-                                          >
-                                            ₮{paymentPerPeople.toFixed(2)} per
-                                            person
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    );
-                                  })}
-
-                                  <View
-                                    style={{
-                                      marginTop: 10,
-                                      padding: 10,
-                                      borderTopWidth: 1,
-                                      borderColor: Colors.littleDark,
-                                    }}
-                                  >
-                                    <Text
-                                      style={{
-                                        fontSize: 18,
-                                        fontWeight: "bold",
-                                        textAlign: "center",
-                                      }}
-                                    >
-                                      Booker's Total: ₮
-                                      {totalBookerPaymentArray
-                                        .reduce((sum, v) => sum + v, 0)
-                                        .toFixed(2)}
-                                    </Text>
-                                  </View>
-                                </>
-                              );
-                            })()}
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between",
+                              padding: 20,
+                              borderBottomWidth: 1,
+                              alignItems: "center",
+                            }}
+                          >
+                            <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                              Peoples
+                            </Text>
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontSize: 18,
+                                  fontWeight: 300,
+                                }}
+                              >
+                                {wholeDayPeople}
+                              </Text>
+                              <MaterialIcons
+                                name="people-alt"
+                                size={24}
+                                color={Colors.dark}
+                              />
+                            </View>
+                          </View>
+                          <View
+                            style={{
+                              marginTop: 10,
+                              padding: 10,
+                              gap: 5,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 18,
+                                fontWeight: "bold",
+                                textAlign: "center",
+                              }}
+                            >
+                              Booker's Total: ₮
+                              {wholeDayPeople <= 0
+                                ? bookingDetails?.price.wholeDay
+                                : Number(bookingDetails?.price.wholeDay) /
+                                  wholeDayPeople}
+                            </Text>
                           </View>
                         </View>
-                      </>
-                    )}
+                      ) : (
+                        <>
+                          <View style={{ gap: 10 }}>
+                            {selectedTimeSlots.map((group, index) => {
+                              const startTime = group[0].split("~")[0];
+                              const endTime =
+                                group[group.length - 1].split("~")[1];
+                              const isLast =
+                                index === selectedTimeSlots.length - 1;
+                              return (
+                                <View
+                                  key={index}
+                                  style={{
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    padding: 10,
+                                    gap: 5,
+                                    borderWidth: 1,
+                                    borderColor: Colors.littleDark,
+                                    borderRadius: 5,
+                                  }}
+                                >
+                                  <Text
+                                    style={{ fontSize: 18, fontWeight: 300 }}
+                                  >
+                                    {startTime} – {endTime}
+                                  </Text>
+                                  <Text
+                                    style={{ fontSize: 18, fontWeight: 300 }}
+                                  >
+                                    {playersNeeded[index] || 0} Person
+                                  </Text>
+                                </View>
+                              );
+                            })}
+                          </View>
+                          <View
+                            style={{
+                              flexDirection: "column",
+                              justifyContent: "space-between",
+                              gap: 5,
+                              borderWidth: 1,
+                              borderColor: Colors.littleDark,
+                              borderRadius: 5,
+                            }}
+                          >
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                padding: 20,
+                                borderBottomWidth: 1,
+                                alignItems: "center",
+                              }}
+                            >
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  gap: 5,
+                                  alignItems: "center",
+                                }}
+                              >
+                                <MaterialCommunityIcons
+                                  name="clock-time-nine-outline"
+                                  size={24}
+                                  color="black"
+                                />
+                                <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                                  1 Hour
+                                </Text>
+                              </View>
+                              <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                                ₮{bookingDetails?.price.oneHour}
+                              </Text>
+                            </View>
+                            <View>
+                              {(() => {
+                                return (
+                                  <>
+                                    {selectedTimeSlots.map((group, index) => {
+                                      const startTime = group[0].split("~")[0];
+                                      const endTime =
+                                        group[group.length - 1].split("~")[1];
+
+                                      const getHour = (time: string) => {
+                                        const [hourStr] = time.split(":");
+                                        return parseInt(hourStr, 10);
+                                      };
+
+                                      const startHour = getHour(startTime);
+                                      const endHour = getHour(endTime);
+                                      const durationHours = endHour - startHour;
+
+                                      const costPerHour = 1000;
+                                      const totalCost =
+                                        durationHours * costPerHour;
+
+                                      const totalPeople =
+                                        (playersNeeded[index] || 0) + 1;
+
+                                      const paymentPerPeople =
+                                        totalPeople > 0
+                                          ? totalCost / totalPeople
+                                          : 0;
+
+                                      // Add to booker’s total
+                                      paymentPerPeopleArray.push(
+                                        paymentPerPeople
+                                      );
+                                      totalBookerPaymentArray.push(
+                                        paymentPerPeople
+                                      );
+
+                                      return (
+                                        <View
+                                          key={index}
+                                          style={{
+                                            flexDirection: "column",
+                                            justifyContent: "space-evenly",
+                                            padding: 10,
+                                          }}
+                                        >
+                                          <Text
+                                            style={{
+                                              fontSize: 16,
+                                              fontWeight: "300",
+                                            }}
+                                          >
+                                            Session {index + 1}:
+                                          </Text>
+                                          <View
+                                            style={{
+                                              flexDirection: "row",
+                                              justifyContent: "space-around",
+                                            }}
+                                          >
+                                            <Text
+                                              style={{
+                                                fontSize: 18,
+                                                fontWeight: 300,
+                                              }}
+                                            >
+                                              {durationHours} hours
+                                            </Text>
+                                            <Text
+                                              style={{
+                                                fontSize: 18,
+                                                fontWeight: 300,
+                                              }}
+                                            >
+                                              {totalPeople} players
+                                            </Text>
+                                            <Text
+                                              style={{
+                                                fontSize: 18,
+                                                fontWeight: 300,
+                                              }}
+                                            >
+                                              ₮{paymentPerPeople.toFixed(2)} per
+                                              person
+                                            </Text>
+                                          </View>
+                                        </View>
+                                      );
+                                    })}
+
+                                    <View
+                                      style={{
+                                        marginTop: 10,
+                                        padding: 10,
+                                        borderTopWidth: 1,
+                                        borderColor: Colors.littleDark,
+                                      }}
+                                    >
+                                      <Text
+                                        style={{
+                                          fontSize: 18,
+                                          fontWeight: "bold",
+                                          textAlign: "center",
+                                        }}
+                                      >
+                                        Booker's Total: ₮
+                                        {totalBookerPaymentArray
+                                          .reduce((sum, v) => sum + v, 0)
+                                          .toFixed(2)}
+                                      </Text>
+                                    </View>
+                                  </>
+                                );
+                              })()}
+                            </View>
+                          </View>
+                        </>
+                      )}
+                    </View>
                   </View>
-                </View>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    width: "90%",
-                    justifyContent: "center",
-                    gap: 20,
-                    alignItems: "center",
-                    flex: 1,
-                  }}
-                >
-                  <TouchableOpacity
-                    style={styles.buttons}
-                    onPress={() => setSteps(steps - 1)}
-                  >
-                    <Text>Preview</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.buttons,
-                      { backgroundColor: Colors.primary },
-                    ]}
-                    onPress={() => {
-                      handleOrder();
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      width: "90%",
+                      justifyContent: "center",
+                      gap: 20,
+                      alignItems: "center",
+                      flex: 1,
                     }}
                   >
-                    <Text style={{ color: Colors.white }}>Complete</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.buttons}
+                      onPress={() => setSteps(steps - 1)}
+                    >
+                      <Text>Preview</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.buttons,
+                        { backgroundColor: Colors.primary },
+                      ]}
+                      onPress={() => {
+                        handleOrder();
+                      }}
+                    >
+                      <Text style={{ color: Colors.white }}>Complete</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            )}
-          </ScrollView>
-        </View>
-      </SafeAreaView>
+              )}
+            </ScrollView>
+          </View>
+        </SafeAreaView>
+      )}
     </SafeAreaProvider>
   );
 };

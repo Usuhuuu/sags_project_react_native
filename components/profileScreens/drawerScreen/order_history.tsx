@@ -16,6 +16,8 @@ import { HashedSportData } from "@/utils/sport_hall_hash";
 import { MaterialIcons } from "@expo/vector-icons"; // install expo/vector-icons if needed
 import Colors from "@/constants/Colors";
 import { format, parseISO } from "date-fns";
+import { Notifier, NotifierComponents } from "react-native-notifier";
+import { Axios } from "axios";
 
 type FetchedDataType = {
   _id: string;
@@ -74,7 +76,45 @@ const OrderHistory = () => {
       setLoading(false);
     }
   };
-  const handleCancel = (item: string) => {};
+  const handleCancel = async (item: string) => {
+    try {
+      const response = await axiosInstance.post("/auth/bookcancel", {
+        transaction_ID: item,
+        reason: "Tsag amjihgui bolson",
+      });
+      if (response.status === 200 && response.data.success) {
+        Notifier.showNotification({
+          title: "Successfully Canceled Order",
+          description: "PISDA",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "success" },
+        });
+      } else if (response.status === 400 && !response.data.success) {
+        Notifier.showNotification({
+          title: "Failed",
+          description: "Could't find order",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
+      }
+    } catch (err: any) {
+      if (err.response.status === 400 && !err.response.data.success) {
+        Notifier.showNotification({
+          title: "Failed",
+          description: "Could't find order",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
+      } else {
+        Notifier.showNotification({
+          title: "Failed",
+          description: "Could't find order",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
+      }
+    }
+  };
 
   useEffect(() => {
     fetchHistory(selectedYear, selectedMonth);
@@ -89,7 +129,6 @@ const OrderHistory = () => {
   const renderItem = ({ item }: { item: FetchedDataType }) => {
     const readableDays = item.day.join(", ");
     const readableBlocks = item.blocks.map((b) => b.time_slots).join(", ");
-    console.log(readableBlocks);
 
     return (
       <View style={styles.card}>

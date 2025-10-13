@@ -19,13 +19,18 @@ import * as Notifications from "expo-notifications";
 import { CalendarProvider } from "@/app/(modals)/context/CalendarContext";
 import { mutate } from "swr";
 import { useNotificationStore } from "./(modals)/context/store/notificationStore";
-import { NotifierRoot } from "react-native-notifier";
+import {
+  Notifier,
+  NotifierComponents,
+  NotifierRoot,
+} from "react-native-notifier";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   calendarPermission,
   cameraPermission,
   requestLocationPermission,
+  reminderPermission,
 } from "@/hooks/permissions";
 
 export const unstable_settings = {
@@ -59,7 +64,12 @@ function RootLayout({ children }: RootLayoutProps) {
       Sentry.captureException(error);
       console.error("Error loading fonts:", error);
       setFontError(true);
-      Alert.alert("Error loading fonts", "Please try again later");
+      Notifier.showNotification({
+        title: "Error loading fonts",
+        description: "Please try again later",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "error" },
+      });
     }
   }, [error, loaded]);
 
@@ -165,6 +175,7 @@ function RootLayout({ children }: RootLayoutProps) {
     calendarPermission();
     cameraPermission();
     requestLocationPermission();
+    reminderPermission();
   }, []);
 
   if (!loaded || fontError) {

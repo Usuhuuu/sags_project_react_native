@@ -15,6 +15,7 @@ import { launchImageLibrary } from "react-native-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView } from "react-native-gesture-handler";
 import axiosInstance from "@/hooks/axiosInstance";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 type FormDataTypes = {
   zaal_types: string[];
@@ -145,13 +146,27 @@ const RegisterZaal: React.FC = () => {
       const response = await axiosInstance.post("/auth/zaalburtgel", {
         formData,
       });
-      Alert.alert("SUCESSFULLY ADDED SPORT HALL");
+      Notifier.showNotification({
+        title: "Successfully Added",
+        description: "Successfully added sport hall",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "success" },
+      });
       if (response.status === 400 && !response.data.success) {
-        Alert.alert(response.data.message);
+        Notifier.showNotification({
+          title: "Failed",
+          description: `${response.data.message}`,
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
       }
-      console.log(response);
     } catch (err: any) {
-      Alert.alert(err.response.data.message);
+      Notifier.showNotification({
+        title: "Failed",
+        description: `${err.response.data.message}`,
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "error" },
+      });
     }
   };
 
@@ -199,7 +214,12 @@ const RegisterZaal: React.FC = () => {
                       },
                       (response) => {
                         if (imageUrl.length === 4) {
-                          Alert.alert("Only Upload 4 images");
+                          Notifier.showNotification({
+                            title: "Warning",
+                            description: "Only Upload 4 images",
+                            Component: NotifierComponents.Alert,
+                            componentProps: { alertType: "warn" },
+                          });
                           return;
                         }
                         if (response.assets && response.assets[0].uri) {

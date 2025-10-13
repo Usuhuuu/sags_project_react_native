@@ -18,6 +18,7 @@ import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import Colors from "@/constants/Colors";
 import { useBookingStore } from "@/app/(modals)/context/store/bookStore";
 import { router } from "expo-router";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 type FilterType = "joinable" | "unavailable" | null;
 
@@ -191,7 +192,11 @@ function Calendar(
     if (isOrdering) return;
     setIsOrdering(true);
     if (!props.formData && !date) {
-      Alert.alert("Select Day");
+      Notifier.showNotification({
+        title: "Select the day",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "info" },
+      });
       return;
     }
     props.setIsOrderScreenVisible(false);
