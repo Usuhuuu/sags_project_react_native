@@ -12,5 +12,10 @@ export default {
   blue: `#007AFF`,
   littleDark:"#464646",
   littleDarkGrey:"#BDBDBD",
-  lightGreen:"#edffe3"
+  lightGreen:"#edffe3",
+  warningYellow:"#FEF9C3",
+  compeleteGreen:"#22C55E",
+  pendingYellow:"#FBBF24",
+  completeTextGreen:"#10B981",
+  yellowText:"#854D0E"
 };

@@ -16,6 +16,7 @@ import Dtraining from "@/components/training";
 import CustomDrawerContent from "@/components/CostumDrawerContent";
 import {
   Entypo,
+  FontAwesome,
   Ionicons,
   MaterialCommunityIcons,
   MaterialIcons,
@@ -127,7 +128,21 @@ export const TabsLayout = () => {
           ),
         }}
       />
-
+      <Tabs.Screen
+        name="order"
+        options={{
+          tabBarLabel: "Order",
+          headerTitle: "Order",
+          headerTitleStyle: { color: Colors.primary, fontSize: 24 },
+          tabBarIcon: ({ focused }) => {
+            return (
+              <View>
+                <FontAwesome name="address-book-o" size={24} color="black" />
+              </View>
+            );
+          },
+        }}
+      />
       <Tabs.Screen
         name="friend"
         options={{

@@ -206,7 +206,7 @@ const TransactionPage = () => {
         });
       }
     } catch (err: any) {
-      console.log(err.response.data);
+      setWaiting(false);
       if (
         !err.response.data.success &&
         [400, 409].includes(err.response.status)
@@ -217,7 +217,8 @@ const TransactionPage = () => {
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "warn" },
         });
-      } else if (err.message === "Token not found after retries") {
+      }
+      if (err.message === "could't find Token") {
         console.log(err);
         Notifier.showNotification({
           title: "Please Login",
@@ -226,8 +227,6 @@ const TransactionPage = () => {
           componentProps: { alertType: "warn" },
         });
       }
-
-      setWaiting(false);
     } finally {
       setIsOrdering(false);
     }
@@ -605,7 +604,10 @@ const TransactionPage = () => {
                                 >
                                   <TouchableOpacity
                                     onPress={() => {
-                                      if (playersNeeded[index] < 20) {
+                                      if (
+                                        playersNeeded[index] < 20 ||
+                                        (playersNeeded[index] ?? 0) === 0
+                                      ) {
                                         setPlayersNeeded((prev) => ({
                                           ...prev,
                                           [index]: (prev[index] || 0) + 1,
@@ -628,7 +630,7 @@ const TransactionPage = () => {
                                     />
                                   </TouchableOpacity>
                                   <Text style={{ fontSize: 20 }}>
-                                    {playersNeeded[index] || 0}{" "}
+                                    {playersNeeded[index] ?? 0}{" "}
                                   </Text>
                                   <TouchableOpacity
                                     onPress={() => {

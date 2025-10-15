@@ -2,6 +2,7 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { Alert } from "react-native";
 import Constants from "expo-constants";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 const apiUrl =
   Constants.expoConfig?.extra?.apiUrl ??
@@ -9,7 +10,7 @@ const apiUrl =
 
 const tokenWithRetry = async (
   maxRetry: number = 3,
-  maxInterval: number = 500
+  maxInterval: number = 300
 ) => {
   let token = null;
   let retry = 0;
@@ -22,7 +23,13 @@ const tokenWithRetry = async (
     }
   }
   if (!token) {
-    throw new Error("Token not found after retries");
+    Notifier.showNotification({
+      title: "Oops",
+      description: "Please login in to process",
+      Component: NotifierComponents.Alert,
+      componentProps: { alertType: "warn" },
+    });
+    throw new Error("could't find Token");
   }
   return token;
 };
@@ -51,14 +58,26 @@ axiosInstance.interceptors.request.use(
   async (config) => {
     const token = await tokenWithRetry();
     if (!token) {
-      throw new Error("Token not founded");
+      Notifier.showNotification({
+        title: "Oops",
+        description: "Please login in to process",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "warn" },
+      });
+      throw new Error("could't find Token");
     }
     if (token) {
       const { accessToken } = JSON.parse(token);
       config.headers.Authorization = `Bearer ${accessToken}`;
     } else {
       config.headers.Authorization = null;
-      throw new Error("Token not founded");
+      Notifier.showNotification({
+        title: "Oops",
+        description: "Please login in to process",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "warn" },
+      });
+      throw new Error("could't find Token");
     }
 
     return config;
@@ -88,18 +107,18 @@ axiosInstance.interceptors.response.use(
           );
           switch (true) {
             case newAccessToken.status === 400 &&
-              newAccessToken.data.loginAgain:
+              newAccessToken.data.loginAgain: {
               await SecureStore.deleteItemAsync("Tokens");
               break;
+            }
 
             case newAccessToken.status === 400 &&
-              !newAccessToken.data.loginAgain:
-              // handle 400
-
+              !newAccessToken.data.loginAgain: {
               await SecureStore.deleteItemAsync("Tokens");
               break;
+            }
 
-            case newAccessToken.status === 200 && newAccessToken.data.success:
+            case newAccessToken.status === 200 && newAccessToken.data.success: {
               await SecureStore.setItemAsync(
                 "Tokens",
                 JSON.stringify({
@@ -109,7 +128,7 @@ axiosInstance.interceptors.response.use(
               );
               originalRequest.headers.Authorization = `Bearer ${newAccessToken.data.newAccessToken}`;
               return axiosInstance(originalRequest);
-
+            }
             default:
               break;
           }

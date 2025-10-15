@@ -140,14 +140,11 @@ function Calendar(
   const [isitReady, setIsitReady] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchTimeSlots = async (date: Date) => {
-      const [year, month] = [
-        date.getFullYear(),
-        String(date.getMonth() + 1).padStart(2, "0"),
-      ];
+    const fetchTimeSlots = async (dateObj: Date) => {
+      const [date] = dateObj.toISOString().split("T");
       try {
         const response = await axiosInstanceRegular.get(
-          `/timeslots/${props.sport_hall_id}/${year}/${month}`
+          `/timeslots/${props.sport_hall_id}/${date}`
         );
         if (response.status === 200 && response.data.success) {
           const result = response.data.find.reduce(

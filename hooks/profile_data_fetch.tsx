@@ -21,10 +21,6 @@ export const fetchRoleAndProfile = async (
 };
 
 export const normalFetch = async (url: string) => {
-  const token = await SecureStore.getItemAsync("Tokens");
-  if (!token) {
-    throw new Error("Token not founded pisda");
-  }
   try {
     const response = await axiosInstance.get(url);
     return response.data;
