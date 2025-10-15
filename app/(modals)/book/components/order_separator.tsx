@@ -1,19 +1,25 @@
 import {
-  Booking_Data_Type,
   Return_Type,
   OrderScreenSeparator,
   OrderDataTypes,
 } from "@/interfaces/order&book_type";
 import React, { useCallback } from "react";
-import { View, FlatList } from "react-native";
+import { View, FlatList, ActivityIndicator } from "react-native";
 import { OrderItem } from "@/app/(modals)/book/util/order_functions";
 import Colors from "@/constants/Colors";
 
 interface Order_Separator_props {
   data: OrderDataTypes[];
   screen_type: OrderScreenSeparator;
+  loadMore: () => void;
+  loading: boolean;
 }
-const Order_Separator = ({ data, screen_type }: Order_Separator_props) => {
+const Order_Separator = ({
+  data,
+  screen_type,
+  loadMore,
+  loading,
+}: Order_Separator_props) => {
   let list: Return_Type[] = [];
   switch (screen_type) {
     case OrderScreenSeparator.UPCOMING:
@@ -40,8 +46,16 @@ const Order_Separator = ({ data, screen_type }: Order_Separator_props) => {
   );
 
   return (
-    <View style={{ height: "100%" }}>
-      <FlatList<Return_Type> data={list} renderItem={renderItem} />
+    <View style={{ flex: 1 }}>
+      <FlatList<Return_Type>
+        data={list}
+        renderItem={renderItem}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loading ? <ActivityIndicator color={Colors.primary} /> : null
+        }
+      />
     </View>
   );
 };

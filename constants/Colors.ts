@@ -14,8 +14,8 @@ export default {
   littleDarkGrey:"#BDBDBD",
   lightGreen:"#edffe3",
   warningYellow:"#FEF9C3",
-  compeleteGreen:"#22C55E",
+  green:"#22C55E",
   pendingYellow:"#FBBF24",
-  completeTextGreen:"#10B981",
+  greenText:"#10B981",
   yellowText:"#854D0E"
 };

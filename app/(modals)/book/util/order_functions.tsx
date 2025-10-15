@@ -1,13 +1,76 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Return_Type } from "@/interfaces/order&book_type";
 import Colors from "@/constants/Colors";
 import { format } from "date-fns";
 import { FontAwesome6, Fontisto } from "@expo/vector-icons";
 import { ProgressBar } from "react-native-paper";
+import axiosInstance from "@/hooks/axiosInstance";
+import { Notifier, NotifierComponents } from "react-native-notifier";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 
 export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
+  const expanded = useSharedValue(0);
+  const toggleExpand = () => {
+    expanded.value = withTiming(expanded.value === 0 ? 1 : 0, {
+      duration: 300,
+    });
+  };
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    height: expanded.value === 0 ? 120 : 400, // collapsed → expanded
+    overflow: "hidden",
+  }));
+
+  const animatedContentStyle = useAnimatedStyle(() => ({
+    opacity: expanded.value,
+    transform: [{ translateY: expanded.value ? 0 : 20 }],
+  }));
+
   const data = item;
+  const handleCancel = async (item: string) => {
+    try {
+      const response = await axiosInstance.post("/auth/bookcancel", {
+        transaction_ID: item,
+        reason: "Tsag amjihgui bolson",
+      });
+      if (response.status === 200 && response.data.success) {
+        Notifier.showNotification({
+          title: "Successfully Canceled Order",
+          description: "PISDA",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "success" },
+        });
+      } else if (response.status === 400 && !response.data.success) {
+        Notifier.showNotification({
+          title: "Failed",
+          description: "Could't find order",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
+      }
+    } catch (err: any) {
+      if (err.response.status === 400 && !err.response.data.success) {
+        Notifier.showNotification({
+          title: "Failed",
+          description: "Could't find order",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
+      } else {
+        Notifier.showNotification({
+          title: "Failed",
+          description: "Could't find order",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "error" },
+        });
+      }
+    }
+  };
+
   return (
     <View
       style={{
@@ -172,7 +235,12 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
               View Details
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={{}}>
+          <TouchableOpacity
+            style={{}}
+            onPress={() => {
+              handleCancel(item._id);
+            }}
+          >
             <Text style={{ color: "#991B1B", fontWeight: 500, fontSize: 20 }}>
               Cancel
             </Text>

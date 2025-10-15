@@ -131,9 +131,21 @@ export const TabsLayout = () => {
       <Tabs.Screen
         name="order"
         options={{
-          tabBarLabel: "Order",
-          headerTitle: "Order",
-          headerTitleStyle: { color: Colors.primary, fontSize: 24 },
+          tabBarLabel: "My Bookings",
+          headerTitle: "My Bookings",
+          headerTitleStyle: { color: Colors.primary, fontSize: 28 },
+          headerTitleAlign: "left",
+          headerRight: () => {
+            return (
+              <TouchableOpacity>
+                <Ionicons
+                  name="filter-circle-outline"
+                  size={28}
+                  color={Colors.primary}
+                />
+              </TouchableOpacity>
+            );
+          },
           tabBarIcon: ({ focused }) => {
             return (
               <View>

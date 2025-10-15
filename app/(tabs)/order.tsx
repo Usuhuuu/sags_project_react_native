@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { regular_swr } from "@/hooks/useswr";
 import { useAuth } from "../(modals)/context/authContext";
 import Colors from "@/constants/Colors";
@@ -39,7 +39,7 @@ const OrderScreen = () => {
   }: { data: Booking_Data_Type; error: any; isLoading: boolean } = regular_swr(
     {
       item: {
-        pathname: `/auth/book/${date}?page=${page}&limit=${10}`,
+        pathname: `/auth/book/${date}?page=${page}&limit=${20}`,
         cacheKey: "booked_order",
         loginStatus: LoginStatus,
       },
@@ -95,6 +95,13 @@ const OrderScreen = () => {
 
     setLoading(isLoading);
   }, [data, error, isLoading]);
+
+  const loadMore = useCallback(() => {
+    if (!loading) {
+      setPage((prev) => prev + 1);
+    }
+  }, [loading]);
+
   return loading ? (
     <View>
       <ActivityIndicator color={Colors.primary} />
@@ -113,10 +120,6 @@ const OrderScreen = () => {
           marginHorizontal: 10,
         }}
       >
-        <Text style={{ fontSize: 25, fontWeight: 500, paddingVertical: 10 }}>
-          My Bookings
-        </Text>
-
         <View style={style.separatorContainer}>
           <TouchableOpacity
             onPress={() => setScreenSeparator(OrderScreenSeparator.UPCOMING)}
@@ -188,8 +191,13 @@ const OrderScreen = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View>
-          <Order_Separator data={bookingData} screen_type={screenSeparator} />
+        <View style={{ flex: 1 }}>
+          <Order_Separator
+            data={bookingData}
+            screen_type={screenSeparator}
+            loading={loading}
+            loadMore={() => loadMore}
+          />
         </View>
       </View>
     </View>
