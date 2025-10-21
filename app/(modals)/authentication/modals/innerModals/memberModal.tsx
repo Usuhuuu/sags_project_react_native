@@ -32,11 +32,7 @@ interface Members {
   userImage: string;
 }
 
-const MemberModal: React.FC<MemberModalProps> = ({
-  memberModalVisible,
-  setMemberModalVisible,
-  memberData,
-}) => {
+const MemberModal: React.FC<MemberModalProps> = ({ memberData }) => {
   const [showAll, setShowAll] = useState(false);
   const [qrLink, setQrLink] = useState<string | null>(null);
   const { LoginStatus } = useAuth();

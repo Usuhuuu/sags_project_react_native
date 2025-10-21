@@ -8,7 +8,6 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 import { HelperText, TextInput } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

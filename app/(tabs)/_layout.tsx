@@ -135,6 +135,7 @@ export const TabsLayout = () => {
           headerTitle: "My Bookings",
           headerTitleStyle: { color: Colors.primary, fontSize: 28 },
           headerTitleAlign: "left",
+
           headerRight: () => {
             return (
               <TouchableOpacity>

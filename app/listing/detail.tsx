@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useBookingStore } from "../(modals)/context/store/bookStore";
 import Calendar from "./book/modal_calendar";
+import moment from "moment";
 
 export type FormData = {
   sportHallID: string;
@@ -215,7 +216,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
     });
     router.push(`/listing/book/${zaal_id}`);
   };
-
+  const firstDate = new Date();
   return (
     <View style={styles.zahialgaView}>
       {isLoading ? (
@@ -256,9 +257,13 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
               <CalendarStrip
                 style={styles.calendars}
                 selectedDate={new Date(today)}
-                calendarAnimation={{ type: "parallel", duration: 30 }}
                 startingDate={new Date(today)}
-                onDateSelected={(date: any) => dateSlotGiver(date)}
+                minDate={new Date(today)}
+                calendarAnimation={{ type: "parallel", duration: 30 }}
+                onDateSelected={(date: Date) => {
+                  if (date < new Date(today)) return;
+                  dateSlotGiver(date);
+                }}
                 dateNumberStyle={{
                   fontSize: 18,
                   fontWeight: "400",
@@ -278,6 +283,12 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                   width: "100%",
                   height: "30%",
                 }}
+                datesBlacklist={[
+                  {
+                    start: moment().subtract(100, "years").toDate(),
+                    end: moment(firstDate).subtract(1, "days").toDate(),
+                  },
+                ]}
               />
               <View
                 style={{

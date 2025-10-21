@@ -611,7 +611,8 @@ const Page = () => {
           keyExtractor={(item, index) => {
             return `${item.zaal_ID}-${index}-${item.blocks[0].totalPrice}`;
           }}
-          contentContainerStyle={styles.container}
+          contentContainerStyle={[styles.container, { height: "auto" }]}
+          style={{}}
           ListHeaderComponent={
             <>
               <Animated.Text style={[styles.swipet, bounceStyle]}>
@@ -818,7 +819,11 @@ const Page = () => {
                           />
                         </View>
                       </View>
-                      <View style={{ flex: 1, justifyContent: "center" }}>
+                      <View
+                        style={{
+                          justifyContent: "center",
+                        }}
+                      >
                         {expandedIndex === index && (
                           <View style={styles.content}>
                             <View>

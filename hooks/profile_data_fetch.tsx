@@ -25,8 +25,7 @@ export const normalFetch = async (url: string) => {
     const response = await axiosInstance.get(url);
     return response.data;
   } catch (err) {
-    console.log(err);
-    throw new Error("Failed to fetch data");
+    throw err;
   }
 };
 

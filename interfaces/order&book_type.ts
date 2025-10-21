@@ -14,25 +14,37 @@ export type Return_Type = {
       end_time: String;
       num_players: number;
       current_player: number;
-      time_slots: [String];
       totalPrice: number;
-    }
+    }  
   ];
   total_amount: string;
-  booking_status: boolean;
+  booking_status: string;
   zaal_ID: string;
   zaal_info: SportHallDataType;
+  paying_peoples:{
+    amountPaid: string;
+    payment_status: string;
+    phoneNumber: string;
+  },
+  paying_user_info:[{
+    unique_user_ID: string;
+    phoneNumber: string;
+    userNames:{
+        first_name: string;
+        last_name: string;
+    }
+  }],
+    full_paid: boolean;
+    full_paid_at?: string;
 };
 export enum OrderScreenSeparator {
-  UPCOMING = "UPCOMING",
-  TODAY = "TODAY",
+  TODAY_UPCOMING= "TODAY_UPCOMING",
   HISTORY = "HISTORY",
 }
 type OrderScreenSeparatorValue = `${OrderScreenSeparator}`;
 
 export type OrderDataTypes ={
-  upcoming: Return_Type[];
-  today: Return_Type[];
+  today_upcoming: Return_Type[];
   history: Return_Type[];
 }
 

@@ -1,8 +1,8 @@
 export default {
-  primary: `#61b3fa`,
+  primary: `#1877F2`,
   grey: `#ECEBEB`,
   dark: `#000000`,
-  white: `#ffffff`,
+  white: `#FFFFFF`,
   lightGrey: `#F4F4F4`,
   light: `#F9F9F9`,
   secondary: `#b0d9fc`,
@@ -17,5 +17,6 @@ export default {
   green:"#22C55E",
   pendingYellow:"#FBBF24",
   greenText:"#10B981",
-  yellowText:"#854D0E"
+  yellowText:"#854D0E",
+  shadowColor:"rgba(0,0,0,0.5)"
 };

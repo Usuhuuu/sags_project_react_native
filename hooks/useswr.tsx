@@ -4,7 +4,6 @@ import {
   normalFetch,
   postFetch,
 } from "@/hooks/profile_data_fetch";
-import { useEffect } from "react";
 
 interface useSWRProps {
   pathname: string;
@@ -61,8 +60,6 @@ export const auth_swr = (
   config?: SWRConfiguration
 ) => {
   const { pathname, cacheKey, loginStatus } = item;
-
-  // ✅ Only fetch when logged in
   const swrKey = loginStatus ? [cacheKey, true] : null;
 
   const { data, error, isLoading } = useSWR(
