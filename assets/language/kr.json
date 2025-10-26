@@ -284,6 +284,62 @@
             "nameMustbeLessThan100Characters": "이름은 100자 미만이어야 합니다.",
             "copyLink": "링크 복사",
             "close": "닫기"
-        }
+        },
+        "orderScreen": {
+    "myBookings": "내 예약",
+    "history": "예약 내역",
+    "todayUpcoming": "예약",
+    "filter": "필터",
+    "noBookingsFound": "예약을 찾을 수 없습니다",
+    "waiting": "대기 중",
+    "confirmed": "확정됨",
+    "tryAdjustingFilter": "원하는 결과를 찾으려면 필터를 조정해 보세요.",
+    "alreadyPlayed": "이미 완료됨",
+    "pending": "대기 중",
+    "cancelled": "취소됨",
+    "viewDetails": "상세보기",
+    "cancelBooking": "예약 취소",
+    "close": "닫기",
+    "contactCostumerService": "고객 서비스 문의",
+    "paymentInfo": {
+        "paymentInfo": "결제 정보",
+        "paymentStatusPaid": "결제 완료",
+        "paymentStatusPending": "결제 대기",
+        "unpaid": "미결제",
+        "paymentMethod": "결제 수단",
+        "totalAmount": "총 금액"
+    },
+    "bookingInfo": {
+        "bookingInfo": "예약 정보",
+        "date": "날짜",
+        "time": "시간",
+        "statusConfirmed": "확정됨",
+        "statusPending": "대기 중",
+        "statusCancelled": "취소됨",
+        "playerNeeded": "필요 인원"
+    },
+    "playerInfo": {
+        "playerInfo": "플레이어 정보",
+        "playerName": "이름",
+        "playerContact": "연락처",
+        "playerEmail": "이메일",
+        "playerPaymentAmount": "결제 금액",
+        "playerPaymentStatus": "결제 상태"
+    },
+    "months": {
+        "january": "1월",
+        "february": "2월",
+        "march": "3월",
+        "april": "4월",
+        "may": "5월",
+        "june": "6월",
+        "july": "7월",
+        "august": "8월",
+        "september": "9월",
+        "october": "10월",
+        "november": "11월",
+        "december": "12월"
+    }
+}
     }
 }

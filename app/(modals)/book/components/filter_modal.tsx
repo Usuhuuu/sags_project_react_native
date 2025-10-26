@@ -3,6 +3,7 @@ import { OrderScreenSeparator } from "@/interfaces/order&book_type";
 import { Entypo, Fontisto } from "@expo/vector-icons";
 import React from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { Notifier } from "react-native-notifier";
 
@@ -23,19 +24,21 @@ const Filter_Modals = ({
   setModalVisible,
   setDate,
 }: Filter_Modals_Props) => {
+  const { t } = useTranslation();
+  const orderLangInit: any = t("orderScreen", { returnObjects: true });
   const months = [
-    { number: 1, text: "January" },
-    { number: 2, text: "February" },
-    { number: 3, text: "March" },
-    { number: 4, text: "April" },
-    { number: 5, text: "May" },
-    { number: 6, text: "June" },
-    { number: 7, text: "July" },
-    { number: 8, text: "August" },
-    { number: 9, text: "September" },
-    { number: 10, text: "October" },
-    { number: 11, text: "November" },
-    { number: 12, text: "December" },
+    { number: 1, text: `${orderLangInit.months.january}` },
+    { number: 2, text: `${orderLangInit.months.february}` },
+    { number: 3, text: `${orderLangInit.months.march}` },
+    { number: 4, text: `${orderLangInit.months.april}` },
+    { number: 5, text: `${orderLangInit.months.may}` },
+    { number: 6, text: `${orderLangInit.months.june}` },
+    { number: 7, text: `${orderLangInit.months.july}` },
+    { number: 8, text: `${orderLangInit.months.august}` },
+    { number: 9, text: `${orderLangInit.months.september}` },
+    { number: 10, text: `${orderLangInit.months.october}` },
+    { number: 11, text: `${orderLangInit.months.november}` },
+    { number: 12, text: `${orderLangInit.months.december}` },
   ];
 
   const [monthIndex, setMonthIndex] = useState(new Date().getMonth());
@@ -131,7 +134,11 @@ const Filter_Modals = ({
               <Fontisto name="close" size={24} color={Colors.dark} />
             </TouchableOpacity>
           </View>
-
+          <View style={{ alignItems: "center", justifyContent: "center" }}>
+            <Text style={{ color: Colors.dark, fontSize: 20, fontWeight: 700 }}>
+              {orderLangInit.filterText}
+            </Text>
+          </View>
           <View style={style.filterContainer}>
             {/* Year Picker */}
             <View style={style.picker}>
@@ -177,22 +184,25 @@ const Filter_Modals = ({
               }}
               onPress={() => {
                 const today = new Date();
-                const selectedDate = new Date(year, monthIndex, 1); // first day of selected month
+                const selectedDate = new Date(year, monthIndex, 1);
                 const separator =
                   selectedDate < today
                     ? OrderScreenSeparator.HISTORY
                     : OrderScreenSeparator.TODAY_UPCOMING;
+
                 setMonthIndex(today.getMonth());
                 setYear(today.getFullYear());
                 const formattedMonth = String(
                   selectedDate.getMonth() + 1
                 ).padStart(2, "0");
-                setDate(`${selectedDate.getFullYear()}-${formattedMonth}-31`);
+                setDate(`${selectedDate.getFullYear()}-${formattedMonth}-01`);
                 setScreenSeparator(separator);
                 setModalVisible(false);
               }}
             >
-              <Text style={{ color: Colors.white, fontSize: 20 }}>Filter</Text>
+              <Text style={{ color: Colors.white, fontSize: 20 }}>
+                {orderLangInit.filter}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

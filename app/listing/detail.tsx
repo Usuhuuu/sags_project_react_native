@@ -1,5 +1,5 @@
 import Colors from "@/constants/Colors";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -104,6 +104,7 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
     prevProps.unavailableTimes === nextProps.unavailableTimes &&
     prevProps.wholeDayBooked === nextProps.wholeDayBooked
 );
+
 interface OrderScreenProps {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
@@ -117,7 +118,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   sportHallID,
   setIsOrderScreenVisible,
 }) => {
-  const [today, setToday] = useState<string>(new Date().toISOString());
+  const [today, setToday] = useState<Date>(new Date());
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [unavailableTimes, setUnavailableTimes] = useState<{
     joinable: string[];
@@ -128,78 +130,134 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   });
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
   const [wholeDayModal, setWholeDayModal] = useState<boolean>(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(today);
+
   const [wholeDayBooked, setWholeDayBooked] = useState({
     unavailableWholeDay: false,
     joinableWholeDay: false,
   });
+  const calendarRef = useRef<CalendarStrip>(null);
+  const CACHE_TTL = 10 * 60 * 1000;
 
-  const dateSlotGiver = async (date: Date) => {
-    setIsLoading(true);
-    setSelectedTimeSlots([]);
-    try {
-      setUnavailableTimes({
-        joinable: [],
-        unavailable: [],
-      });
-      setWholeDayModal(false);
-      setWholeDayBooked({
-        unavailableWholeDay: false,
-        joinableWholeDay: false,
-      });
-      const odor: string = date.toISOString().split("T")[0];
-      setToday(odor);
-      const response = await axiosInstanceRegular.get(
-        `/timeslots/${sportHallID}/${odor}`
-      );
-      if (response.status === 200 && response.data.success) {
-        const flat = response.data.orderedTime.flat();
-        let unavailableWholeDay = false;
-        let joinableWholeDay = false;
+  const [timeslotCache] = useState<{
+    [key: string]: {
+      joinable: string[];
+      unavailable: string[];
+      wholeDay: { unavailableWholeDay: boolean; joinableWholeDay: boolean };
+      timestampt: number;
+    };
+  }>({});
+  const toLocalDateString = (date: Date) => {
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return local.toISOString().split("T")[0];
+  };
 
-        for (const item of flat) {
-          if (item.time_slots.includes("wholeDay")) {
-            if (item.num_players === 0) {
-              unavailableWholeDay = true;
-              joinableWholeDay = false;
-              break;
-            } else if (item.num_players > 0) {
-              joinableWholeDay = true;
+  const dateSlotGiver = useCallback(
+    async (date: Date) => {
+      setSelectedTimeSlots([]);
+
+      const odor = toLocalDateString(date);
+      const key = `${sportHallID}T${odor}`;
+
+      if (timeslotCache[key]) {
+        const cached = timeslotCache[key];
+        const isExpired = Date.now() - cached.timestampt > CACHE_TTL;
+        if (isExpired) {
+          delete timeslotCache[key];
+        } else {
+          setUnavailableTimes({
+            joinable: cached.joinable,
+            unavailable: cached.unavailable,
+          });
+          setWholeDayBooked(cached.wholeDay);
+          setIsLoading(false);
+          return;
+        }
+      }
+      setIsLoading(true);
+      try {
+        setUnavailableTimes({ joinable: [], unavailable: [] });
+        setWholeDayModal(false);
+        setWholeDayBooked({
+          unavailableWholeDay: false,
+          joinableWholeDay: false,
+        });
+
+        const response = await axiosInstanceRegular.get(
+          `/timeslots/${sportHallID}/${odor}`
+        );
+
+        if (response.status === 200 && response.data.success) {
+          const flat = response.data.orderedTime.flat();
+          let unavailableWholeDay = false;
+          let joinableWholeDay = false;
+          let results = { joinable: [], unavailable: [] };
+
+          for (const item of flat) {
+            if (item.time_slots.includes("wholeDay")) {
+              if (item.num_players === 0) {
+                unavailableWholeDay = true;
+                joinableWholeDay = false;
+                break;
+              } else if (item.num_players > 0) {
+                joinableWholeDay = true;
+              }
             }
           }
-        }
+          if (unavailableWholeDay || joinableWholeDay) {
+            setWholeDayBooked({
+              unavailableWholeDay,
+              joinableWholeDay,
+            });
+          } else {
+            results = flat.reduce(
+              (
+                acc: any,
+                item: { num_players: number; time_slots: string[] }
+              ) => {
+                if (item.num_players === 0) {
+                  acc.unavailable.push(...item.time_slots);
+                } else {
+                  acc.joinable.push(...item.time_slots);
+                }
+                return acc;
+              },
+              { joinable: [], unavailable: [] }
+            );
 
-        if (unavailableWholeDay || joinableWholeDay) {
-          setWholeDayBooked({
-            unavailableWholeDay: unavailableWholeDay,
-            joinableWholeDay: joinableWholeDay,
-          });
+            setUnavailableTimes(results);
+          }
+
+          // ✅ cache result
+          timeslotCache[key] = {
+            joinable: results.joinable,
+            unavailable: results.unavailable,
+            wholeDay: { unavailableWholeDay, joinableWholeDay },
+            timestampt: Date.now(),
+          };
         } else {
-          const results = flat.reduce(
-            (acc: any, item: { num_players: number; time_slots: string[] }) => {
-              if (item.num_players === 0) {
-                acc.unavailable.push(...item.time_slots);
-              } else {
-                acc.joinable.push(...item.time_slots);
-              }
-              return acc;
-            },
-            { joinable: [], unavailable: [] }
-          );
-
-          setUnavailableTimes(results);
+          // cache empty result for invalid days
+          timeslotCache[key] = {
+            joinable: [],
+            unavailable: [],
+            wholeDay: { unavailableWholeDay: false, joinableWholeDay: false },
+            timestampt: Date.now(),
+          };
         }
+      } catch (err: any) {
+        if (err.response && [400, 409].includes(err.response.status)) {
+          console.log("lalr", err);
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err: any) {
-      if (err.response && [400, 409].includes(err.response.status)) {
-        console.log("lalr", err);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [sportHallID]
+  );
+
   useEffect(() => {
-    dateSlotGiver(new Date());
-  }, []);
+    if (today) dateSlotGiver(today);
+  }, [today]);
   const baseTime_start = baseTimeSlot[0].start_time;
   const baseTime_end = baseTimeSlot[baseTimeSlot.length - 1].end_time;
   const handleOrder = () => {
@@ -256,18 +314,27 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
               </TouchableOpacity>
               <CalendarStrip
                 style={styles.calendars}
-                selectedDate={new Date(today)}
-                startingDate={new Date(today)}
-                minDate={new Date(today)}
-                calendarAnimation={{ type: "parallel", duration: 30 }}
+                ref={calendarRef}
+                startingDate={today}
+                selectedDate={selectedDate}
+                useIsoWeekday={true}
+                minDate={new Date()}
+                calendarAnimation={{ type: "parallel", duration: 300 }}
                 onDateSelected={(date: Date) => {
-                  if (date < new Date(today)) return;
-                  dateSlotGiver(date);
+                  const nextWeek = moment(date).add(0, "day").toDate();
+                  setSelectedDate(nextWeek);
+                  setToday(new Date(date));
+                }}
+                highlightDateNumberStyle={{
+                  color: Colors.primary,
+                }}
+                highlightDateNameStyle={{
+                  color: Colors.primary,
                 }}
                 dateNumberStyle={{
                   fontSize: 18,
                   fontWeight: "400",
-                  color: "#464646",
+                  color: Colors.littleDark,
                 }}
                 dateNameStyle={{
                   fontSize: 10,

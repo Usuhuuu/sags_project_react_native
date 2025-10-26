@@ -180,7 +180,6 @@
                 }
             ]
         }],
-        
         "userLogout":{
             "logoutAlert":"Logout",
             "logoutMessage":"Are you sure you want to logout?",
@@ -273,6 +272,63 @@
             "nameMustbeLessThan100":"Name must be less than 100 characters",
             "copyLink":"Copy Link",
             "close":"Close"
+        },
+        "orderScreen":{
+            "myBookings": "My Bookings",
+            "history": "History",
+            "todayUpcoming": "Bookings",
+            "filter": "Filter",
+            "filterText": "Filter your bookings.",
+            "noBookingsFound": "No bookings found",
+            "waiting": "Waiting",
+            "confirmed": "Confirmed",
+            "tryAdjustingFilter": "Try adjusting your filter to find what you're looking for.",
+            "alreadyPlayed": "Already Played",
+            "pending": "Pending",
+            "cancelled": "Cancelled",
+            "viewDetails": "View Details",
+            "cancelBooking": "Cancel Booking",
+            "close": "Close",
+            "contactCostumerService":"Contact Customer Service",
+            "paymentInfo":{
+                "paymentInfo": "Payment Info",
+                "paymentStatusPaid": "Paid",
+                "paymentStatusPending": "Pending",
+                "unpaid": "Unpaid",
+                "paymentMethod": "Payment Method",
+                "totalAmount": "Total Amount"
+            },
+            "bookingInfo":{
+                "bookingInfo": "Booking Info",
+                "date": "Date",
+                "time": "Time",
+                "statusConfirmed":"Confirmed",
+                "statusPending":"Pending",
+                "statusCancelled":"Cancelled",
+                "playerNeeded":"Player Needed"
+            },
+            "playerInfo":{
+                "playerInfo": "Player Info",
+                "playerName": "Player Name",
+                "playerContact": "Player Contact",
+                "playerEmail": "Player Email",
+                "playerPaymentAmount": "Payment Amount",
+                "playerPaymentStatus": "Payment Status"
+            },
+            "months": {
+                "january": "January",
+                "february": "February",
+                "march": "March",
+                "april": "April",
+                "may": "May",
+                "june": "June",
+                "july": "July",
+                "august": "August",
+                "september": "September",
+                "october": "October",
+                "november": "November",
+                "december": "December"
+            }
         }
         
     }

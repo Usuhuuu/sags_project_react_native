@@ -16,6 +16,7 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import { Return_Type } from "@/interfaces/order&book_type";
 import axiosInstance from "@/hooks/axiosInstance";
 import Colors from "@/constants/Colors";
+import { useTranslation } from "react-i18next";
 
 export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
   const expanded = useSharedValue(0);
@@ -102,24 +103,32 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
       });
     }
   };
+  const { t } = useTranslation();
+  const orderLangInit: any = t("orderScreen", { returnObjects: true });
   const dataDetails = {
     paymentInfo: [
       {
-        label: "Paid",
+        label: `${orderLangInit.paymentInfo.paymentStatusPaid}`,
         resolve: (data: Return_Type) =>
           `${data.full_paid ? "Paid" : "Pending"}`,
       },
-      { label: "Payment Method", key: "payment_method" },
-      { label: "Amount", key: "total_amount" },
+      {
+        label: `${orderLangInit.paymentInfo.paymentMethod}`,
+        key: "payment_method",
+      },
+      {
+        label: `${orderLangInit.paymentInfo.totalAmount}`,
+        key: "total_amount",
+      },
     ],
     bookingInfo: [
       {
-        label: "Date",
+        label: `${orderLangInit.bookingInfo.date}`,
         resolve: (data: Return_Type) =>
           `${format(new Date(data.day[0]), "MMMM d, yyyy")}`,
       },
       {
-        label: "Time",
+        label: `${orderLangInit.bookingInfo.time}`,
         resolve: (data: any) =>
           `${data?.blocks?.[0]?.start_time ?? ""} ~ ${
             data?.blocks?.[0]?.end_time ?? ""
@@ -127,7 +136,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
       },
       { label: "Status", key: "booking_status" },
       {
-        label: "Players Needed",
+        label: `${orderLangInit.bookingInfo.playerNeeded}`,
         resolve: (data: Return_Type) =>
           `${
             data.blocks[0].num_players > 0
@@ -138,18 +147,22 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
     ],
     playerInfo: [
       {
-        label: "Player Name",
+        label: `${orderLangInit.playerInfo.playerName}`,
         resolve: (data: Return_Type) =>
           `${data.paying_user_info[0].unique_user_ID}`,
       },
 
       {
-        label: "Phone Number",
+        label: `${orderLangInit.playerInfo.playerContact}`,
         resolve: (data: Return_Type) =>
           `${data.paying_user_info[0].phoneNumber}`,
       },
       {
-        label: "Payed Amount",
+        label: `${orderLangInit.playerInfo.playerPaymentStatus}`,
+        resolve: (data: Return_Type) => `${data.paying_peoples.payment_status}`,
+      },
+      {
+        label: `${orderLangInit.playerInfo.playerPaymentAmount}`,
         resolve: (data: Return_Type) => `${data.paying_peoples.amountPaid}`,
       },
     ],
@@ -280,8 +293,8 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                             {data.blocks[0].num_players ===
                               data.blocks[0].current_player &&
                             data.blocks[0].num_players !== 0
-                              ? "Complete"
-                              : "Pending"}
+                              ? `${orderLangInit.confirmed}`
+                              : `${orderLangInit.waiting}`}
                           </Text>
                         </View>
                       </View>
@@ -297,50 +310,48 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                 )}
               </View>
               {/* Expandable Details Section */}
-              <Animated.View style={[animatedContentStyle, {}]}>
+              <Animated.View style={[animatedContentStyle]}>
                 <View style={{ height: "auto" }}>
                   <View style={{ flexDirection: "column" }}>
-                    {Object.entries(dataDetails).map(
-                      ([sectionKey, fields], index) => (
-                        <View
-                          key={`${sectionKey}-${Math.random()}`}
-                          style={{ marginBottom: 10 }}
-                        >
-                          <Text style={{ fontWeight: "600", marginBottom: 6 }}>
-                            {sectionKey === "paymentInfo"
-                              ? "Payment Info"
-                              : sectionKey === "bookingInfo"
-                              ? "Booking Info"
-                              : "Player Info"}
-                          </Text>
-                          {fields.map((field) => {
-                            const value =
-                              "resolve" in field &&
-                              typeof field.resolve === "function"
-                                ? field.resolve(data)
-                                : (data as any)?.[field.key] ?? "";
+                    {Object.entries(dataDetails).map(([sectionKey, fields]) => (
+                      <View
+                        key={`${sectionKey}-${Math.random()}`}
+                        style={{ marginBottom: 10 }}
+                      >
+                        <Text style={{ fontWeight: "600", marginBottom: 6 }}>
+                          {sectionKey === "paymentInfo"
+                            ? `${orderLangInit.paymentInfo.paymentInfo}`
+                            : sectionKey === "bookingInfo"
+                            ? `${orderLangInit.bookingInfo.bookingInfo}`
+                            : `${orderLangInit.playerInfo.playerInfo}`}
+                        </Text>
+                        {fields.map((field) => {
+                          const value =
+                            "resolve" in field &&
+                            typeof field.resolve === "function"
+                              ? field.resolve(data)
+                              : (data as any)?.[field.key] ?? "";
 
-                            return (
-                              <View
-                                key={field.label}
-                                style={{
-                                  flexDirection: "row",
-                                  justifyContent: "space-between",
-                                  marginBottom: 4,
-                                }}
-                              >
-                                <Text style={{ color: Colors.darkGrey }}>
-                                  {field.label}
-                                </Text>
-                                <Text style={{ color: Colors.dark }}>
-                                  {value.toString()}
-                                </Text>
-                              </View>
-                            );
-                          })}
-                        </View>
-                      )
-                    )}
+                          return (
+                            <View
+                              key={field.label}
+                              style={{
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                marginBottom: 4,
+                              }}
+                            >
+                              <Text style={{ color: Colors.darkGrey }}>
+                                {field.label}
+                              </Text>
+                              <Text style={{ color: Colors.dark }}>
+                                {value.toString()}
+                              </Text>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    ))}
                   </View>
                   <View
                     style={{
@@ -360,7 +371,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                       >
                         <View>
                           <Text style={{ color: Colors.white }}>
-                            Cancel Booking
+                            {orderLangInit.cancelBooking}
                           </Text>
                         </View>
                       </TouchableOpacity>
@@ -377,7 +388,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                     >
                       <View>
                         <Text style={{ color: Colors.darkGrey }}>
-                          Contact Costumer Service
+                          {orderLangInit.contactCostumerService}
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -408,7 +419,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                     <Text
                       style={{ color: "red", fontSize: 20, fontWeight: 500 }}
                     >
-                      Already Played
+                      {orderLangInit.alreadyPlayed}
                     </Text>
                   </View>
                 </View>
@@ -458,7 +469,9 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                         fontSize: 18,
                       }}
                     >
-                      {!toggle ? " View Details" : "Close"}
+                      {!toggle
+                        ? `${orderLangInit.viewDetails}`
+                        : `${orderLangInit.close}`}
                     </Text>
                     {!toggle ? (
                       <Feather

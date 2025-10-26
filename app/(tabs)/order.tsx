@@ -24,6 +24,7 @@ import Animated, {
 import Filter_Modals from "../(modals)/book/components/filter_modal";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 const OrderScreen = () => {
   const [bookingData, setBookingData] = useState<OrderDataTypes>({
@@ -50,6 +51,8 @@ const OrderScreen = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const { LoginStatus } = useAuth();
+  const { t } = useTranslation();
+  const orderLangInit: any = t("orderScreen", { returnObjects: true });
 
   const { data, error, isLoading } = regular_swr(
     {
@@ -203,7 +206,7 @@ const OrderScreen = () => {
                         : Colors.darkGrey,
                   }}
                 >
-                  Bookings
+                  {orderLangInit.todayUpcoming}
                 </Text>
               </TouchableOpacity>
 
@@ -230,7 +233,7 @@ const OrderScreen = () => {
                         : Colors.darkGrey,
                   }}
                 >
-                  History
+                  {orderLangInit.history}
                 </Text>
               </TouchableOpacity>
             </View>

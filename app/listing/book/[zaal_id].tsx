@@ -120,8 +120,8 @@ const TransactionPage = () => {
         });
         return;
       }
-
-      const dateOnly = bookingDetails.date.split("T")[0];
+      console.log(bookingDetails);
+      const dateOnly = bookingDetails.date.toISOString().split("T")[0];
       let response: AxiosResponse;
 
       setWaiting(!waiting);

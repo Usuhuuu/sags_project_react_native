@@ -1,366 +1,208 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
-  FlatList,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
-  Pressable,
+  Dimensions,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
-import { PartnerBlock } from "@/app/(tabs)/inbox";
-import axiosInstance from "@/hooks/axiosInstance";
-import { SportHallDataType } from "@/interfaces/listing";
-import { HashedSportData } from "@/utils/sport_hall_hash";
-import { MaterialIcons } from "@expo/vector-icons"; // install expo/vector-icons if needed
-import Colors from "@/constants/Colors";
-import { format, parseISO } from "date-fns";
-import { Notifier, NotifierComponents } from "react-native-notifier";
-import { Axios } from "axios";
+import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek";
 
-type FetchedDataType = {
-  _id: string;
-  zaal_ID: string;
-  day: string[];
-  blocks: PartnerBlock[];
-  paying_peoples: OtherPoeples[];
-  sport_hall: SportHallDataType;
-};
-type OtherPoeples = {
-  userID: string;
-  amountPaid: number;
-  payment_status: string;
-};
+dayjs.extend(isoWeek);
 
-const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+interface WeekCalendarProps {
+  initialDate?: Date;
+  bookedDates?: string[]; // e.g., ["2025-10-23", "2025-10-25"]
+  onDateSelect?: (date: string) => void;
+  pastDisable?: boolean;
+  disablePast?: boolean;
+}
 
-const OrderHistory = () => {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [fetchedData, setFetchedData] = useState<FetchedDataType[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchHistory = async (year: number, month: number) => {
-    try {
-      setLoading(true);
-      const response = await axiosInstance.get(
-        `/auth/sporthall/book/${year}/${month + 1}?page=1`
-      );
-      if (response.status === 200 && response.data.success) {
-        const result = response.data.findBooks.map((hall: FetchedDataType) => {
-          const tempHall = HashedSportData[hall?.zaal_ID];
-          return {
-            ...hall,
-            sport_hall: tempHall,
-          };
-        });
-        setFetchedData(result);
-      }
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleCancel = async (item: string) => {
-    try {
-      const response = await axiosInstance.post("/auth/bookcancel", {
-        transaction_ID: item,
-        reason: "Tsag amjihgui bolson",
-      });
-      if (response.status === 200 && response.data.success) {
-        Notifier.showNotification({
-          title: "Successfully Canceled Order",
-          description: "PISDA",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
-        });
-      } else if (response.status === 400 && !response.data.success) {
-        Notifier.showNotification({
-          title: "Failed",
-          description: "Could't find order",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
-        });
-      }
-    } catch (err: any) {
-      if (err.response.status === 400 && !err.response.data.success) {
-        Notifier.showNotification({
-          title: "Failed",
-          description: "Could't find order",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
-        });
-      } else {
-        Notifier.showNotification({
-          title: "Failed",
-          description: "Could't find order",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
-        });
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchHistory(selectedYear, selectedMonth);
-  }, [selectedYear, selectedMonth]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchHistory(selectedYear, selectedMonth);
-    }, [selectedYear, selectedMonth])
+const WeekCalendar: React.FC<WeekCalendarProps> = ({
+  initialDate = new Date(),
+  bookedDates = [],
+  onDateSelect,
+  pastDisable = false,
+  disablePast = true,
+}) => {
+  const [currentWeekStart, setCurrentWeekStart] = useState(
+    dayjs(initialDate).startOf("isoWeek")
   );
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const renderItem = ({ item }: { item: FetchedDataType }) => {
-    const readableDays = item.day.join(", ");
-    const readableBlocks = item.blocks.map((b) => b.time_slots).join(", ");
+  // Generate 7 days for the current week
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 7 }).map((_, i) => {
+      const date = currentWeekStart.add(i, "day");
+      const formatted = date.format("YYYY-MM-DD");
+      const isPast = disablePast && dayjs().isAfter(date, "day");
 
-    return (
-      <View style={styles.card}>
-        <Text style={styles.hallName}>
-          {item.sport_hall?.name || "🏟️ Sport Hall"}
-        </Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>📅 Days:</Text>
-          <Text style={styles.value}>{readableDays}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>⏱ Blocks:</Text>
-          <View
-            style={[
-              styles.value,
-              {
-                flex: 1,
-              },
-            ]}
-          >
-            <Text
-              style={{
-                width: "100%",
-                flexDirection: "column",
-                flexWrap: "wrap",
-              }}
-              ellipsizeMode="tail"
-            >
-              {readableBlocks}
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => handleCancel(item._id)} // define handleCancel or remove
-          activeOpacity={0.8}
-        >
-          <Text style={styles.cancelText}>Cancel Booking</Text>
-        </TouchableOpacity>
-      </View>
-    );
+      return {
+        date,
+        formatted,
+        label: date.format("dd"),
+        day: date.format("D"),
+        isToday: date.isSame(dayjs(), "day"),
+        isDisabled: bookedDates.includes(formatted) || isPast,
+      };
+    });
+  }, [currentWeekStart, bookedDates, disablePast]);
+
+  // Navigation functions
+  const goNextWeek = () => setCurrentWeekStart(currentWeekStart.add(1, "week"));
+  const goPrevWeek = () =>
+    setCurrentWeekStart(currentWeekStart.subtract(1, "week"));
+
+  // Selection
+  const handleSelect = (item: any) => {
+    if (item.isDisabled) return;
+    setSelectedDate(item.formatted);
+    onDateSelect?.(item.formatted);
   };
+
+  // Week label text
+  const startMonth = currentWeekStart.format("MMMM");
+  const endMonth = currentWeekStart.endOf("isoWeek").format("MMMM");
+  const year = currentWeekStart.format("YYYY");
+
+  const weekLabel =
+    startMonth === endMonth
+      ? `${startMonth} ${year}`
+      : `${startMonth} - ${endMonth} ${year}`;
 
   return (
     <View style={styles.container}>
-      {/* Year selector */}
-      <View style={styles.yearSelector}>
-        <TouchableOpacity
-          onPress={() => setSelectedYear((y) => y - 1)}
-          style={styles.yearButton}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="chevron-left" size={28} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.yearText}>{selectedYear}</Text>
-        <TouchableOpacity
-          onPress={() => setSelectedYear((y) => y + 1)}
-          style={styles.yearButton}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="chevron-right" size={28} color="#007AFF" />
+      {/* Header with navigation */}
+      <View style={styles.header}>
+        {pastDisable ? (
+          <TouchableOpacity style={styles.navButton} onPress={goPrevWeek}>
+            <Text style={styles.navText}>←</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.navButton}></View>
+        )}
+
+        <Text style={styles.weekLabel}>{weekLabel}</Text>
+
+        <TouchableOpacity style={styles.navButton} onPress={goNextWeek}>
+          <Text style={styles.navText}>→</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Month grid */}
-      <View style={styles.monthGrid}>
-        {months.map((month, index) => {
-          const selected = selectedMonth === index;
+      {/* Week days */}
+      <View style={styles.daysRow}>
+        {weekDays.map((item, index) => {
+          const isSelected = selectedDate === item.formatted;
           return (
-            <Pressable
-              key={month}
-              onPress={() => setSelectedMonth(index)}
-              style={({ pressed }) => [
-                styles.monthItem,
-                selected && styles.monthItemSelected,
-                pressed && !selected && { backgroundColor: "#d9eaff" },
+            <TouchableOpacity
+              key={index}
+              onPress={() => handleSelect(item)}
+              disabled={item.isDisabled}
+              style={[
+                styles.dayBox,
+                item.isToday && styles.todayBox,
+                isSelected && styles.selectedBox,
+                item.isDisabled && styles.disabledBox,
               ]}
             >
               <Text
-                style={[styles.monthText, selected && styles.monthTextSelected]}
+                style={[
+                  styles.dayLabel,
+                  item.isDisabled && styles.disabledText,
+                  item.isToday && styles.todayText,
+                ]}
               >
-                {month.substring(0, 3)}
+                {item.label}
               </Text>
-            </Pressable>
+              <Text
+                style={[
+                  styles.dayNumber,
+                  item.isDisabled && styles.disabledText,
+                  isSelected && styles.selectedText,
+                ]}
+              >
+                {item.day}
+              </Text>
+            </TouchableOpacity>
           );
         })}
       </View>
-
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#007AFF"
-          style={{ marginTop: 32 }}
-        />
-      ) : (
-        <FlatList
-          data={fetchedData}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              You don’t have any bookings yet.
-            </Text>
-          }
-          renderItem={renderItem}
-        />
-      )}
     </View>
   );
 };
 
+export default WeekCalendar;
+
+// Styles
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#f9fbfd",
-    paddingHorizontal: 10,
-  },
-  header: {
-    fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 24,
-    color: "#222",
-  },
-  yearSelector: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  yearButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  yearText: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginHorizontal: 28,
-    color: "#007AFF",
-  },
-  monthGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    marginBottom: 10,
-  },
-  monthItem: {
-    width: 50,
-    height: 40,
-    margin: 6,
-    borderRadius: 10,
-    backgroundColor: "#e6ecf5",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  monthItemSelected: {
-    backgroundColor: "#007AFF",
-    elevation: 5,
-    shadowOpacity: 0.2,
-  },
-  monthText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#555",
-  },
-  monthTextSelected: {
-    color: "#fff",
-    fontWeight: "700",
-  },
-  listContent: {
-    paddingBottom: 60,
-  },
-  card: {
+    padding: 16,
     backgroundColor: "#fff",
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 18,
+    borderRadius: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  hallName: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 14,
-    color: "#222",
-  },
-  infoRow: {
-    flexDirection: "row",
-    marginBottom: 10,
-  },
-  label: {
-    fontWeight: "600",
-    color: "#666",
-    width: 90,
-  },
-  value: {
-    color: "#444",
-    flex: 1,
-    flexWrap: "wrap",
-    fontSize: 16,
-  },
-  cancelButton: {
-    marginTop: 14,
-    backgroundColor: "#ff5c5c",
-    paddingVertical: 12,
-    borderRadius: 14,
-    alignItems: "center",
-    shadowColor: "#ff5c5c",
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.05,
     shadowRadius: 6,
-    shadowOffset: { width: 0, height: 4 },
     elevation: 3,
   },
-  cancelText: {
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  weekLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  navButton: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: "#FF660010",
+  },
+  navText: {
+    fontSize: 20,
+    color: "#FF6600",
+    fontWeight: "700",
+  },
+  daysRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  dayBox: {
+    width: (Dimensions.get("window").width - 48) / 7,
+    alignItems: "center",
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  todayBox: {
+    backgroundColor: "#FFF4E5",
+  },
+  selectedBox: {
+    backgroundColor: "#FF6600",
+  },
+  disabledBox: {
+    backgroundColor: "#f1f1f1",
+  },
+  dayLabel: {
+    fontSize: 12,
+    color: "#666",
+  },
+  dayNumber: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#333",
+  },
+  todayText: {
+    color: "#FF6600",
+    fontWeight: "700",
+  },
+  selectedText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: 16,
   },
-  emptyText: {
-    textAlign: "center",
+  disabledText: {
     color: "#aaa",
-    fontSize: 18,
-    marginTop: 50,
   },
 });
-
-export default OrderHistory;
