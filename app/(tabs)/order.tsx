@@ -8,7 +8,6 @@ import React, {
 import { regular_swr } from "@/hooks/useswr";
 import { useAuth } from "../(modals)/context/authContext";
 import Colors from "@/constants/Colors";
-import { ActivityIndicator } from "react-native-paper";
 import { HashedSportData } from "@/utils/sport_hall_hash";
 import Order_Separator from "../(modals)/book/components/order_separator";
 import {
@@ -66,35 +65,50 @@ const OrderScreen = () => {
   );
 
   useEffect(() => {
+    if (isLoading) {
+      setLoading(true);
+      return;
+    } else {
+      setLoading(false);
+    }
     if (
       data?.success &&
-      Array.isArray(data?.bookingData) &&
-      data.bookingData?.length > 0
+      Array.isArray(data.bookingData) &&
+      data.bookingData.length > 0
     ) {
       const seen = new Set();
       const unique: Return_Type[] = [];
+
       for (const item of data.bookingData) {
         if (!seen.has(item._id)) {
           seen.add(item._id);
-          const zaal_info = HashedSportData[item.zaal_ID];
-          unique.push({ ...item, zaal_info });
+          unique.push({ ...item, zaal_info: HashedSportData[item.zaal_ID] });
         }
       }
+      if (unique.length === 0) return;
 
-      const tempDate = new Date().toISOString().split("T")[0];
-      const prepareData = unique.reduce<OrderDataTypes>(
-        (acc, value) => {
-          if (value.day[0] >= tempDate) acc.today_upcoming.push(value);
-          else acc.history.push(value);
+      const today = new Date().toISOString().split("T")[0];
+      const sorted = unique.reduce<OrderDataTypes>(
+        (acc, v) => {
+          (v.day[0] >= today ? acc.today_upcoming : acc.history).push(v);
           return acc;
         },
         { today_upcoming: [], history: [] }
       );
+
       setBookingData((prev) => ({
-        today_upcoming: [...prev.today_upcoming, ...prepareData.today_upcoming],
-        history: [...prev.history, ...prepareData.history],
+        today_upcoming: [...prev.today_upcoming, ...sorted.today_upcoming],
+        history: [...prev.history, ...sorted.history],
       }));
-    } else if (error) {
+      const PAGE_LIMIT = 10;
+      if (data.bookingData.length < PAGE_LIMIT) {
+        setHasMore((prev) => ({ ...prev, [screenSeparator]: false }));
+      }
+    } else {
+      console.log("SDA");
+    }
+
+    if (error) {
       const resp = (error as any)?.response;
       if (
         resp?.status === 400 &&
@@ -126,7 +140,8 @@ const OrderScreen = () => {
         [screenSeparator]: prev[screenSeparator] + 1,
       }));
     }
-  }, [hasMore, screenSeparator]);
+  }, [loading]);
+
   const navigation = useNavigation();
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -157,106 +172,95 @@ const OrderScreen = () => {
         animatedStyle,
       ]}
     >
-      {loading ? (
+      <View
+        style={[
+          {
+            backgroundColor: Colors.white,
+            height: "100%",
+            width: "100%",
+          },
+        ]}
+      >
         <View
           style={{
             height: "100%",
-            justifyContent: "center",
+            marginHorizontal: 10,
           }}
         >
-          <ActivityIndicator color={Colors.primary} size={"large"} />
-        </View>
-      ) : (
-        <View
-          style={[
-            {
-              backgroundColor: Colors.white,
-              height: "100%",
-              width: "100%",
-            },
-          ]}
-        >
-          <View
-            style={{
-              height: "100%",
-              marginHorizontal: 10,
-            }}
-          >
-            <View style={style.separatorContainer}>
-              <TouchableOpacity
-                onPress={() => {
-                  handleFade();
-                  setScreenSeparator(OrderScreenSeparator.TODAY_UPCOMING);
-                }}
-                style={[
-                  style.separator,
-                  {
-                    backgroundColor:
-                      screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
-                        ? Colors.white
-                        : Colors.lightGrey,
-                  },
-                ]}
-              >
-                <Text
-                  style={{
-                    color:
-                      screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
-                        ? Colors.dark
-                        : Colors.darkGrey,
-                  }}
-                >
-                  {orderLangInit.todayUpcoming}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  style.separator,
-                  {
-                    backgroundColor:
-                      screenSeparator === OrderScreenSeparator.HISTORY
-                        ? Colors.white
-                        : Colors.lightGrey,
-                  },
-                ]}
-                onPress={() => {
-                  handleFade();
-                  setScreenSeparator(OrderScreenSeparator.HISTORY);
+          <View style={style.separatorContainer}>
+            <TouchableOpacity
+              onPress={() => {
+                handleFade();
+                setScreenSeparator(OrderScreenSeparator.TODAY_UPCOMING);
+              }}
+              style={[
+                style.separator,
+                {
+                  backgroundColor:
+                    screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
+                      ? Colors.white
+                      : Colors.lightGrey,
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  color:
+                    screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
+                      ? Colors.dark
+                      : Colors.darkGrey,
                 }}
               >
-                <Text
-                  style={{
-                    color:
-                      screenSeparator === OrderScreenSeparator.HISTORY
-                        ? Colors.dark
-                        : Colors.darkGrey,
-                  }}
-                >
-                  {orderLangInit.history}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                {orderLangInit.todayUpcoming}
+              </Text>
+            </TouchableOpacity>
 
-            <Filter_Modals
-              screenSeparator={screenSeparator}
-              setScreenSeparator={setScreenSeparator}
-              modalVisible={modalVisible}
-              setModalVisible={setModalVisible}
-              setDate={setDate}
+            <TouchableOpacity
+              style={[
+                style.separator,
+                {
+                  backgroundColor:
+                    screenSeparator === OrderScreenSeparator.HISTORY
+                      ? Colors.white
+                      : Colors.lightGrey,
+                },
+              ]}
+              onPress={() => {
+                handleFade();
+                setScreenSeparator(OrderScreenSeparator.HISTORY);
+              }}
+            >
+              <Text
+                style={{
+                  color:
+                    screenSeparator === OrderScreenSeparator.HISTORY
+                      ? Colors.dark
+                      : Colors.darkGrey,
+                }}
+              >
+                {orderLangInit.history}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <Filter_Modals
+            screenSeparator={screenSeparator}
+            setScreenSeparator={setScreenSeparator}
+            modalVisible={modalVisible}
+            setModalVisible={setModalVisible}
+            setDate={setDate}
+          />
+
+          <View style={{ flex: 1 }}>
+            <Order_Separator
+              data={bookingData}
+              screen_type={screenSeparator}
+              loading={loading}
+              loadMore={loadMore}
             />
-
-            <View style={{ flex: 1 }}>
-              <Order_Separator
-                data={bookingData}
-                screen_type={screenSeparator}
-                loading={loading}
-                loadMore={loadMore}
-              />
-            </View>
           </View>
         </View>
-      )}
+      </View>
     </Animated.View>
   );
 };

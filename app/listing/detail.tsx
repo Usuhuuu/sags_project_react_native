@@ -1,5 +1,5 @@
 import Colors from "@/constants/Colors";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -9,13 +9,13 @@ import {
   SafeAreaView,
   Alert,
 } from "react-native";
-import CalendarStrip from "react-native-calendar-strip";
+
 import { axiosInstanceRegular } from "../../hooks/axiosInstance";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useBookingStore } from "../(modals)/context/store/bookStore";
 import Calendar from "./book/modal_calendar";
-import moment from "moment";
+import WeekCalendar from "@/app/(modals)/book/components/calendar_strip";
 
 export type FormData = {
   sportHallID: string;
@@ -118,7 +118,9 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   sportHallID,
   setIsOrderScreenVisible,
 }) => {
-  const [today, setToday] = useState<Date>(new Date());
+  const [today, setToday] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [unavailableTimes, setUnavailableTimes] = useState<{
@@ -130,13 +132,11 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   });
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
   const [wholeDayModal, setWholeDayModal] = useState<boolean>(false);
-  const [selectedDate, setSelectedDate] = useState<Date>(today);
-
   const [wholeDayBooked, setWholeDayBooked] = useState({
     unavailableWholeDay: false,
     joinableWholeDay: false,
   });
-  const calendarRef = useRef<CalendarStrip>(null);
+
   const CACHE_TTL = 10 * 60 * 1000;
 
   const [timeslotCache] = useState<{
@@ -147,34 +147,30 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       timestampt: number;
     };
   }>({});
-  const toLocalDateString = (date: Date) => {
-    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-    return local.toISOString().split("T")[0];
-  };
 
   const dateSlotGiver = useCallback(
-    async (date: Date) => {
+    async (date: string) => {
       setSelectedTimeSlots([]);
-
-      const odor = toLocalDateString(date);
+      const odor = new Date(date).toISOString().split("T")[0];
       const key = `${sportHallID}T${odor}`;
-
       if (timeslotCache[key]) {
         const cached = timeslotCache[key];
         const isExpired = Date.now() - cached.timestampt > CACHE_TTL;
-        if (isExpired) {
-          delete timeslotCache[key];
-        } else {
+        console.log(cached);
+        if (!isExpired) {
           setUnavailableTimes({
             joinable: cached.joinable,
             unavailable: cached.unavailable,
           });
           setWholeDayBooked(cached.wholeDay);
-          setIsLoading(false);
+
           return;
         }
+        delete timeslotCache[key];
       }
+
       setIsLoading(true);
+
       try {
         setUnavailableTimes({ joinable: [], unavailable: [] });
         setWholeDayModal(false);
@@ -182,7 +178,6 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           unavailableWholeDay: false,
           joinableWholeDay: false,
         });
-
         const response = await axiosInstanceRegular.get(
           `/timeslots/${sportHallID}/${odor}`
         );
@@ -204,11 +199,9 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
               }
             }
           }
+
           if (unavailableWholeDay || joinableWholeDay) {
-            setWholeDayBooked({
-              unavailableWholeDay,
-              joinableWholeDay,
-            });
+            setWholeDayBooked({ unavailableWholeDay, joinableWholeDay });
           } else {
             results = flat.reduce(
               (
@@ -224,11 +217,9 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
               },
               { joinable: [], unavailable: [] }
             );
-
             setUnavailableTimes(results);
           }
 
-          // ✅ cache result
           timeslotCache[key] = {
             joinable: results.joinable,
             unavailable: results.unavailable,
@@ -236,7 +227,6 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
             timestampt: Date.now(),
           };
         } else {
-          // cache empty result for invalid days
           timeslotCache[key] = {
             joinable: [],
             unavailable: [],
@@ -256,7 +246,9 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   );
 
   useEffect(() => {
-    if (today) dateSlotGiver(today);
+    if (today) {
+      dateSlotGiver(today);
+    }
   }, [today]);
   const baseTime_start = baseTimeSlot[0].start_time;
   const baseTime_end = baseTimeSlot[baseTimeSlot.length - 1].end_time;
@@ -274,7 +266,6 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
     });
     router.push(`/listing/book/${zaal_id}`);
   };
-  const firstDate = new Date();
   return (
     <View style={styles.zahialgaView}>
       {isLoading ? (
@@ -297,72 +288,42 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           {!wholeDayModal && (
             <View
               style={{
-                height: "20%",
-                width: "100%",
-                flexDirection: "row",
                 justifyContent: "space-between",
+                height: "25%",
               }}
             >
               <TouchableOpacity
                 onPress={() => setIsOrderScreenVisible(false)}
-                style={{
-                  width: "5%",
-                  height: "30%",
-                }}
+                style={{}}
               >
                 <Ionicons name="close" size={20} color={Colors.darkGrey} />
               </TouchableOpacity>
-              <CalendarStrip
-                style={styles.calendars}
-                ref={calendarRef}
-                startingDate={today}
-                selectedDate={selectedDate}
-                useIsoWeekday={true}
-                minDate={new Date()}
-                calendarAnimation={{ type: "parallel", duration: 300 }}
-                onDateSelected={(date: Date) => {
-                  const nextWeek = moment(date).add(0, "day").toDate();
-                  setSelectedDate(nextWeek);
-                  setToday(new Date(date));
-                }}
-                highlightDateNumberStyle={{
-                  color: Colors.primary,
-                }}
-                highlightDateNameStyle={{
-                  color: Colors.primary,
-                }}
-                dateNumberStyle={{
-                  fontSize: 18,
-                  fontWeight: "400",
-                  color: Colors.littleDark,
-                }}
-                dateNameStyle={{
-                  fontSize: 10,
-                  fontWeight: "400",
-                  color: Colors.littleDark,
-                }}
-                calendarHeaderStyle={{
-                  fontSize: 18,
-                  fontWeight: "500",
-                  color: Colors.littleDark,
-                }}
-                calendarHeaderContainerStyle={{
-                  width: "100%",
-                  height: "30%",
-                }}
-                datesBlacklist={[
-                  {
-                    start: moment().subtract(100, "years").toDate(),
-                    end: moment(firstDate).subtract(1, "days").toDate(),
-                  },
-                ]}
-              />
               <View
                 style={{
-                  width: "5%",
-                  height: "30%",
+                  height: "100%",
+                  width: "100%",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
                 }}
-              ></View>
+              >
+                <WeekCalendar
+                  containerStyle={{
+                    flex: 1,
+                    width: "100%",
+                    height: "100%",
+                    paddingBottom: 10,
+                  }}
+                  selectedDayTextStyle={{ color: Colors.white }}
+                  selectedDayNumberStyle={{ color: Colors.white }}
+                  selectedContainerStyle={{ backgroundColor: Colors.primary }}
+                  onDateSelect={(date) => {
+                    dateSlotGiver(date);
+                    setToday(date);
+                  }}
+                  selectedDay={today}
+                  setSelectedDay={setToday}
+                />
+              </View>
             </View>
           )}
           {/* Header */}

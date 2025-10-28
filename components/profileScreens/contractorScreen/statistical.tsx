@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
-import Colors from "@/constants/Colors";
+import React from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 
 interface ProfileStatisticalProps {
   copyToClipboard: () => void;

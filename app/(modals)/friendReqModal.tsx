@@ -1,13 +1,5 @@
-import { router } from "expo-router";
 import React from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Modal,
-} from "react-native";
+import { Text, View, TouchableOpacity, Modal } from "react-native";
 
 interface FriendReqModalProps {
   modalVisible: boolean;

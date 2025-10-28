@@ -5,36 +5,36 @@ import {
   View,
   Text,
   StyleSheet,
-  Alert,
   Modal,
   TouchableOpacity,
+  FlatList,
 } from "react-native";
-import CalendarStrip from "react-native-calendar-strip";
 import * as SecureStorage from "expo-secure-store";
 import SportHallTimeSlot from "@/assets/Data/sport_hall_timeslot.json";
 import { Calendar } from "react-native-calendars";
 import { useCalendar } from "@/app/(modals)/context/CalendarContext";
 import moment from "moment";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import WeekCalendar from "@/app/(modals)/book/components/calendar_strip";
 
 const BookingCheck = () => {
-  const [today, setToday] = useState(moment());
+  const [today, setToday] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
   const [listing, setListing] = useState<
     { start_time: string; end_time: string; isBooked: boolean }[]
   >([]);
   const { showCalendar, resetCalendar } = useCalendar();
   const [markedDates, setMarkedDates] = useState<Record<string, any>>({});
 
-  const onDateSelected = (date: moment.Moment) => {
+  const onDateSelected = (date: string) => {
     setToday(date);
   };
 
   const fetchSportData = async () => {
     try {
       const session = await SecureStorage.getItemAsync("contractor_session");
-      const selectedDateStr = today.format("YYYY-MM-DD");
-      const [year, month] = selectedDateStr.split("-");
-
+      const [year, month, day] = today.split("-");
       const config = session
         ? { headers: { "x-session-container": session } }
         : undefined;
@@ -69,8 +69,8 @@ const BookingCheck = () => {
         });
 
         // Highlight selected date
-        marked[selectedDateStr] = {
-          ...(marked[selectedDateStr] || {}),
+        marked[today] = {
+          ...(marked[today] || {}),
           selected: true,
           selectedColor: Colors.primary,
         };
@@ -79,7 +79,7 @@ const BookingCheck = () => {
 
         // Extract all booked ranges for the selected date
         const bookedRanges = bookData
-          .filter((item: any) => item.day.includes(selectedDateStr))
+          .filter((item: any) => item.day.includes(today))
           .flatMap((item: any) => item.blocks)
           .map((block: { start_time: string; end_time: string }) => ({
             start: block.start_time,
@@ -147,7 +147,6 @@ const BookingCheck = () => {
         borderBottomWidth: 3,
         borderRadius: 0,
       },
-      // Optionally add dateNumberStyle if you want to style the text differently
     }));
   };
 
@@ -166,7 +165,7 @@ const BookingCheck = () => {
           <View style={styles.modalContent}>
             <Calendar
               onDayPress={(day: { dateString: string }) => {
-                onDateSelected(moment(day.dateString));
+                onDateSelected(today);
                 resetCalendar();
               }}
               markedDates={markedDates}
@@ -189,77 +188,61 @@ const BookingCheck = () => {
       </Modal>
 
       {/* Calendar Strip */}
-      <View style={{ width: "100%", height: "20%" }}>
-        <CalendarStrip
-          style={styles.calendars}
-          calendarAnimation={{ type: "parallel", duration: 30 }}
-          startingDate={today.toDate()}
-          selectedDate={today.toDate()}
-          onDateSelected={(date: Date) => onDateSelected(moment(date))}
-          dateNumberStyle={{
-            fontSize: 18,
-            fontWeight: "400",
-            color: "#464646",
+      <View style={{ width: "100%", height: "30%" }}>
+        <WeekCalendar
+          selectedDay={today}
+          setSelectedDay={setToday}
+          onDateSelect={(date) => {
+            onDateSelected(date);
           }}
-          dateNameStyle={{
-            fontSize: 10,
-            fontWeight: "400",
-            color: Colors.littleDark,
-          }}
-          calendarHeaderStyle={{
-            fontSize: 18,
-            fontWeight: "500",
-            color: Colors.littleDark,
-          }}
-          customDatesStyles={getCustomDateStyles()}
+          selectedDayTextStyle={{ color: Colors.white }}
+          selectedDayNumberStyle={{ color: Colors.white }}
+          selectedContainerStyle={{ backgroundColor: Colors.primary }}
+          containerStyle={{ flex: 1 }}
         />
       </View>
 
       {/* Booked Times */}
       <View style={{ width: "100%", height: "80%", padding: 20 }}>
         <Text style={styles.text}>Booked Times</Text>
-        <View style={{ flexWrap: "wrap", width: "100%", flex: 1 }}>
-          {listing.length === 0 ? (
-            <Text style={{ fontSize: 16, color: Colors.grey }}>
-              No available time slots for this day.
-            </Text>
-          ) : (
-            listing.map((item) => (
-              <View
-                key={`${item.start_time}~${item.end_time}`}
-                style={{ width: "50%", flex: 1, marginBottom: 10 }}
+        <FlatList
+          data={listing}
+          keyExtractor={(item) => `${item.start_time}~${item.end_time}`}
+          contentContainerStyle={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-evenly",
+          }}
+          renderItem={({ item }) => (
+            <View
+              style={{
+                marginBottom: 10,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontSize: 16, color: Colors.dark }}>
+                {item.start_time} ~ {item.end_time}
+              </Text>
+              <Text
+                style={{
+                  color: item.isBooked ? "black" : "green",
+                  fontSize: 14,
+                  fontWeight: "bold",
+                  backgroundColor: item.isBooked
+                    ? Colors.grey
+                    : Colors.secondary,
+                  textAlign: "center",
+                  paddingVertical: 4,
+                  paddingHorizontal: 8,
+                  borderRadius: 6,
+                }}
               >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
-                  <Text style={{ fontSize: 16, color: Colors.dark }}>
-                    {item.start_time} ~ {item.end_time}
-                  </Text>
-                  <Text
-                    style={{
-                      color: item.isBooked ? "black" : "green",
-                      fontSize: 14,
-                      fontWeight: "bold",
-                      backgroundColor: item.isBooked
-                        ? Colors.grey
-                        : Colors.secondary,
-                      textAlign: "center",
-                      paddingVertical: 4,
-                      paddingHorizontal: 8,
-                      borderRadius: 6,
-                    }}
-                  >
-                    {item.isBooked ? "Booked" : "Available"}
-                  </Text>
-                </View>
-              </View>
-            ))
+                {item.isBooked ? "Booked" : "Available"}
+              </Text>
+            </View>
           )}
-        </View>
+          ListEmptyComponent={<Text>No Booking</Text>}
+        />
       </View>
     </View>
   );

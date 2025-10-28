@@ -120,8 +120,7 @@ const TransactionPage = () => {
         });
         return;
       }
-      console.log(bookingDetails);
-      const dateOnly = bookingDetails.date.toISOString().split("T")[0];
+      const dateOnly = bookingDetails.date;
       let response: AxiosResponse;
 
       setWaiting(!waiting);
@@ -130,7 +129,6 @@ const TransactionPage = () => {
         reservationBlocks = selectedTimeSlots.map((group, index) => {
           const [startTime] = group[0].split("~");
           const [, endTime] = group[group.length - 1].split("~");
-
           return {
             start_time: startTime,
             end_time: endTime,

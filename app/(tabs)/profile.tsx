@@ -7,8 +7,6 @@ import {
 } from "react-native";
 import Colors from "@/constants/Colors";
 import * as Clipboard from "expo-clipboard";
-
-// Import SavedHalls component
 import { mutate } from "swr";
 import ContractorPage from "@/components/profileScreens/contractor";
 import ProfileAdmin from "@/components/profileScreens/admin";

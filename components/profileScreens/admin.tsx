@@ -6,15 +6,7 @@ import Colors from "@/constants/Colors";
 import { useDrawerStatus } from "@react-navigation/drawer";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 
-interface ProfileAdminProps {
-  copyToClipboard: () => void;
-  formData: String;
-}
-
-const ProfileAdmin: React.FC<ProfileAdminProps> = ({
-  copyToClipboard,
-  formData,
-}) => {
+const ProfileAdmin = ({}) => {
   const sendNotification = async () => {
     try {
       const response = await axiosInstance.post("/auth/send-notification", {});
@@ -24,7 +16,6 @@ const ProfileAdmin: React.FC<ProfileAdminProps> = ({
     }
   };
   const navigation = useNavigation();
-  const isDrawerOpen = useDrawerStatus();
   const openDrawer = () => {
     navigation.dispatch(DrawerActions.openDrawer()); // Dispatch the openDrawer action
   };

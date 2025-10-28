@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Alert, Linking } from "react-native";
 import { useCameraPermissions, CameraView } from "expo-camera";
 import Colors from "@/constants/Colors";

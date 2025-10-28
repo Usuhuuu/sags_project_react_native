@@ -5,7 +5,6 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, TouchableOpacity, View, Text, StyleSheet } from "react-native";
-import { Notifier } from "react-native-notifier";
 
 interface Filter_Modals_Props {
   screenSeparator: OrderScreenSeparator;

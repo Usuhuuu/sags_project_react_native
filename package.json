@@ -67,7 +67,6 @@
     "react-dom": "18.2.0",
     "react-i18next": "^15.4.0",
     "react-native": "^0.76.2",
-    "react-native-calendar-strip": "^1.4.2",
     "react-native-calendars": "^1.1312.0",
     "react-native-chart-kit": "^6.12.0",
     "react-native-collapsible-tab-view": "^8.0.0",

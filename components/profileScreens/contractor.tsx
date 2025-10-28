@@ -1,21 +1,19 @@
 import axiosInstance from "@/hooks/axiosInstance";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Colors from "@/constants/Colors";
-import { useDrawerStatus } from "@react-navigation/drawer";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
-interface ContractorPageProps {
-  copyToClipboard: () => void;
-  formData: String;
-}
 
-const ContractorPage: React.FC<ContractorPageProps> = ({
-  copyToClipboard,
-  formData,
-}) => {
-  const [notificationData, setNotificationData] = useState<Array<String>>([]);
+const ContractorPage: React.FC = ({}) => {
   const sendNotification = async () => {
     try {
       const response = await axiosInstance.post("/auth/send-notification", {});
@@ -33,12 +31,9 @@ const ContractorPage: React.FC<ContractorPageProps> = ({
   const drawerDef: any = t("RolePage", { returnObjects: true });
   const drawer = JSON.stringify(drawerDef) ? drawerDef[0] : [];
 
-  const userRoleLng = drawer?.userRole[0];
-  const adminRoleLng = drawer?.adminRole[0];
   const contractorRoleLng = drawer?.contractorRole[0];
   return (
     <SafeAreaView style={styles.container}>
-    
       {/* Header */}
       <View style={styles.topContainer}>
         <TouchableOpacity onPress={openDrawer}>
@@ -71,10 +66,8 @@ const ContractorPage: React.FC<ContractorPageProps> = ({
         </TouchableOpacity>
 
         {/* Perform Other Action */}
-        
       </View>
-   
-      </SafeAreaView>
+    </SafeAreaView>
   );
 };
 
@@ -82,7 +75,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-  
   },
   topContainer: {
     width: "100%",

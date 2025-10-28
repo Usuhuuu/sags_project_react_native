@@ -1,5 +1,4 @@
 import { useAuth } from "@/app/(modals)/context/authContext";
-import Colors from "@/constants/Colors";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 

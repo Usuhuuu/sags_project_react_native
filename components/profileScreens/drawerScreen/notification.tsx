@@ -13,11 +13,6 @@ import { MultiSelect } from "react-native-element-dropdown";
 import { TextInput } from "react-native-gesture-handler";
 import axiosInstance from "@/hooks/axiosInstance";
 
-interface ProfileNotificationProps {
-  copyToClipboard: () => void;
-  notificationData: Array<String>;
-}
-
 const ProfileNotification = ({ data = [] }) => {
   const [value, setValue] = useState<string[]>([]);
   const [isFocus, setIsFocus] = useState(false);

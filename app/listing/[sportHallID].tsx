@@ -1,10 +1,5 @@
 import React, { useEffect, useLayoutEffect, useState } from "react";
-import {
-  router,
-  useLocalSearchParams,
-  useNavigation,
-  useRouter,
-} from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import {
   View,
   Text,

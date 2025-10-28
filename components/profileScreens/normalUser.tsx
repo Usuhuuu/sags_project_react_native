@@ -5,7 +5,6 @@ import ProfileHeader from "@/components/ProfileHeader";
 import Colors from "@/constants/Colors";
 import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "@/app/(modals)/context/authContext";
-import { FriendProfileType } from "@/app/(tabs)/friend";
 
 interface ProfileNormalUserProps {
   copyToClipboard: () => void;
@@ -17,7 +16,7 @@ interface ProfileNormalUserProps {
   ];
 }
 const NormalUser: React.FC<ProfileNormalUserProps> = () => {
-  const [userData, setUserData] = useState<FriendProfileType | null>(null);
+  const [userData, setUserData] = useState(null);
   const { LoginStatus } = useAuth();
   const { data, error } = auth_swr(
     {
@@ -51,7 +50,7 @@ const NormalUser: React.FC<ProfileNormalUserProps> = () => {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      <ProfileHeader userData={userData as FriendProfileType} />
+      <ProfileHeader userData={userData as any} />
     </>
   );
 };

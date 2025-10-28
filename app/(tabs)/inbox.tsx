@@ -24,7 +24,6 @@ import Animated, {
   Easing,
   FadeIn,
 } from "react-native-reanimated";
-import CalendarStrip from "react-native-calendar-strip";
 import {
   GestureDetector,
   Gesture,
@@ -42,6 +41,7 @@ import { mutate } from "swr";
 import { useAuth } from "../(modals)/context/authContext";
 import { useTranslation } from "react-i18next";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import WeekCalendar from "../(modals)/book/components/calendar_strip";
 
 const { width } = Dimensions.get("window");
 const SWIPE_WIDTH = width - 170;
@@ -428,7 +428,9 @@ const Page = () => {
     },
   ];
 
-  const sortSlotGiver = (date: Date) => {};
+  const sortSlotGiver = (date: string) => {
+    console.log(date);
+  };
   const translateX = useSharedValue(0);
   const isSwiping = useSharedValue(false);
   const scale = useSharedValue(0);
@@ -668,29 +670,17 @@ const Page = () => {
                     <Text style={styles.modalTitle}>
                       {PartnerLanguage.sortBy}
                     </Text>
-                    <CalendarStrip
-                      style={styles.calendars}
-                      selectedDate={new Date(today)}
-                      calendarAnimation={{ type: "parallel", duration: 30 }}
-                      onDateSelected={(date) => sortSlotGiver(date)}
-                      dateNumberStyle={{
-                        fontSize: 18,
-                        fontWeight: "400",
-                        color: "#464646",
+                    <WeekCalendar
+                      selectedDay={today}
+                      setSelectedDay={setToday}
+                      containerStyle={styles.calendars}
+                      selectedDayTextStyle={{ color: Colors.white }}
+                      selectedDayNumberStyle={{ color: Colors.white }}
+                      selectedContainerStyle={{
+                        backgroundColor: Colors.primary,
                       }}
-                      dateNameStyle={{
-                        fontSize: 10,
-                        fontWeight: "400",
-                        color: Colors.littleDark,
-                      }}
-                      calendarHeaderStyle={{
-                        fontSize: 18,
-                        fontWeight: "500",
-                        color: Colors.littleDark,
-                      }}
-                      calendarHeaderContainerStyle={{
-                        width: "100%",
-                        height: "30%",
+                      onDateSelect={(date) => {
+                        sortSlotGiver(date);
                       }}
                     />
 

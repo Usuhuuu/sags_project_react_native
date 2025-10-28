@@ -1,15 +1,7 @@
 import Colors from "@/constants/Colors";
-import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  Image,
-  Alert,
-  Modal,
-} from "react-native";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
 import { TextInput } from "react-native-paper";
 import { launchImageLibrary } from "react-native-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";

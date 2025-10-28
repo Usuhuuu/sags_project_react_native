@@ -35,7 +35,6 @@ import { useSharedValue } from "react-native-reanimated";
 import BookingCheck from "@/components/profileScreens/contractorScreen/booking_check";
 import { useCalendar } from "@/app/(modals)/context/CalendarContext";
 import { Animated, Easing } from "react-native";
-import OrderHistory from "@/components/profileScreens/drawerScreen/order_history";
 
 // Create a Drawer Navigator
 export const TabsLayout = () => {
@@ -342,11 +341,6 @@ const Layout = () => {
         name: userDrawerLng.settings,
         component: ProfileSettings,
         icon: "settings",
-      },
-      {
-        name: userDrawerLng.bookHistory ?? "sda",
-        component: OrderHistory,
-        icon: "bookmark-outline",
       },
     ],
     admin: [

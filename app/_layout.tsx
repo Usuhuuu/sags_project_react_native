@@ -75,9 +75,6 @@ function RootLayout({ children }: RootLayoutProps) {
 
   const [notificationData, setNotificationData] =
     useState<SimpleNotificationContent | null>(null);
-  const notificationListener = useRef<Notifications.Subscription | null>(null);
-  const notificationResponseListener =
-    useRef<Notifications.Subscription | null>(null);
 
   // Notification Section
   useEffect(() => {
@@ -220,19 +217,6 @@ function RootLayoutNav() {
         name="listing/[sportHallID]"
         options={{ headerTitle: " " }}
       />
-      <Stack.Screen
-        name="(modals)/sags"
-        options={{
-          title: "sags",
-          presentation: "transparentModal",
-          animation: "fade",
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="close-outline" size={28} />
-            </TouchableOpacity>
-          ),
-        }}
-      />
 
       <Stack.Screen
         name="listing/notification"
@@ -310,7 +294,6 @@ export default Sentry.wrap(() => (
   <GestureHandlerRootView>
     <SafeAreaProvider>
       <NotifierRoot useRNScreensOverlay={true} />
-
       <CustomErrorBoundary>
         <AuthProvider>
           <LanguageProvider>
