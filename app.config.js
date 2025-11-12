@@ -3,6 +3,7 @@ import 'dotenv/config';
 export default {
   expo: {
     entryPoint: "./app/_layout.tsx",
+    scheme: "zaalproject",
     runtimeVersion: "1.0.0",
     name: "Zaalproject",
     slug: "zaalproject",

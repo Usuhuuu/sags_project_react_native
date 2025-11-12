@@ -16,5 +16,5 @@
     "expo-env.d.ts",
     "app/listing/book/sda"
   ],
-  "extends": "expo/tsconfig.base"
+  "extends": "./node_modules/expo/tsconfig.base.json"
 }

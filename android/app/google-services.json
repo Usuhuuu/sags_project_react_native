@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "388017847544",
+    "project_id": "sags-3112b",
+    "storage_bucket": "sags-3112b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388017847544:android:1a71678cca525a91c44f0d",
+        "android_client_info": {
+          "package_name": "com.usuhbayr.zaalproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgwEMjOXefAdlevoUjJ68qJFVt915bvUM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
