@@ -130,8 +130,8 @@ export const TabsLayout = () => {
       <Tabs.Screen
         name="order"
         options={{
-          tabBarLabel: "My Bookings",
-          headerTitle: "My Bookings",
+          tabBarLabel: t("myBookings"),
+          headerTitle: t("myBookings"),
           headerTitleStyle: { color: Colors.primary, fontSize: 28 },
           headerTitleAlign: "left",
 

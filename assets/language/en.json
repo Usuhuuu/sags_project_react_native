@@ -11,6 +11,7 @@
         "chat":"Chating Room",
         "friends":"Friends",
         "yes":"Yes",
+        "myBookings":"My Bookings",
         "cancel":"Cancel",
         "settings": [
             {
@@ -69,12 +70,12 @@
             ]
         }],
         "sportTextIcons": [
-            { "name": "Basketball", "icon": "basketball" },
-            { "name": "Football", "icon": "football"  },
-            { "name": "Volleyball",  "icon": "volleyball"  },
-            { "name": "Tennis", "icon": "tennis" },
-            { "name": "Bowling", "icon": "bowling"},
-            { "name": "Golf","icon": "golf" }
+            { "id":"basket_ball","name": "Basket ball", "icon": "basketball" },
+            { "id":"foot_ball","name": "Foot ball", "icon": "football"  },
+            { "id":"volley_ball","name": "Volley ball",  "icon": "volleyball"  },
+            { "id":"tennis","name": "Tennis", "icon": "tennis" },
+            { "id":"bowling","name": "Bowling", "icon": "bowling"},
+            { "id":"golf","name": "Golf","icon": "golf" }
         ],
         "login": 
             {

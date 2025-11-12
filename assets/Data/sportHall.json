@@ -30,9 +30,9 @@
       { "start_time": "23:00", "end_time": "24:00" }
     ],
     "sportType": {
-  "basketball": false,
-  "volleyball": false,
-  "football": false,
+  "basket_ball": false,
+  "volley_ball": false,
+  "foot_ball": false,
   "tennis": true,
   "bowling": false,
   "golf": false
@@ -107,9 +107,9 @@
       "darts": false
     },
     "sportType": {
-  "basketball": true,
-  "volleyball": false,
-  "football": true,
+  "basket_ball": true,
+  "volley_ball": false,
+  "foot_ball": true,
   "tennis": true,
   "bowling": false,
   "golf": false
@@ -156,9 +156,9 @@
       "darts": false
     },
     "sportType": {
-  "basketball": false,
-  "volleyball": false,
-  "football": false,
+  "basket_ball": false,
+  "volley_ball": false,
+  "foot_ball": false,
   "tennis": true,
   "bowling": true,
   "golf": true
@@ -206,9 +206,9 @@
       "darts": true
     },
     "sportType": {
-  "basketball": false,
-  "volleyball": false,
-  "football": true,
+  "basket_ball": false,
+  "volley_ball": false,
+  "foot_ball": true,
   "tennis": true,
   "bowling": false,
   "golf": false
@@ -255,9 +255,9 @@
       "darts": true
     },
     "sportType": {
-  "basketball": true,
-  "volleyball": true,
-  "football": true,
+  "basket_ball": true,
+  "volley_ball": true,
+  "foot_ball": true,
   "tennis": true,
   "bowling": false,
   "golf": false
@@ -304,9 +304,9 @@
       "darts": false
     },
     "sportType": {
-  "basketball": false,
-  "volleyball": false,
-  "football": false,
+  "basket_ball": false,
+  "volley_ball": false,
+  "foot_ball": false,
   "tennis": true,
   "bowling": true,
   "golf": true
@@ -353,9 +353,9 @@
       "darts": false
     },
     "sportType": {
-  "basketball": true,
-  "volleyball": false,
-  "football": false,
+  "basket_ball": true,
+  "volley_ball": false,
+  "foot_ball": false,
   "tennis": true,
   "bowling": false,
   "golf": false
@@ -402,9 +402,9 @@
       "darts": true
     },
     "sportType": {
-  "basketball": true,
-  "volleyball": false,
-  "football": true,
+  "basket_ball": true,
+  "volley_ball": false,
+  "foot_ball": true,
   "tennis": true,
   "bowling": false,
   "golf": false
@@ -451,9 +451,9 @@
       "darts": false
     },
     "sportType": {
-  "basketball": false,
-  "volleyball": false,
-  "football": false,
+  "basket_ball": false,
+  "volley_ball": false,
+  "foot_ball": false,
   "tennis": true,
   "bowling": true,
   "golf": true
@@ -500,9 +500,9 @@
       "darts": true
     },
     "sportType": {
-  "basketball": true,
-  "volleyball": false,
-  "football": true,
+  "basket_ball": true,
+  "volley_ball": false,
+  "foot_ball": true,
   "tennis": true,
   "bowling": false,
   "golf": true

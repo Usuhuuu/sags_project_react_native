@@ -20,6 +20,7 @@ const onErrorRetry = (
   { retryCount }: { retryCount: number }
 ) => {
   if (retryCount >= 5) return;
+  retryCount++;
   setTimeout(() => revalidate(), 3000);
 };
 
@@ -73,7 +74,7 @@ export const auth_swr = (
       errorRetryInterval: 4000,
       errorRetryCount: 3,
       loadingTimeout: 3000,
-      onErrorRetry,
+      onErrorRetry: onErrorRetry,
       ...config,
     }
   );

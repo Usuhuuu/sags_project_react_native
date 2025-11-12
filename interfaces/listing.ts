@@ -24,9 +24,9 @@ interface SportHallWorkTime {
 
 
 interface SportHallSportType{
-  basketball: boolean;
-  volleyball: boolean;
-  football: boolean;
+  basket_ball: boolean;
+  volley_ball: boolean;
+  foot_ball: boolean;
   tennis: boolean;
   bowling: boolean;
   golf: boolean;

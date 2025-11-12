@@ -11,9 +11,9 @@ import {
   Linking,
   LayoutAnimation,
   UIManager,
+  SafeAreaView,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
-
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -42,6 +42,7 @@ import { useAuth } from "../(modals)/context/authContext";
 import { useTranslation } from "react-i18next";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import WeekCalendar from "../(modals)/book/components/calendar_strip";
+import { OrderScreenSeparator } from "@/interfaces/order&book_type";
 
 const { width } = Dimensions.get("window");
 const SWIPE_WIDTH = width - 170;
@@ -57,6 +58,8 @@ export type PartnerBlock = {
   _id: string;
 };
 type PartnerDataType = {
+  _id: string;
+  booking_status: string;
   zaal_ID: string;
   day: string[];
   blocks: PartnerBlock[];
@@ -71,7 +74,6 @@ if (Platform.OS === "android") {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: Colors.lightGrey,
     paddingBottom: 60,
     width: "100%",
     height: "100%",
@@ -155,7 +157,6 @@ const styles = StyleSheet.create({
     gap: 10,
     width: "100%",
   },
-
   title: {
     fontSize: 12,
     fontWeight: "bold",
@@ -198,7 +199,6 @@ const styles = StyleSheet.create({
   },
   containermodal: {
     padding: 16,
-    backgroundColor: "#f8f9fa",
   },
   joinButton: {
     backgroundColor: Colors.primary,
@@ -297,6 +297,7 @@ const Page = () => {
   const [today, setToday] = useState<string>(new Date().toISOString());
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
+  const [noMore, setNoMore] = useState<boolean>(false);
   const [showList, setShowList] = useState<boolean>(false);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [partnerLookingData, setPartnerLookingData] = useState<{
@@ -306,6 +307,7 @@ const Page = () => {
     []
   );
   const [mergedData, setMergedData] = useState<PartnerDataType[] | null>(null);
+
   const visibleSportHallsMap = SportHall.reduce<
     Record<string, SportHallDataType>
   >((acc, hall) => {
@@ -320,14 +322,12 @@ const Page = () => {
   }, {});
   const { LoginStatus } = useAuth();
 
-  const fetchPartnerSearching = async () => {
+  const fetchPartnerSearching = useCallback(async () => {
     try {
       const [year, month, day] = today.split("T")[0].split("-");
       const response = await axiosInstanceRegular.get(
-        `/timeslots/partner/${year}/${month}/${day}?page=${page}`,
-        { timeout: 500 }
+        `/timeslots/partner/${year}/${month}/${day}?page=${page}`
       );
-      console.log(response.data);
       setPartnerLookingData((prev) => ({
         ...prev,
         findPartner: [
@@ -336,22 +336,24 @@ const Page = () => {
         ],
       }));
       if (response.data.message === "last") {
+        setNoMore(true);
         console.log("Reached last page, not incrementing page anymore.");
         return;
       }
-
       setShowList(true);
     } catch (err: any) {
       console.log(err);
     } finally {
       setShowList(true);
     }
+  }, []);
+  useEffect(() => {
+    fetchPartnerSearching();
+  }, []);
+
+  const fetchMore = () => {
+    if (noMore) setPage(page + 1);
   };
-  useFocusEffect(
-    useCallback(() => {
-      fetchPartnerSearching();
-    }, [page])
-  );
   useEffect(() => {
     if (partnerLookingData?.findPartner?.length) {
       const seen = new Set();
@@ -367,6 +369,8 @@ const Page = () => {
             return true;
           })
           .map((block) => ({
+            _id: partner._id,
+            booking_status: partner.booking_status,
             zaal_ID: partner.zaal_ID,
             day: partner.day,
             blocks: [block],
@@ -378,21 +382,35 @@ const Page = () => {
     }
   }, [partnerLookingData]);
 
-  const handleJoin = async (roomId: string) => {
+  const handleJoin = async ({
+    blockID,
+    transactionID,
+  }: {
+    blockID: string;
+    transactionID: string;
+  }) => {
     try {
-      router.push("/chat");
       const response = await axiosInstance.post(
-        `/auth/sporthall/join/${roomId}`
+        `/auth/sporthall/join/${transactionID}/${blockID}`
       );
       if (response.status === 200 && response.data.success) {
         Notifier.showNotification({
           title: "Successfully joined group chat",
-          description: "You can process payment",
+          description: "You can check the booking details ",
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "success" },
         });
-        mutate(["group_chat", LoginStatus], undefined, { revalidate: true });
-        router.push("/chat");
+        mutate(
+          [
+            `booked_order_${OrderScreenSeparator.TODAY_UPCOMING}_1_${
+              today.split("T")[0]
+            }`,
+            LoginStatus,
+          ],
+          undefined,
+          { revalidate: true }
+        );
+        router.push("/order");
       } else if (response.status === 409 && !response.data.success) {
         Notifier.showNotification({
           title: "Warning",
@@ -603,348 +621,470 @@ const Page = () => {
       .replace(/([A-Z])/g, " $1") // Add space before capital letters
       .replace(/^./, (str) => str.toUpperCase()); // Capitalize first letter
   };
-
+  const { height } = Dimensions.get("screen");
   return (
-    <>
-      {showList ? (
-        <FlatList
-          data={sortedMergedData.length ? sortedMergedData : mergedData}
-          extraData={mergedData}
-          keyExtractor={(item, index) => {
-            return `${item.zaal_ID}-${index}-${item.blocks[0].totalPrice}`;
-          }}
-          contentContainerStyle={[styles.container, { height: "auto" }]}
-          style={{}}
-          ListHeaderComponent={
-            <>
-              <Animated.Text style={[styles.swipet, bounceStyle]}>
-                {PartnerLanguage.swipeToPartner}
-              </Animated.Text>
-              <Text style={styles.text}>
-                {PartnerLanguage.swipeDescription}
-              </Text>
+    <SafeAreaView>
+      <FlatList
+        data={sortedMergedData.length ? sortedMergedData : mergedData}
+        extraData={mergedData}
+        keyExtractor={(item, index) => {
+          return `${item.zaal_ID}-${index}-${item.blocks[0].totalPrice}`;
+        }}
+        contentContainerStyle={[
+          styles.container,
+          {
+            height: "auto",
+            backgroundColor: Colors.white,
+          },
+        ]}
+        ListHeaderComponent={
+          <>
+            {(sortedMergedData.length ? sortedMergedData : mergedData) && (
+              <>
+                <Animated.Text style={[styles.swipet, bounceStyle]}>
+                  {PartnerLanguage.swipeToPartner}
+                </Animated.Text>
+                <Text style={styles.text}>
+                  {PartnerLanguage.swipeDescription}
+                </Text>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Animated.View style={[styles.rail, railAnimatedStyle]}>
-                  <GestureDetector gesture={panGesture}>
-                    <Animated.View style={[styles.swipeButton, animatedStyle]}>
-                      <Text style={styles.swipeText}>→</Text>
-                    </Animated.View>
-                  </GestureDetector>
-                </Animated.View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Animated.View style={[styles.rail, railAnimatedStyle]}>
+                    <GestureDetector gesture={panGesture}>
+                      <Animated.View
+                        style={[styles.swipeButton, animatedStyle]}
+                      >
+                        <Text style={styles.swipeText}>→</Text>
+                      </Animated.View>
+                    </GestureDetector>
+                  </Animated.View>
 
-                <View style={styles.containermodal}>
-                  <TouchableOpacity
-                    onPress={() => setModalVisible(true)}
-                    style={styles.sortButton}
-                  >
-                    <Text style={styles.sortText}>
-                      {PartnerLanguage.sortBy}
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={styles.containermodal}>
+                    <TouchableOpacity
+                      onPress={() => setModalVisible(true)}
+                      style={styles.sortButton}
+                    >
+                      <Text style={styles.sortText}>
+                        {PartnerLanguage.sortBy}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
 
-              <Modal
-                visible={modalVisible}
-                animationType="slide"
-                transparent
-                onRequestClose={() => {
-                  setModalVisible(false);
-                  setSelectedParent(null);
-                }}
-              >
-                <Pressable
-                  style={styles.overlay}
-                  onPress={() => {
+                <Modal
+                  visible={modalVisible}
+                  animationType="slide"
+                  transparent
+                  onRequestClose={() => {
                     setModalVisible(false);
                     setSelectedParent(null);
                   }}
                 >
-                  <View style={styles.modalContainer}>
-                    <Text style={styles.modalTitle}>
-                      {PartnerLanguage.sortBy}
-                    </Text>
-                    <WeekCalendar
-                      selectedDay={today}
-                      setSelectedDay={setToday}
-                      containerStyle={styles.calendars}
-                      selectedDayTextStyle={{ color: Colors.white }}
-                      selectedDayNumberStyle={{ color: Colors.white }}
-                      selectedContainerStyle={{
-                        backgroundColor: Colors.primary,
-                      }}
-                      onDateSelect={(date) => {
-                        sortSlotGiver(date);
-                      }}
-                    />
+                  <Pressable
+                    style={styles.overlay}
+                    onPress={() => {
+                      setModalVisible(false);
+                      setSelectedParent(null);
+                    }}
+                  >
+                    <View style={styles.modalContainer}>
+                      <Text style={styles.modalTitle}>
+                        {PartnerLanguage.sortBy}
+                      </Text>
+                      <WeekCalendar
+                        selectedDay={today}
+                        setSelectedDay={setToday}
+                        containerStyle={styles.calendars}
+                        selectedDayTextStyle={{ color: Colors.white }}
+                        selectedDayNumberStyle={{ color: Colors.white }}
+                        selectedContainerStyle={{
+                          backgroundColor: Colors.primary,
+                        }}
+                        onDateSelect={(date) => {
+                          sortSlotGiver(date);
+                        }}
+                      />
 
-                    {!selectedParent ? (
-                      sortOptions.map((option) => (
-                        <TouchableOpacity
-                          key={option.label}
-                          style={styles.option}
-                          onPress={() =>
-                            option.children.length > 0
-                              ? setSelectedParent(option.label)
-                              : sortMergedByPrice("highest")
-                          }
-                        >
-                          <Text style={styles.optionText}>{option.label}</Text>
-                        </TouchableOpacity>
-                      ))
-                    ) : (
-                      <>
-                        <TouchableOpacity
-                          onPress={() => setSelectedParent(null)}
-                        >
-                          <Text
-                            style={{ color: Colors.primary, marginBottom: 10 }}
+                      {!selectedParent ? (
+                        sortOptions.map((option) => (
+                          <TouchableOpacity
+                            key={option.label}
+                            style={styles.option}
+                            onPress={() =>
+                              option.children.length > 0
+                                ? setSelectedParent(option.label)
+                                : sortMergedByPrice("highest")
+                            }
                           >
-                            ← {PartnerLanguage.back}
-                          </Text>
-                        </TouchableOpacity>
-                        {sortOptions
-                          .find((opt) => opt.label === selectedParent)
-                          ?.children.map((child, index) => (
-                            <Animated.View
-                              key={child}
-                              entering={FadeIn.duration(300).delay(index * 100)}
+                            <Text style={styles.optionText}>
+                              {option.label}
+                            </Text>
+                          </TouchableOpacity>
+                        ))
+                      ) : (
+                        <>
+                          <TouchableOpacity
+                            onPress={() => setSelectedParent(null)}
+                          >
+                            <Text
+                              style={{
+                                color: Colors.primary,
+                                marginBottom: 10,
+                              }}
                             >
-                              <TouchableOpacity
-                                style={styles.option}
-                                onPress={() => {
-                                  sortMergedByPrice("lowest");
-                                }}
+                              ← {PartnerLanguage.back}
+                            </Text>
+                          </TouchableOpacity>
+                          {sortOptions
+                            .find((opt) => opt.label === selectedParent)
+                            ?.children.map((child, index) => (
+                              <Animated.View
+                                key={child}
+                                entering={FadeIn.duration(300).delay(
+                                  index * 100
+                                )}
                               >
-                                <Text style={styles.optionText}>{child}</Text>
-                              </TouchableOpacity>
-                            </Animated.View>
-                          ))}
-                      </>
-                    )}
-                  </View>
-                </Pressable>
-              </Modal>
-            </>
-          }
-          initialNumToRender={5}
-          maxToRenderPerBatch={10}
-          windowSize={5}
-          renderItem={({ item, index }) => {
-            const uniqueKey = `${item.zaal_ID}-${item.day[0]}-${index}`;
-            const startTime = item.blocks[0].time_slots[0].split("~")[0];
-            const length = item.blocks[0].time_slots.length;
-            const endTime = item.blocks[0].time_slots[length - 1].split("~")[0];
-            const wholeDay = item.blocks[0].time_slots?.some((time_slot) =>
-              time_slot.includes("wholeDay") ? true : false
-            );
-            return (
-              <>
-                {!showList ? (
-                  <>
-                    <ActivityIndicator />
-                  </>
-                ) : (
-                  <View key={uniqueKey} style={styles.card}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        LayoutAnimation.configureNext(
-                          LayoutAnimation.Presets.easeInEaseOut
-                        );
-                        setExpandedIndex((prevIndex) =>
-                          prevIndex === index ? null : index
-                        );
+                                <TouchableOpacity
+                                  style={styles.option}
+                                  onPress={() => {
+                                    sortMergedByPrice("lowest");
+                                  }}
+                                >
+                                  <Text style={styles.optionText}>{child}</Text>
+                                </TouchableOpacity>
+                              </Animated.View>
+                            ))}
+                        </>
+                      )}
+                    </View>
+                  </Pressable>
+                </Modal>
+              </>
+            )}
+          </>
+        }
+        initialNumToRender={5}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        renderItem={({ item, index }) => {
+          const uniqueKey = `${item.zaal_ID}-${item.day[0]}-${index}`;
+          const startTime = item.blocks[0].time_slots[0].split("~")[0];
+          const length = item.blocks[0].time_slots.length;
+          const endTime = item.blocks[0].time_slots[length - 1].split("~")[0];
+          const wholeDay = item.blocks[0].time_slots?.some((time_slot) =>
+            time_slot.includes("wholeDay") ? true : false
+          );
+          return (
+            <>
+              {!showList ? (
+                <>
+                  <ActivityIndicator />
+                </>
+              ) : (
+                <View key={uniqueKey} style={styles.card}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      LayoutAnimation.configureNext(
+                        LayoutAnimation.Presets.easeInEaseOut
+                      );
+                      setExpandedIndex((prevIndex) =>
+                        prevIndex === index ? null : index
+                      );
+                    }}
+                  >
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Image
+                        source={{ uri: item.hallData?.imageUrls[0] }}
+                        style={styles.image}
+                        resizeMode="cover"
+                      />
+                      <View style={{ flex: 1, justifyContent: "center" }}>
+                        <Text style={styles.title}>{item.hallData?.name}</Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            flex: 1,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 10,
+                          }}
+                        >
+                          <Text style={[styles.title, { textAlign: "center" }]}>
+                            {format(new Date(item.day[0]), "MMMM d, yyyy")}
+                          </Text>
+                          <Text style={[styles.title, { textAlign: "center" }]}>
+                            {wholeDay ? (
+                              <Text>{PartnerLanguage.wholeDay}</Text>
+                            ) : (
+                              <Text>
+                                {startTime}-{endTime}
+                              </Text>
+                            )}
+                          </Text>
+                        </View>
+                        <Text style={[styles.title, { textAlign: "center" }]}>
+                          {wholeDay ? <></> : `₮${item.blocks[0].totalPrice}`}
+                        </Text>
+                        <CallWaveButton
+                          time_slot={item.blocks?.[0]?.time_slots}
+                          playersNeeded={item.blocks?.[0]?.num_players}
+                        />
+                      </View>
+                    </View>
+                    <View
+                      style={{
+                        justifyContent: "center",
                       }}
                     >
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
-                        <Image
-                          source={{ uri: item.hallData?.imageUrls[0] }}
-                          style={styles.image}
-                          resizeMode="cover"
-                        />
-                        <View style={{ flex: 1, justifyContent: "center" }}>
-                          <Text style={styles.title}>
-                            {item.hallData?.name}
-                          </Text>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              flex: 1,
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: 10,
-                            }}
-                          >
-                            <Text
-                              style={[styles.title, { textAlign: "center" }]}
-                            >
-                              {format(new Date(item.day[0]), "MMMM d, yyyy")}
+                      {expandedIndex === index && (
+                        <View style={styles.content}>
+                          <View>
+                            <Text style={styles.subTitle}>
+                              {PartnerLanguage.feature}:
                             </Text>
-                            <Text
-                              style={[styles.title, { textAlign: "center" }]}
-                            >
-                              {wholeDay ? (
-                                <Text>{PartnerLanguage.wholeDay}</Text>
-                              ) : (
-                                <Text>
-                                  {startTime}-{endTime}
-                                </Text>
-                              )}
-                            </Text>
-                          </View>
-                          <Text style={[styles.title, { textAlign: "center" }]}>
-                            {wholeDay ? <></> : `₮${item.blocks[0].totalPrice}`}
-                          </Text>
-                          <CallWaveButton
-                            time_slot={item.blocks?.[0]?.time_slots}
-                            playersNeeded={item.blocks?.[0]?.num_players}
-                          />
-                        </View>
-                      </View>
-                      <View
-                        style={{
-                          justifyContent: "center",
-                        }}
-                      >
-                        {expandedIndex === index && (
-                          <View style={styles.content}>
-                            <View>
-                              <Text style={styles.subTitle}>
-                                {PartnerLanguage.feature}:
-                              </Text>
-                              <View style={styles.featuresContainer}>
-                                {Object.entries(item.hallData?.feature)
-                                  .filter(([_, value]) => value === true)
-                                  .map(([key], index) => (
-                                    <View
-                                      key={index}
-                                      style={styles.featureBadge}
-                                    >
-                                      <Text style={styles.featureText}>
-                                        {formatFeatureName(key)}
-                                      </Text>
-                                    </View>
-                                  ))}
-                              </View>
+                            <View style={styles.featuresContainer}>
+                              {Object.entries(item.hallData?.feature)
+                                .filter(([_, value]) => value === true)
+                                .map(([key], index) => (
+                                  <View key={index} style={styles.featureBadge}>
+                                    <Text style={styles.featureText}>
+                                      {formatFeatureName(key)}
+                                    </Text>
+                                  </View>
+                                ))}
+                            </View>
 
-                              <TouchableOpacity
-                                onPress={() =>
-                                  openGoogleMaps(
-                                    parseFloat(
-                                      item.hallData?.location.latitude ?? "0"
-                                    ),
-                                    parseFloat(
-                                      item.hallData?.location?.longitude ?? "0"
-                                    ),
-                                    item.hallData?.address ?? ""
-                                  )
-                                }
+                            <TouchableOpacity
+                              onPress={() =>
+                                openGoogleMaps(
+                                  parseFloat(
+                                    item.hallData?.location.latitude ?? "0"
+                                  ),
+                                  parseFloat(
+                                    item.hallData?.location?.longitude ?? "0"
+                                  ),
+                                  item.hallData?.address ?? ""
+                                )
+                              }
+                              style={{
+                                marginBottom: 10,
+                                marginTop: 10,
+                                padding: 10,
+                                borderWidth: 1,
+                                borderRadius: 10,
+                                borderColor: Colors.primary,
+                                backgroundColor: Colors.light,
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Text
                                 style={{
-                                  marginBottom: 10,
-                                  marginTop: 10,
-                                  padding: 10,
-                                  borderWidth: 1,
-                                  borderRadius: 10,
-                                  borderColor: Colors.primary,
-                                  backgroundColor: Colors.light,
-                                  alignItems: "center",
-                                  justifyContent: "center",
+                                  color: Colors.primary,
+                                  fontSize: 16,
                                 }}
                               >
-                                <Text
-                                  style={{
-                                    color: Colors.primary,
-                                    fontSize: 16,
-                                  }}
-                                >
-                                  📍 {PartnerLanguage.openInMap}
+                                📍 {PartnerLanguage.openInMap}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+
+                          {/* --------- Add Partners Section --------- */}
+                          <View style={{ marginTop: 15 }}>
+                            <Text
+                              style={[styles.subTitle, { marginBottom: 10 }]}
+                            >
+                              {PartnerLanguage.partnerLookingForThisHall}:
+                            </Text>
+                          </View>
+
+                          <View style={styles.down}>
+                            <Text>{PartnerLanguage.doYouWantJoinThisHall}</Text>
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                gap: 10,
+                                marginTop: 10,
+                              }}
+                            >
+                              <TouchableOpacity
+                                onPress={() =>
+                                  handleJoin({
+                                    blockID: item.blocks[0]._id,
+                                    transactionID: item._id,
+                                  })
+                                }
+                                style={styles.joinButton}
+                              >
+                                <Text style={styles.buttonText}>
+                                  {PartnerLanguage.join}
+                                </Text>
+                              </TouchableOpacity>
+
+                              <TouchableOpacity
+                                onPress={() => {
+                                  LayoutAnimation.configureNext(
+                                    LayoutAnimation.Presets.easeInEaseOut
+                                  );
+                                  setExpandedIndex(
+                                    expandedIndex === index ? null : index
+                                  );
+                                }}
+                                style={styles.cancelButton}
+                              >
+                                <Text style={styles.buttonText}>
+                                  {PartnerLanguage.cancel}
                                 </Text>
                               </TouchableOpacity>
                             </View>
-
-                            {/* --------- Add Partners Section --------- */}
-                            <View style={{ marginTop: 15 }}>
-                              <Text
-                                style={[styles.subTitle, { marginBottom: 10 }]}
-                              >
-                                {PartnerLanguage.partnerLookingForThisHall}:
-                              </Text>
-                            </View>
-
-                            <View style={styles.down}>
-                              <Text>
-                                {PartnerLanguage.doYouWantJoinThisHall}
-                              </Text>
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  gap: 10,
-                                  marginTop: 10,
-                                }}
-                              >
-                                <TouchableOpacity
-                                  onPress={() => handleJoin(item.blocks[0]._id)}
-                                  style={styles.joinButton}
-                                >
-                                  <Text style={styles.buttonText}>
-                                    {PartnerLanguage.join}
-                                  </Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    LayoutAnimation.configureNext(
-                                      LayoutAnimation.Presets.easeInEaseOut
-                                    );
-                                    setExpandedIndex(
-                                      expandedIndex === index ? null : index
-                                    );
-                                  }}
-                                  style={styles.cancelButton}
-                                >
-                                  <Text style={styles.buttonText}>
-                                    {PartnerLanguage.cancel}
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
                           </View>
-                        )}
-                      </View>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
+          );
+        }}
+        onEndReached={() => fetchMore()}
+        onEndReachedThreshold={0.1}
+        removeClippedSubviews={true}
+        ListEmptyComponent={
+          <>
+            {!isLoading ? (
+              <View
+                style={{
+                  width: "100%",
+                  height: height - 210,
+                }}
+              >
+                <View
+                  style={{
+                    width: "auto",
+                    height: "100%",
+                    backgroundColor: Colors.white,
+                    padding: 10,
+                    borderRadius: 10,
+                    justifyContent: "space-around",
+                    flexDirection: "column",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: "100%",
+                      height: "40%",
+                      paddingTop: 10,
+                    }}
+                  >
+                    <Image
+                      source={require("@/assets/images/no_teammate.png")}
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  </View>
+                  <View
+                    style={{ justifyContent: "center", alignItems: "center" }}
+                  >
+                    <Text
+                      style={{
+                        color: Colors.dark,
+                        fontSize: 25,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Call All Teammates
+                    </Text>
+                    <Text
+                      style={{
+                        width: "80%",
+                        color: Colors.littleDark,
+                        fontSize: 18,
+                        textAlign: "center",
+                      }}
+                    >
+                      No one has created an activity here yet.{" "}
+                      <Text
+                        style={{ color: Colors.primary, fontWeight: "600" }}
+                      >
+                        Be the first to start a game!
+                      </Text>
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      width: "100%",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: 15,
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={{
+                        width: "80%",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor: Colors.primary,
+                        borderRadius: 10,
+                        padding: 10,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        elevation: 5,
+                      }}
+                      onPress={() => {
+                        router.replace("/");
+                      }}
+                    >
+                      <Text style={{ color: Colors.white, fontSize: 20 }}>
+                        Create New Activity
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{
+                        width: "80%",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor: Colors.warningYellow,
+                        borderRadius: 10,
+                        padding: 10,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        elevation: 5,
+                      }}
+                    >
+                      <Text style={{ color: Colors.dark, fontSize: 20 }}>
+                        Check My Filters
+                      </Text>
                     </TouchableOpacity>
                   </View>
-                )}
-              </>
-            );
-          }}
-          onEndReached={() => setPage(page + 1)}
-          onEndReachedThreshold={0.1}
-          removeClippedSubviews={true}
-        />
-      ) : (
-        <View
-          style={{
-            justifyContent: "center",
-            alignSelf: "center",
-            flex: 1,
-          }}
-        >
-          <ActivityIndicator
-            size={"large"}
-            color={Colors.primary}
-            style={{ justifyContent: "center", alignSelf: "center" }}
-          />
-        </View>
-      )}
-    </>
+                </View>
+              </View>
+            ) : (
+              <View
+                style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: "100%",
+                  height: height - 250,
+                }}
+              >
+                <ActivityIndicator color={Colors.primary} size={"large"} />
+              </View>
+            )}
+          </>
+        }
+      />
+    </SafeAreaView>
   );
 };
 

@@ -24,6 +24,7 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { AxiosResponse } from "axios";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { scheduleNotificationForEvent } from "@/utils/calendarReminder";
+import { mutate } from "swr";
 
 const customStyles = {
   stepIndicatorSize: 30,
@@ -175,7 +176,13 @@ const TransactionPage = () => {
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "success" },
         });
-        router.replace("/");
+        mutate(
+          `booked_order_TODAY_UPCOMING_1_${bookingDetails.date}`,
+          undefined,
+          { revalidate: true, throwOnError: true }
+        );
+        router.replace("/(tabs)/order");
+
         if (wholeDay) {
           if (!reservationBlocks) return;
           for (const blocks of reservationBlocks) {

@@ -110,7 +110,7 @@ export default {
             googleServicesFile: "./android/app/google-services.json",
           },
           ios: {
-            deploymentTarget: "15.1",
+            deploymentTarget: "16.0",
             "com.apple.developer.push-notifications": true,
             "aps-environment": "development",
             infoPlist: {

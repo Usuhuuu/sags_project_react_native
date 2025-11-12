@@ -276,15 +276,31 @@ function Calendar(
         </View>
       ) : (
         <>
-          <View style={styles.buttonRow}>
-            <Button
-              title="See Joinable Days"
-              onPress={() => setFilter("joinable")}
-            />
-            <Button
-              title="Disable Joinable Days"
-              onPress={() => setFilter("unavailable")}
-            />
+          <View
+            style={[
+              styles.buttonRow,
+              {
+                borderRadius: 10,
+                width: "100%",
+              },
+            ]}
+          >
+            <View
+              style={{ backgroundColor: Colors.white, margin: 3, width: "50%" }}
+            >
+              <Button
+                title="See Joinable Days"
+                onPress={() => setFilter("joinable")}
+              />
+            </View>
+            <View
+              style={{ backgroundColor: Colors.white, margin: 3, width: "50%" }}
+            >
+              <Button
+                title="Disable Joinable Days"
+                onPress={() => setFilter("unavailable")}
+              />
+            </View>
           </View>
 
           <CalendarLibrary

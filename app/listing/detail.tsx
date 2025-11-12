@@ -47,6 +47,7 @@ type TimeSlotItemProps = {
     unavailableWholeDay: boolean;
     joinableWholeDay: boolean;
   };
+  today: string;
 };
 
 const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
@@ -56,17 +57,28 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
     selectedTimeSlots,
     onSelect,
     wholeDayBooked,
+    today,
   }) => {
+    const now = new Date();
     const timeString = `${timeSlot.start_time}~${timeSlot.end_time}`;
     const isUnavailable = unavailableTimes.unavailable.includes(timeString);
     const isJoinable = unavailableTimes.joinable.includes(timeString);
     const isSelected = selectedTimeSlots.includes(timeString);
-    const isDisabled = wholeDayBooked.unavailableWholeDay || isUnavailable;
 
+    // Combine booking date with timeslot start time
+    const [startHour, startMinute] = timeSlot.start_time.split(":").map(Number);
+    const slotDate = new Date(today); // bookingDate should be the day for this timeslot
+    slotDate.setHours(startHour, startMinute, 0, 0);
+
+    // Disable only if this is today and slot time is past
+    const isPast = slotDate <= now && today === now.toISOString().split("T")[0];
+    const isDisabled =
+      wholeDayBooked.unavailableWholeDay || isUnavailable || isPast;
     return (
       <View style={styles.timeSlotView}>
         <TouchableOpacity
           onPress={() => {
+            const now = new Date();
             const newSelected = selectedTimeSlots.filter(
               (t) => t !== "WHOLE_DAY"
             );
@@ -81,7 +93,7 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
             {
               borderColor: isSelected
                 ? Colors.dark
-                : isUnavailable || wholeDayBooked.unavailableWholeDay
+                : isDisabled
                 ? Colors.grey
                 : Colors.littleDarkGrey,
 
@@ -156,14 +168,12 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       if (timeslotCache[key]) {
         const cached = timeslotCache[key];
         const isExpired = Date.now() - cached.timestampt > CACHE_TTL;
-        console.log(cached);
         if (!isExpired) {
           setUnavailableTimes({
             joinable: cached.joinable,
             unavailable: cached.unavailable,
           });
           setWholeDayBooked(cached.wholeDay);
-
           return;
         }
         delete timeslotCache[key];
@@ -203,6 +213,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           if (unavailableWholeDay || joinableWholeDay) {
             setWholeDayBooked({ unavailableWholeDay, joinableWholeDay });
           } else {
+            const now = new Date();
             results = flat.reduce(
               (
                 acc: any,
@@ -412,16 +423,19 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                     flexDirection: "row",
                   }}
                 >
-                  {baseTimeSlot?.map((timeSlot) => (
-                    <TimeSlotItem
-                      key={`${timeSlot.start_time}~${timeSlot.end_time}`}
-                      timeSlot={timeSlot}
-                      unavailableTimes={unavailableTimes}
-                      selectedTimeSlots={selectedTimeSlots}
-                      onSelect={setSelectedTimeSlots}
-                      wholeDayBooked={wholeDayBooked}
-                    />
-                  ))}
+                  {baseTimeSlot?.map((timeSlot) => {
+                    return (
+                      <TimeSlotItem
+                        key={`${timeSlot.start_time}~${timeSlot.end_time}`}
+                        timeSlot={timeSlot}
+                        unavailableTimes={unavailableTimes}
+                        selectedTimeSlots={selectedTimeSlots}
+                        onSelect={setSelectedTimeSlots}
+                        wholeDayBooked={wholeDayBooked}
+                        today={today}
+                      />
+                    );
+                  })}
                 </View>
               </>
             )}

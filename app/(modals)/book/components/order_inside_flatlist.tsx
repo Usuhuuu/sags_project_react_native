@@ -32,6 +32,9 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
       duration: 50,
     });
   };
+  const blockCount = item?.blocks?.length;
+  const perBlockHeight = 60 * blockCount;
+
   const animatedCardStyle = useAnimatedStyle(() => {
     return {
       height: withTiming(
@@ -39,8 +42,10 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
           expanded.value,
           [0, 1],
           [
-            item?.blocks[0].num_players > 0 ? 250 : 200,
-            item.booking_status === "confirmed" ? 600 : 650,
+            200 + perBlockHeight,
+            item.blocks[0].block_booking_status === "confirmed"
+              ? 600 + perBlockHeight
+              : 600 + perBlockHeight + 50,
           ],
           Extrapolate.CLAMP
         ),
@@ -130,11 +135,11 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
       {
         label: `${orderLangInit.bookingInfo.time}`,
         resolve: (data: any) =>
-          `${data?.blocks?.[0]?.start_time ?? ""} ~ ${
-            data?.blocks?.[0]?.end_time ?? ""
+          `${data?.blocks[0]?.[0]?.start_time ?? ""} ~ ${
+            data?.blocks[0]?.[0]?.end_time ?? ""
           }`,
       },
-      { label: "Status", key: "booking_status" },
+      { label: "Status", key: "block_booking_status" },
       {
         label: `${orderLangInit.bookingInfo.playerNeeded}`,
         resolve: (data: Return_Type) =>
@@ -149,21 +154,22 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
       {
         label: `${orderLangInit.playerInfo.playerName}`,
         resolve: (data: Return_Type) =>
-          `${data.paying_user_info[0].unique_user_ID}`,
+          `${data.paying_peoples[0].paying_user_info[0].unique_user_ID}`,
       },
 
       {
         label: `${orderLangInit.playerInfo.playerContact}`,
         resolve: (data: Return_Type) =>
-          `${data.paying_user_info[0].phoneNumber}`,
+          `${data.paying_peoples[0].paying_user_info[0].phoneNumber}`,
       },
       {
         label: `${orderLangInit.playerInfo.playerPaymentStatus}`,
-        resolve: (data: Return_Type) => `${data.paying_peoples.payment_status}`,
+        resolve: (data: Return_Type) =>
+          `${data.paying_peoples[0].payment_status}`,
       },
       {
         label: `${orderLangInit.playerInfo.playerPaymentAmount}`,
-        resolve: (data: Return_Type) => `${data.paying_peoples.amountPaid}`,
+        resolve: (data: Return_Type) => `${data.paying_peoples[0].amountPaid}`,
       },
     ],
   };
@@ -175,7 +181,9 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
           {
             padding: 20,
             backgroundColor:
-              data.booking_status === "confirmed" ? Colors.grey : Colors.white,
+              data.blocks[0].block_booking_status === "confirmed"
+                ? Colors.grey
+                : Colors.white,
             borderRadius: 12,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 3 },
@@ -212,102 +220,111 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                   {format(new Date(data.day[0]), "MMMM d, yyyy")}
                 </Text>
 
-                {/* Time & Status */}
-                <View
-                  style={{
-                    flexDirection: "row",
-                  }}
-                >
-                  <View style={{ flexDirection: "row", width: "50%", gap: 3 }}>
-                    <FontAwesome6
-                      name="clock-four"
-                      size={15}
-                      color={Colors.darkGrey}
-                    />
-                    <Text style={{ color: Colors.darkGrey }}>
-                      {data.blocks[0].start_time}
-                    </Text>
-                    <Text style={{ color: Colors.darkGrey }}>~</Text>
-                    <Text style={{ color: Colors.darkGrey }}>
-                      {data.blocks[0].end_time}
-                    </Text>
-                  </View>
-                </View>
-                {data.blocks[0].num_players > 0 && (
-                  <View style={{ flexDirection: "column" }}>
+                {data.blocks.map((block, index) => (
+                  <View
+                    key={index}
+                    style={{ marginBottom: 8, maxHeight: 45, minHeight: 45 }}
+                  >
+                    {/* Time Row */}
                     <View style={{ flexDirection: "row" }}>
                       <View
-                        style={{
-                          flexDirection: "row",
-                          width: "50%",
-                          gap: 3,
-                          padding: 4,
-                        }}
+                        style={{ flexDirection: "row", width: "50%", gap: 3 }}
                       >
-                        <Fontisto
-                          name="persons"
+                        <FontAwesome6
+                          name="clock-four"
                           size={15}
                           color={Colors.darkGrey}
                         />
                         <Text style={{ color: Colors.darkGrey }}>
-                          {data.blocks[0].current_player.toString()}
+                          {block.start_time}
                         </Text>
-                        <Text style={{ color: Colors.darkGrey }}>/</Text>
+                        <Text style={{ color: Colors.darkGrey }}>~</Text>
                         <Text style={{ color: Colors.darkGrey }}>
-                          {data.blocks[0].num_players.toString()}
+                          {block.end_time}
                         </Text>
                       </View>
+                    </View>
 
-                      <View
-                        style={{
-                          justifyContent: "center",
-                          alignItems: "center",
-                          flex: 1,
-                        }}
-                      >
+                    {/* Player Info */}
+                    <View style={{ flexDirection: "column" }}>
+                      <View style={{ flexDirection: "row" }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            width: "50%",
+                            gap: 3,
+                            padding: 4,
+                          }}
+                        >
+                          <Fontisto
+                            name="persons"
+                            size={15}
+                            color={Colors.darkGrey}
+                          />
+                          <Text style={{ color: Colors.darkGrey }}>
+                            {block.current_player > 0
+                              ? block.current_player
+                              : 1}
+                          </Text>
+                          <Text style={{ color: Colors.darkGrey }}>/</Text>
+                          <Text style={{ color: Colors.darkGrey }}>
+                            {block.num_players + 1}
+                          </Text>
+                        </View>
+
+                        {/* Status badge */}
                         <View
                           style={{
                             justifyContent: "center",
                             alignItems: "center",
-                            backgroundColor:
-                              data.blocks[0].num_players ===
-                                data.blocks[0].current_player &&
-                              data.blocks[0].num_players !== 0
-                                ? Colors.green
-                                : Colors.warningYellow,
-                            padding: 4,
-                            borderRadius: 10,
+                            flex: 1,
                           }}
                         >
-                          <Text
+                          <View
                             style={{
+                              justifyContent: "center",
+                              alignItems: "center",
+                              backgroundColor:
+                                block.num_players === block.current_player &&
+                                block.num_players !== 0
+                                  ? Colors.green
+                                  : Colors.warningYellow,
+                              padding: 2,
                               borderRadius: 10,
-                              color:
-                                data.blocks[0].num_players ===
-                                  data.blocks[0].current_player &&
-                                data.blocks[0].num_players !== 0
-                                  ? Colors.greenText
-                                  : Colors.yellowText,
                             }}
                           >
-                            {data.blocks[0].num_players ===
-                              data.blocks[0].current_player &&
-                            data.blocks[0].num_players !== 0
-                              ? `${orderLangInit.confirmed}`
-                              : `${orderLangInit.waiting}`}
-                          </Text>
+                            <Text
+                              style={{
+                                borderRadius: 10,
+                                color:
+                                  block.num_players === block.current_player &&
+                                  block.num_players !== 0
+                                    ? Colors.littleDark
+                                    : Colors.yellowText,
+                              }}
+                            >
+                              {block.num_players === block.current_player &&
+                              block.num_players !== 0
+                                ? `${orderLangInit.confirmed}`
+                                : `${orderLangInit.waiting}`}
+                            </Text>
+                          </View>
                         </View>
                       </View>
+
+                      {/* Progress bar */}
+                      <ProgressBar
+                        progress={
+                          block.num_players > 0
+                            ? (block.current_player + 1) /
+                              (block.num_players + 1)
+                            : 1
+                        }
+                        color={Colors.primary}
+                      />
                     </View>
-                    <ProgressBar
-                      progress={
-                        data.blocks[0].current_player /
-                        data.blocks[0].num_players
-                      }
-                      color={Colors.primary}
-                    />
                   </View>
-                )}
+                ))}
               </View>
               {/* Expandable Details Section */}
               <Animated.View style={[animatedContentStyle]}>
@@ -359,7 +376,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                       gap: 5,
                     }}
                   >
-                    {data.booking_status === "waiting" && (
+                    {data.blocks[0].block_booking_status === "waiting" && (
                       <TouchableOpacity
                         style={{
                           padding: 10,
@@ -395,7 +412,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                   </View>
                 </View>
               </Animated.View>
-              {item.booking_status === "confirmed" && (
+              {item.blocks[0].block_booking_status === "confirmed" && (
                 <View
                   style={{
                     zIndex: 1,

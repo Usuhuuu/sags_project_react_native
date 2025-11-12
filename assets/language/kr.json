@@ -11,6 +11,7 @@
         "friends": "친구들",
         "profile": "마이패이즈",
         "notificationText": "알림",
+        "myBookings":"내 예약",
         "yes":"예",
         "cancel":"취소",
         "settings": [
@@ -71,12 +72,12 @@
             }
         ],
         "sportTextIcons": [
-            { "name": "농구", "icon": "basketball" },
-            { "name": "축구", "icon": "football" },
-            { "name": "배구", "icon": "volleyball" },
-            { "name": "테니스", "icon": "tennis" },
-            { "name": "볼링", "icon": "bowling" },
-            { "name": "골프", "icon": "golf" }
+            { "id":"basket_ball","name": "농구", "icon": "basketball" },
+            { "id":"foot_ball","name": "축구", "icon": "football" },
+            { "id":"volley_ball","name": "배구", "icon": "volleyball" },
+            { "id":"tennis","name": "테니스", "icon": "tennis" },
+            { "id":"bowling","name": "볼링", "icon": "bowling" },
+            { "id":"golf","name": "골프", "icon": "golf" }
         ],
         "login": 
             {

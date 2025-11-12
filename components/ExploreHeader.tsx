@@ -126,13 +126,13 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       );
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onCategoryChanged(sportDetail[index].name);
+    onCategoryChanged(sportDetail[index].id);
   };
 
   const openDrawer = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
-
+  const { width } = Dimensions.get("screen");
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="#61b3fa" />
@@ -185,28 +185,41 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
             ref={scrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.scrollViewContent}
+            contentContainerStyle={[styles.scrollViewContent]}
           >
-            {sportDetail?.map((item: any, index: number) => (
-              <TouchableOpacity
-                key={index}
-                ref={(el) => (itemsRef.current[index] = el)}
-                style={
-                  activeIndex === index
-                    ? styles.categoriesBtnActive
-                    : styles.categoriesBtn
-                }
-                onPress={() => selectCategory(index)}
-              >
-                <View style={styles.iconContainer}>
-                  <Image
-                    source={iconMap[item.icon]}
-                    style={{ width: 25, height: 25 }}
-                  />
-                </View>
-                <Text style={styles.titleText}>{item.name}</Text>
-              </TouchableOpacity>
-            ))}
+            {sportDetail?.map((item: any, index: number) => {
+              const itemWidth = width / Object.keys(iconMap).length;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  ref={(el) => (itemsRef.current[index] = el)}
+                  style={[
+                    activeIndex === index
+                      ? styles.categoriesBtnActive
+                      : styles.categoriesBtn,
+                    { width: itemWidth, height: 80 },
+                  ]}
+                  onPress={() => selectCategory(index)}
+                >
+                  <View style={styles.iconContainer}>
+                    <Image
+                      source={iconMap[item.icon]}
+                      style={{ width: 25, height: 25 }}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.titleText,
+                      { lineHeight: 18, textAlign: "center" },
+                    ]}
+                    numberOfLines={2} // limit to max 2 lines
+                    ellipsizeMode="tail" // optional: truncate if too long
+                  >
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </Animated.View>
       </View>
@@ -304,6 +317,8 @@ const styles = StyleSheet.create({
   titleText: {
     color: Colors.dark,
     fontWeight: "500",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

@@ -11,6 +11,7 @@ import Colors from "@/constants/Colors";
 import { HashedSportData } from "@/utils/sport_hall_hash";
 import Order_Separator from "../(modals)/book/components/order_separator";
 import {
+  Booking_Block_Type,
   OrderDataTypes,
   OrderScreenSeparator,
   Return_Type,
@@ -74,7 +75,7 @@ const OrderScreen = () => {
     if (
       data?.success &&
       Array.isArray(data.bookingData) &&
-      data.bookingData.length > 0
+      data.bookingData.length >= 0
     ) {
       const seen = new Set();
       const unique: Return_Type[] = [];
@@ -87,15 +88,47 @@ const OrderScreen = () => {
       }
       if (unique.length === 0) return;
 
-      const today = new Date().toISOString().split("T")[0];
-      const sorted = unique.reduce<OrderDataTypes>(
-        (acc, v) => {
-          (v.day[0] >= today ? acc.today_upcoming : acc.history).push(v);
+      const now = new Date();
+      const sorted = unique.reduce(
+        (acc, booking) => {
+          const bookingDate = booking.day[0];
+
+          const historyBlocks: Booking_Block_Type[] = [];
+          const upcomingBlocks: Booking_Block_Type[] = [];
+
+          booking.blocks.forEach((block) => {
+            const [hour, minute] = block.start_time.split(":").map(Number);
+
+            const blockTime = new Date(bookingDate);
+            blockTime.setHours(hour, minute, 0, 0);
+
+            if (blockTime <= now) {
+              historyBlocks.push(block);
+            } else {
+              upcomingBlocks.push(block);
+            }
+          });
+
+          // If expired blocks exist → push history booking
+          if (historyBlocks.length > 0) {
+            acc.history.push({
+              ...booking,
+              blocks: historyBlocks,
+            });
+          }
+
+          // If future blocks exist → push upcoming booking
+          if (upcomingBlocks.length > 0) {
+            acc.today_upcoming.push({
+              ...booking,
+              blocks: upcomingBlocks,
+            });
+          }
+
           return acc;
         },
-        { today_upcoming: [], history: [] }
+        { today_upcoming: [] as Return_Type[], history: [] as Return_Type[] }
       );
-
       setBookingData((prev) => ({
         today_upcoming: [...prev.today_upcoming, ...sorted.today_upcoming],
         history: [...prev.history, ...sorted.history],
@@ -104,10 +137,13 @@ const OrderScreen = () => {
       if (data.bookingData.length < PAGE_LIMIT) {
         setHasMore((prev) => ({ ...prev, [screenSeparator]: false }));
       }
-    } else {
-      console.log("SDA");
     }
-
+    if (data?.success && data.noBookingData?.length === 0) {
+      setHasMore((prev) => ({
+        ...prev,
+        [screenSeparator]: false,
+      }));
+    }
     if (error) {
       const resp = (error as any)?.response;
       if (
@@ -117,6 +153,7 @@ const OrderScreen = () => {
       ) {
         const typeKey = resp.data.type as OrderScreenSeparator;
         setHasMore((prev) => ({ ...prev, [typeKey]: false }));
+        return;
       }
     }
   }, [data, error, isLoading]);
@@ -134,12 +171,11 @@ const OrderScreen = () => {
   };
 
   const loadMore = useCallback(() => {
-    if (!loading && hasMore[screenSeparator]) {
-      setPages((prev) => ({
-        ...prev,
-        [screenSeparator]: prev[screenSeparator] + 1,
-      }));
-    }
+    if (loading || !hasMore[screenSeparator]) return;
+    setPages((prev) => ({
+      ...prev,
+      [screenSeparator]: prev[screenSeparator] + 1,
+    }));
   }, [loading]);
 
   const navigation = useNavigation();

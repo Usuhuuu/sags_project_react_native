@@ -7,6 +7,9 @@ import { Settings } from "react-native-fbsdk-next";
 import * as Location from "expo-location";
 import * as SecureStorage from "expo-secure-store";
 import * as Notification from "expo-notifications";
+import { axiosInstanceRegular } from "./axiosInstance";
+import Constants from "expo-constants";
+import DeviceInfo from "react-native-device-info";
 
 export const calendarPermission = async () => {
   try {
@@ -116,12 +119,20 @@ export const notificationPermission = async () => {
   let token: string | null = await SecureStorage.getItemAsync(
     "notificationToken"
   );
+  const deviceID = DeviceInfo.getDeviceId();
+  console.log(deviceID);
   if (token === null) {
     const { status } = await Notification.requestPermissionsAsync();
-    const tokens = await Notification.getExpoPushTokenAsync();
     if (status === "granted") {
-      token = (await Notification.getExpoPushTokenAsync()).data;
+      const pushToken = await Notification.getExpoPushTokenAsync();
+      token = pushToken.data;
+      const deviceID = Constants.deviceName;
+
       await SecureStorage.setItemAsync("notificationToken", token);
+
+      await axiosInstanceRegular.post("/token-update", {
+        token: token,
+      });
     } else {
       console.log("Notification permission not granted");
     }

@@ -45,13 +45,14 @@ const Order_Separator = ({
       return true;
     });
     return filtered.sort((a, b) => {
-      const dayA = new Date(Array.isArray(a.day) ? a.day[0] : a.day).getDate();
-      const dayB = new Date(Array.isArray(b.day) ? b.day[0] : b.day).getDate();
-      return dayB - dayA; // descending order
+      const dayA = new Date(Array.isArray(a.day) ? a.day[0] : a.day).getTime();
+      const dayB = new Date(Array.isArray(b.day) ? b.day[0] : b.day).getTime();
+      return dayA - dayB;
     });
   }, [list]);
   const { height } = Dimensions.get("screen");
   const { height: windowHeight } = Dimensions.get("window");
+
   useEffect(() => {
     if (loading) setLoadingEffect(!loadingEffect);
   }, [loading]);
@@ -72,7 +73,7 @@ const Order_Separator = ({
         )}
         keyExtractor={(item) => item._id}
         onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
+        onEndReachedThreshold={0.1}
         ListFooterComponent={
           loading ? (
             <View
