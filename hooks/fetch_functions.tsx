@@ -1,5 +1,5 @@
 import axiosInstance from "@/hooks/axiosInstance";
-import * as SecureStore from "expo-secure-store";
+import { AxiosError } from "axios";
 
 export const fetchRoleAndProfile = async (
   path: String,
@@ -8,12 +8,36 @@ export const fetchRoleAndProfile = async (
   if (LoginStatus) {
     try {
       const response = await axiosInstance.get(`/auth/profile_${path}`);
+      if (response.data.success && !response.data.auth) {
+        throw new Error(response.data.message);
+      }
+
       return {
         role: response.data.role,
         profileData: response.data.formData,
       };
-    } catch (err) {
-      throw new Error("Failed to fetch role and profile data");
+    } catch (err: any) {
+      console.log("PISDA", err);
+      if (err.response) {
+        const status = err.response.status;
+        switch (status) {
+          case status === 404: {
+            throw new Error("Profile not found");
+          }
+          case status === 429: {
+            throw new Error("Too many requests, please try again later (429)");
+          }
+          case status === 500: {
+            throw new Error("Server unavailable, please wait and retry ");
+          }
+        }
+      } else if (err.requests) {
+        throw new Error(
+          "No response from server, please check your connection"
+        );
+      } else {
+        throw new Error("Failed to fetch role and profile data");
+      }
     }
   } else {
     throw new Error("User is not logged in");

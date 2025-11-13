@@ -262,13 +262,13 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                             color={Colors.darkGrey}
                           />
                           <Text style={{ color: Colors.darkGrey }}>
-                            {block.current_player > 0
-                              ? block.current_player
-                              : 1}
+                            {block.current_player}
                           </Text>
                           <Text style={{ color: Colors.darkGrey }}>/</Text>
                           <Text style={{ color: Colors.darkGrey }}>
-                            {block.num_players + 1}
+                            {block.num_players == 0
+                              ? (block.num_players += 1)
+                              : block.num_players}
                           </Text>
                         </View>
 
@@ -316,8 +316,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                       <ProgressBar
                         progress={
                           block.num_players > 0
-                            ? (block.current_player + 1) /
-                              (block.num_players + 1)
+                            ? block.current_player / block.num_players
                             : 1
                         }
                         color={Colors.primary}

@@ -3,7 +3,7 @@ import {
   fetchRoleAndProfile,
   normalFetch,
   postFetch,
-} from "@/hooks/profile_data_fetch";
+} from "@/hooks/fetch_functions";
 
 interface useSWRProps {
   pathname: string;
@@ -19,6 +19,7 @@ const onErrorRetry = (
   revalidate: () => void,
   { retryCount }: { retryCount: number }
 ) => {
+  console.log(error, key, "PISDA");
   if (retryCount >= 5) return;
   retryCount++;
   setTimeout(() => revalidate(), 3000);
@@ -71,17 +72,18 @@ export const auth_swr = (
       revalidateOnMount: config?.revalidateOnMount ?? false,
       dedupingInterval: config?.dedupingInterval ?? 10000,
       shouldRetryOnError: true,
-      errorRetryInterval: 4000,
+      errorRetryInterval: 5000,
       errorRetryCount: 3,
       loadingTimeout: 3000,
-      onErrorRetry: onErrorRetry,
+      onError: (err) => {
+        console.log(err);
+      },
       ...config,
     }
   );
   if (!loginStatus) {
     mutate([cacheKey, true], undefined, { revalidate: false });
   }
-
   return {
     data,
     error,

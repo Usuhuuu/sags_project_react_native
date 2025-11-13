@@ -32,7 +32,6 @@ type LoginInput = {
   userID: string;
   signUpTimer?: string;
 };
-
 const Page = () => {
   const { t } = useTranslation();
   const loginDetails: any = t("login", { returnObjects: true });
@@ -65,9 +64,13 @@ const Page = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      const notificationToken = await SecureStore.getItemAsync(
+        "notificationToken"
+      );
       const response = await axiosInstanceRegular.post("/login", {
         email,
         userPassword: password,
+        notificationToken,
       });
       if (response.data.success) {
         try {
@@ -78,7 +81,6 @@ const Page = () => {
               refreshToken: response.data.refreshToken,
             })
           );
-          console.log(response.data.message);
           Notifier.showNotification({
             title: "Login " + response.data.success ? "Success" : "Failed",
             description: response.data.message,

@@ -6,11 +6,11 @@ export type Booking_Data_Type = {
 };
 export type Booking_Block_Type = {
   start_time: string;
-      end_time: String;
-      num_players: number;
-      current_player: number;
-      totalPrice: number;
-      block_booking_status: string
+  end_time: String;
+  num_players: number;
+  current_player: number;
+  totalPrice: number;
+  block_booking_status: string
 }
 
 export type Return_Type = {

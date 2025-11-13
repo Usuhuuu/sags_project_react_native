@@ -54,14 +54,24 @@ const OrderScreen = () => {
   const { t } = useTranslation();
   const orderLangInit: any = t("orderScreen", { returnObjects: true });
 
+  const shouldFetch = !!LoginStatus;
+
   const { data, error, isLoading } = regular_swr(
-    {
-      item: {
-        pathname: `/auth/book/${date}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
-        cacheKey: `booked_order_${screenSeparator}_${page[screenSeparator]}_${date}`,
-        loginStatus: LoginStatus,
-      },
-    },
+    shouldFetch
+      ? {
+          item: {
+            pathname: `/auth/book/${date}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
+            cacheKey: `booked_order_${screenSeparator}_${page[screenSeparator]}_${date}`,
+            loginStatus: LoginStatus,
+          },
+        }
+      : {
+          item: {
+            pathname: `/auth/book/${date}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
+            cacheKey: "",
+            loginStatus: LoginStatus,
+          },
+        },
     { shouldRetryOnError: false, revalidateOnMount: true }
   );
 
@@ -91,7 +101,7 @@ const OrderScreen = () => {
       const now = new Date();
       const sorted = unique.reduce(
         (acc, booking) => {
-          const bookingDate = booking.day[0];
+          const bookingDate = booking?.day[0];
 
           const historyBlocks: Booking_Block_Type[] = [];
           const upcomingBlocks: Booking_Block_Type[] = [];

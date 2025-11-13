@@ -31,6 +31,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "eslint-plugin-react-compiler": "^19.0.0-beta-714736e-20250131",
+    "expo": "~52.0.47",
     "expo-apple-authentication": "~6.4.2",
     "expo-application": "~5.9.1",
     "expo-build-properties": "~0.13.2",
@@ -63,7 +64,6 @@
     "react-native-calendars": "^1.1312.0",
     "react-native-chart-kit": "^6.12.0",
     "react-native-collapsible-tab-view": "^8.0.0",
-    "react-native-device-info": "^14.1.1",
     "react-native-element-dropdown": "^2.12.4",
     "react-native-fast-image": "^8.6.3",
     "react-native-fbsdk-next": "^13.4.0",
@@ -95,8 +95,7 @@
     "swr": "^2.3.2",
     "xml2js": "^0.6.2",
     "zaalproject": "file:",
-    "zustand": "^5.0.5",
-    "expo": "~52.0.47"
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

@@ -160,7 +160,7 @@ const TransactionPage = () => {
               {
                 wholeDay: true,
                 num_players: wholeDayPeople,
-                current_player: 0,
+                current_player: 1,
                 time_slots: ["wholeDay"],
               },
             ],

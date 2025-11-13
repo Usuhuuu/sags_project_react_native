@@ -297,7 +297,7 @@ const Layout = () => {
   const userDrawerLng = drawer?.userDrawer[0];
   const adminDrawerLng = drawer?.adminDrawer[0];
   const contractorDrawerLng = drawer?.contractorDrawer[0];
-  const { LoginStatus, logIn } = useAuth();
+  const { LoginStatus, logIn, logOut } = useAuth();
   const { triggerCalendar } = useCalendar();
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
