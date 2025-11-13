@@ -93,7 +93,6 @@ export default {
           iosUserTrackingPermission: "This identifier will be used to deliver personalized ads to you.",
         }
       ],
-      "expo-tracking-transparency",
       "expo-apple-authentication",
       "expo-dev-client",
       [
