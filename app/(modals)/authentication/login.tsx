@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
-import Colors from "@/constants/Colors";
 import { Platform } from "react-native";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as Sentry from "@sentry/react-native";
@@ -23,6 +22,7 @@ import { loginWithFacebook, loginWithGoogle } from "./third_party_instance";
 import SignupModal from "./signup_modal";
 import { TextInput } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useTheme } from "../context/themeContext";
 
 type LoginInput = {
   userName: string;
@@ -33,6 +33,114 @@ type LoginInput = {
   signUpTimer?: string;
 };
 const Page = () => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    background: {
+      flex: 1,
+      justifyContent: "center", // Center content
+      alignItems: "center",
+      padding: 20,
+    },
+    container: {
+      flex: 1,
+      width: "100%",
+      maxWidth: 400,
+      padding: 20,
+      borderRadius: 10,
+      backgroundColor: Colors.white,
+      shadowOpacity: 0.8,
+      shadowRadius: 5,
+      justifyContent: "center",
+    },
+    inputContainer: {
+      marginBottom: 0,
+    },
+    input: {
+      height: 50,
+      paddingHorizontal: 15,
+      backgroundColor: "#fff",
+      fontSize: 16,
+    },
+    eyeIcon: {
+      position: "absolute",
+      right: 15,
+      top: 15,
+    },
+    verificationContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 15,
+    },
+    verifyButton: {
+      marginLeft: 10,
+      backgroundColor: Colors.primary,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+    },
+    verifyButtonText: {
+      color: "#fff",
+      fontSize: 16,
+    },
+    button: {
+      backgroundColor: Colors.primary,
+      padding: 15,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    loginBtn: {
+      marginTop: 15,
+    },
+    buttonText: {
+      color: "#fff",
+      fontSize: 18, // Increased font size for readability
+    },
+    separatorView: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginVertical: 25,
+    },
+    separatorLine: {
+      flex: 1,
+      borderBottomColor: "#ddd",
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    separatorText: {
+      marginHorizontal: 12,
+      color: "#666",
+      fontSize: 14, // Slightly smaller text for separation
+    },
+    socialButtons: {
+      marginTop: 25,
+    },
+    btnOutline: {
+      backgroundColor: "#fff",
+      borderWidth: 1,
+      borderColor: "#ccc",
+      height: 50,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      paddingHorizontal: 15,
+      marginBottom: 12,
+      elevation: 2, // Button elevation
+    },
+    btnOutlineText: {
+      color: "#333",
+      fontSize: 16,
+    },
+    btnIcon: {
+      marginRight: 15,
+    },
+    imageIcon: {
+      width: 28,
+      height: 28,
+      marginRight: 15,
+    },
+  });
+
   const { t } = useTranslation();
   const loginDetails: any = t("login", { returnObjects: true });
 
@@ -113,7 +221,6 @@ const Page = () => {
         });
       }
     } catch (err: any) {
-      console.log("Pisda", err?.response);
       Notifier.showNotification({
         title: "Login Failed",
         description: "Please Try Again",
@@ -328,112 +435,5 @@ const Page = () => {
     </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    justifyContent: "center", // Center content
-    alignItems: "center",
-    padding: 20,
-  },
-  container: {
-    flex: 1,
-    width: "100%",
-    maxWidth: 400,
-    padding: 20,
-    borderRadius: 10,
-    backgroundColor: Colors.white,
-    shadowOpacity: 0.8,
-    shadowRadius: 5,
-    justifyContent: "center",
-  },
-  inputContainer: {
-    marginBottom: 0,
-  },
-  input: {
-    height: 50,
-    paddingHorizontal: 15,
-    backgroundColor: "#fff",
-    fontSize: 16,
-  },
-  eyeIcon: {
-    position: "absolute",
-    right: 15,
-    top: 15,
-  },
-  verificationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  verifyButton: {
-    marginLeft: 10,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  verifyButtonText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: Colors.primary,
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loginBtn: {
-    marginTop: 15,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18, // Increased font size for readability
-  },
-  separatorView: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 25,
-  },
-  separatorLine: {
-    flex: 1,
-    borderBottomColor: "#ddd",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  separatorText: {
-    marginHorizontal: 12,
-    color: "#666",
-    fontSize: 14, // Slightly smaller text for separation
-  },
-  socialButtons: {
-    marginTop: 25,
-  },
-  btnOutline: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    height: 50,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    paddingHorizontal: 15,
-    marginBottom: 12,
-    elevation: 2, // Button elevation
-  },
-  btnOutlineText: {
-    color: "#333",
-    fontSize: 16,
-  },
-  btnIcon: {
-    marginRight: 15,
-  },
-  imageIcon: {
-    width: 28,
-    height: 28,
-    marginRight: 15,
-  },
-});
 
 export default Page;

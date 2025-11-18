@@ -1,7 +1,6 @@
-import Colors from "@/constants/Colors";
-import { axiosInstanceRegular } from "@/hooks/axiosInstance";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 import { Entypo, FontAwesome } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { TouchableOpacity, View } from "react-native";
 
 type StarRatingProps = {
@@ -16,6 +15,8 @@ const StarRating = ({
   editable = false,
   starSize,
 }: StarRatingProps) => {
+  const { colors: Colors } = useTheme();
+
   const handlePress = (star: number) => {
     if (!editable) return;
     onChange?.(star);

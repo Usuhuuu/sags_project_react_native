@@ -64,7 +64,10 @@ axiosInstance.interceptors.request.use(
         Component: NotifierComponents.Alert,
         componentProps: { alertType: "warn" },
       });
-      throw new Error("could't find Token");
+      throw {
+        message: "could't find Token",
+        errors: ["Please login to process", "Token is required"],
+      };
     }
     if (token) {
       const { accessToken } = JSON.parse(token);

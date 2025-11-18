@@ -15,10 +15,10 @@ import {
 import { InferProps } from "prop-types";
 import { ContextProp } from "react-native-calendars/src/types";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
-import Colors from "@/constants/Colors";
 import { useBookingStore } from "@/app/(modals)/context/store/bookStore";
 import { router } from "expo-router";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 type FilterType = "joinable" | "unavailable" | null;
 
@@ -47,6 +47,8 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
   passDays,
   selectedDate,
 }) => {
+  const { colors: Colors } = useTheme();
+
   const today = new Date();
   const currentDate = new Date(date.year, date.month - 1, date.day);
   // Check if current date is before today (disable past)
@@ -125,6 +127,7 @@ function Calendar(
     Pick<CalendarProps & ContextProp, any> &
     Pick<InferProps<any>, any>
 ) {
+  const { colors: Colors } = useTheme();
   const [filter, setFilter] = useState<FilterType>("joinable");
   const [today, setToday] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string>("");

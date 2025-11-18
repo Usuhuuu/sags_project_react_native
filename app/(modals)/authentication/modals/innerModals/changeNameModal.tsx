@@ -1,5 +1,5 @@
 import { GroupChat } from "@/interfaces/chatType";
-import Colors from "@/constants/Colors";
+
 import React, { useEffect } from "react";
 import {
   View,
@@ -15,6 +15,7 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 interface ChangeNameModalProps {
   changeNameModalVisible: boolean;
@@ -29,6 +30,8 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
   setGroupName,
   MemberData,
 }) => {
+  const { colors: Colors } = useTheme();
+
   const [chatName, setChatName] = React.useState<string>("");
   const numericValue = chatName.length;
   const hasError = isNaN(numericValue) || numericValue >= 100;

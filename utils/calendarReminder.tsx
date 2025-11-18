@@ -1,13 +1,14 @@
 import * as Notifications from "expo-notifications";
 import * as Calendar from "expo-calendar";
 import { Platform } from "react-native";
-import Colors from "@/constants/Colors";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 const getDefaultCalendarSource = async () => {
   const defaultCalendar = await Calendar.getDefaultCalendarAsync();
   return defaultCalendar.source;
 };
 const createCalendar = async () => {
+  const { colors: Colors } = useTheme();
   const defaultSource =
     Platform.OS === "ios"
       ? await getDefaultCalendarSource()

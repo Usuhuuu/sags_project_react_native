@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import React, { useState, useMemo } from "react";
 import {
   View,
@@ -7,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   Modal,
-  Alert,
 } from "react-native";
 import { regular_swr } from "@/hooks/useswr";
 import { Avatar } from "react-native-paper";
@@ -19,6 +17,7 @@ import { useAuth } from "@/app/(modals)/context/authContext";
 import { GroupChat } from "@/interfaces/chatType";
 import { useTranslation } from "react-i18next";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 interface MemberModalProps {
   memberModalVisible: boolean;
@@ -33,6 +32,72 @@ interface Members {
 }
 
 const MemberModal: React.FC<MemberModalProps> = ({ memberData }) => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    modalBody: {
+      marginHorizontal: 20,
+      padding: 20,
+    },
+    headerText: {
+      color: Colors.dark,
+      fontWeight: "600",
+      fontSize: 20,
+      paddingBottom: 10,
+    },
+    memberRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+      borderBottomColor: Colors.grey,
+      borderBottomWidth: 1,
+      padding: 10,
+    },
+    seeAllText: {
+      textAlign: "center",
+      color: Colors.primary,
+      paddingVertical: 10,
+      fontWeight: "600",
+    },
+    addButtonContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+      padding: 10,
+    },
+    addButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    plusIconContainer: {
+      borderRadius: 50,
+      backgroundColor: Colors.grey,
+      padding: 15,
+    },
+    addButtonText: {
+      color: Colors.dark,
+      fontSize: 21,
+    },
+
+    modalOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+    },
+    qrPopup: {
+      backgroundColor: Colors.light,
+      padding: 20,
+      borderRadius: 16,
+      alignItems: "center",
+      elevation: 5, // Android shadow
+      shadowColor: "#000", // iOS shadow
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    },
+  });
+
   const [showAll, setShowAll] = useState(false);
   const [qrLink, setQrLink] = useState<string | null>(null);
   const { LoginStatus } = useAuth();
@@ -197,70 +262,5 @@ const MemberModal: React.FC<MemberModalProps> = ({ memberData }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  modalBody: {
-    marginHorizontal: 20,
-    padding: 20,
-  },
-  headerText: {
-    color: Colors.dark,
-    fontWeight: "600",
-    fontSize: 20,
-    paddingBottom: 10,
-  },
-  memberRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomColor: Colors.grey,
-    borderBottomWidth: 1,
-    padding: 10,
-  },
-  seeAllText: {
-    textAlign: "center",
-    color: Colors.primary,
-    paddingVertical: 10,
-    fontWeight: "600",
-  },
-  addButtonContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    padding: 10,
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  plusIconContainer: {
-    borderRadius: 50,
-    backgroundColor: Colors.grey,
-    padding: 15,
-  },
-  addButtonText: {
-    color: Colors.dark,
-    fontSize: 21,
-  },
-
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-  },
-  qrPopup: {
-    backgroundColor: Colors.light,
-    padding: 20,
-    borderRadius: 16,
-    alignItems: "center",
-    elevation: 5, // Android shadow
-    shadowColor: "#000", // iOS shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-});
 
 export default MemberModal;

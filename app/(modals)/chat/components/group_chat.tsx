@@ -3,8 +3,8 @@ import { router } from "expo-router";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { Avatar, Badge } from "react-native-paper";
 import { GroupChat } from "@/interfaces/chatType";
-import Colors from "@/constants/Colors";
 import { format } from "date-fns";
+import { useTheme } from "../../context/themeContext";
 
 function GroupChatComponent({
   chats,
@@ -13,6 +13,21 @@ function GroupChatComponent({
   chats: any;
   join_function: (group_ID: string) => void;
 }) {
+  const { colors: Colors } = useTheme();
+  const groupStyle = StyleSheet.create({
+    groupItem: {
+      padding: 10,
+      marginVertical: 7,
+      borderRadius: 5,
+      backgroundColor: Colors.containerColor,
+      shadowColor: Colors.dark,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 4,
+      width: "90%",
+    },
+  });
   return (
     <>
       {chats.map((item: GroupChat) => (
@@ -35,7 +50,7 @@ function GroupChatComponent({
               size={40}
               source={require("@/assets/images/sportHall_Icon_full_primary.png")}
               theme={{
-                colors: { primary: Colors.white },
+                colors: { primary: Colors.containerColor },
               }}
             />
             <View
@@ -65,23 +80,42 @@ function GroupChatComponent({
                     }}
                   >
                     <View style={{ flexDirection: "row" }}>
-                      <Text style={{ fontWeight: 600 }}>
+                      <Text
+                        style={{
+                          fontWeight: 600,
+                          color: Colors.themeColorTextPure,
+                        }}
+                      >
                         {item.sportHallName}
                       </Text>
-                      <Text style={{ fontWeight: 800 }}>-</Text>
+                      <Text
+                        style={{
+                          fontWeight: 800,
+                          color: Colors.themeColorTextPure,
+                        }}
+                      >
+                        -
+                      </Text>
                     </View>
                     <View style={{ flexDirection: "row", gap: 5 }}>
                       <Text
                         style={{
                           fontWeight: 300,
                           justifyContent: "center",
+                          color: Colors.themeColorTextSecondary,
                         }}
                       >
                         {item.date
                           ? format(new Date(item.date), "MMMM dd")
                           : ""}
                       </Text>
-                      <Text>
+                      <Text
+                        style={{
+                          fontWeight: 300,
+                          justifyContent: "center",
+                          color: Colors.themeColorTextSecondary,
+                        }}
+                      >
                         {item.startTime} - {item.endTime}
                       </Text>
                     </View>
@@ -128,18 +162,3 @@ function GroupChatComponent({
 }
 
 export default GroupChatComponent;
-
-const groupStyle = StyleSheet.create({
-  groupItem: {
-    padding: 10,
-    marginVertical: 7,
-    borderRadius: 5,
-    backgroundColor: Colors.white,
-    shadowColor: Colors.dark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-    width: "90%",
-  },
-});

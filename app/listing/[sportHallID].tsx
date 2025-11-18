@@ -20,7 +20,7 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import Colors from "@/constants/Colors";
+
 import Animated, {
   SlideInDown,
   interpolate,
@@ -33,6 +33,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import OrderScreen, { FormData } from "./detail";
 import { SportHallDataType } from "@/interfaces/listing";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTheme } from "../(modals)/context/themeContext";
 
 const { width } = Dimensions.get("window");
 const IMG_HEIGHT = 500;
@@ -89,6 +90,152 @@ const featureIcons = {
 };
 
 const DetailsPage = () => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#fff",
+    },
+    image: {
+      height: IMG_HEIGHT + 100,
+      width: width,
+      marginBottom: 0,
+    },
+    infoContainer: {
+      padding: 24,
+      marginTop: -40,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+    },
+    text: {
+      fontFamily: "mon",
+    },
+    boldText: {
+      fontFamily: "mon-sb",
+    },
+    name: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "flex-start",
+      fontSize: 24,
+      fontWeight: "bold",
+      fontFamily: "mon-sb",
+    },
+    location: {
+      flexDirection: "row",
+      fontSize: 18,
+      marginTop: 10,
+      fontFamily: "mon-sb",
+      color: Colors.primary,
+    },
+    rooms: {
+      fontSize: 12,
+      color: Colors.dark,
+      marginVertical: 4,
+    },
+    ratings: {
+      color: Colors.primary,
+      fontSize: 12,
+      fontFamily: "mon-sb",
+    },
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: Colors.grey,
+      marginVertical: 16,
+    },
+    placeholderImage: {
+      width: 20,
+      height: 20,
+    },
+    host: {
+      width: 120, // Adjust as needed for image size
+      height: 70, // Adjust height to fit the host profile image // Circular image
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    hostView: {
+      flexDirection: "row",
+      alignItems: "center",
+      left: 25,
+      height: 70,
+      width: "auto", // Dynamically adjusts based on content
+    },
+
+    footer: {
+      position: "absolute",
+      padding: 20,
+      height: 60,
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
+    footerText: {
+      height: 40,
+      justifyContent: "center",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    footerPrice: {
+      fontSize: 18,
+      fontFamily: "mon-sb",
+    },
+    roundButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 50,
+      backgroundColor: "white",
+      alignItems: "center",
+      justifyContent: "center",
+      color: Colors.primary,
+    },
+    bar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+    },
+    header: {
+      backgroundColor: "#fff",
+      height: 100,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.grey,
+    },
+    description: {
+      fontSize: 16,
+      marginTop: 10,
+    },
+    headerButton: {
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: "black",
+      width: 40,
+      height: 40,
+    },
+    btn: {
+      borderColor: Colors.dark,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 10,
+      height: 40,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      borderColor: "black",
+      borderWidth: 1,
+    },
+    modalContent: {
+      backgroundColor: Colors.light,
+      borderRadius: 10,
+      width: "90%",
+      height: "90%",
+    },
+  });
   const [isOrderScreenVisible, setIsOrderScreenVisible] =
     useState<boolean>(false);
   const [infoHeight, setInfoHeight] = useState(0);
@@ -502,151 +649,5 @@ const DetailsPage = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  image: {
-    height: IMG_HEIGHT + 100,
-    width: width,
-    marginBottom: 0,
-  },
-  infoContainer: {
-    padding: 24,
-    marginTop: -40,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-  },
-  text: {
-    fontFamily: "mon",
-  },
-  boldText: {
-    fontFamily: "mon-sb",
-  },
-  name: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    fontSize: 24,
-    fontWeight: "bold",
-    fontFamily: "mon-sb",
-  },
-  location: {
-    flexDirection: "row",
-    fontSize: 18,
-    marginTop: 10,
-    fontFamily: "mon-sb",
-    color: Colors.primary,
-  },
-  rooms: {
-    fontSize: 12,
-    color: Colors.dark,
-    marginVertical: 4,
-  },
-  ratings: {
-    color: Colors.primary,
-    fontSize: 12,
-    fontFamily: "mon-sb",
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.grey,
-    marginVertical: 16,
-  },
-  placeholderImage: {
-    width: 20,
-    height: 20,
-  },
-  host: {
-    width: 120, // Adjust as needed for image size
-    height: 70, // Adjust height to fit the host profile image // Circular image
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  hostView: {
-    flexDirection: "row",
-    alignItems: "center",
-    left: 25,
-    height: 70,
-    width: "auto", // Dynamically adjusts based on content
-  },
-
-  footer: {
-    position: "absolute",
-    padding: 20,
-    height: 60,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  footerText: {
-    height: 40,
-    justifyContent: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  footerPrice: {
-    fontSize: 18,
-    fontFamily: "mon-sb",
-  },
-  roundButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 50,
-    backgroundColor: "white",
-    alignItems: "center",
-    justifyContent: "center",
-    color: Colors.primary,
-  },
-  bar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-  },
-  header: {
-    backgroundColor: "#fff",
-    height: 100,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.grey,
-  },
-  description: {
-    fontSize: 16,
-    marginTop: 10,
-  },
-  headerButton: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "black",
-    width: 40,
-    height: 40,
-  },
-  btn: {
-    borderColor: Colors.dark,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 10,
-    height: 40,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    borderColor: "black",
-    borderWidth: 1,
-  },
-  modalContent: {
-    backgroundColor: Colors.light,
-    borderRadius: 10,
-    width: "90%",
-    height: "90%",
-  },
-});
 
 export default DetailsPage;

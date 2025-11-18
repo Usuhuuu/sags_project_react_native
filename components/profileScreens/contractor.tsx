@@ -1,6 +1,6 @@
 import axiosInstance from "@/hooks/axiosInstance";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React from "react";
 import {
   Image,
   SafeAreaView,
@@ -9,11 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Colors from "@/constants/Colors";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 const ContractorPage: React.FC = ({}) => {
+  const { colors: Colors } = useTheme();
+
   const sendNotification = async () => {
     try {
       const response = await axiosInstance.post("/auth/send-notification", {});
@@ -39,7 +41,15 @@ const ContractorPage: React.FC = ({}) => {
         <TouchableOpacity onPress={openDrawer}>
           <Ionicons name="menu" size={28} color={Colors.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>{contractorRoleLng.dashboard}</Text>
+        <Text
+          style={{
+            fontSize: 20,
+            fontWeight: "bold",
+            color: Colors.primary,
+          }}
+        >
+          {contractorRoleLng.dashboard}
+        </Text>
         <TouchableOpacity onPress={openDrawer}>
           <Image
             style={{
@@ -84,11 +94,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 20,
   },
-  headerText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: Colors.primary,
-  },
+
   buttonContainer: {
     marginTop: 30,
     width: "80%",

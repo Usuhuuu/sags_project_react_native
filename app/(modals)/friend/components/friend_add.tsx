@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import axiosInstance from "@/hooks/axiosInstance";
 import React, { SetStateAction, useState } from "react";
 import {
@@ -12,6 +11,7 @@ import {
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { mutate } from "swr";
 import { useAuth } from "../../context/authContext";
+import { useTheme } from "../../context/themeContext";
 
 interface FriendAddModalProp {
   modalDisplay: boolean;
@@ -22,6 +22,26 @@ const Friend_Add_Modal = ({
   modalDisplay,
   setModalDisplay,
 }: FriendAddModalProp) => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalBox: {
+      backgroundColor: Colors.white,
+      width: "80%",
+      borderRadius: 12,
+      padding: 20,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "600",
+      color: Colors.dark,
+    },
+  });
   const [textInPutValue, setTextInPutValue] = useState<string>("");
   const { LoginStatus } = useAuth();
   const sendRequest = async () => {
@@ -136,25 +156,5 @@ const Friend_Add_Modal = ({
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalBox: {
-    backgroundColor: Colors.white,
-    width: "80%",
-    borderRadius: 12,
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: Colors.dark,
-  },
-});
 
 export default Friend_Add_Modal;

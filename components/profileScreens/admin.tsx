@@ -2,11 +2,12 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Colors from "@/constants/Colors";
-import { useDrawerStatus } from "@react-navigation/drawer";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 const ProfileAdmin = ({}) => {
+  const { colors: Colors } = useTheme();
+
   const sendNotification = async () => {
     try {
       const response = await axiosInstance.post("/auth/send-notification", {});
@@ -26,7 +27,15 @@ const ProfileAdmin = ({}) => {
         <TouchableOpacity onPress={openDrawer}>
           <Ionicons name="menu" size={28} color={Colors.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Admin Dashboard</Text>
+        <Text
+          style={{
+            fontSize: 20,
+            fontWeight: "bold",
+            color: Colors.primary,
+          }}
+        >
+          Admin Dashboard
+        </Text>
         <TouchableOpacity onPress={openDrawer}>
           <Image
             style={{
@@ -75,11 +84,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 20,
   },
-  headerText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: Colors.primary,
-  },
+
   buttonContainer: {
     marginTop: 30,
     width: "80%",

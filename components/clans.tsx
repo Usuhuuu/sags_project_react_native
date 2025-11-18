@@ -1,4 +1,4 @@
-import Colors from "@/constants/Colors";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 import React, { useRef } from "react";
 import {
   View,
@@ -10,6 +10,8 @@ import {
 } from "react-native";
 
 const Team: React.FC = () => {
+  const { colors: Colors } = useTheme();
+
   const team = [
     {
       id: 1,
@@ -69,7 +71,19 @@ const Team: React.FC = () => {
         horizontal={true}
         showsHorizontalScrollIndicator={false}
       />
-      <TouchableOpacity style={styles.seeMoreButton}>
+      <TouchableOpacity
+        style={{
+          marginTop: 20,
+          backgroundColor: Colors.primary,
+          paddingVertical: 10,
+          paddingHorizontal: 20,
+          borderRadius: 5,
+          elevation: 2,
+
+          shadowOpacity: 0.2,
+          shadowOffset: { width: 0, height: 2 },
+        }}
+      >
         <Text style={styles.seeMoreText}>iluu ikhiig harah</Text>
       </TouchableOpacity>
     </View>
@@ -115,17 +129,7 @@ const styles = StyleSheet.create({
     color: "#555",
     marginBottom: 10,
   },
-  seeMoreButton: {
-    marginTop: 20,
-    backgroundColor: Colors.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    elevation: 2,
 
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 2 },
-  },
   seeMoreText: {
     color: "#fff",
     fontSize: 16,

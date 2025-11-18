@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
@@ -16,11 +15,63 @@ import i18n from "@/utils/i18";
 import * as SecureStorage from "expo-secure-store";
 import { useAuth } from "../(modals)/context/authContext";
 import { router } from "expo-router";
+import { useTheme } from "../(modals)/context/themeContext";
+import Theme_Changer_Modal from "./components/theme_change";
+import Change_Language_Modal from "./components/language_change";
 
 const ProfileSettings: React.FC = () => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    header: {
+      paddingHorizontal: 24,
+      marginBottom: 24,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: Colors.themeColorTextPure,
+    },
+    subtitle: {
+      fontSize: 16,
+      fontWeight: "400",
+      color: Colors.themeColorTextSecondary,
+    },
+    section: {
+      paddingTop: 12,
+    },
+    sectionHeader: {
+      paddingHorizontal: 24,
+      paddingBottom: 12,
+      paddingVertical: 8,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: "#a7a7a7",
+      textTransform: "uppercase",
+      letterSpacing: 1.2,
+    },
+    rowWrapper: {
+      paddingLeft: 24,
+      backgroundColor: Colors.containerColor,
+    },
+    row: {
+      height: 48,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-start",
+      paddingRight: 24,
+    },
+    rowlabel: {
+      fontSize: 16,
+      color: Colors.themeColorTextPure,
+    },
+  });
+
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [forceRerender, setForceRerender] = useState(false);
-  const { logOut, LoginStatus } = useAuth();
+  const [themeModelVisible, setThemeModelVisible] = useState<boolean>(false);
+  const { logOut } = useAuth();
 
   const { t } = useTranslation();
   const settingsDet: any = t("settings", { returnObjects: true });
@@ -182,7 +233,7 @@ const ProfileSettings: React.FC = () => {
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
-        style={{ flex: 1, backgroundColor: Colors.light }}
+        style={{ flex: 1, backgroundColor: Colors.containerColor }}
       >
         <View style={styles.header}>
           <Text style={styles.title}>{settings?.settingsDetails}</Text>
@@ -207,6 +258,8 @@ const ProfileSettings: React.FC = () => {
                       setModalVisible(true);
                     } else if (id == "logout") {
                       logoutHandle();
+                    } else if (id === "theme") {
+                      setThemeModelVisible(true);
                     }
                   }}
                 >
@@ -220,125 +273,18 @@ const ProfileSettings: React.FC = () => {
           </View>
         ))}
       </ScrollView>
-      <Modal
-        visible={modalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Language</Text>
-            <TouchableOpacity
-              style={styles.modalContent}
-              onPress={() => {
-                changeLanguage("en");
-                setModalVisible(false);
-              }}
-            >
-              <Text>🇺🇸 English</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalContent}
-              onPress={() => {
-                changeLanguage("mn");
-                setModalVisible(false);
-              }}
-            >
-              <Text>🇲🇳 Монгол хэл</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalContent}
-              onPress={() => {
-                handleLng("kr");
-              }}
-            >
-              <Text>🇰🇷 한국어</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalContent}
-              onPress={() => {
-                setModalVisible(false);
-              }}
-            >
-              <Text>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <Change_Language_Modal
+        languageModal={modalVisible}
+        setLanguageModals={setModalVisible}
+        changeLanguage={changeLanguage}
+        handleLng={handleLng}
+      />
+      <Theme_Changer_Modal
+        themeModalVisible={themeModelVisible}
+        setThemeModalVisible={setThemeModelVisible}
+      />
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.light,
-  },
-  header: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#1d1d1d",
-  },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: "400",
-    color: "#929292",
-  },
-  section: {
-    paddingTop: 12,
-  },
-  sectionHeader: {
-    paddingHorizontal: 24,
-    paddingBottom: 12,
-    paddingVertical: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#a7a7a7",
-    textTransform: "uppercase",
-    letterSpacing: 1.2,
-  },
-  rowWrapper: {
-    paddingLeft: 24,
-    borderTopWidth: 1,
-    borderColor: "#e3e3e3",
-    backgroundColor: "#fff",
-  },
-  row: {
-    height: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    paddingRight: 24,
-  },
-  rowlabel: {
-    fontSize: 16,
-    color: "#1d1d1d",
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    padding: 24,
-    borderRadius: 8,
-    width: "80%",
-    alignItems: "center",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-});
 
 export default ProfileSettings;

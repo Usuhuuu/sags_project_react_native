@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
-import Colors from "@/constants/Colors";
 import { useTranslation } from "react-i18next";
 import "@/utils/i18";
 import Animated, {
@@ -27,6 +26,7 @@ import Animated, {
 import { router } from "expo-router";
 import type { SharedValue } from "react-native-reanimated";
 import { useNotificationStore } from "@/app/(modals)/context/store/notificationStore";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 // ICON MAP
 const iconMap: { [key: string]: any } = {
@@ -44,8 +44,102 @@ interface Props {
 }
 
 const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    container: {
+      height: 170,
+      overflow: "visible",
+      backgroundColor: "transparent",
+    },
+    actionRowWrapper: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
+      paddingTop: 10,
+      paddingHorizontal: 10,
+    },
+    search: {
+      justifyContent: "center",
+      alignItems: "center",
+      width: 250,
+      height: 40,
+      backgroundColor: Colors.white,
+      borderColor: "#b0d9fc",
+      borderWidth: 2,
+      borderRadius: 20,
+      elevation: 10,
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+    },
+    notification: {
+      justifyContent: "center",
+      alignItems: "center",
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: Colors.light,
+      elevation: 10,
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+    },
+    badge: {
+      position: "absolute",
+      top: -2,
+      right: -2,
+      backgroundColor: "red",
+      borderRadius: 10,
+      paddingHorizontal: 5,
+      minWidth: 18,
+      height: 18,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 10,
+    },
+    badgeText: {
+      color: "white",
+      fontSize: 10,
+      fontWeight: "bold",
+    },
+    iconsWrapper: {
+      position: "absolute",
+      top: 70,
+      left: 0,
+      right: 0,
+    },
+    scrollViewContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 15,
+      paddingHorizontal: 10,
+    },
+    categoriesBtn: {
+      alignItems: "center",
+      paddingBottom: 6,
+    },
+    categoriesBtnActive: {
+      alignItems: "center",
+      borderBottomColor: Colors.primary,
+      borderBottomWidth: 2,
+    },
+    iconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: Colors.light,
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 10,
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+    },
+    titleText: {
+      color: Colors.dark,
+      fontWeight: "500",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  });
   const [notificationCount, setNotificationCount] = useState<number>(0);
-
   const navigation = useNavigation();
   const scrollRef = useRef<ScrollView>(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
@@ -226,100 +320,5 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    height: 170,
-    overflow: "visible",
-    backgroundColor: "transparent",
-  },
-  actionRowWrapper: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingTop: 10,
-    paddingHorizontal: 10,
-  },
-  search: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 250,
-    height: 40,
-    backgroundColor: "#fafafa",
-    borderColor: "#b0d9fc",
-    borderWidth: 2,
-    borderRadius: 20,
-    elevation: 10,
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  notification: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.light,
-    elevation: 10,
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  badge: {
-    position: "absolute",
-    top: -2,
-    right: -2,
-    backgroundColor: "red",
-    borderRadius: 10,
-    paddingHorizontal: 5,
-    minWidth: 18,
-    height: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
-  },
-  badgeText: {
-    color: "white",
-    fontSize: 10,
-    fontWeight: "bold",
-  },
-  iconsWrapper: {
-    position: "absolute",
-    top: 70,
-    left: 0,
-    right: 0,
-  },
-  scrollViewContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-    paddingHorizontal: 10,
-  },
-  categoriesBtn: {
-    alignItems: "center",
-    paddingBottom: 6,
-  },
-  categoriesBtnActive: {
-    alignItems: "center",
-    borderBottomColor: Colors.primary,
-    borderBottomWidth: 2,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.light,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 10,
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  titleText: {
-    color: Colors.dark,
-    fontWeight: "500",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
 
 export default ExploreHeader;

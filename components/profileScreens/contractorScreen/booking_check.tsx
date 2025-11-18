@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import axiosInstance from "@/hooks/axiosInstance";
 import React, { useEffect, useState } from "react";
 import {
@@ -16,8 +15,11 @@ import { useCalendar } from "@/app/(modals)/context/CalendarContext";
 import moment from "moment";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import WeekCalendar from "@/app/(modals)/book/components/calendar_strip";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 const BookingCheck = () => {
+  const { colors: Colors } = useTheme();
+
   const [today, setToday] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
@@ -162,7 +164,15 @@ const BookingCheck = () => {
         onRequestClose={resetCalendar}
       >
         <View style={styles.overlay}>
-          <View style={styles.modalContent}>
+          <View
+            style={{
+              backgroundColor: Colors.white,
+              borderRadius: 10,
+              padding: 20,
+              width: "90%",
+              maxHeight: 400,
+            }}
+          >
             <Calendar
               onDayPress={(day: { dateString: string }) => {
                 onDateSelected(today);
@@ -181,7 +191,15 @@ const BookingCheck = () => {
               style={styles.closeButton}
               onPress={resetCalendar}
             >
-              <Text style={styles.closeText}>Close</Text>
+              <Text
+                style={{
+                  color: Colors.primary,
+                  fontSize: 16,
+                  fontWeight: "600",
+                }}
+              >
+                Close
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -204,7 +222,16 @@ const BookingCheck = () => {
 
       {/* Booked Times */}
       <View style={{ width: "100%", height: "80%", padding: 20 }}>
-        <Text style={styles.text}>Booked Times</Text>
+        <Text
+          style={{
+            fontSize: 20,
+            fontWeight: "500",
+            color: Colors.primary,
+            marginBottom: 20,
+          }}
+        >
+          Booked Times
+        </Text>
         <FlatList
           data={listing}
           keyExtractor={(item) => `${item.start_time}~${item.end_time}`}
@@ -252,34 +279,18 @@ const styles = StyleSheet.create({
   calendars: {
     flex: 1,
   },
-  text: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: Colors.primary,
-    marginBottom: 20,
-  },
+
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
     alignItems: "center",
   },
-  modalContent: {
-    backgroundColor: Colors.white,
-    borderRadius: 10,
-    padding: 20,
-    width: "90%",
-    maxHeight: 400,
-  },
+
   closeButton: {
     marginTop: 15,
     alignSelf: "center",
     padding: 10,
-  },
-  closeText: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: "600",
   },
 });
 

@@ -29,7 +29,6 @@ import {
   Gesture,
   FlatList,
 } from "react-native-gesture-handler";
-import Colors from "@/constants/Colors";
 import { SportHallDataType } from "@/interfaces/listing";
 import SportHall from "@/assets/Data/sportHall.json";
 import CallWaveButton from "../listing/book/CallWaveButton";
@@ -43,6 +42,7 @@ import { useTranslation } from "react-i18next";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import WeekCalendar from "../(modals)/book/components/calendar_strip";
 import { OrderScreenSeparator } from "@/interfaces/order&book_type";
+import { useTheme } from "../(modals)/context/themeContext";
 
 const { width } = Dimensions.get("window");
 const SWIPE_WIDTH = width - 170;
@@ -71,223 +71,225 @@ if (Platform.OS === "android") {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingBottom: 60,
-    width: "100%",
-    height: "100%",
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    flexDirection: "column",
-  },
-
-  rail: {
-    width: SWIPE_WIDTH,
-    height: 40,
-    borderRadius: 30,
-    justifyContent: "center",
-    marginTop: 20,
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: "#e0e0e0",
-  },
-  swipet: {
-    marginTop: 20,
-    marginBottom: 20,
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-  },
-  swipeButton: {
-    width: BUTTON_WIDTH,
-    height: 20,
-    backgroundColor: Colors.primary,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    zIndex: 1,
-  },
-  box: {
-    width: 60,
-    height: 60,
-    backgroundColor: "#ccc",
-    margin: 5,
-    borderRadius: 8,
-  },
-  calendars: {
-    height: "20%",
-    width: "100%",
-    marginBottom: 40,
-  },
-  swipeText: {
-    fontSize: 24,
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  image: {
-    width: "40%",
-    height: 100,
-    borderRadius: 10,
-    marginBottom: 12,
-  },
-  toggleText: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
-    marginTop: 10,
-  },
-  content: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    width: "100%",
-  },
-  title: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginBottom: 6,
-    color: "#212121",
-    textAlign: "center",
-  },
-  subTitle: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  text: {
-    fontSize: 14,
-    color: "#555",
-  },
-  featuresContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 8,
-  },
-  featureBadge: {
-    backgroundColor: "#e6f4ea",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#a5d6a7",
-  },
-  featureText: {
-    fontSize: 12,
-    color: "#2e7d32",
-    fontWeight: "500",
-  },
-  animatedSort: {
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  containermodal: {
-    padding: 16,
-  },
-  joinButton: {
-    backgroundColor: Colors.primary,
-    padding: 10,
-    borderRadius: 8,
-    flex: 1,
-    alignItems: "center",
-  },
-  cancelButton: {
-    backgroundColor: "#ccc",
-    padding: 10,
-    borderRadius: 8,
-    flex: 1,
-    alignItems: "center",
-    marginLeft: 10,
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-
-  wave: {
-    position: "absolute",
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: "rgba(33, 150, 243, 0.3)", // blueish wave
-  },
-  sortButton: {
-    backgroundColor: "#eee",
-    padding: 10,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  sortText: {
-    fontSize: 16,
-    color: Colors.primary,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-  },
-  modalContainer: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderTopRightRadius: 16,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 16,
-    color: "#333",
-  },
-  option: {
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  optionText: {
-    fontSize: 16,
-    color: "#444",
-  },
-  down: {
-    marginTop: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderRadius: 10,
-    borderColor: Colors.primary,
-    backgroundColor: Colors.light,
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-});
-
 const Page = () => {
+  const { colors: Colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      padding: 16,
+      paddingBottom: 60,
+      width: "100%",
+      height: "100%",
+    },
+    card: {
+      backgroundColor: Colors.containerColor,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 20,
+      elevation: 3,
+      shadowColor: "#000",
+      shadowOpacity: 0.1,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      flexDirection: "column",
+    },
+
+    rail: {
+      width: SWIPE_WIDTH,
+      height: 40,
+      borderRadius: 30,
+      justifyContent: "center",
+      marginTop: 20,
+      marginBottom: 20,
+      borderWidth: 2,
+      borderColor: "#e0e0e0",
+    },
+    swipet: {
+      marginTop: 20,
+      marginBottom: 20,
+      fontSize: 16,
+      fontWeight: "bold",
+      color: "#333",
+      textAlign: "center",
+    },
+    swipeButton: {
+      width: BUTTON_WIDTH,
+      height: 20,
+      backgroundColor: Colors.primary,
+      borderRadius: 30,
+      borderWidth: 2,
+      borderColor: Colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      position: "absolute",
+      zIndex: 1,
+    },
+    box: {
+      width: 60,
+      height: 60,
+      backgroundColor: "#ccc",
+      margin: 5,
+      borderRadius: 8,
+    },
+    calendars: {
+      height: "20%",
+      width: "100%",
+      marginBottom: 40,
+    },
+    swipeText: {
+      fontSize: 24,
+      color: "#fff",
+      fontWeight: "bold",
+    },
+    image: {
+      width: "40%",
+      height: 100,
+      borderRadius: 10,
+      marginBottom: 12,
+    },
+    toggleText: {
+      color: Colors.primary,
+      fontSize: 16,
+      fontWeight: "600",
+      textAlign: "center",
+      marginTop: 10,
+    },
+    content: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 10,
+      width: "100%",
+    },
+    title: {
+      fontSize: 12,
+      fontWeight: "bold",
+      marginBottom: 6,
+      color: Colors.themeColorTextPure,
+      textAlign: "center",
+    },
+    subTitle: {
+      marginTop: 10,
+      fontSize: 16,
+      fontWeight: "600",
+      color: Colors.themeColorTextSecondary,
+    },
+    text: {
+      fontSize: 14,
+      color: "#555",
+    },
+    featuresContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginTop: 8,
+    },
+    featureBadge: {
+      backgroundColor: "#e6f4ea",
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: "#a5d6a7",
+    },
+    featureText: {
+      fontSize: 12,
+      color: "#2e7d32",
+      fontWeight: "500",
+    },
+    animatedSort: {
+      marginTop: 8,
+      marginBottom: 8,
+    },
+    containermodal: {
+      padding: 16,
+    },
+    joinButton: {
+      backgroundColor: Colors.primary,
+      padding: 10,
+      borderRadius: 8,
+      flex: 1,
+      alignItems: "center",
+    },
+    cancelButton: {
+      backgroundColor: "#ccc",
+      padding: 10,
+      borderRadius: 8,
+      flex: 1,
+      alignItems: "center",
+      marginLeft: 10,
+    },
+    buttonText: {
+      color: Colors.themeColorTextPure,
+      fontWeight: "bold",
+    },
+
+    wave: {
+      position: "absolute",
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: "rgba(33, 150, 243, 0.3)", // blueish wave
+    },
+    sortButton: {
+      backgroundColor: "#eee",
+      padding: 10,
+      borderRadius: 8,
+      alignItems: "center",
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: "#ccc",
+    },
+    sortText: {
+      fontSize: 16,
+      color: Colors.primary,
+    },
+    overlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+    },
+    modalContainer: {
+      backgroundColor: "#fff",
+      padding: 20,
+      borderTopRightRadius: 16,
+      borderTopLeftRadius: 16,
+      borderBottomLeftRadius: 16,
+      borderBottomRightRadius: 16,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 10,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: "700",
+      marginBottom: 16,
+      color: "#333",
+    },
+    option: {
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: "#eee",
+    },
+    optionText: {
+      fontSize: 16,
+      color: "#444",
+    },
+    down: {
+      marginTop: 10,
+      padding: 10,
+      borderWidth: 1,
+      borderRadius: 10,
+      borderColor: Colors.themeColorTextPure,
+      backgroundColor: Colors.containerColor,
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+    },
+  });
+
   const [sportHalls, setSportHalls] = useState<SportHallDataType[] | null>(
     null
   );
@@ -623,7 +625,7 @@ const Page = () => {
   };
   const { height } = Dimensions.get("screen");
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ backgroundColor: Colors.backgroundColor, flex: 1 }}>
       <FlatList
         data={sortedMergedData.length ? sortedMergedData : mergedData}
         extraData={mergedData}
@@ -634,7 +636,7 @@ const Page = () => {
           styles.container,
           {
             height: "auto",
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.backgroundColor,
           },
         ]}
         ListHeaderComponent={
@@ -879,7 +881,6 @@ const Page = () => {
                                 padding: 10,
                                 borderWidth: 1,
                                 borderRadius: 10,
-                                borderColor: Colors.primary,
                                 backgroundColor: Colors.light,
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -897,7 +898,11 @@ const Page = () => {
                           </View>
 
                           {/* --------- Add Partners Section --------- */}
-                          <View style={{ marginTop: 15 }}>
+                          <View
+                            style={{
+                              marginTop: 15,
+                            }}
+                          >
                             <Text
                               style={[styles.subTitle, { marginBottom: 10 }]}
                             >
@@ -906,7 +911,9 @@ const Page = () => {
                           </View>
 
                           <View style={styles.down}>
-                            <Text>{PartnerLanguage.doYouWantJoinThisHall}</Text>
+                            <Text style={{ color: Colors.themeColorTextPure }}>
+                              {PartnerLanguage.doYouWantJoinThisHall}
+                            </Text>
                             <View
                               style={{
                                 flexDirection: "row",
@@ -923,7 +930,9 @@ const Page = () => {
                                 }
                                 style={styles.joinButton}
                               >
-                                <Text style={styles.buttonText}>
+                                <Text
+                                  style={{ color: Colors.themeColorTextPure }}
+                                >
                                   {PartnerLanguage.join}
                                 </Text>
                               </TouchableOpacity>
@@ -939,7 +948,7 @@ const Page = () => {
                                 }}
                                 style={styles.cancelButton}
                               >
-                                <Text style={styles.buttonText}>
+                                <Text style={{ color: Colors.dark }}>
                                   {PartnerLanguage.cancel}
                                 </Text>
                               </TouchableOpacity>
@@ -964,13 +973,14 @@ const Page = () => {
                 style={{
                   width: "100%",
                   height: height - 210,
+                  backgroundColor: Colors.backgroundColor,
                 }}
               >
                 <View
                   style={{
                     width: "auto",
                     height: "100%",
-                    backgroundColor: Colors.white,
+                    backgroundColor: Colors.containerColor,
                     padding: 10,
                     borderRadius: 10,
                     justifyContent: "space-around",
@@ -994,7 +1004,7 @@ const Page = () => {
                   >
                     <Text
                       style={{
-                        color: Colors.dark,
+                        color: Colors.themeColorTextPure,
                         fontSize: 25,
                         fontWeight: 600,
                       }}
@@ -1004,7 +1014,7 @@ const Page = () => {
                     <Text
                       style={{
                         width: "80%",
-                        color: Colors.littleDark,
+                        color: Colors.themeColorTextSecondary,
                         fontSize: 18,
                         textAlign: "center",
                       }}

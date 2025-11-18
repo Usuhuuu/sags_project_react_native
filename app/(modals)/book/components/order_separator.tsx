@@ -14,8 +14,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { OrderItem } from "@/app/(modals)/book/components/order_inside_flatlist";
-import Colors from "@/constants/Colors";
 import { router } from "expo-router";
+import { useTheme } from "../../context/themeContext";
 
 interface Order_Separator_props {
   data: OrderDataTypes;
@@ -29,6 +29,8 @@ const Order_Separator = ({
   loadMore,
   loading,
 }: Order_Separator_props) => {
+  const { colors: Colors } = useTheme();
+
   const list: Return_Type[] =
     screen_type === OrderScreenSeparator.TODAY_UPCOMING
       ? data?.today_upcoming || []
@@ -58,7 +60,7 @@ const Order_Separator = ({
   }, [loading]);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
       <FlatList<Return_Type>
         data={uniqueList}
         renderItem={useCallback(
@@ -82,6 +84,7 @@ const Order_Separator = ({
                 alignItems: "center",
                 width: "100%",
                 height: windowHeight - 250,
+                backgroundColor: Colors.backgroundColor,
               }}
             >
               <ActivityIndicator color={Colors.primary} size={"large"} />
@@ -100,12 +103,22 @@ const Order_Separator = ({
         style={{ flex: 1 }}
         ListEmptyComponent={
           loading ? (
-            <View></View>
+            <View
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+                width: "100%",
+                height: windowHeight - 250,
+                backgroundColor: Colors.backgroundColor,
+              }}
+            >
+              <ActivityIndicator size={"large"} color={Colors.primary} />
+            </View>
           ) : (
             <View
               style={{
                 height: height - 300,
-                backgroundColor: Colors.white,
+                backgroundColor: Colors.containerColor,
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 3 },
                 shadowOpacity: 0.15,
@@ -127,8 +140,9 @@ const Order_Separator = ({
                   style={{
                     width: 180,
                     height: 180,
-                    backgroundColor: Colors.white,
+                    backgroundColor: Colors.containerColor,
                   }}
+                  tintColor={Colors.themeColorTextPure}
                 />
               </View>
               <View
@@ -138,7 +152,13 @@ const Order_Separator = ({
                   gap: 10,
                 }}
               >
-                <Text style={{ fontSize: 25, fontWeight: 600 }}>
+                <Text
+                  style={{
+                    fontSize: 25,
+                    fontWeight: 600,
+                    color: Colors.themeColorTextPure,
+                  }}
+                >
                   {screen_type === OrderScreenSeparator.TODAY_UPCOMING
                     ? "No Bookings Yet"
                     : "History is Clear"}

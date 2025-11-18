@@ -1,9 +1,19 @@
 import React, { useEffect } from "react";
 import { StyleSheet, Alert, Linking } from "react-native";
 import { useCameraPermissions, CameraView } from "expo-camera";
-import Colors from "@/constants/Colors";
+import { useTheme } from "./context/themeContext";
 
 const CameraModal = () => {
+  const { colors } = useTheme();
+  const styles = StyleSheet.create({
+    cameraView: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.light,
+    },
+  });
+
   const [permission, requestPermission] = useCameraPermissions();
 
   const checkPermissions = async () => {
@@ -37,14 +47,5 @@ const CameraModal = () => {
 
   return <CameraView style={styles.cameraView}></CameraView>;
 };
-
-const styles = StyleSheet.create({
-  cameraView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.light,
-  },
-});
 
 export default CameraModal;

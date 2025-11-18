@@ -11,13 +11,13 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import Colors from "@/constants/Colors";
 import {
   BottomSheetFlatList,
   BottomSheetFlatListMethods,
 } from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
 import { SportHallDataType } from "@/interfaces/listing";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 interface Props {
   listings: SportHallDataType[];
@@ -26,6 +26,8 @@ interface Props {
 }
 
 const ListingComponent = ({ listings: items, category }: Props) => {
+  const { colors: Colors } = useTheme();
+
   const [loading, setLoading] = useState(false);
   const listRef = useRef<BottomSheetFlatListMethods>(null);
   const router = useRouter();
@@ -126,8 +128,11 @@ const ListingComponent = ({ listings: items, category }: Props) => {
     >
       <Text
         style={[
-          styles.categoryTitle,
-          selected && { color: "white" }, // Change text color to white when selected
+          selected && {
+            fontSize: 18,
+            fontWeight: "bold",
+            color: Colors.primary,
+          }, // Change text color to white when selected
         ]}
       >
         {label}
@@ -140,9 +145,22 @@ const ListingComponent = ({ listings: items, category }: Props) => {
       colors={["#f8f9fa", Colors.primary]}
       start={[0, 0]}
       end={[0, 1]}
-      style={styles.container}
+      style={[styles.container, {}]}
     >
-      <View style={styles.categoryContainer}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-around",
+          backgroundColor: Colors.light,
+          borderRadius: 20,
+          paddingVertical: 8,
+          marginVertical: 10,
+          borderColor: Colors.primary,
+          borderWidth: 1,
+          elevation: 10,
+          shadowOpacity: 0.3,
+        }}
+      >
         {["ойрхон ", "шилдэг", "зөвлөx"].map((label) => (
           <CategoryButton
             key={label}
@@ -224,18 +242,7 @@ const styles = StyleSheet.create({
     width: 23,
     height: 23,
   },
-  categoryContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    backgroundColor: Colors.light,
-    borderRadius: 20,
-    paddingVertical: 8,
-    marginVertical: 10,
-    borderColor: Colors.primary,
-    borderWidth: 1,
-    elevation: 10,
-    shadowOpacity: 0.3,
-  },
+
   categoryButton: {
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -243,11 +250,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 5, // Optional for round corners
   },
-  categoryTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.primary,
-  },
+
   viewButton: {
     backgroundColor: "rgba(97, 179, 250, 0) ",
     height: 200,

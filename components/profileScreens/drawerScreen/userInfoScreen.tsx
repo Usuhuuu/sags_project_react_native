@@ -1,7 +1,6 @@
 import { useAuth } from "@/app/(modals)/context/authContext";
 import axiosInstance from "@/hooks/axiosInstance";
 import { auth_swr } from "@/hooks/useswr";
-import Colors from "@/constants/Colors";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -15,8 +14,10 @@ import {
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { TextInput } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 const UserInfoScreen = () => {
+  const { colors: Colors } = useTheme();
   const { t } = useTranslation();
   const [path, setPath] = useState<string>("main");
   const [userData, setUserData] = useState<any>([]);
@@ -145,14 +146,29 @@ const UserInfoScreen = () => {
     }
   };
   return (
-    <View style={styles.container}>
+    <View
+      style={{
+        width: "100%",
+        height: "100%",
+        paddingVertical: 20,
+        paddingHorizontal: 20,
+        backgroundColor: Colors.light,
+      }}
+    >
       <View>
         <View style={{ alignItems: "center", justifyContent: "center" }}>
           <Image
             source={{
               uri: "https://via.placeholder.com/150",
             }}
-            style={styles.profileImage}
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+              marginBottom: 10,
+              borderWidth: 1,
+              borderColor: Colors.darkGrey,
+            }}
           />
           <TouchableOpacity
             onPress={() => {
@@ -213,39 +229,10 @@ const UserInfoScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    height: "100%",
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    backgroundColor: Colors.light,
-  },
   userInfoContainer: {
     flexDirection: "column",
     padding: 20,
     gap: 10,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: Colors.darkGrey,
-  },
-  textinput: {
-    height: 40,
-    borderColor: Colors.darkGrey,
-    borderWidth: 1.5,
-    borderRadius: 5,
-    color: "#9acffd",
-    fontWeight: "black",
-    padding: 10,
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: Colors.darkGrey,
   },
 });
 

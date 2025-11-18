@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import {
   AntDesign,
   Ionicons,
@@ -25,6 +24,7 @@ import { Avatar, TextInput } from "react-native-paper";
 import { launchImageLibrary } from "react-native-image-picker";
 import StepIndicator from "react-native-step-indicator";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useTheme } from "../context/themeContext";
 
 type LoginInput = {
   userName: string;
@@ -92,6 +92,67 @@ const SignupModal = ({
   setSteps: React.Dispatch<React.SetStateAction<number>>;
   path: string;
 }) => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    modalContainer: {
+      flex: 1,
+      width: "95%",
+      height: "100%",
+      marginHorizontal: 10,
+      backgroundColor: Colors.white,
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: Colors.white,
+    },
+    modalInputContainer: {
+      gap: 20,
+      justifyContent: "center",
+      flex: 1,
+      backgroundColor: Colors.white,
+      marginBottom: 20,
+    },
+    modalInput: {
+      paddingHorizontal: 15,
+      marginHorizontal: 20,
+      marginVertical: 5,
+    },
+    IndicatorContainer: {
+      height: "40%",
+      width: "100%",
+      elevation: 10,
+      marginTop: 20,
+      borderRadius: 20,
+      shadowColor: Colors.primary,
+      borderWidth: 1,
+      borderColor: Colors.primary,
+      backgroundColor: Colors.light,
+      paddingTop: 10,
+    },
+    modalButtonContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginHorizontal: 20,
+      alignItems: "center",
+    },
+    modalButtonContainerFirst: {
+      alignItems: "center",
+    },
+    modalNextButton: {
+      backgroundColor: Colors.primary,
+      padding: 10,
+      borderRadius: 20,
+      width: "45%",
+      alignItems: "center",
+    },
+    modalButtonText: {
+      color: Colors.white,
+      fontSize: 20,
+    },
+  });
+
   const [disableButton, setDisableButton] = useState<boolean>(true);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [notificationToken, setNotificationToken] = useState<string>("");
@@ -593,63 +654,3 @@ const SignupModal = ({
 };
 
 export default SignupModal;
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    width: "95%",
-    height: "100%",
-    marginHorizontal: 10,
-    backgroundColor: Colors.white,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: Colors.white,
-  },
-  modalInputContainer: {
-    gap: 20,
-    justifyContent: "center",
-    flex: 1,
-    backgroundColor: Colors.white,
-    marginBottom: 20,
-  },
-  modalInput: {
-    paddingHorizontal: 15,
-    marginHorizontal: 20,
-    marginVertical: 5,
-  },
-  IndicatorContainer: {
-    height: "40%",
-    width: "100%",
-    elevation: 10,
-    marginTop: 20,
-    borderRadius: 20,
-    shadowColor: Colors.primary,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    backgroundColor: Colors.light,
-    paddingTop: 10,
-  },
-  modalButtonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginHorizontal: 20,
-    alignItems: "center",
-  },
-  modalButtonContainerFirst: {
-    alignItems: "center",
-  },
-  modalNextButton: {
-    backgroundColor: Colors.primary,
-    padding: 10,
-    borderRadius: 20,
-    width: "45%",
-    alignItems: "center",
-  },
-  modalButtonText: {
-    color: Colors.white,
-    fontSize: 20,
-  },
-});

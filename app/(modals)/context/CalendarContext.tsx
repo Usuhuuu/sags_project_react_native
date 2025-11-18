@@ -9,7 +9,9 @@ type CalendarContextType = {
 
 const CalendarContext = createContext<CalendarContextType | null>(null);
 
-export const CalendarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const CalendarProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [showCalendar, setShowCalendar] = useState(false);
 
   const triggerCalendar = () => setShowCalendar(true);

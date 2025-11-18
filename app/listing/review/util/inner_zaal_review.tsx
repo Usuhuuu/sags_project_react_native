@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import StarRating from "./star_rating";
 import { launchImageLibrary } from "react-native-image-picker";
-import Colors from "@/constants/Colors";
 import { Entypo } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SportHallData from "@/assets/Data/sportHall.json";
@@ -18,8 +17,10 @@ import { SportHallDataType } from "@/interfaces/listing";
 import { useLocalSearchParams } from "expo-router";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 const Inner_Zaal_Review = () => {
+  const { colors: Colors } = useTheme();
   const [rating, setRating] = useState<number>(0);
   const [imageUrl, setImageUrl] = useState<string[]>([]);
   const [text, setText] = useState<string>("");

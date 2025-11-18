@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import { Socket } from "socket.io-client";
 import * as Sentry from "@sentry/react-native";
-import Colors from "@/constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { differenceInDays } from "date-fns";
 import { useTranslation } from "react-i18next";
@@ -41,8 +40,125 @@ import GroupChatComponent from "../(modals)/chat/components/group_chat";
 import FilterModal from "../(modals)/chat/components/filter_modal";
 import { useChatStore } from "../(modals)/context/store/chatStore";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useTheme } from "../(modals)/context/themeContext";
 
 const ChatComponent: React.FC = () => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors.backgroundColor,
+    },
+    title: {
+      fontSize: 28,
+      marginVertical: 16,
+      textAlign: "center",
+      fontWeight: "bold",
+      color: "#333",
+    },
+    subtitle: {
+      fontSize: 20,
+      marginVertical: 12,
+      fontWeight: "600",
+      color: "#555",
+      textAlign: "center",
+    },
+    groupItemContainer: {
+      marginVertical: 20,
+      marginHorizontal: 20,
+    },
+    groupItem: {
+      padding: 10,
+      marginVertical: 7,
+      borderRadius: 5,
+      backgroundColor: Colors.white,
+      shadowColor: Colors.dark,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 4,
+      width: "90%",
+    },
+    textContainer: {
+      flexDirection: "row",
+      gap: 1,
+    },
+    showHiderContainer: {
+      padding: 10,
+      marginVertical: 7,
+      borderRadius: 5,
+      width: "90%",
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    groupText: {
+      fontSize: 18,
+      color: "black",
+      fontWeight: "bold",
+      textAlign: "center",
+    },
+    messageContainer: {
+      width: "100%",
+    },
+    userNameText: {
+      fontSize: 13,
+      color: Colors.primary,
+      textShadowColor: Colors.primary,
+      textShadowRadius: 0.5,
+    },
+    messageText: {
+      padding: 5,
+      fontSize: 18,
+      justifyContent: "center",
+      alignItems: "center",
+      textAlign: "center",
+    },
+    messagesList: {
+      //height: Dimensions.get("window").height,
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderColor: "#ddd",
+      gap: 10,
+    },
+
+    msjContainer: {
+      marginHorizontal: 10,
+    },
+    msjInside: {
+      borderWidth: 1,
+      paddingHorizontal: 5,
+    },
+    TimerContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+    },
+
+    dateSeparator: {
+      flexDirection: "row",
+      alignItems: "center",
+      width: "100%",
+      paddingHorizontal: 10,
+    },
+    line: {
+      flex: 1,
+      height: 1,
+      backgroundColor: Colors.primary,
+      marginHorizontal: 5,
+    },
+    dateText: {
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+      color: Colors.primary,
+      fontWeight: "400",
+    },
+  });
   const [chatGroups, setChatGroups] = useState<{ [key: string]: GroupChat }>(
     {}
   );
@@ -472,7 +588,6 @@ const ChatComponent: React.FC = () => {
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: Colors.white,
           }}
         >
           <View
@@ -526,7 +641,7 @@ const ChatComponent: React.FC = () => {
                   style={{
                     width: width,
                     height: height - bottom,
-                    backgroundColor: Colors.white,
+                    backgroundColor: Colors.backgroundColor,
                   }}
                 >
                   <ScrollView
@@ -538,15 +653,15 @@ const ChatComponent: React.FC = () => {
                     <View
                       style={{
                         flexDirection: "column",
-                        width: "90%",
+                        width: "95%",
+                        margin: 10,
                       }}
                     >
                       <View
                         style={{
                           flexDirection: "row",
-                          backgroundColor: Colors.lightGrey,
-                          borderRadius: 20,
-                          padding: 2,
+                          backgroundColor: Colors.containerColor,
+                          borderRadius: 10,
                         }}
                       >
                         <TouchableOpacity
@@ -556,20 +671,19 @@ const ChatComponent: React.FC = () => {
                           style={{
                             backgroundColor:
                               chatSeparator === ChatSeparator.GROUP
-                                ? Colors.white
-                                : Colors.lightGrey,
-                            borderRadius: 20,
+                                ? Colors.primary
+                                : Colors.containerColor,
+                            borderRadius: 10,
                             width: "50%",
                             justifyContent: "center",
                             alignItems: "center",
-                            padding: 7,
                           }}
                         >
                           <Text
                             style={{
                               color:
                                 chatSeparator === ChatSeparator.GROUP
-                                  ? Colors.dark
+                                  ? Colors.white
                                   : Colors.darkGrey,
                             }}
                           >
@@ -583,9 +697,9 @@ const ChatComponent: React.FC = () => {
                           style={{
                             backgroundColor:
                               chatSeparator === ChatSeparator.PERSONAL
-                                ? Colors.white
-                                : Colors.lightGrey,
-                            borderRadius: 20,
+                                ? Colors.primary
+                                : Colors.containerColor,
+                            borderRadius: 10,
                             width: "50%",
                             justifyContent: "center",
                             alignItems: "center",
@@ -596,7 +710,7 @@ const ChatComponent: React.FC = () => {
                             style={{
                               color:
                                 chatSeparator === ChatSeparator.PERSONAL
-                                  ? Colors.dark
+                                  ? Colors.white
                                   : Colors.darkGrey,
                             }}
                           >
@@ -611,8 +725,7 @@ const ChatComponent: React.FC = () => {
                           alignItems: "center",
                           marginVertical: 5,
                           width: "100%",
-                          gap: 5,
-                          height: 40,
+                          gap: "4%",
                         }}
                       >
                         <TouchableOpacity
@@ -621,8 +734,8 @@ const ChatComponent: React.FC = () => {
                             gap: 5,
                             alignItems: "center",
                             justifyContent: "space-around",
-                            backgroundColor: Colors.lightGrey,
-                            width: "85%",
+                            backgroundColor: Colors.containerColor,
+                            width: "83%",
                             borderRadius: 10,
                             padding: 5,
                           }}
@@ -630,7 +743,7 @@ const ChatComponent: React.FC = () => {
                           <FontAwesome
                             name="search"
                             size={18}
-                            color={Colors.littleDarkGrey}
+                            color={Colors.darkGrey}
                           />
                           <TextInput
                             placeholder={
@@ -651,7 +764,7 @@ const ChatComponent: React.FC = () => {
                         </TouchableOpacity>
                         <View
                           style={{
-                            backgroundColor: Colors.lightGrey,
+                            backgroundColor: Colors.containerColor,
                             width: "15%",
                             justifyContent: "center",
                             alignItems: "center",
@@ -663,7 +776,6 @@ const ChatComponent: React.FC = () => {
                             onPress={() => {
                               setShowFilterVisible(!showFilterVisible);
                             }}
-                            style={{ padding: 10 }}
                           >
                             <Text
                               style={{
@@ -725,121 +837,5 @@ const ChatComponent: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-  },
-  title: {
-    fontSize: 28,
-    marginVertical: 16,
-    textAlign: "center",
-    fontWeight: "bold",
-    color: "#333",
-  },
-  subtitle: {
-    fontSize: 20,
-    marginVertical: 12,
-    fontWeight: "600",
-    color: "#555",
-    textAlign: "center",
-  },
-  groupItemContainer: {
-    marginVertical: 20,
-    marginHorizontal: 20,
-  },
-  groupItem: {
-    padding: 10,
-    marginVertical: 7,
-    borderRadius: 5,
-    backgroundColor: Colors.white,
-    shadowColor: Colors.dark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-    width: "90%",
-  },
-  textContainer: {
-    flexDirection: "row",
-    gap: 1,
-  },
-  showHiderContainer: {
-    padding: 10,
-    marginVertical: 7,
-    borderRadius: 5,
-    width: "90%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  groupText: {
-    fontSize: 18,
-    color: "black",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  messageContainer: {
-    width: "100%",
-  },
-  userNameText: {
-    fontSize: 13,
-    color: Colors.primary,
-    textShadowColor: Colors.primary,
-    textShadowRadius: 0.5,
-  },
-  messageText: {
-    padding: 5,
-    fontSize: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    textAlign: "center",
-  },
-  messagesList: {
-    //height: Dimensions.get("window").height,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderColor: "#ddd",
-    gap: 10,
-  },
-
-  msjContainer: {
-    marginHorizontal: 10,
-  },
-  msjInside: {
-    borderWidth: 1,
-    paddingHorizontal: 5,
-  },
-  TimerContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-
-  dateSeparator: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.primary,
-    marginHorizontal: 5,
-  },
-  dateText: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    color: Colors.primary,
-    fontWeight: "400",
-  },
-});
 
 export default ChatComponent;

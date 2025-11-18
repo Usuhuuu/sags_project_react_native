@@ -9,7 +9,6 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import Colors from "@/constants/Colors";
 import {
   AntDesign,
   Feather,
@@ -25,6 +24,7 @@ import { AxiosResponse } from "axios";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { scheduleNotificationForEvent } from "@/utils/calendarReminder";
 import { mutate } from "swr";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 const customStyles = {
   stepIndicatorSize: 30,
@@ -86,6 +86,24 @@ const groupConnectedTimeSlots = (slots: string[]) => {
 };
 
 const TransactionPage = () => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    innerContainer: {
+      backgroundColor: Colors.backgroundColor,
+      flex: 1,
+      alignItems: "center",
+      gap: 20,
+    },
+    buttons: {
+      width: "45%",
+      alignItems: "center",
+      padding: 10,
+      borderWidth: 1,
+      gap: 10,
+      borderColor: Colors.darkGrey,
+      borderRadius: 5,
+    },
+  });
   const [steps, setSteps] = useState<number>(0);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[][]>([]);
   const [playersNeeded, setPlayersNeeded] = useState<{ [key: number]: number }>(
@@ -224,7 +242,6 @@ const TransactionPage = () => {
         });
       }
       if (err.message === "could't find Token") {
-        console.log(err);
         Notifier.showNotification({
           title: "Please Login",
           description: "Please Login to process to book",
@@ -242,7 +259,6 @@ const TransactionPage = () => {
       {waiting ? (
         <View
           style={{
-            height: "100%",
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -250,7 +266,7 @@ const TransactionPage = () => {
           <ActivityIndicator size={"large"} color={Colors.primary} />
         </View>
       ) : (
-        <SafeAreaView style={{ backgroundColor: Colors.white }}>
+        <SafeAreaView style={{ backgroundColor: Colors.backgroundColor }}>
           <View style={{ height: "100%" }}>
             {/* Header */}
             <View
@@ -297,7 +313,7 @@ const TransactionPage = () => {
             {/* Body */}
             <ScrollView
               style={{
-                backgroundColor: Colors.white,
+                backgroundColor: Colors.backgroundColor,
                 width: "100%",
                 height: "90%",
               }}
@@ -315,7 +331,7 @@ const TransactionPage = () => {
                       borderRadius: 10,
                       borderWidth: 1,
                       width: "70%",
-                      borderColor: Colors.littleDark,
+                      borderColor: Colors.themeColorTextPure,
                     }}
                   >
                     <View
@@ -324,12 +340,25 @@ const TransactionPage = () => {
                         justifyContent: "space-between",
                         padding: 20,
                         borderBottomWidth: 1,
+                        borderBottomColor: Colors.themeColorTextPure,
                       }}
                     >
-                      <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                      <Text
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 300,
+                          color: Colors.themeColorTextPure,
+                        }}
+                      >
                         Date
                       </Text>
-                      <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                      <Text
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 300,
+                          color: Colors.themeColorTextPure,
+                        }}
+                      >
                         {bookingDetails?.date
                           ? format(
                               new Date(bookingDetails.date),
@@ -351,10 +380,22 @@ const TransactionPage = () => {
                             padding: 20,
                           }}
                         >
-                          <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                          <Text
+                            style={{
+                              fontSize: 18,
+                              fontWeight: 300,
+                              color: Colors.themeColorTextPure,
+                            }}
+                          >
                             Time
                           </Text>
-                          <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                          <Text
+                            style={{
+                              fontSize: 18,
+                              fontWeight: 300,
+                              color: Colors.themeColorTextPure,
+                            }}
+                          >
                             {bookingDetails?.workTime}
                           </Text>
                         </View>
@@ -374,12 +415,25 @@ const TransactionPage = () => {
                                   justifyContent: "space-between",
                                   padding: 20,
                                   borderBottomWidth: isLast ? 0 : 1,
+                                  borderColor: Colors.themeColorTextPure,
                                 }}
                               >
-                                <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                                <Text
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: 300,
+                                    color: Colors.themeColorTextPure,
+                                  }}
+                                >
                                   Time {index + 1}
                                 </Text>
-                                <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                                <Text
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: 300,
+                                    color: Colors.themeColorTextPure,
+                                  }}
+                                >
                                   {startTime} – {endTime}
                                 </Text>
                               </View>
@@ -395,7 +449,7 @@ const TransactionPage = () => {
                       borderRadius: 10,
                       borderWidth: 1,
                       width: "70%",
-                      borderColor: Colors.littleDark,
+                      borderColor: Colors.themeColorTextPure,
                     }}
                   >
                     {!wholeDay && (
@@ -406,6 +460,7 @@ const TransactionPage = () => {
                           padding: 20,
                           borderBottomWidth: 1,
                           alignItems: "center",
+                          borderBottomColor: Colors.themeColorTextPure,
                         }}
                       >
                         <View
@@ -418,13 +473,25 @@ const TransactionPage = () => {
                           <MaterialCommunityIcons
                             name="clock-time-nine-outline"
                             size={24}
-                            color="black"
+                            color={Colors.themeColorTextPure}
                           />
-                          <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                          <Text
+                            style={{
+                              fontSize: 18,
+                              fontWeight: 300,
+                              color: Colors.themeColorTextPure,
+                            }}
+                          >
                             1 Hour
                           </Text>
                         </View>
-                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                        <Text
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 300,
+                            color: Colors.themeColorTextPure,
+                          }}
+                        >
                           ₮{bookingDetails?.price.oneHour}
                         </Text>
                       </View>
@@ -436,8 +503,10 @@ const TransactionPage = () => {
                         padding: 20,
                       }}
                     >
-                      <Text>TOTAL</Text>
-                      <Text>
+                      <Text style={{ color: Colors.themeColorTextPure }}>
+                        TOTAL
+                      </Text>
+                      <Text style={{ color: Colors.themeColorTextPure }}>
                         ₮
                         {wholeDay
                           ? bookingDetails?.price?.wholeDay
@@ -456,7 +525,6 @@ const TransactionPage = () => {
                       flex: 1,
                     }}
                   >
-                    <View></View>
                     <TouchableOpacity
                       style={[
                         styles.buttons,
@@ -489,7 +557,13 @@ const TransactionPage = () => {
                           borderRadius: 5,
                         }}
                       >
-                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                        <Text
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 300,
+                            color: Colors.themeColorTextPure,
+                          }}
+                        >
                           {bookingDetails?.workTime}
                         </Text>
                         <View
@@ -512,9 +586,11 @@ const TransactionPage = () => {
                             <MaterialIcons
                               name="people-alt"
                               size={24}
-                              color="black"
+                              color={Colors.themeColorTextPure}
                             />
-                            <Text>Peoples Needed</Text>
+                            <Text style={{ color: Colors.themeColorTextPure }}>
+                              Peoples Needed
+                            </Text>
                           </View>
                           <View
                             style={{
@@ -537,7 +613,11 @@ const TransactionPage = () => {
                                 }
                               }}
                             >
-                              <AntDesign name="plus" size={20} color="black" />
+                              <AntDesign
+                                name="plus"
+                                size={20}
+                                color={Colors.themeColorTextPure}
+                              />
                             </TouchableOpacity>
                             <Text style={{ fontSize: 20 }}>
                               {wholeDayPeople}
@@ -548,7 +628,11 @@ const TransactionPage = () => {
                                   setWholeDayPeople(wholeDayPeople - 1);
                               }}
                             >
-                              <AntDesign name="minus" size={20} color="black" />
+                              <AntDesign
+                                name="minus"
+                                size={20}
+                                color={Colors.themeColorTextPure}
+                              />
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -571,10 +655,22 @@ const TransactionPage = () => {
                                 borderRadius: 5,
                               }}
                             >
-                              <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                              <Text
+                                style={{
+                                  fontSize: 18,
+                                  fontWeight: 300,
+                                  color: Colors.themeColorTextPure,
+                                }}
+                              >
                                 Session {index + 1}
                               </Text>
-                              <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                              <Text
+                                style={{
+                                  fontSize: 18,
+                                  fontWeight: 300,
+                                  color: Colors.themeColorTextPure,
+                                }}
+                              >
                                 {startTime} – {endTime}
                               </Text>
                               <View
@@ -597,9 +693,13 @@ const TransactionPage = () => {
                                   <MaterialIcons
                                     name="people-alt"
                                     size={24}
-                                    color="black"
+                                    color={Colors.themeColorTextPure}
                                   />
-                                  <Text>Peoples Needed</Text>
+                                  <Text
+                                    style={{ color: Colors.themeColorTextPure }}
+                                  >
+                                    Peoples Needed
+                                  </Text>
                                 </View>
                                 <View
                                   style={{
@@ -631,7 +731,7 @@ const TransactionPage = () => {
                                     <AntDesign
                                       name="plus"
                                       size={20}
-                                      color="black"
+                                      color={Colors.themeColorTextPure}
                                     />
                                   </TouchableOpacity>
                                   <Text style={{ fontSize: 20 }}>
@@ -651,7 +751,7 @@ const TransactionPage = () => {
                                     <AntDesign
                                       name="minus"
                                       size={20}
-                                      color="black"
+                                      color={Colors.themeColorTextPure}
                                     />
                                   </TouchableOpacity>
                                 </View>
@@ -772,7 +872,7 @@ const TransactionPage = () => {
                               <MaterialCommunityIcons
                                 name="clock-time-nine-outline"
                                 size={24}
-                                color="black"
+                                color={Colors.themeColorTextPure}
                               />
                               <Text style={{ fontSize: 18, fontWeight: 300 }}>
                                 Whole Day
@@ -903,7 +1003,7 @@ const TransactionPage = () => {
                                 <MaterialCommunityIcons
                                   name="clock-time-nine-outline"
                                   size={24}
-                                  color="black"
+                                  color={Colors.themeColorTextPure}
                                 />
                                 <Text style={{ fontSize: 18, fontWeight: 300 }}>
                                   1 Hour
@@ -1071,23 +1171,5 @@ const TransactionPage = () => {
     </SafeAreaProvider>
   );
 };
-
-const styles = StyleSheet.create({
-  innerContainer: {
-    backgroundColor: Colors.white,
-    flex: 1,
-    alignItems: "center",
-    gap: 20,
-  },
-  buttons: {
-    width: "45%",
-    alignItems: "center",
-    padding: 10,
-    borderWidth: 1,
-    gap: 10,
-    borderColor: Colors.darkGrey,
-    borderRadius: 5,
-  },
-});
 
 export default TransactionPage;

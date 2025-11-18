@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import { GroupChat } from "@/interfaces/chatType";
 import { format } from "date-fns";
 import { router } from "expo-router";
@@ -6,6 +5,7 @@ import React from "react";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { Avatar, Badge } from "react-native-paper";
 import { useHybridTime } from "../util/time_changing";
+import { useTheme } from "../../context/themeContext";
 
 function PersonalChat({
   chats,
@@ -14,6 +14,22 @@ function PersonalChat({
   chats: any;
   join_function: (group_ID: string) => void;
 }) {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    groupItem: {
+      padding: 10,
+      marginVertical: 7,
+      borderRadius: 5,
+      backgroundColor: Colors.containerColor,
+      shadowColor: Colors.dark,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 4,
+      width: "90%",
+    },
+  });
+
   return (
     <>
       {chats.map((item: GroupChat) => {
@@ -42,7 +58,7 @@ function PersonalChat({
                 size={40}
                 source={require("@/assets/images/sportHall_Icon_full_primary.png")}
                 theme={{
-                  colors: { primary: Colors.white },
+                  colors: { primary: Colors.containerColor },
                 }}
               />
               <View
@@ -58,7 +74,12 @@ function PersonalChat({
                 item.startTime &&
                 item.endTime ? (
                   <>
-                    <Text style={{ fontWeight: 600 }}>
+                    <Text
+                      style={{
+                        fontWeight: 600,
+                        color: Colors.themeColorTextPure,
+                      }}
+                    >
                       {item.sportHallName}
                     </Text>
                     <Text style={{ fontWeight: 800 }}>-</Text>
@@ -86,7 +107,11 @@ function PersonalChat({
                         width: "100%",
                       }}
                     >
-                      <Text style={{}}>
+                      <Text
+                        style={{
+                          color: Colors.themeColorTextPure,
+                        }}
+                      >
                         {item.notUser
                           ? String(item.notUser).charAt(0).toUpperCase() +
                             String(item.notUser).slice(1)
@@ -131,20 +156,5 @@ function PersonalChat({
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  groupItem: {
-    padding: 10,
-    marginVertical: 7,
-    borderRadius: 5,
-    backgroundColor: Colors.white,
-    shadowColor: Colors.dark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-    width: "90%",
-  },
-});
 
 export default PersonalChat;

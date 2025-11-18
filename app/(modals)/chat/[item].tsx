@@ -20,7 +20,6 @@ import {
   sendMessage,
 } from "@/app/(modals)/chat/util/message_function";
 import { Socket } from "socket.io-client";
-import Colors from "@/constants/Colors";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Avatar } from "react-native-paper";
@@ -30,9 +29,136 @@ import { useAuth } from "../context/authContext";
 import { ChatSeparator, Message } from "@/interfaces/chatType";
 import { generatedId } from "./util/objectID";
 import { useChatStore } from "../context/store/chatStore";
+import { useTheme } from "../context/themeContext";
 
 const DirectChatScreen: React.FC = ({}) => {
   const { item } = useLocalSearchParams();
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    input: {
+      flex: 1,
+      borderRadius: 20,
+      padding: 7,
+      paddingHorizontal: 16,
+      backgroundColor: Colors.lightGrey,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 10,
+      gap: 10,
+    },
+    sendButton: {
+      padding: 12,
+      borderRadius: 25,
+      marginLeft: 8,
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    sendButtonText: {
+      fontSize: 16,
+      color: "#fff",
+      fontWeight: "bold",
+    },
+
+    msjContainer: {},
+    msjInside: {
+      flexDirection: "column",
+      borderWidth: 1,
+      padding: 5,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: "#F9FAFB",
+    },
+    title: {
+      fontSize: 28,
+      marginVertical: 16,
+      textAlign: "center",
+      fontWeight: "bold",
+      color: "#333",
+    },
+    subtitle: {
+      fontSize: 20,
+      marginVertical: 12,
+      fontWeight: "600",
+      color: "#555",
+      textAlign: "center",
+    },
+    groupItemContainer: {
+      marginVertical: 20,
+      marginHorizontal: 20,
+    },
+    groupItem: {
+      padding: 10,
+      marginVertical: 7,
+      borderRadius: 5,
+      backgroundColor: Colors.white,
+      shadowColor: Colors.dark,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    groupText: {
+      fontSize: 18,
+      color: "black",
+      fontWeight: "bold",
+      textAlign: "center",
+    },
+    messageContainer: {
+      marginVertical: 3,
+      width: "100%",
+    },
+    userNameText: {
+      fontSize: 12,
+      color: Colors.primary,
+      textShadowColor: Colors.primary,
+      textShadowRadius: 0.5,
+    },
+    messageText: {
+      padding: 5,
+      fontSize: 18,
+      marginRight: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      textAlign: "center",
+    },
+    messagesList: {
+      //height: Dimensions.get("window").height,
+    },
+
+    TimerContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+    },
+    userImage: {},
+
+    dateSeparator: {
+      flexDirection: "row",
+      alignItems: "center",
+      width: "100%",
+      paddingHorizontal: 10,
+    },
+    line: {
+      flex: 1,
+      height: 1,
+      backgroundColor: Colors.primary,
+      marginHorizontal: 5,
+    },
+    dateText: {
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+      color: Colors.primary,
+      fontWeight: "400",
+    },
+  });
+
   const [newMessage, setNewMessage] = useState<string>("");
   const [userDataParsed, setuserDataParsed] = useState<any>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -455,130 +581,5 @@ const DirectChatScreen: React.FC = ({}) => {
     </SafeAreaProvider>
   );
 };
-
-const styles = StyleSheet.create({
-  input: {
-    flex: 1,
-    borderRadius: 20,
-    padding: 7,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.lightGrey,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    gap: 10,
-  },
-  sendButton: {
-    padding: 12,
-    borderRadius: 25,
-    marginLeft: 8,
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sendButtonText: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "bold",
-  },
-
-  msjContainer: {},
-  msjInside: {
-    flexDirection: "column",
-    borderWidth: 1,
-    padding: 5,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-  },
-  title: {
-    fontSize: 28,
-    marginVertical: 16,
-    textAlign: "center",
-    fontWeight: "bold",
-    color: "#333",
-  },
-  subtitle: {
-    fontSize: 20,
-    marginVertical: 12,
-    fontWeight: "600",
-    color: "#555",
-    textAlign: "center",
-  },
-  groupItemContainer: {
-    marginVertical: 20,
-    marginHorizontal: 20,
-  },
-  groupItem: {
-    padding: 10,
-    marginVertical: 7,
-    borderRadius: 5,
-    backgroundColor: Colors.white,
-    shadowColor: Colors.dark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  groupText: {
-    fontSize: 18,
-    color: "black",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  messageContainer: {
-    marginVertical: 3,
-    width: "100%",
-  },
-  userNameText: {
-    fontSize: 12,
-    color: Colors.primary,
-    textShadowColor: Colors.primary,
-    textShadowRadius: 0.5,
-  },
-  messageText: {
-    padding: 5,
-    fontSize: 18,
-    marginRight: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    textAlign: "center",
-  },
-  messagesList: {
-    //height: Dimensions.get("window").height,
-  },
-
-  TimerContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-  userImage: {},
-
-  dateSeparator: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.primary,
-    marginHorizontal: 5,
-  },
-  dateText: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    color: Colors.primary,
-    fontWeight: "400",
-  },
-});
 
 export default DirectChatScreen;

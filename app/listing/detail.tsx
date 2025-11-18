@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
@@ -16,6 +15,7 @@ import { router } from "expo-router";
 import { useBookingStore } from "../(modals)/context/store/bookStore";
 import Calendar from "./book/modal_calendar";
 import WeekCalendar from "@/app/(modals)/book/components/calendar_strip";
+import { useTheme } from "../(modals)/context/themeContext";
 
 export type FormData = {
   sportHallID: string;
@@ -59,6 +59,7 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
     wholeDayBooked,
     today,
   }) => {
+    const { colors: Colors, theme } = useTheme();
     const now = new Date();
     const timeString = `${timeSlot.start_time}~${timeSlot.end_time}`;
     const isUnavailable = unavailableTimes.unavailable.includes(timeString);
@@ -92,21 +93,49 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
             styles.lalarinSdaBtn,
             {
               borderColor: isSelected
-                ? Colors.dark
+                ? Colors.primary
                 : isDisabled
-                ? Colors.grey
-                : Colors.littleDarkGrey,
-
+                ? theme === "dark"
+                  ? Colors.littleDark
+                  : Colors.littleDarkGrey
+                : isJoinable
+                ? Colors.green
+                : Colors.themeColorTextSecondary,
+              shadowColor: isJoinable ? Colors.green : Colors.primary,
+              shadowOpacity:
+                theme === "dark" && isSelected
+                  ? 0.8
+                  : isJoinable && theme === "dark"
+                  ? 0.3
+                  : 0,
+              shadowRadius: 10,
+              shadowOffset: { width: 0, height: 0 },
               backgroundColor: isJoinable
                 ? Colors.lightGreen
                 : wholeDayBooked.joinableWholeDay
                 ? Colors.lightGreen
-                : Colors.white,
+                : Colors.containerColor,
+
+              borderWidth: 2,
             },
           ]}
           disabled={isDisabled}
         >
-          <Text style={{ color: Colors.darkGrey }}>{timeString}</Text>
+          <Text
+            style={{
+              color: isJoinable
+                ? Colors.darkGrey
+                : isDisabled
+                ? Colors.darkGrey
+                : Colors.themeColorTextPure,
+
+              textDecorationLine: isDisabled ? "line-through" : "none",
+              textDecorationStyle: "solid",
+              textDecorationColor: Colors.darkGrey,
+            }}
+          >
+            {timeString}
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -130,6 +159,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   sportHallID,
   setIsOrderScreenVisible,
 }) => {
+  const { colors: Colors, theme } = useTheme();
   const [today, setToday] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
@@ -277,8 +307,16 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
     });
     router.push(`/listing/book/${zaal_id}`);
   };
+  const isSelected = selectedTimeSlots.includes("WHOLE_DAY");
   return (
-    <View style={styles.zahialgaView}>
+    <View
+      style={{
+        width: "100%",
+        height: "100%",
+        flex: 1,
+        backgroundColor: Colors.white,
+      }}
+    >
       {isLoading ? (
         <View
           style={{
@@ -293,7 +331,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           style={{
             width: "100%",
             height: "100%",
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.containerColor,
           }}
         >
           {!wholeDayModal && (
@@ -333,6 +371,24 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                   }}
                   selectedDay={today}
                   setSelectedDay={setToday}
+                  textWeekStyle={{
+                    color:
+                      theme === "dark"
+                        ? Colors.themeColorTextPure
+                        : Colors.dark,
+                  }}
+                  textDayStyle={{
+                    color:
+                      theme === "dark"
+                        ? Colors.themeColorTextPure
+                        : Colors.dark,
+                  }}
+                  moveIconStyle={{
+                    color: Colors.themeColorTextPure,
+                  }}
+                  textMonthStyle={{
+                    color: Colors.themeColorTextPure,
+                  }}
                 />
               </View>
             </View>
@@ -340,8 +396,6 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           {/* Header */}
 
           <View style={styles.LLR_style}>
-            {/* Render available and unavailable time slots */}
-
             {/* Timeslot */}
             {wholeDayModal ? (
               <>
@@ -370,10 +424,10 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                 >
                   <TouchableOpacity
                     style={{
-                      borderColor: selectedTimeSlots.includes("WHOLE_DAY")
-                        ? Colors.darkGrey
-                        : Colors.littleDarkGrey,
-                      borderWidth: 1,
+                      borderColor: isSelected
+                        ? Colors.primary
+                        : Colors.themeColorTextSecondary,
+                      borderWidth: 2,
                       padding: 15,
                       borderRadius: 5,
                     }}
@@ -409,7 +463,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                       style={{
                         textAlign: "center",
                         fontSize: 20,
-                        color: Colors.littleDark,
+                        color: Colors.themeColorTextSecondary,
                       }}
                     >
                       Select Whole Day
@@ -456,6 +510,10 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                   padding: 15,
                   width: "50%",
                   borderRadius: 5,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: theme === "dark" ? 1.8 : 0,
+                  shadowRadius: 10,
+                  shadowOffset: { width: 0, height: 0 },
                   borderColor: Colors.primary,
                   backgroundColor: Colors.secondary,
                 }}
@@ -486,19 +544,13 @@ const styles = StyleSheet.create({
   loader: {
     height: "100%",
   },
-  zahialgaView: {
-    width: "100%",
-    height: "100%",
-    flex: 1,
-    backgroundColor: Colors.white,
-  },
+
   timeSlotView: {
     flexDirection: "row",
     //backgroundColor: "black",
   },
   lalarinSdaBtn: {
     borderWidth: 1,
-
     borderRadius: 5,
     marginBottom: 10,
     width: "50%",

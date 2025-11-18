@@ -18,6 +18,7 @@ export const fetchRoleAndProfile = async (
       };
     } catch (err: any) {
       console.log("PISDA", err);
+
       if (err.response) {
         const status = err.response.status;
         switch (status) {

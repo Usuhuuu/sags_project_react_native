@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Colors from "@/constants/Colors"; // Assuming Colors is defined properly
+import Colors from "@/constants/Colors";
 import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
 import { useTranslation } from "react-i18next";
 

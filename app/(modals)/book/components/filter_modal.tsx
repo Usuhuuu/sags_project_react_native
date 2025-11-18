@@ -1,10 +1,10 @@
-import Colors from "@/constants/Colors";
 import { OrderScreenSeparator } from "@/interfaces/order&book_type";
-import { Entypo, Fontisto } from "@expo/vector-icons";
+import { AntDesign, Entypo, Fontisto } from "@expo/vector-icons";
 import React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, TouchableOpacity, View, Text, StyleSheet } from "react-native";
+import { useTheme } from "../../context/themeContext";
 
 interface Filter_Modals_Props {
   screenSeparator: OrderScreenSeparator;
@@ -23,6 +23,45 @@ const Filter_Modals = ({
   setModalVisible,
   setDate,
 }: Filter_Modals_Props) => {
+  const { colors: Colors } = useTheme();
+  const style = StyleSheet.create({
+    separatorContainer: {
+      flexDirection: "row",
+      backgroundColor: Colors.lightGrey,
+      padding: 2,
+      borderRadius: 10,
+    },
+    separator: {
+      padding: 10,
+      width: "50%",
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 10,
+    },
+
+    filterContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+    },
+    picker: {
+      alignItems: "center",
+    },
+    button: {
+      backgroundColor: Colors.grey,
+      borderRadius: 8,
+      marginVertical: 5,
+    },
+    buttonText: {
+      fontSize: 20,
+    },
+    value: {
+      fontSize: 22,
+      fontWeight: "bold",
+      marginVertical: 5,
+      color: Colors.themeColorTextPure,
+    },
+  });
+
   const { t } = useTranslation();
   const orderLangInit: any = t("orderScreen", { returnObjects: true });
   const months = [
@@ -107,8 +146,9 @@ const Filter_Modals = ({
       >
         <View
           style={{
-            width: "60%",
-            backgroundColor: Colors.white,
+            width: "70%",
+            height: "auto",
+            backgroundColor: Colors.backgroundColor,
             padding: 10,
             borderRadius: 8,
             shadowColor: "#000",
@@ -116,6 +156,7 @@ const Filter_Modals = ({
             shadowOpacity: 0.3,
             shadowRadius: 6,
             elevation: 8,
+            borderColor: Colors.white,
           }}
         >
           <View
@@ -130,11 +171,26 @@ const Filter_Modals = ({
                 setYear(new Date().getFullYear());
               }}
             >
-              <Fontisto name="close" size={24} color={Colors.dark} />
+              <AntDesign
+                name="close"
+                size={24}
+                color={Colors.themeColorTextPure}
+              />
             </TouchableOpacity>
           </View>
-          <View style={{ alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ color: Colors.dark, fontSize: 20, fontWeight: 700 }}>
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: Colors.themeColorTextPure,
+                fontSize: 20,
+                fontWeight: 700,
+              }}
+            >
               {orderLangInit.filterText}
             </Text>
           </View>
@@ -211,39 +267,3 @@ const Filter_Modals = ({
 };
 
 export default Filter_Modals;
-const style = StyleSheet.create({
-  separatorContainer: {
-    flexDirection: "row",
-    backgroundColor: Colors.lightGrey,
-    padding: 2,
-    borderRadius: 10,
-  },
-  separator: {
-    padding: 10,
-    width: "50%",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-  },
-
-  filterContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  picker: {
-    alignItems: "center",
-  },
-  button: {
-    backgroundColor: Colors.grey,
-    borderRadius: 8,
-    marginVertical: 5,
-  },
-  buttonText: {
-    fontSize: 20,
-  },
-  value: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginVertical: 5,
-  },
-});

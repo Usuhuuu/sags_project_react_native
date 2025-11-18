@@ -8,8 +8,8 @@ import Animated, {
   withDelay,
   Easing,
 } from "react-native-reanimated";
-import Colors from "@/constants/Colors";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 interface CallWaveButtonProps {
   time_slot: string[];
@@ -61,6 +61,7 @@ const CallWaveButton = ({
   shouldAnimate = true,
 }: CallWaveButtonProps) => {
   const { t } = useTranslation();
+  const { colors: Colors } = useTheme();
   const PartnerLanguage: any = t("togetherScreen", {
     returnObjects: true,
   });

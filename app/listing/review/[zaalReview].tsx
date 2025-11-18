@@ -10,10 +10,10 @@ import { AntDesign, Entypo } from "@expo/vector-icons";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import SportHallData from "@/assets/Data/sportHall.json";
 import { SportHallDataType } from "@/interfaces/listing";
-import Colors from "@/constants/Colors";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import StarRating from "@/app/listing/review/util/star_rating";
 import * as Progress from "react-native-progress";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 interface Review {
   _id: string;
@@ -32,6 +32,8 @@ interface Review {
 }
 
 const SportHallReviewPage = () => {
+  const { colors: Colors } = useTheme();
+
   const [reviews, setReviews] = useState<Record<string, Review>>({});
   const [rating, setRating] = useState<number>(0);
   const [count, setCount] = useState<number>(0);

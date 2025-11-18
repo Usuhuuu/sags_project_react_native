@@ -3,9 +3,9 @@ import React, { useMemo, useRef, useState } from "react";
 import Listings from "@/components/Listing";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { SportHallDataType } from "@/interfaces/listing";
-import Colors from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import type { SharedValue } from "react-native-reanimated";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 interface ListingBottomSheetProps {
   listing: SportHallDataType[];
@@ -18,6 +18,8 @@ const ListingBottomSheet = ({
   category,
   bottomSheetY,
 }: ListingBottomSheetProps) => {
+  const { colors: Colors } = useTheme();
+
   const bottomSheetRef = useRef<BottomSheet>(null);
 
   const [refresh, setrefresh] = useState<number>(0);
@@ -41,12 +43,45 @@ const ListingBottomSheet = ({
         width: 60,
         borderRadius: 2,
       }}
-      style={[styles.sheetContainer]}
+      style={{
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        backgroundColor: Colors.white,
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 5,
+      }}
     >
-      <View style={styles.contentContainer}>
+      <View
+        style={{
+          backgroundColor: Colors.white,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          flex: 1,
+        }}
+      >
         <Listings listings={listing} category={category} refresh={refresh} />
         <View style={styles.absoluteBtn}>
-          <TouchableOpacity onPress={showMap} style={styles.btn}>
+          <TouchableOpacity
+            onPress={showMap}
+            style={{
+              backgroundColor: Colors.primary,
+              borderRadius: 20,
+              height: 50,
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              paddingHorizontal: 20,
+              marginRight: 20,
+              shadowColor: Colors.primary,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 5,
+              bottom: 30,
+            }}
+          >
             <Text style={styles.btnText}>Map</Text>
             <Ionicons name="map" size={20} color="white" />
           </TouchableOpacity>
@@ -57,47 +92,17 @@ const ListingBottomSheet = ({
 };
 
 const styles = StyleSheet.create({
-  contentContainer: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    flex: 1,
-  },
   absoluteBtn: {
     position: "absolute",
     bottom: 50,
     alignSelf: "flex-end",
     width: "30%",
   },
-  btn: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    height: 50,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginRight: 20,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-    bottom: 30,
-  },
+
   btnText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-  },
-  sheetContainer: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    backgroundColor: Colors.white,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
   },
 });
 

@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import { FriendSeparator, FriendsType } from "@/interfaces/friendType";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -6,10 +5,13 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Image } from "react-native";
 import { useFriendStore } from "@/app/(modals)/context/store/friendStore";
+import { useTheme } from "../../context/themeContext";
 
 export const FriendItem = React.memo(
   ({ item, userStatus }: { item: FriendsType; userStatus: string }) => {
     const { setFriendDetails } = useFriendStore();
+    const { colors: Colors } = useTheme();
+
     return (
       <View
         style={{

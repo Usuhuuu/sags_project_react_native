@@ -5,7 +5,6 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native";
-import Colors from "@/constants/Colors";
 import * as Clipboard from "expo-clipboard";
 import { mutate } from "swr";
 import ContractorPage from "@/components/profileScreens/contractor";
@@ -14,8 +13,11 @@ import NormalUser from "@/components/profileScreens/normalUser";
 import { useAuth } from "../(modals)/context/authContext";
 import Page from "../(modals)/authentication/login";
 import { auth_swr } from "../../hooks/useswr";
+import { useTheme } from "../(modals)/context/themeContext";
 
 const Profile: React.FC = () => {
+  const { colors: Colors } = useTheme();
+
   const [formData, setFormData] = useState<any>({});
   const [path, setPath] = useState<string>("main");
   const [loading, setLoading] = useState<boolean>(false);
@@ -154,13 +156,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  closeButton: {
-    marginTop: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: Colors.primary,
-    borderRadius: 5,
-  },
+
   closeButtonText: {
     color: "white",
     fontSize: 16,

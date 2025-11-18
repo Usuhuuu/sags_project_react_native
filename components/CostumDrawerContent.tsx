@@ -13,7 +13,6 @@ import {
 } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Colors from "@/constants/Colors";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useTranslation } from "react-i18next";
 import { Ionicons, Fontisto, AntDesign } from "@expo/vector-icons";
@@ -21,16 +20,96 @@ import { useAuth } from "@/app/(modals)/context/authContext";
 import { auth_swr } from "@/hooks/useswr";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { notificationPermission } from "@/hooks/permissions";
-
+import { useTheme } from "@/app/(modals)/context/themeContext";
+interface UserData {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  unique_user_ID: string;
+}
 const CustomDrawerContent = (props: any) => {
-  interface UserData {
-    email: string;
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    unique_user_ID: string;
-  }
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    container: {},
+    header: {
+      padding: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.primary,
+      alignItems: "center",
+      flexDirection: "row",
+      backgroundColor: Colors.light,
+      maxWidth: "100%",
+    },
 
+    headerTouchable: {
+      padding: 4,
+    },
+    headerText: {
+      fontSize: 20,
+      fontWeight: "400",
+      color: Colors.primary,
+      fontFamily: "cursive",
+    },
+    profileImage: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: Colors.primary,
+    },
+    userDataContainer: {
+      fontSize: 14,
+      fontWeight: "bold",
+      color: "#9acffd",
+    },
+    profileName: {
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    footer: {
+      paddingBottom: 20,
+      padding: 20,
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 10,
+    },
+    log: {
+      justifyContent: "center",
+      backgroundColor: Colors.grey,
+    },
+    logInside: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 15,
+    },
+    logInsideTouchable: {
+      paddingHorizontal: 20,
+      flexDirection: "row",
+    },
+    logText: {
+      paddingHorizontal: 20,
+      color: Colors.darkGrey,
+    },
+    footerButton: {
+      marginVertical: 10,
+      borderRadius: 8,
+    },
+    drawerItemLabel: {
+      fontWeight: "bold",
+      color: "#78909C",
+    },
+    drawerItemLabel1: {
+      fontWeight: "bold",
+      color: Colors.primary,
+    },
+    rightsText: {
+      fontSize: 14,
+      color: "#888",
+      marginLeft: 5,
+    },
+  });
   const [userData, setUserData] = useState<UserData | null>(null);
   const { bottom } = useSafeAreaInsets();
   const { t } = useTranslation();
@@ -208,86 +287,5 @@ const CustomDrawerContent = (props: any) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {},
-  header: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.primary,
-    alignItems: "center",
-    flexDirection: "row",
-    backgroundColor: Colors.light,
-    maxWidth: "100%",
-  },
-
-  headerTouchable: {
-    padding: 4,
-  },
-  headerText: {
-    fontSize: 20,
-    fontWeight: "400",
-    color: Colors.primary,
-    fontFamily: "cursive",
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  userDataContainer: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#9acffd",
-  },
-  profileName: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  footer: {
-    paddingBottom: 20,
-    padding: 20,
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 10,
-  },
-  log: {
-    justifyContent: "center",
-    backgroundColor: Colors.grey,
-  },
-  logInside: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 15,
-  },
-  logInsideTouchable: {
-    paddingHorizontal: 20,
-    flexDirection: "row",
-  },
-  logText: {
-    paddingHorizontal: 20,
-    color: Colors.darkGrey,
-  },
-  footerButton: {
-    marginVertical: 10,
-    borderRadius: 8,
-  },
-  drawerItemLabel: {
-    fontWeight: "bold",
-    color: "#78909C",
-  },
-  drawerItemLabel1: {
-    fontWeight: "bold",
-    color: Colors.primary,
-  },
-  rightsText: {
-    fontSize: 14,
-    color: "#888",
-    marginLeft: 5,
-  },
-});
 
 export default CustomDrawerContent;

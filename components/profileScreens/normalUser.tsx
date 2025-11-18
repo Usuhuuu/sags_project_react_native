@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ProfileHeader from "@/components/ProfileHeader";
-import Colors from "@/constants/Colors";
 import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "@/app/(modals)/context/authContext";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 interface ProfileNormalUserProps {
   copyToClipboard: () => void;
@@ -16,6 +16,8 @@ interface ProfileNormalUserProps {
   ];
 }
 const NormalUser: React.FC<ProfileNormalUserProps> = () => {
+  const { colors: Colors } = useTheme();
+
   const [userData, setUserData] = useState(null);
   const { LoginStatus } = useAuth();
   const { data, error } = auth_swr(
@@ -116,13 +118,6 @@ const styles = StyleSheet.create({
     height: "90%",
     justifyContent: "center",
     alignItems: "center",
-  },
-  closeButton: {
-    marginTop: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: Colors.primary,
-    borderRadius: 5,
   },
   closeButtonText: {
     color: "white",

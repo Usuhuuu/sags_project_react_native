@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { router, Tabs } from "expo-router";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import Colors from "@/constants/Colors";
 import { LinearGradient } from "expo-linear-gradient";
 import ExploreHeader from "@/components/ExploreHeader"; // Import your ExploreHeader component
 import InfoScreen from "@/components/InfoScreen"; // Example drawer screen
@@ -35,9 +34,10 @@ import { useSharedValue } from "react-native-reanimated";
 import BookingCheck from "@/components/profileScreens/contractorScreen/booking_check";
 import { useCalendar } from "@/app/(modals)/context/CalendarContext";
 import { Animated, Easing } from "react-native";
+import { useTheme } from "../(modals)/context/themeContext";
 
-// Create a Drawer Navigator
 export const TabsLayout = () => {
+  const { colors: Colors } = useTheme();
   const { t } = useTranslation();
   const { LoginStatus } = useAuth();
   const bottomSheetY = useSharedValue(0);
@@ -45,10 +45,12 @@ export const TabsLayout = () => {
   return (
     <Tabs
       screenOptions={{
-        tabBarInactiveTintColor: Colors.dark,
-        tabBarActiveTintColor: Colors.light,
+        tabBarInactiveTintColor: Colors.themeColorTextSecondary,
+        tabBarActiveTintColor: Colors.themeColorTextPure,
+        headerShadowVisible: false,
         tabBarStyle: {
-          borderColor: Colors.primary,
+          backgroundColor: Colors.containerColor,
+          borderTopColor: Colors.primary,
         },
 
         tabBarBackground: () => (
@@ -56,15 +58,23 @@ export const TabsLayout = () => {
             colors={[Colors.secondary, Colors.primary]}
             start={{ x: 0, y: 0.2 }}
             end={{ x: 0, y: 1 }}
-            style={[StyleSheet.absoluteFill]}
+            style={StyleSheet.absoluteFill}
           />
         ),
+
+        headerStyle: {
+          backgroundColor: Colors.containerColor,
+        },
+        headerTintColor: Colors.themeColorTextPure,
+        headerTitleStyle: { color: Colors.primary },
       }}
     >
+      {/* ------------ HOME TAB ----------- */}
       <Tabs.Screen
         name="index"
         options={{
           tabBarLabel: t("home"),
+          headerShadowVisible: false,
           header: () => (
             <ExploreHeader
               onCategoryChanged={(category) => console.log(category)}
@@ -76,94 +86,96 @@ export const TabsLayout = () => {
               style={{
                 padding: 5,
                 borderRadius: 20,
-                backgroundColor: focused ? Colors.light : "transparent",
+                backgroundColor: focused
+                  ? Colors.themeColorTextPure
+                  : "transparent",
               }}
             >
               <Image
                 source={require("../../assets/tab-icons/home.png")}
-                style={{
-                  width: 26,
-                  height: 26,
-                }}
-                accessibilityLabel="Home Tab"
-                accessibilityHint="Navigates to the home screen"
+                style={{ width: 26, height: 26 }}
               />
             </View>
           ),
         }}
       />
+
+      {/* ------------ INBOX TAB ----------- */}
       <Tabs.Screen
         name="inbox"
         options={{
           tabBarLabel: t("together"),
           headerTitle: t("together"),
+          headerShadowVisible: false,
           headerTitleStyle: { color: Colors.primary, fontSize: 24 },
 
-          headerRight: () => {
-            return (
-              <Image
-                source={require("../../assets/tab-icons/teamwork.png")}
-                style={{ width: 26, height: 26, marginRight: 10 }}
-                accessibilityLabel="Inbox Tab"
-                accessibilityHint="Navigates to the inbox screen"
-              ></Image>
-            );
-          },
+          headerRight: () => (
+            <Image
+              source={require("../../assets/tab-icons/teamwork.png")}
+              style={{ width: 26, height: 26, marginRight: 10 }}
+            />
+          ),
+
           tabBarIcon: ({ focused }) => (
             <View
               style={{
                 padding: 5,
                 borderRadius: 20,
-                backgroundColor: focused ? Colors.light : "transparent",
+                backgroundColor: focused
+                  ? Colors.themeColorTextPure
+                  : "transparent",
               }}
             >
               <Image
                 source={require("../../assets/tab-icons/teamwork.png")}
                 style={{ width: 26, height: 26 }}
-                accessibilityLabel="Inbox Tab"
-                accessibilityHint="Navigates to the inbox screen"
               />
             </View>
           ),
         }}
       />
+
+      {/* ------------ ORDER TAB ----------- */}
       <Tabs.Screen
         name="order"
         options={{
           tabBarLabel: t("myBookings"),
           headerTitle: t("myBookings"),
-          headerTitleStyle: { color: Colors.primary, fontSize: 28 },
+          headerShadowVisible: false,
           headerTitleAlign: "left",
+          headerTitleStyle: { color: Colors.primary, fontSize: 28 },
 
-          headerRight: () => {
-            return (
-              <TouchableOpacity>
-                <Ionicons
-                  name="filter-circle-outline"
-                  size={28}
-                  color={Colors.primary}
-                />
-              </TouchableOpacity>
-            );
-          },
-          tabBarIcon: ({ focused }) => {
-            return (
-              <View>
-                <FontAwesome name="address-book-o" size={24} color="black" />
-              </View>
-            );
-          },
+          headerRight: () => (
+            <TouchableOpacity>
+              <Ionicons
+                name="filter-circle-outline"
+                size={28}
+                color={Colors.primary}
+              />
+            </TouchableOpacity>
+          ),
+
+          tabBarIcon: () => (
+            <FontAwesome
+              name="address-book-o"
+              size={24}
+              color={Colors.primary}
+            />
+          ),
         }}
       />
+
+      {/* ------------ FRIEND TAB ----------- */}
       <Tabs.Screen
         name="friend"
         options={{
-          tabBarLabel: `${t("friends")}`,
-          headerTitle: `${t("friends")}`,
+          tabBarLabel: t("friends"),
+          headerTitle: t("friends"),
+          headerShadowVisible: false,
           headerTitleStyle: { color: Colors.primary, fontSize: 24 },
+
           headerRight: () => {
             const [modalVisible, setModalVisible] = useState(false);
-
             return (
               <TouchableOpacity
                 style={{ marginRight: 10 }}
@@ -181,106 +193,96 @@ export const TabsLayout = () => {
               </TouchableOpacity>
             );
           },
+
           tabBarIcon: ({ focused }) => (
             <View
               style={{
                 padding: 5,
                 borderRadius: 20,
-                backgroundColor: focused ? Colors.light : "transparent",
+                backgroundColor: focused
+                  ? Colors.themeColorTextPure
+                  : "transparent",
               }}
             >
               <Image
                 source={require("../../assets/tab-icons/friends.png")}
                 style={{ width: 28, height: 28 }}
-                accessibilityLabel="Explore Tab"
-                accessibilityHint="Navigates to the explore screen"
               />
             </View>
           ),
         }}
       />
+
+      {/* ------------ CHAT TAB ----------- */}
       <Tabs.Screen
-        name={"chat"}
+        name="chat"
         options={{
-          tabBarLabel: `${t("chat")}`,
+          tabBarLabel: t("chat"),
+          headerTitle: t("chat"),
+          headerTitleStyle: { color: Colors.primary, fontSize: 24 },
+          headerTitleAlign: "left",
+
+          headerRight: () => (
+            <View style={{ flexDirection: "row", gap: 15, marginRight: 10 }}>
+              <MaterialCommunityIcons
+                name="text-search"
+                size={28}
+                color={Colors.primary}
+              />
+              <TouchableOpacity
+                onPress={() => router.push("/(modals)/cameraModal")}
+              >
+                <Entypo name="new-message" size={24} color={Colors.primary} />
+              </TouchableOpacity>
+            </View>
+          ),
+
           tabBarIcon: ({ focused }) => (
             <View
               style={{
                 padding: 5,
                 borderRadius: 20,
-                backgroundColor: focused ? Colors.light : "transparent",
+                backgroundColor: focused
+                  ? Colors.themeColorTextPure
+                  : "transparent",
               }}
             >
               <Image
                 source={require("../../assets/tab-icons/chat.png")}
                 style={{ width: 30, height: 30 }}
-                accessibilityLabel="Chat Tab"
-                accessibilityHint="Navigates to the chat screen"
               />
             </View>
           ),
-          headerShown: true,
-          headerTitle: t("chat"),
-          headerTitleStyle: { color: Colors.primary, fontSize: 24 },
-          headerTitleAlign: "left",
-          headerRight: () => {
-            return (
-              <View
-                style={{ flexDirection: "row", marginHorizontal: 5, gap: 15 }}
-              >
-                <TouchableOpacity>
-                  <MaterialCommunityIcons
-                    name="text-search"
-                    size={28}
-                    color={Colors.primary}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    router.push("/(modals)/cameraModal");
-                  }}
-                >
-                  <Entypo
-                    name="new-message"
-                    size={24}
-                    color={Colors.primary}
-                    style={{ marginRight: 10 }}
-                  />
-                </TouchableOpacity>
-              </View>
-            );
-          },
         }}
       />
+
+      {/* ------------ PROFILE TAB ----------- */}
       <Tabs.Screen
         name="profile"
         options={{
-          tabBarLabel: `${t("profile")}`, // Profile Tab
+          tabBarLabel: t("profile"),
+          headerShown: !LoginStatus,
+          headerTitle: !LoginStatus ? t("aboutUs.login") : t("profile"),
+          headerTitleStyle: { color: Colors.primary, fontSize: 24 },
+
+          unmountOnBlur: true,
+
           tabBarIcon: ({ focused }) => (
             <View
               style={{
                 padding: 5,
                 borderRadius: 20,
-                backgroundColor: focused ? Colors.light : "transparent",
+                backgroundColor: focused
+                  ? Colors.themeColorTextPure
+                  : "transparent",
               }}
             >
               <Image
                 source={require("../../assets/tab-icons/athlete.png")}
                 style={{ width: 28, height: 28 }}
-                accessibilityLabel="Profile Tab"
-                accessibilityHint="Navigates to the profile screen"
               />
             </View>
           ),
-          headerShown: !LoginStatus,
-          headerTitle: !LoginStatus ? t("aboutUs.login") : t("profile"),
-          headerStyle: {},
-          headerTitleStyle: {
-            color: Colors.primary,
-            fontSize: 24,
-          },
-
-          unmountOnBlur: true,
         }}
       />
     </Tabs>
@@ -288,8 +290,9 @@ export const TabsLayout = () => {
 };
 
 const Layout = () => {
-  const [userRole, setUserRole] = useState<string>("default");
+  const { colors: Colors } = useTheme();
 
+  const [userRole, setUserRole] = useState<string>("default");
   const Drawer = createDrawerNavigator();
   const { t } = useTranslation();
   const drawerDef: any = t("DrawerScreen", { returnObjects: true });

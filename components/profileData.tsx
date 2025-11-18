@@ -11,8 +11,8 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { PieChart } from "react-native-chart-kit";
-import Colors from "@/constants/Colors";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 const categories = [
   {
@@ -57,6 +57,105 @@ const iconMap: { [key: string]: any } = {
 };
 
 const ProfileData = () => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    container: {
+      borderRadius: 20,
+      padding: 20,
+      backgroundColor: "#ffffff",
+      margin: 10,
+      elevation: 4,
+      shadowColor: "#000",
+      shadowOpacity: 0.1,
+      shadowOffset: { width: 0, height: 2 },
+    },
+    gradientBackground: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      borderRadius: 20,
+    },
+
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 20,
+    },
+
+    activityTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: "#333",
+    },
+    categoriesBtn: {
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      marginRight: 10,
+      alignItems: "center",
+    },
+    categoriesBtnActive: {
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      marginRight: 10,
+      backgroundColor: Colors.primary,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    iconContainer: {
+      backgroundColor: "white",
+      padding: 8,
+      borderRadius: 30,
+      marginBottom: 5,
+    },
+    titleText: {
+      fontSize: 12,
+      fontWeight: "bold",
+      color: "black",
+    },
+    chartContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    chart: {
+      borderRadius: 50,
+    },
+    detailsContainer: {
+      overflow: "hidden",
+      marginTop: 10,
+    },
+    centerOverlay: {
+      position: "absolute",
+      top: "40%",
+      left: "25%",
+      right: "25%",
+      bottom: "25%",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    centerText: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: "white",
+    },
+    chartLegend: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 10,
+    },
+    legendItem: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    legendColorBox: {
+      width: 10,
+      height: 10,
+      marginRight: 5,
+    },
+  });
+
   const menuScrollRef = useRef<ScrollView>(null);
   const categoryScrollRef = useRef<ScrollView>(null);
   const menuItemsRef = useRef<(View | null)[]>([]);
@@ -233,108 +332,5 @@ const iconStyles = {
   width: 26,
   height: 26,
 };
-
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 20,
-    padding: 20,
-    backgroundColor: "#ffffff",
-    margin: 10,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  gradientBackground: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: 20,
-  },
-  goalContainer: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
-  activityTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  categoriesBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 10,
-    alignItems: "center",
-  },
-  categoriesBtnActive: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 10,
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  iconContainer: {
-    backgroundColor: "white",
-    padding: 8,
-    borderRadius: 30,
-    marginBottom: 5,
-  },
-  titleText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "black",
-  },
-  chartContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  chart: {
-    borderRadius: 50,
-  },
-  detailsContainer: {
-    overflow: "hidden",
-    marginTop: 10,
-  },
-  centerOverlay: {
-    position: "absolute",
-    top: "40%",
-    left: "25%",
-    right: "25%",
-    bottom: "25%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  centerText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "white",
-  },
-  chartLegend: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  legendColorBox: {
-    width: 10,
-    height: 10,
-    marginRight: 5,
-  },
-});
 
 export default ProfileData;

@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { regular_swr } from "@/hooks/useswr";
 import { useAuth } from "../(modals)/context/authContext";
-import Colors from "@/constants/Colors";
 import { HashedSportData } from "@/utils/sport_hall_hash";
 import Order_Separator from "../(modals)/book/components/order_separator";
 import {
@@ -25,8 +24,46 @@ import Filter_Modals from "../(modals)/book/components/filter_modal";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "../(modals)/context/themeContext";
 
 const OrderScreen = () => {
+  const { colors: Colors } = useTheme();
+  const style = StyleSheet.create({
+    separatorContainer: {
+      flexDirection: "row",
+      backgroundColor: Colors.backgroundColor,
+      padding: 2,
+      borderRadius: 10,
+    },
+    separator: {
+      padding: 10,
+      width: "50%",
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 10,
+    },
+
+    filterContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+    },
+    picker: {
+      alignItems: "center",
+    },
+    button: {
+      backgroundColor: "#eee",
+      borderRadius: 8,
+      marginVertical: 5,
+    },
+    buttonText: {
+      fontSize: 20,
+    },
+    value: {
+      fontSize: 22,
+      fontWeight: "bold",
+      marginVertical: 5,
+    },
+  });
   const [bookingData, setBookingData] = useState<OrderDataTypes>({
     today_upcoming: [],
     history: [],
@@ -210,7 +247,7 @@ const OrderScreen = () => {
     <Animated.View
       style={[
         {
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.backgroundColor,
           height: "100%",
           width: "100%",
           paddingTop: 10,
@@ -221,7 +258,7 @@ const OrderScreen = () => {
       <View
         style={[
           {
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.backgroundColor,
             height: "100%",
             width: "100%",
           },
@@ -233,7 +270,12 @@ const OrderScreen = () => {
             marginHorizontal: 10,
           }}
         >
-          <View style={style.separatorContainer}>
+          <View
+            style={[
+              style.separatorContainer,
+              { backgroundColor: Colors.containerColor },
+            ]}
+          >
             <TouchableOpacity
               onPress={() => {
                 handleFade();
@@ -244,8 +286,8 @@ const OrderScreen = () => {
                 {
                   backgroundColor:
                     screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
-                      ? Colors.white
-                      : Colors.lightGrey,
+                      ? Colors.primary
+                      : Colors.containerColor,
                 },
               ]}
             >
@@ -253,7 +295,7 @@ const OrderScreen = () => {
                 style={{
                   color:
                     screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
-                      ? Colors.dark
+                      ? Colors.white
                       : Colors.darkGrey,
                 }}
               >
@@ -267,8 +309,8 @@ const OrderScreen = () => {
                 {
                   backgroundColor:
                     screenSeparator === OrderScreenSeparator.HISTORY
-                      ? Colors.white
-                      : Colors.lightGrey,
+                      ? Colors.primary
+                      : Colors.containerColor,
                 },
               ]}
               onPress={() => {
@@ -280,7 +322,7 @@ const OrderScreen = () => {
                 style={{
                   color:
                     screenSeparator === OrderScreenSeparator.HISTORY
-                      ? Colors.dark
+                      ? Colors.white
                       : Colors.darkGrey,
                 }}
               >
@@ -310,41 +352,5 @@ const OrderScreen = () => {
     </Animated.View>
   );
 };
-const style = StyleSheet.create({
-  separatorContainer: {
-    flexDirection: "row",
-    backgroundColor: Colors.lightGrey,
-    padding: 2,
-    borderRadius: 10,
-  },
-  separator: {
-    padding: 10,
-    width: "50%",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-  },
-
-  filterContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  picker: {
-    alignItems: "center",
-  },
-  button: {
-    backgroundColor: "#eee",
-    borderRadius: 8,
-    marginVertical: 5,
-  },
-  buttonText: {
-    fontSize: 20,
-  },
-  value: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginVertical: 5,
-  },
-});
 
 export default OrderScreen;

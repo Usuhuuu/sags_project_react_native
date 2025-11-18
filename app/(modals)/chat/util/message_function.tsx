@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import {
   ChatSeparator,
   LoadOlderMsjProp,
@@ -17,6 +16,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Avatar } from "react-native-paper";
 import { generatedId } from "./objectID";
+import { useTheme } from "../../context/themeContext";
 
 export const prepareMessages = (
   messages: Message[],
@@ -126,7 +126,123 @@ export const newMessagePrepareFunction = (
 
 export const MemoizedChatItem = React.memo(
   ({ item, userDatas }: { item: Message; userDatas: any }) => {
-    //본인
+    const { colors: Colors } = useTheme();
+    const styles = StyleSheet.create({
+      container: {
+        flex: 1,
+        backgroundColor: "#F9FAFB",
+      },
+      title: {
+        fontSize: 28,
+        marginVertical: 16,
+        textAlign: "center",
+        fontWeight: "bold",
+        color: "#333",
+      },
+      subtitle: {
+        fontSize: 20,
+        marginVertical: 12,
+        fontWeight: "600",
+        color: "#555",
+        textAlign: "center",
+      },
+      groupItemContainer: {
+        marginVertical: 20,
+        marginHorizontal: 20,
+      },
+      groupItem: {
+        padding: 10,
+        marginVertical: 7,
+        borderRadius: 5,
+        backgroundColor: Colors.white,
+        shadowColor: Colors.dark,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 4,
+        width: "90%",
+      },
+      textContainer: {
+        flexDirection: "row",
+        gap: 1,
+      },
+      showHiderContainer: {
+        padding: 10,
+        marginVertical: 7,
+        borderRadius: 5,
+        width: "90%",
+        flexDirection: "row",
+        justifyContent: "space-between",
+      },
+      groupText: {
+        fontSize: 18,
+        color: "black",
+        fontWeight: "bold",
+        textAlign: "center",
+      },
+      messageContainer: {
+        width: "100%",
+      },
+      userNameText: {
+        fontSize: 13,
+        color: Colors.primary,
+        textShadowColor: Colors.primary,
+        textShadowRadius: 0.5,
+      },
+      messageText: {
+        padding: 5,
+        fontSize: 18,
+        justifyContent: "center",
+        alignItems: "center",
+        textAlign: "center",
+      },
+      messagesList: {
+        //height: Dimensions.get("window").height,
+      },
+      inputContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderTopWidth: 1,
+        borderColor: "#ddd",
+        gap: 10,
+      },
+
+      msjContainer: {
+        marginHorizontal: 10,
+      },
+      msjInside: {
+        borderWidth: 1,
+        paddingHorizontal: 5,
+      },
+      TimerContainer: {
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+      },
+
+      dateSeparator: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
+        paddingHorizontal: 10,
+      },
+      line: {
+        flex: 1,
+        height: 1,
+        backgroundColor: Colors.primary,
+        marginHorizontal: 5,
+      },
+      dateText: {
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        color: Colors.primary,
+        fontWeight: "400",
+      },
+    });
+
     const userSelf: boolean =
       item.sender_unique_name === userDatas.unique_user_ID;
     return (
@@ -339,119 +455,3 @@ export const sendMessage = async ({
     animated: true,
   });
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-  },
-  title: {
-    fontSize: 28,
-    marginVertical: 16,
-    textAlign: "center",
-    fontWeight: "bold",
-    color: "#333",
-  },
-  subtitle: {
-    fontSize: 20,
-    marginVertical: 12,
-    fontWeight: "600",
-    color: "#555",
-    textAlign: "center",
-  },
-  groupItemContainer: {
-    marginVertical: 20,
-    marginHorizontal: 20,
-  },
-  groupItem: {
-    padding: 10,
-    marginVertical: 7,
-    borderRadius: 5,
-    backgroundColor: Colors.white,
-    shadowColor: Colors.dark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-    width: "90%",
-  },
-  textContainer: {
-    flexDirection: "row",
-    gap: 1,
-  },
-  showHiderContainer: {
-    padding: 10,
-    marginVertical: 7,
-    borderRadius: 5,
-    width: "90%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  groupText: {
-    fontSize: 18,
-    color: "black",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  messageContainer: {
-    width: "100%",
-  },
-  userNameText: {
-    fontSize: 13,
-    color: Colors.primary,
-    textShadowColor: Colors.primary,
-    textShadowRadius: 0.5,
-  },
-  messageText: {
-    padding: 5,
-    fontSize: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    textAlign: "center",
-  },
-  messagesList: {
-    //height: Dimensions.get("window").height,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderColor: "#ddd",
-    gap: 10,
-  },
-
-  msjContainer: {
-    marginHorizontal: 10,
-  },
-  msjInside: {
-    borderWidth: 1,
-    paddingHorizontal: 5,
-  },
-  TimerContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-
-  dateSeparator: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.primary,
-    marginHorizontal: 5,
-  },
-  dateText: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    color: Colors.primary,
-    fontWeight: "400",
-  },
-});

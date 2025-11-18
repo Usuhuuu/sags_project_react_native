@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
@@ -8,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView } from "react-native-gesture-handler";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 type FormDataTypes = {
   zaal_types: string[];
@@ -101,6 +101,8 @@ const timeSlots: Zaal_Time_Slot_Type[] = [
 ];
 
 const RegisterZaal: React.FC = () => {
+  const { colors: Colors } = useTheme();
+
   const [formData, setFormData] = useState<FormDataTypes>({
     zaal_types: [],
     zaal_location: {

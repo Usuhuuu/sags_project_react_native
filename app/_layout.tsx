@@ -4,10 +4,9 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { router, Stack, useRouter } from "expo-router";
-import React, { useEffect, ReactNode, useState, useRef } from "react";
-import { TouchableOpacity, View, Alert, ActivityIndicator } from "react-native";
+import React, { useEffect, ReactNode, useState } from "react";
+import { TouchableOpacity, View, ActivityIndicator } from "react-native";
 import * as Sentry from "@sentry/react-native";
-import Colors from "@/constants/Colors";
 import { LanguageProvider } from "./(modals)/context/Languages";
 export { ErrorBoundary } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -32,6 +31,7 @@ import {
   requestLocationPermission,
   reminderPermission,
 } from "@/hooks/permissions";
+import { ThemeProvider, useTheme } from "./(modals)/context/themeContext";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -58,6 +58,7 @@ function RootLayout({ children }: RootLayoutProps) {
   });
   const [fontError, setFontError] = useState<boolean>(false);
   const { LoginStatus } = useAuth();
+  const { colors: Colors } = useTheme();
 
   useEffect(() => {
     if (error) {
@@ -190,6 +191,7 @@ function RootLayout({ children }: RootLayoutProps) {
 function RootLayoutNav() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors: Colors } = useTheme();
 
   return (
     <Stack>
@@ -291,23 +293,25 @@ function RootLayoutNav() {
   );
 }
 export default Sentry.wrap(() => (
-  <GestureHandlerRootView>
-    <SafeAreaProvider>
-      <NotifierRoot useRNScreensOverlay={true} />
-      <CustomErrorBoundary>
-        <AuthProvider>
-          <LanguageProvider>
-            <SavedHallsProvider>
-              <CalendarProvider>
-                <RootLayout>
-                  <Layout />
-                  <TabsLayout />
-                </RootLayout>
-              </CalendarProvider>
-            </SavedHallsProvider>
-          </LanguageProvider>
-        </AuthProvider>
-      </CustomErrorBoundary>
-    </SafeAreaProvider>
-  </GestureHandlerRootView>
+  <ThemeProvider>
+    <GestureHandlerRootView>
+      <SafeAreaProvider>
+        <NotifierRoot useRNScreensOverlay={true} />
+        <CustomErrorBoundary>
+          <AuthProvider>
+            <LanguageProvider>
+              <SavedHallsProvider>
+                <CalendarProvider>
+                  <RootLayout>
+                    <Layout />
+                    <TabsLayout />
+                  </RootLayout>
+                </CalendarProvider>
+              </SavedHallsProvider>
+            </LanguageProvider>
+          </AuthProvider>
+        </CustomErrorBoundary>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  </ThemeProvider>
 ));

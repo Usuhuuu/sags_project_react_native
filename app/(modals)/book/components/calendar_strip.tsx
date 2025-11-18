@@ -8,8 +8,8 @@ import {
 } from "react-native";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
-import Colors from "@/constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 dayjs.extend(isoWeek);
 
@@ -24,6 +24,10 @@ interface WeekCalendarProps {
   disabledDayStyle?: ViewStyle;
   selectedDay: string;
   setSelectedDay: React.Dispatch<SetStateAction<string>>;
+  textWeekStyle?: TextStyle;
+  textDayStyle?: TextStyle;
+  textMonthStyle?: TextStyle;
+  moveIconStyle?: TextStyle;
 }
 
 const WeekCalendar: React.FC<WeekCalendarProps> = ({
@@ -37,7 +41,13 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   selectedContainerStyle,
   selectedDay,
   setSelectedDay,
+  textWeekStyle,
+  textDayStyle,
+  textMonthStyle,
+  moveIconStyle,
 }) => {
+  const { colors: Colors } = useTheme();
+
   const initialDayjs = dayjs(new Date());
   const [currentWeekStart, setCurrentWeekStart] = useState(
     initialDayjs.startOf("isoWeek")
@@ -118,7 +128,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
             <MaterialIcons
               name="keyboard-arrow-left"
               size={35}
-              color={Colors.dark}
+              style={moveIconStyle}
             />
           </TouchableOpacity>
         ) : (
@@ -127,6 +137,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
 
         <Text
           style={[
+            textMonthStyle,
             {
               fontSize: headerWidth
                 ? Math.max(14, Math.min(25, headerWidth * 0.15)) // scale with actual width
@@ -146,7 +157,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
           <MaterialIcons
             name="keyboard-arrow-right"
             size={35}
-            color={Colors.dark}
+            style={moveIconStyle}
           />
         </TouchableOpacity>
       </View>
@@ -185,6 +196,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
             >
               <Text
                 style={[
+                  textWeekStyle,
                   isSelected && selectedDayTextStyle,
                   {
                     fontSize: 16,
@@ -195,6 +207,8 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
               </Text>
               <Text
                 style={[
+                  textDayStyle,
+
                   isSelected && selectedDayNumberStyle,
                   {
                     fontSize: 16,

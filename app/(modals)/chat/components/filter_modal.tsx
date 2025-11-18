@@ -1,7 +1,7 @@
-import Colors from "@/constants/Colors";
 import { AntDesign } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Modal, View, Text, TouchableOpacity } from "react-native";
+import { useTheme } from "../../context/themeContext";
 
 interface FilterModalProp {
   showFilterVisible: boolean;
@@ -12,8 +12,7 @@ function FilterModal({
   showFilterVisible,
   setShowFilterVisible,
 }: FilterModalProp) {
-  const [] = useState();
-
+  const { colors: Colors } = useTheme();
   return (
     <Modal visible={showFilterVisible} animationType="fade" transparent>
       <View

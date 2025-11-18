@@ -15,10 +15,12 @@ import { ProgressBar } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { Return_Type } from "@/interfaces/order&book_type";
 import axiosInstance from "@/hooks/axiosInstance";
-import Colors from "@/constants/Colors";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "../../context/themeContext";
 
 export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
+  const { colors: Colors } = useTheme();
+
   const expanded = useSharedValue(0);
   const textOpacity = useSharedValue(1);
   const [toggle, setToggle] = useState(false);
@@ -180,10 +182,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
         style={[
           {
             padding: 20,
-            backgroundColor:
-              data.blocks[0].block_booking_status === "confirmed"
-                ? Colors.grey
-                : Colors.white,
+            backgroundColor: Colors.containerColor,
             borderRadius: 12,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 3 },
@@ -213,10 +212,16 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
             <View style={{ height: "70%", gap: 20 }}>
               {/* Basic Info */}
               <View style={{ gap: 15 }}>
-                <Text style={{ fontSize: 20, fontWeight: "400" }}>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: "400",
+                    color: Colors.themeColorTextPure,
+                  }}
+                >
                   {data.zaal_info.name}
                 </Text>
-                <Text style={{ color: Colors.darkGrey }}>
+                <Text style={{ color: Colors.themeColorTextSecondary }}>
                   {format(new Date(data.day[0]), "MMMM d, yyyy")}
                 </Text>
 
@@ -233,13 +238,15 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                         <FontAwesome6
                           name="clock-four"
                           size={15}
-                          color={Colors.darkGrey}
+                          color={Colors.themeColorTextSecondary}
                         />
-                        <Text style={{ color: Colors.darkGrey }}>
+                        <Text style={{ color: Colors.themeColorTextSecondary }}>
                           {block.start_time}
                         </Text>
-                        <Text style={{ color: Colors.darkGrey }}>~</Text>
-                        <Text style={{ color: Colors.darkGrey }}>
+                        <Text style={{ color: Colors.themeColorTextSecondary }}>
+                          ~
+                        </Text>
+                        <Text style={{ color: Colors.themeColorTextSecondary }}>
                           {block.end_time}
                         </Text>
                       </View>
@@ -259,13 +266,21 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                           <Fontisto
                             name="persons"
                             size={15}
-                            color={Colors.darkGrey}
+                            color={Colors.themeColorTextSecondary}
                           />
-                          <Text style={{ color: Colors.darkGrey }}>
+                          <Text
+                            style={{ color: Colors.themeColorTextSecondary }}
+                          >
                             {block.current_player}
                           </Text>
-                          <Text style={{ color: Colors.darkGrey }}>/</Text>
-                          <Text style={{ color: Colors.darkGrey }}>
+                          <Text
+                            style={{ color: Colors.themeColorTextSecondary }}
+                          >
+                            /
+                          </Text>
+                          <Text
+                            style={{ color: Colors.themeColorTextSecondary }}
+                          >
                             {block.num_players == 0
                               ? (block.num_players += 1)
                               : block.num_players}
@@ -334,7 +349,13 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                         key={`${sectionKey}-${Math.random()}`}
                         style={{ marginBottom: 10 }}
                       >
-                        <Text style={{ fontWeight: "600", marginBottom: 6 }}>
+                        <Text
+                          style={{
+                            fontWeight: "600",
+                            marginBottom: 6,
+                            color: Colors.themeColorTextPure,
+                          }}
+                        >
                           {sectionKey === "paymentInfo"
                             ? `${orderLangInit.paymentInfo.paymentInfo}`
                             : sectionKey === "bookingInfo"
@@ -357,10 +378,18 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                                 marginBottom: 4,
                               }}
                             >
-                              <Text style={{ color: Colors.darkGrey }}>
+                              <Text
+                                style={{
+                                  color: Colors.themeColorTextSecondary,
+                                }}
+                              >
                                 {field.label}
                               </Text>
-                              <Text style={{ color: Colors.dark }}>
+                              <Text
+                                style={{
+                                  color: Colors.themeColorTextSecondary,
+                                }}
+                              >
                                 {value.toString()}
                               </Text>
                             </View>
@@ -386,7 +415,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                         }}
                       >
                         <View>
-                          <Text style={{ color: Colors.white }}>
+                          <Text style={{ color: Colors.containerColor }}>
                             {orderLangInit.cancelBooking}
                           </Text>
                         </View>
@@ -396,14 +425,14 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                     <TouchableOpacity
                       style={{
                         padding: 10,
-                        backgroundColor: Colors.lightGrey,
+                        backgroundColor: Colors.darkGrey,
                         justifyContent: "center",
                         alignItems: "center",
                         borderRadius: 5,
                       }}
                     >
                       <View>
-                        <Text style={{ color: Colors.darkGrey }}>
+                        <Text style={{ color: Colors.themeColorTextSecondary }}>
                           {orderLangInit.contactCostumerService}
                         </Text>
                       </View>
@@ -462,7 +491,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                     width: "100%",
                     borderRadius: 5,
                     borderWidth: 1,
-                    borderColor: Colors.littleDarkGrey,
+                    borderColor: Colors.themeColorTextPure,
                     flexDirection: "row",
                     justifyContent: "space-between",
                     padding: 10,
@@ -480,7 +509,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                   >
                     <Text
                       style={{
-                        color: Colors.dark,
+                        color: Colors.themeColorTextPure,
                         fontWeight: "500",
                         fontSize: 18,
                       }}
@@ -493,10 +522,14 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                       <Feather
                         name="arrow-down"
                         size={24}
-                        color={Colors.dark}
+                        color={Colors.themeColorTextPure}
                       />
                     ) : (
-                      <Feather name="arrow-up" size={24} color={Colors.dark} />
+                      <Feather
+                        name="arrow-up"
+                        size={24}
+                        color={Colors.themeColorTextPure}
+                      />
                     )}
                   </Animated.View>
                 </TouchableOpacity>

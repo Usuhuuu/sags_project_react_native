@@ -10,12 +10,54 @@ import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "../(modals)/context/authContext";
 import { Friend_Status, FriendSeparator } from "@/interfaces/friendType";
 import { ActivityIndicator } from "react-native-paper";
-import Colors from "@/constants/Colors";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import Friend_Separator from "../(modals)/friend/components/friendSeparator";
 import Friend_Add_Modal from "../(modals)/friend/components/friend_add";
+import { useTheme } from "../(modals)/context/themeContext";
 
 const FriendRequest = () => {
+  const { colors: Colors } = useTheme();
+  const friend_style = StyleSheet.create({
+    container: {
+      backgroundColor: Colors.backgroundColor,
+      width: "100%",
+      height: "100%",
+    },
+    separator_container: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      backgroundColor: Colors.containerColor,
+      padding: 2,
+      width: "100%",
+      gap: 5,
+      borderRadius: 10,
+    },
+    separator_list: {
+      width: "32%",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 10,
+      borderRadius: 10,
+    },
+    searchContainer: {
+      backgroundColor: Colors.containerColor,
+      padding: 10,
+      marginTop: 5,
+      flexDirection: "row",
+      gap: 10,
+      borderRadius: 10,
+      width: "80%",
+    },
+    searchSection_sendSection: {
+      width: "18%",
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: Colors.containerColor,
+      marginTop: 5,
+      flexDirection: "row",
+      borderRadius: 10,
+    },
+  });
   const [friendSeparator, setFriendSeparator] = useState<FriendSeparator>(
     FriendSeparator.FRIENDS
   );
@@ -65,8 +107,8 @@ const FriendRequest = () => {
               {
                 backgroundColor:
                   friendSeparator === FriendSeparator.FRIENDS
-                    ? Colors.white
-                    : Colors.lightGrey,
+                    ? Colors.primary
+                    : Colors.containerColor,
               },
             ]}
             onPress={() => setFriendSeparator(FriendSeparator.FRIENDS)}
@@ -75,7 +117,7 @@ const FriendRequest = () => {
               style={{
                 color:
                   FriendSeparator.FRIENDS === friendSeparator
-                    ? Colors.dark
+                    ? Colors.white
                     : Colors.darkGrey,
                 fontSize: 14,
               }}
@@ -89,8 +131,8 @@ const FriendRequest = () => {
               {
                 backgroundColor:
                   friendSeparator === FriendSeparator.REQUESTS
-                    ? Colors.white
-                    : Colors.lightGrey,
+                    ? Colors.primary
+                    : Colors.containerColor,
               },
             ]}
             onPress={() => setFriendSeparator(FriendSeparator.REQUESTS)}
@@ -99,7 +141,7 @@ const FriendRequest = () => {
               style={{
                 color:
                   FriendSeparator.REQUESTS === friendSeparator
-                    ? Colors.dark
+                    ? Colors.white
                     : Colors.darkGrey,
                 fontSize: 14,
               }}
@@ -113,8 +155,8 @@ const FriendRequest = () => {
               {
                 backgroundColor:
                   friendSeparator === FriendSeparator.SENDED
-                    ? Colors.white
-                    : Colors.lightGrey,
+                    ? Colors.primary
+                    : Colors.containerColor,
               },
             ]}
             onPress={() => setFriendSeparator(FriendSeparator.SENDED)}
@@ -123,7 +165,7 @@ const FriendRequest = () => {
               style={{
                 color:
                   FriendSeparator.SENDED === friendSeparator
-                    ? Colors.dark
+                    ? Colors.white
                     : Colors.darkGrey,
 
                 fontSize: 14,
@@ -179,45 +221,3 @@ const FriendRequest = () => {
 };
 
 export default FriendRequest;
-
-const friend_style = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    width: "100%",
-    height: "100%",
-  },
-  separator_container: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: Colors.lightGrey,
-    padding: 2,
-    width: "100%",
-    gap: 5,
-    borderRadius: 10,
-  },
-  separator_list: {
-    width: "32%",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 10,
-    borderRadius: 10,
-  },
-  searchContainer: {
-    backgroundColor: Colors.lightGrey,
-    padding: 10,
-    marginTop: 5,
-    flexDirection: "row",
-    gap: 10,
-    borderRadius: 10,
-    width: "80%",
-  },
-  searchSection_sendSection: {
-    width: "18%",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.lightGrey,
-    marginTop: 5,
-    flexDirection: "row",
-    borderRadius: 10,
-  },
-});

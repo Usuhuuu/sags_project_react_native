@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import { AntDesign, Ionicons, Feather } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import {
@@ -26,6 +25,7 @@ import {
   Message,
   MessageMapState,
 } from "@/interfaces/chatType";
+import { useTheme } from "../../context/themeContext";
 
 interface MainChatModalProps {
   mainModalShow: boolean;
@@ -67,6 +67,46 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
   groupID,
   currentChatId,
 }) => {
+  const { colors: Colors } = useTheme();
+  const styles = StyleSheet.create({
+    input: {
+      flex: 1,
+      borderRadius: 20,
+      padding: 7,
+      paddingHorizontal: 16,
+      backgroundColor: Colors.lightGrey,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 10,
+      gap: 10,
+    },
+    sendButton: {
+      padding: 12,
+      borderRadius: 25,
+      marginLeft: 8,
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    sendButtonText: {
+      fontSize: 16,
+      color: "#fff",
+      fontWeight: "bold",
+    },
+
+    msjContainer: {},
+    msjInside: {
+      flexDirection: "column",
+      borderWidth: 1,
+      padding: 5,
+    },
+  });
+
   const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = React.useState(false);
   const [activeUserMember, setActiveUserMember] = React.useState<number>(0);
@@ -369,42 +409,3 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
   );
 };
 export default MainChatModal;
-
-const styles = StyleSheet.create({
-  input: {
-    flex: 1,
-    borderRadius: 20,
-    padding: 7,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.lightGrey,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    gap: 10,
-  },
-  sendButton: {
-    padding: 12,
-    borderRadius: 25,
-    marginLeft: 8,
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sendButtonText: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "bold",
-  },
-
-  msjContainer: {},
-  msjInside: {
-    flexDirection: "column",
-    borderWidth: 1,
-    padding: 5,
-  },
-});

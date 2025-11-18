@@ -1,4 +1,3 @@
-import Colors from "@/constants/Colors";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useHeaderHeight } from "@react-navigation/elements";
 import React, { useEffect, useState } from "react";
@@ -18,6 +17,7 @@ import MemberModal from "./innerModals/memberModal";
 import { GroupChat } from "@/interfaces/chatType";
 import * as Notification from "expo-notifications";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "../../context/themeContext";
 
 type childModalNested = {
   id: string;
@@ -31,6 +31,8 @@ interface ChildModalProps {
 }
 
 const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
+  const { colors: Colors } = useTheme();
+
   const [memberModalVisible, setMemberModalVisible] = useState<boolean>(false);
   const [notificationsState, setNotificationsState] = useState<boolean>(false);
   const [changeNameModalVisible, setChangeNameModalVisible] =
@@ -218,11 +220,15 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
         >
           <View
             style={[
-              styles.modalHeader,
               {
                 height: top,
                 borderBottomColor: Colors.grey,
                 borderBottomWidth: 1,
+                backgroundColor: Colors.light,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingHorizontal: 20,
               },
             ]}
           >
@@ -245,7 +251,7 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
               }}
             ></View>
           </View>
-          <View style={styles.modalBody}>
+          <View style={{ flex: 1 }}>
             {changeNameModalVisible && (
               <ChangeNameModal
                 changeNameModalVisible={changeNameModalVisible}
@@ -268,18 +274,5 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  modalHeader: {
-    backgroundColor: Colors.light,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-  },
-  modalBody: {
-    flex: 1,
-  },
-});
 
 export default ChildModal;
