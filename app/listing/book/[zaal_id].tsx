@@ -321,7 +321,12 @@ const TransactionPage = () => {
               {steps === 0 && (
                 <View style={styles.innerContainer}>
                   <Text
-                    style={{ fontSize: 24, fontWeight: 400, textAlign: "left" }}
+                    style={{
+                      fontSize: 24,
+                      fontWeight: 400,
+                      textAlign: "left",
+                      color: Colors.themeColorTextPure,
+                    }}
                   >
                     {bookingDetails?.name}
                   </Text>
@@ -776,7 +781,9 @@ const TransactionPage = () => {
                       style={styles.buttons}
                       onPress={() => setSteps(steps - 1)}
                     >
-                      <Text>Preview</Text>
+                      <Text style={{ color: Colors.themeColorTextPure }}>
+                        Preview
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[
@@ -798,7 +805,11 @@ const TransactionPage = () => {
                       gap: 10,
                     }}
                   >
-                    <Text style={{ fontSize: 24 }}>Booking Confirmation</Text>
+                    <Text
+                      style={{ fontSize: 24, color: Colors.themeColorTextPure }}
+                    >
+                      Booking Confirmation
+                    </Text>
 
                     <View
                       style={{
@@ -812,9 +823,16 @@ const TransactionPage = () => {
                           padding: 20,
                           borderRadius: 5,
                           justifyContent: "space-between",
+                          borderColor: Colors.themeColorTextPure,
                         }}
                       >
-                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                        <Text
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 300,
+                            color: Colors.themeColorTextPure,
+                          }}
+                        >
                           {bookingDetails?.name}
                         </Text>
                       </View>
@@ -825,12 +843,25 @@ const TransactionPage = () => {
                           padding: 20,
                           borderRadius: 5,
                           justifyContent: "space-between",
+                          borderColor: Colors.themeColorTextPure,
                         }}
                       >
-                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                        <Text
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 300,
+                            color: Colors.themeColorTextPure,
+                          }}
+                        >
                           Date
                         </Text>
-                        <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                        <Text
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 300,
+                            color: Colors.themeColorTextPure,
+                          }}
+                        >
                           {bookingDetails?.date
                             ? format(
                                 new Date(bookingDetails.date),
@@ -840,7 +871,11 @@ const TransactionPage = () => {
                         </Text>
                       </View>
                     </View>
-                    <Text style={{ fontSize: 24 }}>Times & Player Needed</Text>
+                    <Text
+                      style={{ fontSize: 24, color: Colors.themeColorTextPure }}
+                    >
+                      Times & Player Needed
+                    </Text>
                     <View style={{ gap: 10 }}>
                       {wholeDay ? (
                         <View
@@ -849,7 +884,7 @@ const TransactionPage = () => {
                             justifyContent: "space-between",
                             gap: 5,
                             borderWidth: 1,
-                            borderColor: Colors.littleDark,
+                            borderColor: Colors.themeColorTextPure,
                             borderRadius: 5,
                           }}
                         >
@@ -874,11 +909,23 @@ const TransactionPage = () => {
                                 size={24}
                                 color={Colors.themeColorTextPure}
                               />
-                              <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                              <Text
+                                style={{
+                                  fontSize: 18,
+                                  fontWeight: 300,
+                                  color: Colors.themeColorTextPure,
+                                }}
+                              >
                                 Whole Day
                               </Text>
                             </View>
-                            <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                            <Text
+                              style={{
+                                fontSize: 18,
+                                fontWeight: 300,
+                                color: Colors.themeColorTextPure,
+                              }}
+                            >
                               ₮{bookingDetails?.price.wholeDay}
                             </Text>
                           </View>
@@ -912,7 +959,7 @@ const TransactionPage = () => {
                               <MaterialIcons
                                 name="people-alt"
                                 size={24}
-                                color={Colors.dark}
+                                color={Colors.themeColorTextPure}
                               />
                             </View>
                           </View>
@@ -928,6 +975,7 @@ const TransactionPage = () => {
                                 fontSize: 18,
                                 fontWeight: "bold",
                                 textAlign: "center",
+                                color: Colors.themeColorTextPure,
                               }}
                             >
                               Booker's Total: ₮
@@ -956,17 +1004,25 @@ const TransactionPage = () => {
                                     padding: 10,
                                     gap: 5,
                                     borderWidth: 1,
-                                    borderColor: Colors.littleDark,
+                                    borderColor: Colors.themeColorTextPure,
                                     borderRadius: 5,
                                   }}
                                 >
                                   <Text
-                                    style={{ fontSize: 18, fontWeight: 300 }}
+                                    style={{
+                                      fontSize: 18,
+                                      fontWeight: 300,
+                                      color: Colors.themeColorTextPure,
+                                    }}
                                   >
                                     {startTime} – {endTime}
                                   </Text>
                                   <Text
-                                    style={{ fontSize: 18, fontWeight: 300 }}
+                                    style={{
+                                      fontSize: 18,
+                                      fontWeight: 300,
+                                      color: Colors.themeColorTextPure,
+                                    }}
                                   >
                                     {playersNeeded[index] || 0} Person
                                   </Text>
@@ -980,7 +1036,7 @@ const TransactionPage = () => {
                               justifyContent: "space-between",
                               gap: 5,
                               borderWidth: 1,
-                              borderColor: Colors.littleDark,
+                              borderColor: Colors.themeColorTextPure,
                               borderRadius: 5,
                             }}
                           >
@@ -1005,11 +1061,23 @@ const TransactionPage = () => {
                                   size={24}
                                   color={Colors.themeColorTextPure}
                                 />
-                                <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                                <Text
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: 300,
+                                    color: Colors.themeColorTextPure,
+                                  }}
+                                >
                                   1 Hour
                                 </Text>
                               </View>
-                              <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                              <Text
+                                style={{
+                                  fontSize: 18,
+                                  fontWeight: 300,
+                                  color: Colors.themeColorTextPure,
+                                }}
+                              >
                                 ₮{bookingDetails?.price.oneHour}
                               </Text>
                             </View>
@@ -1064,6 +1132,7 @@ const TransactionPage = () => {
                                             style={{
                                               fontSize: 16,
                                               fontWeight: "300",
+                                              color: Colors.themeColorTextPure,
                                             }}
                                           >
                                             Session {index + 1}:
@@ -1078,6 +1147,8 @@ const TransactionPage = () => {
                                               style={{
                                                 fontSize: 18,
                                                 fontWeight: 300,
+                                                color:
+                                                  Colors.themeColorTextPure,
                                               }}
                                             >
                                               {durationHours} hours
@@ -1086,6 +1157,8 @@ const TransactionPage = () => {
                                               style={{
                                                 fontSize: 18,
                                                 fontWeight: 300,
+                                                color:
+                                                  Colors.themeColorTextPure,
                                               }}
                                             >
                                               {totalPeople} players
@@ -1094,6 +1167,8 @@ const TransactionPage = () => {
                                               style={{
                                                 fontSize: 18,
                                                 fontWeight: 300,
+                                                color:
+                                                  Colors.themeColorTextPure,
                                               }}
                                             >
                                               ₮{paymentPerPeople.toFixed(2)} per
@@ -1117,6 +1192,7 @@ const TransactionPage = () => {
                                           fontSize: 18,
                                           fontWeight: "bold",
                                           textAlign: "center",
+                                          color: Colors.themeColorTextPure,
                                         }}
                                       >
                                         Booker's Total: ₮
@@ -1148,7 +1224,9 @@ const TransactionPage = () => {
                       style={styles.buttons}
                       onPress={() => setSteps(steps - 1)}
                     >
-                      <Text>Preview</Text>
+                      <Text style={{ color: Colors.themeColorTextPure }}>
+                        Preview
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[
@@ -1159,7 +1237,9 @@ const TransactionPage = () => {
                         handleOrder();
                       }}
                     >
-                      <Text style={{ color: Colors.white }}>Complete</Text>
+                      <Text style={{ color: Colors.themeColorTextPure }}>
+                        Complete
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>

@@ -114,6 +114,8 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
                 ? Colors.lightGreen
                 : wholeDayBooked.joinableWholeDay
                 ? Colors.lightGreen
+                : isDisabled
+                ? Colors.themeContainerGrey
                 : Colors.containerColor,
 
               borderWidth: 2,
