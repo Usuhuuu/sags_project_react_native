@@ -3,7 +3,7 @@ import {
   OrderScreenSeparator,
   OrderDataTypes,
 } from "@/interfaces/order&book_type";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { SetStateAction, useCallback, useEffect, useState } from "react";
 import {
   View,
   FlatList,
@@ -32,6 +32,7 @@ interface Order_Separator_props {
   screen_type: OrderScreenSeparator;
   loadMore: () => void;
   loading: boolean;
+  setLoading: React.Dispatch<SetStateAction<boolean>>;
   page: Record<OrderScreenSeparator, number>;
 }
 const Order_Separator = ({
@@ -39,16 +40,22 @@ const Order_Separator = ({
   screen_type,
   loadMore,
   loading,
+  setLoading,
   page,
 }: Order_Separator_props) => {
   const { colors: Colors } = useTheme();
   const [orderList, setOrderList] = useState<Return_Type[]>();
+  const [uniqueList, setUniqueList] = useState<Return_Type[]>([]);
 
   useEffect(() => {
+    setLoading(true);
+    setUniqueList([]);
     if (screen_type === OrderScreenSeparator.TODAY_UPCOMING) {
       setOrderList(data?.today_upcoming);
+      setLoading(false);
     } else if (screen_type === OrderScreenSeparator.HISTORY) {
       setOrderList(data?.history);
+      setLoading(false);
     }
   }, [screen_type, data]);
 
@@ -129,7 +136,6 @@ const Order_Separator = ({
       console.warn("Failed to parse paymentSession:", err);
     }
 
-    // Remove duplicates using a single Set
     const seen = new Set<string>();
     const filtered = updatedList.filter((hall) => {
       if (seen.has(hall._id)) return false;
@@ -145,17 +151,30 @@ const Order_Separator = ({
     });
   };
 
-  const [uniqueList, setUniqueList] = useState<Return_Type[]>([]);
-
   useFocusEffect(
     useCallback(() => {
+      let isActive = true;
+
       const load = async () => {
-        if (!orderList || orderList.length === 0) return; // skip if empty
+        if (!orderList || orderList.length === 0) {
+          setUniqueList([]); // clear if empty
+          setLoading(false);
+          return;
+        }
+
         const list = await getUniqueListWithSessions(orderList);
-        setUniqueList(list);
+        if (isActive) {
+          setUniqueList(list);
+          setLoading(false);
+        }
       };
+
       load();
-    }, [screen_type, page, orderList])
+
+      return () => {
+        isActive = false; // cancel update if screen unmounted
+      };
+    }, [orderList])
   );
 
   const { height } = Dimensions.get("screen");
@@ -203,8 +222,8 @@ const Order_Separator = ({
             </View>
           )
         }
-        initialNumToRender={10}
-        windowSize={10}
+        initialNumToRender={5}
+        windowSize={5}
         removeClippedSubviews
         style={{ flex: 1 }}
         ListEmptyComponent={

@@ -11,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import {
   Feather,
+  FontAwesome,
   FontAwesome6,
   Fontisto,
   MaterialIcons,
@@ -44,21 +45,28 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
   const perBlockHeight = 60 * blockCount;
 
   const animatedCardStyle = useAnimatedStyle(() => {
-    const height =
-      data?.blocks?.[0]?.block_booking_status === "confirmed"
-        ? 600 + perBlockHeight + 50
-        : data?.session_obj
-        ? 600 + perBlockHeight + 100
-        : 600 + perBlockHeight + 50;
+    const baseHeight = 600 + perBlockHeight;
+    const isConfirmed = data?.blocks?.[0]?.block_booking_status === "confirmed";
+    const hasSession = !!data?.session_obj;
+
+    let extra = 10;
+    if (isConfirmed) extra = 50;
+    else if (hasSession) extra = 100;
+    const expandedHeight = perBlockHeight + baseHeight + extra;
+    const notExtendedHeight = perBlockHeight + extra;
+
     return {
       height: withTiming(
         interpolate(
           expanded.value,
           [0, 1],
-          [200 + perBlockHeight, height],
+          [200 + notExtendedHeight, expandedHeight],
           Extrapolate.CLAMP
         ),
-        { duration: 100, easing: Easing.inOut(Easing.cubic) }
+        {
+          duration: 100,
+          easing: Easing.inOut(Easing.cubic),
+        }
       ),
     };
   });
@@ -261,25 +269,6 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
           animatedCardStyle,
         ]}
       >
-        {data.session_obj && secondsLeft > 0 ? (
-          <View
-            style={{
-              position: "absolute",
-              right: 10,
-              flexDirection: "row",
-              paddingTop: 5,
-            }}
-          >
-            <AppText style={{ color: Colors.darkGrey }}>
-              Confirm Your Book
-            </AppText>
-            <AppText style={{ color: Colors.primary }}>
-              {minutes}:{seconds < 10 ? `0${seconds}` : seconds}{" "}
-            </AppText>
-          </View>
-        ) : (
-          <View></View>
-        )}
         <View
           style={{
             width: "100%",
@@ -297,7 +286,51 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
           >
             <View style={{ height: "70%", gap: 20 }}>
               {/* Basic Info */}
+              {data.session_obj && secondsLeft > 0 ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    backgroundColor: Colors.containerLittleGrey,
+                    alignItems: "center",
+                    gap: 5,
+                    padding: 10,
+                    borderRadius: 10,
+                    width: "100%",
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: 7,
+                    }}
+                  >
+                    <FontAwesome
+                      name="check-circle"
+                      size={24}
+                      color={Colors.primary}
+                    />
+                    <AppText
+                      style={{
+                        color: Colors.themeColorTextPure,
+                        fontSize: 20,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Confirm Your Book
+                    </AppText>
+                  </View>
 
+                  <AppText
+                    style={{ color: "red", fontSize: 20, fontWeight: "600" }}
+                  >
+                    {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+                  </AppText>
+                </View>
+              ) : (
+                <View></View>
+              )}
               <View style={{ gap: 15 }}>
                 <View style={{ flexDirection: "row" }}>
                   <Text

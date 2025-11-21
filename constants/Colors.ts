@@ -47,7 +47,8 @@ export const LightTheme = {
   containerColor:"#FFFFFF",
   themeColorTextPure: "#000000",
   themeColorTextSecondary: "#767676",
-  themeContainerGrey: "#3c3f47"
+  themeContainerGrey: "#3c3f47",
+  containerLittleGrey:"#323641"
 }
 
 export const DarkTheme ={
@@ -75,5 +76,6 @@ export const DarkTheme ={
   containerColor:"#272A33",
   themeColorTextPure: "#FFFFFF",
   themeColorTextSecondary: "#e5e5e5ff",
-  themeContainerGrey: "#3c3f47"
+  themeContainerGrey: "#3c3f47",
+  containerLittleGrey:"#323641"
 }

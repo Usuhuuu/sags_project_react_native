@@ -19,7 +19,6 @@ import {
 } from "@expo/vector-icons";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import StepIndicator from "react-native-step-indicator";
-import { format } from "date-fns";
 import axiosInstance from "@/hooks/axiosInstance";
 import { AxiosResponse } from "axios";
 import { Notifier, NotifierComponents } from "react-native-notifier";
@@ -28,7 +27,7 @@ import { mutate } from "swr";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import Confirm_Modal from "./support_components/confirmation_modal";
-import { addHours } from "date-fns";
+import { addHours, format } from "date-fns";
 import * as SecureStorage from "expo-secure-store";
 
 export type ReservationBlock = {

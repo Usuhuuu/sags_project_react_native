@@ -7,7 +7,7 @@ import {
 
 interface useSWRProps {
   pathname: string;
-  cacheKey: string;
+  cacheKey: string | null;
   loginStatus: boolean;
   body?: string[];
 }

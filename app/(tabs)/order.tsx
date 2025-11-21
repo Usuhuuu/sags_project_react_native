@@ -25,6 +25,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../(modals)/context/themeContext";
+import { addHours } from "date-fns";
 
 const OrderScreen = () => {
   const { colors: Colors } = useTheme();
@@ -69,9 +70,7 @@ const OrderScreen = () => {
     history: [],
   });
   const [loading, setLoading] = useState<boolean>(false);
-  const [date, setDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
+  const [date, setDate] = useState<string>(new Date().toISOString());
   const [page, setPages] = useState<Record<OrderScreenSeparator, number>>({
     [OrderScreenSeparator.TODAY_UPCOMING]: 1,
     [OrderScreenSeparator.HISTORY]: 1,
@@ -92,20 +91,22 @@ const OrderScreen = () => {
   const orderLangInit: any = t("orderScreen", { returnObjects: true });
 
   const shouldFetch = !!LoginStatus;
-
+  const timezone = encodeURIComponent(
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
   const { data, error, isLoading } = regular_swr(
     shouldFetch
       ? {
           item: {
-            pathname: `/auth/book/${date}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
+            pathname: `/auth/book/${date}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
             cacheKey: `booked_order_${screenSeparator}_${page[screenSeparator]}_${date}`,
             loginStatus: LoginStatus,
           },
         }
       : {
           item: {
-            pathname: `/auth/book/${date}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
-            cacheKey: "",
+            pathname: `/auth/book/${date}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
+            cacheKey: null,
             loginStatus: LoginStatus,
           },
         },
@@ -139,9 +140,10 @@ const OrderScreen = () => {
       }
       if (unique.length === 0) return;
 
-      const now = new Date();
+      const offSetHour = new Date().getTimezoneOffset() / -60;
+      const now = addHours(new Date(), offSetHour);
       const sorted = unique.reduce(
-        (acc, booking) => {
+        (acc, booking, index) => {
           const bookingDate = booking?.day[0];
 
           const historyBlocks: Booking_Block_Type[] = [];
@@ -149,17 +151,15 @@ const OrderScreen = () => {
 
           booking.blocks.forEach((block) => {
             const [hour, minute] = block.start_time.split(":").map(Number);
-
             const blockTime = new Date(bookingDate);
-            blockTime.setHours(hour, minute, 0, 0);
-
-            if (blockTime <= now) {
+            const newHour = blockTime.setHours(hour, minute, 0, 0);
+            const beforeDistribute = addHours(newHour, offSetHour);
+            if (beforeDistribute < now) {
               historyBlocks.push(block);
             } else {
               upcomingBlocks.push(block);
             }
           });
-
           // If expired blocks exist → push history booking
           if (historyBlocks.length > 0) {
             acc.history.push({
@@ -209,6 +209,13 @@ const OrderScreen = () => {
     }
   }, [data, error, isLoading]);
 
+  const loadMore = useCallback(() => {
+    if (loading || !hasMore[screenSeparator] || !data?.length) return;
+    setPages((prev) => ({
+      ...prev,
+      [screenSeparator]: prev[screenSeparator] + 1,
+    }));
+  }, [loading]);
   const opacity = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -220,14 +227,6 @@ const OrderScreen = () => {
       opacity.value = withTiming(1, { duration: fadeDuration });
     });
   };
-
-  const loadMore = useCallback(() => {
-    if (loading || !hasMore[screenSeparator]) return;
-    setPages((prev) => ({
-      ...prev,
-      [screenSeparator]: prev[screenSeparator] + 1,
-    }));
-  }, [loading]);
 
   const navigation = useNavigation();
   useLayoutEffect(() => {
@@ -349,6 +348,7 @@ const OrderScreen = () => {
               screen_type={screenSeparator}
               loading={loading}
               loadMore={loadMore}
+              setLoading={setLoading}
               page={page}
             />
           </View>
