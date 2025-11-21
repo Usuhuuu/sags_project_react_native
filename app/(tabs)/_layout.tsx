@@ -144,7 +144,6 @@ export const TabsLayout = () => {
           headerShadowVisible: false,
           headerTitleAlign: "left",
           headerTitleStyle: { color: Colors.primary, fontSize: 28 },
-
           headerRight: () => (
             <TouchableOpacity>
               <Ionicons

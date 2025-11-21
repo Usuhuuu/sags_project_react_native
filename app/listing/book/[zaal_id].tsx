@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -12,6 +11,8 @@ import {
 import {
   AntDesign,
   Feather,
+  FontAwesome,
+  Fontisto,
   Ionicons,
   MaterialCommunityIcons,
   MaterialIcons,
@@ -25,6 +26,19 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import { scheduleNotificationForEvent } from "@/utils/calendarReminder";
 import { mutate } from "swr";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import AppText from "@/constants/appTextDefault";
+import Confirm_Modal from "./support_components/confirmation_modal";
+import { addHours } from "date-fns";
+import * as SecureStorage from "expo-secure-store";
+
+export type ReservationBlock = {
+  start_time: string;
+  end_time: string;
+  num_players: number;
+  current_player: number;
+  time_slots: string[];
+  wholeDay?: boolean;
+};
 
 const customStyles = {
   stepIndicatorSize: 30,
@@ -111,7 +125,12 @@ const TransactionPage = () => {
   );
   const [wholeDayPeople, setWholeDayPeople] = useState<number>(0);
   const [wholeDay, setWholeDay] = useState<boolean>(false);
+
   const [waiting, setWaiting] = useState<boolean>(false);
+  const [confirmModal, setConfirmModal] = useState<boolean>(false);
+  const [reserved_times, setReserved_times] = useState<
+    ReservationBlock[] | undefined
+  >(undefined);
 
   const bookingDetails = useBookingStore((state) => state.bookingDetails);
   useEffect(() => {
@@ -126,6 +145,22 @@ const TransactionPage = () => {
   const paymentPerPeopleArray: number[] = [];
   const totalBookerPaymentArray: number[] = [];
 
+  const saveToken = async (token: string) => {
+    try {
+      const existing = await SecureStorage.getItemAsync("paymentSession");
+      let tokens: string[] = [];
+      if (existing && existing.trim().startsWith("[")) {
+        tokens = JSON.parse(existing);
+      }
+      tokens.push(token);
+      await SecureStorage.setItemAsync(
+        "paymentSession",
+        JSON.stringify(tokens)
+      );
+    } catch (e) {
+      console.error("SecureStore error:", e);
+    }
+  };
   const handleOrder = async () => {
     try {
       if (isOrdering) return;
@@ -186,8 +221,11 @@ const TransactionPage = () => {
           { timeout: 10000 }
         );
       }
-
+      setReserved_times(reservationBlocks);
       if (response.status === 200 && response.data.success) {
+        const token = response.data.session;
+        saveToken(token);
+
         Notifier.showNotification({
           title: "Successfully Booked",
           description: "Check Booking from Order Section",
@@ -199,27 +237,8 @@ const TransactionPage = () => {
           undefined,
           { revalidate: true, throwOnError: true }
         );
-        router.replace("/(tabs)/order");
-
-        if (wholeDay) {
-          if (!reservationBlocks) return;
-          for (const blocks of reservationBlocks) {
-            const endDate = new Date(`${dateOnly}T${blocks.end_time}:80`);
-            const startDate = new Date(`${dateOnly}T${blocks.start_time}:80`);
-            scheduleNotificationForEvent({
-              endDate: endDate,
-              startDate: startDate,
-            });
-          }
-        } else {
-          const [start, end] = bookingDetails?.baseTime_startAndEnd.split("~");
-          const endDate = new Date(`${dateOnly}T${end}:80`);
-          const startDate = new Date(`${dateOnly}T${start}:80`);
-          scheduleNotificationForEvent({
-            endDate: endDate,
-            startDate: startDate,
-          });
-        }
+        setWaiting(!waiting);
+        setConfirmModal(true);
       } else if (response.status === 400 && !response.data.success) {
         Notifier.showNotification({
           title: "Already Booked",
@@ -254,13 +273,87 @@ const TransactionPage = () => {
     }
   };
 
+  const confirmationDetails = [
+    {
+      label: "Booking Court",
+      value: bookingDetails?.name,
+      icon: (
+        <FontAwesome
+          name="building"
+          size={24}
+          color={Colors.themeColorTextPure}
+        />
+      ),
+    },
+    {
+      label: "Date",
+      value: bookingDetails?.date,
+      icon: (
+        <Fontisto name="date" size={24} color={Colors.themeColorTextPure} />
+      ),
+    },
+    {
+      label: "Time",
+      value: bookingDetails?.baseTime_startAndEnd,
+      icon: (
+        <Ionicons
+          name="time-outline"
+          size={24}
+          color={Colors.themeColorTextPure}
+        />
+      ),
+    },
+    {
+      label: "Player Needed",
+      resolve: (item: number) => playersNeeded[item],
+      icon: (
+        <Ionicons name="people" size={24} color={Colors.themeColorTextPure} />
+      ),
+    },
+  ];
+  const addToCalendar = async () => {
+    if (wholeDay) {
+      if (!reserved_times) return;
+      for (const blocks of reserved_times) {
+        const endDate = new Date(
+          `${bookingDetails?.date}T${blocks.end_time}:00`
+        );
+        const startDate = new Date(
+          `${bookingDetails?.date}T${blocks.start_time}:00`
+        );
+        await scheduleNotificationForEvent({
+          endDate: endDate,
+          startDate: startDate,
+        });
+      }
+    } else {
+      const offsetHour = new Date().getTimezoneOffset() / -60;
+      const start = reserved_times?.[0]?.start_time ?? "09:00";
+      const end = reserved_times?.[0]?.end_time ?? "24:00";
+      const endDate = addHours(
+        new Date(`${bookingDetails?.date}T${end}`),
+        offsetHour
+      );
+      const startDate = addHours(
+        new Date(`${bookingDetails?.date}T${start}`),
+        offsetHour
+      );
+      await scheduleNotificationForEvent({
+        endDate: endDate,
+        startDate: startDate,
+      });
+    }
+  };
+
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider style={{ backgroundColor: Colors.backgroundColor }}>
       {waiting ? (
         <View
           style={{
             alignItems: "center",
             justifyContent: "center",
+            backgroundColor: Colors.backgroundColor,
+            flex: 1,
           }}
         >
           <ActivityIndicator size={"large"} color={Colors.primary} />
@@ -320,7 +413,7 @@ const TransactionPage = () => {
             >
               {steps === 0 && (
                 <View style={styles.innerContainer}>
-                  <Text
+                  <AppText
                     style={{
                       fontSize: 24,
                       fontWeight: 400,
@@ -329,7 +422,7 @@ const TransactionPage = () => {
                     }}
                   >
                     {bookingDetails?.name}
-                  </Text>
+                  </AppText>
                   {/* check section */}
                   <View
                     style={{
@@ -348,7 +441,7 @@ const TransactionPage = () => {
                         borderBottomColor: Colors.themeColorTextPure,
                       }}
                     >
-                      <Text
+                      <AppText
                         style={{
                           fontSize: 18,
                           fontWeight: 300,
@@ -356,8 +449,8 @@ const TransactionPage = () => {
                         }}
                       >
                         Date
-                      </Text>
-                      <Text
+                      </AppText>
+                      <AppText
                         style={{
                           fontSize: 18,
                           fontWeight: 300,
@@ -370,7 +463,7 @@ const TransactionPage = () => {
                               "MMMM d, yyyy"
                             )
                           : ""}
-                      </Text>
+                      </AppText>
                     </View>
                     <View
                       style={{
@@ -385,7 +478,7 @@ const TransactionPage = () => {
                             padding: 20,
                           }}
                         >
-                          <Text
+                          <AppText
                             style={{
                               fontSize: 18,
                               fontWeight: 300,
@@ -393,8 +486,8 @@ const TransactionPage = () => {
                             }}
                           >
                             Time
-                          </Text>
-                          <Text
+                          </AppText>
+                          <AppText
                             style={{
                               fontSize: 18,
                               fontWeight: 300,
@@ -402,7 +495,7 @@ const TransactionPage = () => {
                             }}
                           >
                             {bookingDetails?.workTime}
-                          </Text>
+                          </AppText>
                         </View>
                       ) : (
                         <>
@@ -423,7 +516,7 @@ const TransactionPage = () => {
                                   borderColor: Colors.themeColorTextPure,
                                 }}
                               >
-                                <Text
+                                <AppText
                                   style={{
                                     fontSize: 18,
                                     fontWeight: 300,
@@ -431,8 +524,8 @@ const TransactionPage = () => {
                                   }}
                                 >
                                   Time {index + 1}
-                                </Text>
-                                <Text
+                                </AppText>
+                                <AppText
                                   style={{
                                     fontSize: 18,
                                     fontWeight: 300,
@@ -440,7 +533,7 @@ const TransactionPage = () => {
                                   }}
                                 >
                                   {startTime} – {endTime}
-                                </Text>
+                                </AppText>
                               </View>
                             );
                           })}
@@ -480,7 +573,7 @@ const TransactionPage = () => {
                             size={24}
                             color={Colors.themeColorTextPure}
                           />
-                          <Text
+                          <AppText
                             style={{
                               fontSize: 18,
                               fontWeight: 300,
@@ -488,9 +581,9 @@ const TransactionPage = () => {
                             }}
                           >
                             1 Hour
-                          </Text>
+                          </AppText>
                         </View>
-                        <Text
+                        <AppText
                           style={{
                             fontSize: 18,
                             fontWeight: 300,
@@ -498,7 +591,7 @@ const TransactionPage = () => {
                           }}
                         >
                           ₮{bookingDetails?.price.oneHour}
-                        </Text>
+                        </AppText>
                       </View>
                     )}
                     <View
@@ -508,16 +601,16 @@ const TransactionPage = () => {
                         padding: 20,
                       }}
                     >
-                      <Text style={{ color: Colors.themeColorTextPure }}>
+                      <AppText style={{ color: Colors.themeColorTextPure }}>
                         TOTAL
-                      </Text>
-                      <Text style={{ color: Colors.themeColorTextPure }}>
+                      </AppText>
+                      <AppText style={{ color: Colors.themeColorTextPure }}>
                         ₮
                         {wholeDay
                           ? bookingDetails?.price?.wholeDay
                           : (bookingDetails?.selectedTimeSlots.length ?? 0) *
                             Number(bookingDetails?.price.oneHour)}
-                      </Text>
+                      </AppText>
                     </View>
                   </View>
                   <View
@@ -537,7 +630,7 @@ const TransactionPage = () => {
                       ]}
                       onPress={() => setSteps(steps + 1)}
                     >
-                      <Text style={{ color: Colors.white }}>Next</Text>
+                      <AppText style={{ color: Colors.white }}>Next</AppText>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -562,7 +655,7 @@ const TransactionPage = () => {
                           borderRadius: 5,
                         }}
                       >
-                        <Text
+                        <AppText
                           style={{
                             fontSize: 18,
                             fontWeight: 300,
@@ -570,7 +663,7 @@ const TransactionPage = () => {
                           }}
                         >
                           {bookingDetails?.workTime}
-                        </Text>
+                        </AppText>
                         <View
                           style={{
                             flexDirection: "row",
@@ -593,9 +686,11 @@ const TransactionPage = () => {
                               size={24}
                               color={Colors.themeColorTextPure}
                             />
-                            <Text style={{ color: Colors.themeColorTextPure }}>
+                            <AppText
+                              style={{ color: Colors.themeColorTextPure }}
+                            >
                               Peoples Needed
-                            </Text>
+                            </AppText>
                           </View>
                           <View
                             style={{
@@ -624,9 +719,9 @@ const TransactionPage = () => {
                                 color={Colors.themeColorTextPure}
                               />
                             </TouchableOpacity>
-                            <Text style={{ fontSize: 20 }}>
+                            <AppText style={{ fontSize: 20 }}>
                               {wholeDayPeople}
-                            </Text>
+                            </AppText>
                             <TouchableOpacity
                               onPress={() => {
                                 if (wholeDayPeople > 0)
@@ -660,7 +755,7 @@ const TransactionPage = () => {
                                 borderRadius: 5,
                               }}
                             >
-                              <Text
+                              <AppText
                                 style={{
                                   fontSize: 18,
                                   fontWeight: 300,
@@ -668,8 +763,8 @@ const TransactionPage = () => {
                                 }}
                               >
                                 Session {index + 1}
-                              </Text>
-                              <Text
+                              </AppText>
+                              <AppText
                                 style={{
                                   fontSize: 18,
                                   fontWeight: 300,
@@ -677,7 +772,7 @@ const TransactionPage = () => {
                                 }}
                               >
                                 {startTime} – {endTime}
-                              </Text>
+                              </AppText>
                               <View
                                 style={{
                                   flexDirection: "row",
@@ -700,11 +795,11 @@ const TransactionPage = () => {
                                     size={24}
                                     color={Colors.themeColorTextPure}
                                   />
-                                  <Text
+                                  <AppText
                                     style={{ color: Colors.themeColorTextPure }}
                                   >
                                     Peoples Needed
-                                  </Text>
+                                  </AppText>
                                 </View>
                                 <View
                                   style={{
@@ -739,9 +834,14 @@ const TransactionPage = () => {
                                       color={Colors.themeColorTextPure}
                                     />
                                   </TouchableOpacity>
-                                  <Text style={{ fontSize: 20 }}>
+                                  <AppText
+                                    style={{
+                                      fontSize: 20,
+                                      color: Colors.themeColorTextPure,
+                                    }}
+                                  >
                                     {playersNeeded[index] ?? 0}{" "}
-                                  </Text>
+                                  </AppText>
                                   <TouchableOpacity
                                     onPress={() => {
                                       setPlayersNeeded((prev) => ({
@@ -781,9 +881,9 @@ const TransactionPage = () => {
                       style={styles.buttons}
                       onPress={() => setSteps(steps - 1)}
                     >
-                      <Text style={{ color: Colors.themeColorTextPure }}>
+                      <AppText style={{ color: Colors.themeColorTextPure }}>
                         Preview
-                      </Text>
+                      </AppText>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[
@@ -792,7 +892,7 @@ const TransactionPage = () => {
                       ]}
                       onPress={() => setSteps(steps + 1)}
                     >
-                      <Text style={{ color: Colors.white }}>Next</Text>
+                      <AppText style={{ color: Colors.white }}>Next</AppText>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -805,11 +905,16 @@ const TransactionPage = () => {
                       gap: 10,
                     }}
                   >
-                    <Text
-                      style={{ fontSize: 24, color: Colors.themeColorTextPure }}
-                    >
-                      Booking Confirmation
-                    </Text>
+                    <View>
+                      <AppText
+                        style={{
+                          fontSize: 24,
+                          color: Colors.themeColorTextPure,
+                        }}
+                      >
+                        Booking Confirmation
+                      </AppText>
+                    </View>
 
                     <View
                       style={{
@@ -826,7 +931,7 @@ const TransactionPage = () => {
                           borderColor: Colors.themeColorTextPure,
                         }}
                       >
-                        <Text
+                        <AppText
                           style={{
                             fontSize: 18,
                             fontWeight: 300,
@@ -834,7 +939,7 @@ const TransactionPage = () => {
                           }}
                         >
                           {bookingDetails?.name}
-                        </Text>
+                        </AppText>
                       </View>
                       <View
                         style={{
@@ -846,7 +951,7 @@ const TransactionPage = () => {
                           borderColor: Colors.themeColorTextPure,
                         }}
                       >
-                        <Text
+                        <AppText
                           style={{
                             fontSize: 18,
                             fontWeight: 300,
@@ -854,8 +959,8 @@ const TransactionPage = () => {
                           }}
                         >
                           Date
-                        </Text>
-                        <Text
+                        </AppText>
+                        <AppText
                           style={{
                             fontSize: 18,
                             fontWeight: 300,
@@ -868,14 +973,14 @@ const TransactionPage = () => {
                                 "MMMM d, yyyy"
                               )
                             : ""}
-                        </Text>
+                        </AppText>
                       </View>
                     </View>
-                    <Text
+                    <AppText
                       style={{ fontSize: 24, color: Colors.themeColorTextPure }}
                     >
                       Times & Player Needed
-                    </Text>
+                    </AppText>
                     <View style={{ gap: 10 }}>
                       {wholeDay ? (
                         <View
@@ -895,6 +1000,7 @@ const TransactionPage = () => {
                               padding: 20,
                               borderBottomWidth: 1,
                               alignItems: "center",
+                              borderBottomColor: Colors.themeColorTextPure,
                             }}
                           >
                             <View
@@ -909,7 +1015,7 @@ const TransactionPage = () => {
                                 size={24}
                                 color={Colors.themeColorTextPure}
                               />
-                              <Text
+                              <AppText
                                 style={{
                                   fontSize: 18,
                                   fontWeight: 300,
@@ -917,9 +1023,9 @@ const TransactionPage = () => {
                                 }}
                               >
                                 Whole Day
-                              </Text>
+                              </AppText>
                             </View>
-                            <Text
+                            <AppText
                               style={{
                                 fontSize: 18,
                                 fontWeight: 300,
@@ -927,7 +1033,7 @@ const TransactionPage = () => {
                               }}
                             >
                               ₮{bookingDetails?.price.wholeDay}
-                            </Text>
+                            </AppText>
                           </View>
                           <View
                             style={{
@@ -936,11 +1042,12 @@ const TransactionPage = () => {
                               padding: 20,
                               borderBottomWidth: 1,
                               alignItems: "center",
+                              borderBottomColor: Colors.themeColorTextPure,
                             }}
                           >
-                            <Text style={{ fontSize: 18, fontWeight: 300 }}>
+                            <AppText style={{ fontSize: 18, fontWeight: 300 }}>
                               Peoples
-                            </Text>
+                            </AppText>
                             <View
                               style={{
                                 flexDirection: "row",
@@ -948,14 +1055,15 @@ const TransactionPage = () => {
                                 justifyContent: "center",
                               }}
                             >
-                              <Text
+                              <AppText
                                 style={{
                                   fontSize: 18,
                                   fontWeight: 300,
+                                  color: Colors.themeColorTextPure,
                                 }}
                               >
                                 {wholeDayPeople}
-                              </Text>
+                              </AppText>
                               <MaterialIcons
                                 name="people-alt"
                                 size={24}
@@ -970,7 +1078,7 @@ const TransactionPage = () => {
                               gap: 5,
                             }}
                           >
-                            <Text
+                            <AppText
                               style={{
                                 fontSize: 18,
                                 fontWeight: "bold",
@@ -983,7 +1091,7 @@ const TransactionPage = () => {
                                 ? bookingDetails?.price.wholeDay
                                 : Number(bookingDetails?.price.wholeDay) /
                                   wholeDayPeople}
-                            </Text>
+                            </AppText>
                           </View>
                         </View>
                       ) : (
@@ -1008,7 +1116,7 @@ const TransactionPage = () => {
                                     borderRadius: 5,
                                   }}
                                 >
-                                  <Text
+                                  <AppText
                                     style={{
                                       fontSize: 18,
                                       fontWeight: 300,
@@ -1016,8 +1124,8 @@ const TransactionPage = () => {
                                     }}
                                   >
                                     {startTime} – {endTime}
-                                  </Text>
-                                  <Text
+                                  </AppText>
+                                  <AppText
                                     style={{
                                       fontSize: 18,
                                       fontWeight: 300,
@@ -1025,7 +1133,7 @@ const TransactionPage = () => {
                                     }}
                                   >
                                     {playersNeeded[index] || 0} Person
-                                  </Text>
+                                  </AppText>
                                 </View>
                               );
                             })}
@@ -1047,6 +1155,7 @@ const TransactionPage = () => {
                                 padding: 20,
                                 borderBottomWidth: 1,
                                 alignItems: "center",
+                                borderBottomColor: Colors.themeColorTextPure,
                               }}
                             >
                               <View
@@ -1061,7 +1170,7 @@ const TransactionPage = () => {
                                   size={24}
                                   color={Colors.themeColorTextPure}
                                 />
-                                <Text
+                                <AppText
                                   style={{
                                     fontSize: 18,
                                     fontWeight: 300,
@@ -1069,9 +1178,9 @@ const TransactionPage = () => {
                                   }}
                                 >
                                   1 Hour
-                                </Text>
+                                </AppText>
                               </View>
-                              <Text
+                              <AppText
                                 style={{
                                   fontSize: 18,
                                   fontWeight: 300,
@@ -1079,7 +1188,7 @@ const TransactionPage = () => {
                                 }}
                               >
                                 ₮{bookingDetails?.price.oneHour}
-                              </Text>
+                              </AppText>
                             </View>
                             <View>
                               {(() => {
@@ -1128,7 +1237,7 @@ const TransactionPage = () => {
                                             padding: 10,
                                           }}
                                         >
-                                          <Text
+                                          <AppText
                                             style={{
                                               fontSize: 16,
                                               fontWeight: "300",
@@ -1136,14 +1245,14 @@ const TransactionPage = () => {
                                             }}
                                           >
                                             Session {index + 1}:
-                                          </Text>
+                                          </AppText>
                                           <View
                                             style={{
                                               flexDirection: "row",
                                               justifyContent: "space-around",
                                             }}
                                           >
-                                            <Text
+                                            <AppText
                                               style={{
                                                 fontSize: 18,
                                                 fontWeight: 300,
@@ -1151,9 +1260,9 @@ const TransactionPage = () => {
                                                   Colors.themeColorTextPure,
                                               }}
                                             >
-                                              {durationHours} hours
-                                            </Text>
-                                            <Text
+                                              {durationHours} Hours
+                                            </AppText>
+                                            <AppText
                                               style={{
                                                 fontSize: 18,
                                                 fontWeight: 300,
@@ -1161,9 +1270,9 @@ const TransactionPage = () => {
                                                   Colors.themeColorTextPure,
                                               }}
                                             >
-                                              {totalPeople} players
-                                            </Text>
-                                            <Text
+                                              {totalPeople} Players
+                                            </AppText>
+                                            <AppText
                                               style={{
                                                 fontSize: 18,
                                                 fontWeight: 300,
@@ -1171,9 +1280,9 @@ const TransactionPage = () => {
                                                   Colors.themeColorTextPure,
                                               }}
                                             >
-                                              ₮{paymentPerPeople.toFixed(2)} per
-                                              person
-                                            </Text>
+                                              ₮{paymentPerPeople.toFixed(2)} Per
+                                              Person
+                                            </AppText>
                                           </View>
                                         </View>
                                       );
@@ -1187,7 +1296,7 @@ const TransactionPage = () => {
                                         borderColor: Colors.littleDark,
                                       }}
                                     >
-                                      <Text
+                                      <AppText
                                         style={{
                                           fontSize: 18,
                                           fontWeight: "bold",
@@ -1199,7 +1308,7 @@ const TransactionPage = () => {
                                         {totalBookerPaymentArray
                                           .reduce((sum, v) => sum + v, 0)
                                           .toFixed(2)}
-                                      </Text>
+                                      </AppText>
                                     </View>
                                   </>
                                 );
@@ -1224,9 +1333,9 @@ const TransactionPage = () => {
                       style={styles.buttons}
                       onPress={() => setSteps(steps - 1)}
                     >
-                      <Text style={{ color: Colors.themeColorTextPure }}>
+                      <AppText style={{ color: Colors.themeColorTextPure }}>
                         Preview
-                      </Text>
+                      </AppText>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[
@@ -1237,9 +1346,9 @@ const TransactionPage = () => {
                         handleOrder();
                       }}
                     >
-                      <Text style={{ color: Colors.themeColorTextPure }}>
-                        Complete
-                      </Text>
+                      <AppText style={{ color: Colors.themeColorTextPure }}>
+                        Book
+                      </AppText>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -1248,6 +1357,12 @@ const TransactionPage = () => {
           </View>
         </SafeAreaView>
       )}
+      <Confirm_Modal
+        confirmModal={confirmModal}
+        setConfirmModal={setConfirmModal}
+        confirmationDetails={confirmationDetails}
+        addToCalendar={addToCalendar}
+      />
     </SafeAreaProvider>
   );
 };

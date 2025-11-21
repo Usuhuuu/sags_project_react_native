@@ -1,3 +1,4 @@
+import { Booking_Time_Validation_payload } from "@/app/(modals)/book/components/order_separator";
 import { SportHallDataType } from "./listing";
 
 export type Booking_Data_Type = {
@@ -32,9 +33,9 @@ export type Return_Type = {
       }
   }],
   }],
-  
-    full_paid: boolean;
-    full_paid_at?: string;
+  session_obj?:Booking_Time_Validation_payload;
+  full_paid: boolean;
+  full_paid_at?: string;
 };
 export enum OrderScreenSeparator {
   TODAY_UPCOMING= "TODAY_UPCOMING",

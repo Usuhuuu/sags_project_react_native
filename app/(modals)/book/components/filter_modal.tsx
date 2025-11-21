@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 interface Filter_Modals_Props {
   screenSeparator: OrderScreenSeparator;
@@ -200,7 +201,7 @@ const Filter_Modals = ({
               <TouchableOpacity onPress={incrementYear} style={style.button}>
                 <Entypo name="triangle-up" size={24} color={Colors.dark} />
               </TouchableOpacity>
-              <Text style={style.value}>{year}</Text>
+              <AppText style={style.value}>{year}</AppText>
               <TouchableOpacity onPress={decrementYear} style={style.button}>
                 <Entypo name="triangle-down" size={24} color={Colors.dark} />
               </TouchableOpacity>
@@ -221,7 +222,7 @@ const Filter_Modals = ({
                   justifyContent: "center",
                 }}
               >
-                <Text style={style.value}>{months[monthIndex].text}</Text>
+                <AppText style={style.value}>{months[monthIndex].text}</AppText>
               </View>
 
               {/* Down Button */}
@@ -255,9 +256,9 @@ const Filter_Modals = ({
                 setModalVisible(false);
               }}
             >
-              <Text style={{ color: Colors.white, fontSize: 20 }}>
+              <AppText style={{ color: Colors.white, fontSize: 20 }}>
                 {orderLangInit.filter}
-              </Text>
+              </AppText>
             </TouchableOpacity>
           </View>
         </View>

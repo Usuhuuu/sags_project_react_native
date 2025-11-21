@@ -1,5 +1,6 @@
+import AppText from "@/constants/appTextDefault";
 import React from "react";
-import { Text, View, TouchableOpacity, Modal } from "react-native";
+import { View, TouchableOpacity, Modal } from "react-native";
 
 interface FriendReqModalProps {
   modalVisible: boolean;
@@ -22,7 +23,7 @@ const FriendReqModal: React.FC<FriendReqModalProps> = ({
             setModalVisible(false);
           }}
         >
-          <Text>close</Text>
+          <AppText>close</AppText>
         </TouchableOpacity>
       </View>
     </Modal>

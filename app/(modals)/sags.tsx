@@ -1,12 +1,13 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { View, Text } from "react-native";
+import React from "react";
+import AppText from "@/constants/appTextDefault";
 
 const Page = () => {
   return (
     <View>
-      <Text>Page</Text>
+      <AppText>Page</AppText>
     </View>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;

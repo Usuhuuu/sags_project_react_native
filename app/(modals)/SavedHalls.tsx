@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useSavedHalls } from "@/app/(modals)/context/savedHall";
 import { Hall } from "@/app/(modals)/context/savedHall";
+import AppText from "@/constants/appTextDefault";
 
 const SavedHalls: React.FC = () => {
   const { savedHalls, removeHall } = useSavedHalls();
@@ -19,20 +20,20 @@ const SavedHalls: React.FC = () => {
 
   const renderItem = ({ item }: { item: Hall }) => (
     <View style={styles.hallItem}>
-      <Text style={styles.hallName}>{item.name}</Text>
+      <AppText style={styles.hallName}>{item.name}</AppText>
       <TouchableOpacity
         onPress={() => removeHall(item.id)}
         style={styles.removeButton}
       >
-        <Text style={styles.removeButtonText}>Remove</Text>
+        <AppText style={styles.removeButtonText}>Remove</AppText>
       </TouchableOpacity>
     </View>
   );
   return (
     <View style={styles.modalContent}>
-      <Text style={styles.header}>Saved Halls</Text>
+      <AppText style={styles.header}>Saved Halls</AppText>
       {hallsToRender?.length == 0 ? (
-        <Text>No halls saved!</Text>
+        <AppText>No halls saved!</AppText>
       ) : (
         <FlatList
           data={savedHalls}

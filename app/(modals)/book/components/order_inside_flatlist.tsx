@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import Animated, {
   useSharedValue,
@@ -9,18 +9,24 @@ import Animated, {
   Easing,
   runOnJS,
 } from "react-native-reanimated";
-import { Feather, FontAwesome6, Fontisto } from "@expo/vector-icons";
-import { format } from "date-fns";
+import {
+  Feather,
+  FontAwesome6,
+  Fontisto,
+  MaterialIcons,
+} from "@expo/vector-icons";
+import { format, differenceInSeconds } from "date-fns";
 import { ProgressBar } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { Return_Type } from "@/interfaces/order&book_type";
 import axiosInstance from "@/hooks/axiosInstance";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
-export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
+export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
   const { colors: Colors } = useTheme();
-
+  const data = item[0];
   const expanded = useSharedValue(0);
   const textOpacity = useSharedValue(1);
   const [toggle, setToggle] = useState(false);
@@ -34,21 +40,22 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
       duration: 50,
     });
   };
-  const blockCount = item?.blocks?.length;
+  const blockCount = data?.blocks?.length;
   const perBlockHeight = 60 * blockCount;
 
   const animatedCardStyle = useAnimatedStyle(() => {
+    const height =
+      data?.blocks?.[0]?.block_booking_status === "confirmed"
+        ? 600 + perBlockHeight + 50
+        : data?.session_obj
+        ? 600 + perBlockHeight + 100
+        : 600 + perBlockHeight + 50;
     return {
       height: withTiming(
         interpolate(
           expanded.value,
           [0, 1],
-          [
-            200 + perBlockHeight,
-            item.blocks[0].block_booking_status === "confirmed"
-              ? 600 + perBlockHeight
-              : 600 + perBlockHeight + 50,
-          ],
+          [200 + perBlockHeight, height],
           Extrapolate.CLAMP
         ),
         { duration: 100, easing: Easing.inOut(Easing.cubic) }
@@ -77,8 +84,6 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
   const animatedTextStyle = useAnimatedStyle(() => ({
     opacity: textOpacity.value,
   }));
-
-  const data = item;
 
   const handleCancel = async (item: string) => {
     try {
@@ -112,13 +117,43 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
   };
   const { t } = useTranslation();
   const orderLangInit: any = t("orderScreen", { returnObjects: true });
+
+  const useCountdown = (expireAt?: string | Date) => {
+    const [secondsLeft, setSecondsLeft] = useState(() => {
+      if (expireAt === undefined || expireAt === null) return 0;
+      const diff = differenceInSeconds(new Date(expireAt), new Date());
+      return Math.max(isNaN(diff) ? 0 : diff, 0);
+    });
+
+    useEffect(() => {
+      if (expireAt === undefined || expireAt === null) {
+        setSecondsLeft(0);
+        return;
+      }
+
+      const interval = setInterval(() => {
+        const raw = differenceInSeconds(new Date(expireAt), new Date());
+        const sec = Math.max(isNaN(raw) ? 0 : raw, 0);
+        setSecondsLeft(sec);
+
+        if (sec <= 0) clearInterval(interval);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }, [expireAt]);
+
+    const minutes = Math.floor(secondsLeft / 60);
+    const seconds = secondsLeft % 60;
+
+    return { minutes, seconds, secondsLeft };
+  };
+
+  const { minutes, seconds, secondsLeft } = useCountdown(
+    data.session_obj?.expireAt
+  );
+
   const dataDetails = {
     paymentInfo: [
-      {
-        label: `${orderLangInit.paymentInfo.paymentStatusPaid}`,
-        resolve: (data: Return_Type) =>
-          `${data.full_paid ? "Paid" : "Pending"}`,
-      },
       {
         label: `${orderLangInit.paymentInfo.paymentMethod}`,
         key: "payment_method",
@@ -126,6 +161,18 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
       {
         label: `${orderLangInit.paymentInfo.totalAmount}`,
         key: "total_amount",
+      },
+      {
+        label: `${orderLangInit.paymentInfo.paymentStatusPaid}`,
+        resolve: (data: Return_Type) =>
+          `${data.full_paid ? "Paid" : "Pending"}`,
+      },
+      {
+        label: "Continue Pay",
+        resolve: (data: Return_Type) => {
+          if (!data.session_obj || data.full_paid) return null;
+          return data.session_obj; // pass raw session data
+        },
       },
     ],
     bookingInfo: [
@@ -176,6 +223,26 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
     ],
   };
 
+  const ContinuePayButton = ({ session }: any) => {
+    return (
+      <TouchableOpacity
+        style={{
+          backgroundColor: Colors.green,
+          alignItems: "center",
+          padding: 10,
+          borderRadius: 10,
+          flexDirection: "row",
+          justifyContent: "center",
+          gap: 5,
+        }}
+        onPress={() => console.log("Pay:", session.token)}
+      >
+        <MaterialIcons name="payment" size={24} color={Colors.white} />
+        <AppText style={{ fontWeight: "bold", fontSize: 16 }}>Pay Now</AppText>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={{ width: "100%", padding: 10 }}>
       <Animated.View
@@ -184,7 +251,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
             padding: 20,
             backgroundColor: Colors.containerColor,
             borderRadius: 12,
-            shadowColor: "#000",
+            shadowColor: Colors.shadowColor,
             shadowOffset: { width: 0, height: 3 },
             shadowOpacity: 0.15,
             shadowRadius: 6,
@@ -194,6 +261,25 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
           animatedCardStyle,
         ]}
       >
+        {data.session_obj && secondsLeft > 0 ? (
+          <View
+            style={{
+              position: "absolute",
+              right: 10,
+              flexDirection: "row",
+              paddingTop: 5,
+            }}
+          >
+            <AppText style={{ color: Colors.darkGrey }}>
+              Confirm Your Book
+            </AppText>
+            <AppText style={{ color: Colors.primary }}>
+              {minutes}:{seconds < 10 ? `0${seconds}` : seconds}{" "}
+            </AppText>
+          </View>
+        ) : (
+          <View></View>
+        )}
         <View
           style={{
             width: "100%",
@@ -211,16 +297,19 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
           >
             <View style={{ height: "70%", gap: 20 }}>
               {/* Basic Info */}
+
               <View style={{ gap: 15 }}>
-                <Text
-                  style={{
-                    fontSize: 20,
-                    fontWeight: "400",
-                    color: Colors.themeColorTextPure,
-                  }}
-                >
-                  {data.zaal_info.name}
-                </Text>
+                <View style={{ flexDirection: "row" }}>
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: "400",
+                      color: Colors.themeColorTextPure,
+                    }}
+                  >
+                    {data.zaal_info.name}
+                  </Text>
+                </View>
                 <Text style={{ color: Colors.themeColorTextSecondary }}>
                   {format(new Date(data.day[0]), "MMMM d, yyyy")}
                 </Text>
@@ -306,6 +395,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                                   : Colors.warningYellow,
                               padding: 2,
                               borderRadius: 10,
+                              paddingHorizontal: 10,
                             }}
                           >
                             <Text
@@ -314,7 +404,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                                 color:
                                   block.num_players === block.current_player &&
                                   block.num_players !== 0
-                                    ? Colors.littleDark
+                                    ? Colors.white
                                     : Colors.yellowText,
                               }}
                             >
@@ -368,7 +458,18 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                             typeof field.resolve === "function"
                               ? field.resolve(data)
                               : (data as any)?.[field.key] ?? "";
-
+                          if (field.label === "Continue Pay" && value) {
+                            return (
+                              <View
+                                key={field.label}
+                                style={{
+                                  paddingVertical: secondsLeft > 0 ? 10 : 0,
+                                }}
+                              >
+                                <ContinuePayButton session={value} />
+                              </View>
+                            );
+                          }
                           return (
                             <View
                               key={field.label}
@@ -390,7 +491,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                                   color: Colors.themeColorTextSecondary,
                                 }}
                               >
-                                {value.toString()}
+                                {value}
                               </Text>
                             </View>
                           );
@@ -440,7 +541,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
                   </View>
                 </View>
               </Animated.View>
-              {item.blocks[0].block_booking_status === "confirmed" && (
+              {item[0].blocks[0].block_booking_status === "confirmed" && (
                 <View
                   style={{
                     zIndex: 1,

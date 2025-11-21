@@ -26,6 +26,7 @@ import {
   MessageMapState,
 } from "@/interfaces/chatType";
 import { useTheme } from "../../context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 interface MainChatModalProps {
   mainModalShow: boolean;
@@ -190,9 +191,11 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                     groupData.startTime &&
                     groupData.endTime ? (
                       <View style={{ width: "80%" }}>
-                        <Text style={{ color: Colors.primary, fontSize: 18 }}>
+                        <AppText
+                          style={{ color: Colors.primary, fontSize: 18 }}
+                        >
                           {groupData.sportHallName}
-                        </Text>
+                        </AppText>
                         <View style={{ flexDirection: "row", gap: 10 }}>
                           <Text
                             style={{ color: Colors.secondary, fontSize: 14 }}
@@ -209,13 +212,13 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                           </Text>
                         </View>
                         <View style={{ flexDirection: "row", gap: 5 }}>
-                          <Text style={{ color: "green" }}>
+                          <AppText style={{ color: "green" }}>
                             online:
                             {activeUserMember}
-                          </Text>
-                          <Text style={{ color: Colors.darkGrey }}>
+                          </AppText>
+                          <AppText style={{ color: Colors.darkGrey }}>
                             members: {groupData.members.length}
-                          </Text>
+                          </AppText>
                         </View>
                       </View>
                     ) : (
@@ -232,13 +235,13 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                           {groupData.group_chat_name ?? ""}
                         </Text>
                         <View style={{ flexDirection: "row", gap: 5 }}>
-                          <Text style={{ color: "green" }}>
+                          <AppText style={{ color: "green" }}>
                             online:
                             {activeUserMember}
-                          </Text>
-                          <Text style={{ color: Colors.darkGrey }}>
+                          </AppText>
+                          <AppText style={{ color: Colors.darkGrey }}>
                             members: {groupData.members.length}
-                          </Text>
+                          </AppText>
                         </View>
                       </View>
                     )
@@ -397,9 +400,9 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                   color={Colors.primary}
                 />
               </TouchableOpacity>
-              <Text style={{ fontSize: 24, color: Colors.primary }}>
+              <AppText style={{ fontSize: 24, color: Colors.primary }}>
                 {groupChatSettingsLang.groupChatSettings}
-              </Text>
+              </AppText>
             </View>
             <ChildModal MemberData={groupData ? [groupData] : []} />
           </SafeAreaView>

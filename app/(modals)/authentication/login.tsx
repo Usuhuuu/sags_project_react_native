@@ -23,6 +23,7 @@ import SignupModal from "./signup_modal";
 import { TextInput } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "../context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 type LoginInput = {
   userName: string;
@@ -382,12 +383,14 @@ const Page = () => {
             onPress={handleSubmit}
             disabled={loading}
           >
-            <Text style={styles.buttonText}>{loginDetails.login}</Text>
+            <AppText style={styles.buttonText}>{loginDetails.login}</AppText>
           </TouchableOpacity>
 
           <View style={styles.separatorView}>
             <View style={styles.separatorLine} />
-            <Text style={[styles.separatorText, { fontSize: 18 }]}>or</Text>
+            <AppText style={[styles.separatorText, { fontSize: 18 }]}>
+              or
+            </AppText>
             <View style={styles.separatorLine} />
           </View>
 
@@ -397,9 +400,9 @@ const Page = () => {
               onPress={handleGoogleLogin}
             >
               <Ionicons name="logo-google" size={24} style={styles.btnIcon} />
-              <Text style={styles.btnOutlineText}>
+              <AppText style={styles.btnOutlineText}>
                 {loginDetails.continuewithgoogle}
-              </Text>
+              </AppText>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -407,9 +410,9 @@ const Page = () => {
               onPress={handleFacebookLogin}
             >
               <Ionicons name="logo-facebook" size={24} style={styles.btnIcon} />
-              <Text style={styles.btnOutlineText}>
+              <AppText style={styles.btnOutlineText}>
                 {loginDetails.continuewithfacebook}
-              </Text>
+              </AppText>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -417,7 +420,9 @@ const Page = () => {
               onPress={() => setIsModalVisible(true)}
             >
               <Ionicons name="person-add" size={24} style={styles.btnIcon} />
-              <Text style={styles.btnOutlineText}>{loginDetails.signUp}</Text>
+              <AppText style={styles.btnOutlineText}>
+                {loginDetails.signUp}
+              </AppText>
             </TouchableOpacity>
           </View>
         </ScrollView>

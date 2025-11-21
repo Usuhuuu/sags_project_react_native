@@ -109,7 +109,11 @@ const OrderScreen = () => {
             loginStatus: LoginStatus,
           },
         },
-    { shouldRetryOnError: false, revalidateOnMount: true }
+    {
+      shouldRetryOnError: false,
+      revalidateOnMount: true,
+      refreshInterval: 10 * 1000,
+    }
   );
 
   useEffect(() => {
@@ -345,6 +349,7 @@ const OrderScreen = () => {
               screen_type={screenSeparator}
               loading={loading}
               loadMore={loadMore}
+              page={page}
             />
           </View>
         </View>

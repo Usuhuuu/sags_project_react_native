@@ -25,6 +25,7 @@ import { launchImageLibrary } from "react-native-image-picker";
 import StepIndicator from "react-native-step-indicator";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "../context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 type LoginInput = {
   userName: string;
@@ -350,9 +351,9 @@ const SignupModal = ({
             />
           </TouchableOpacity>
 
-          <Text style={{ fontSize: 20, color: Colors.primary }}>
+          <AppText style={{ fontSize: 20, color: Colors.primary }}>
             Буртгэл үүсгэх
-          </Text>
+          </AppText>
         </View>
 
         <View
@@ -423,7 +424,7 @@ const SignupModal = ({
                   fadeInStep();
                 }}
               >
-                <Text style={styles.modalButtonText}>Next</Text>
+                <AppText style={styles.modalButtonText}>Next</AppText>
               </TouchableOpacity>
             </View>
           </View>
@@ -461,7 +462,7 @@ const SignupModal = ({
                   fadeInStep();
                 }}
               >
-                <Text style={styles.modalButtonText}>Preview</Text>
+                <AppText style={styles.modalButtonText}>Preview</AppText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalNextButton}
@@ -470,7 +471,7 @@ const SignupModal = ({
                   setSteps(steps + 1);
                 }}
               >
-                <Text style={styles.modalButtonText}>Next</Text>
+                <AppText style={styles.modalButtonText}>Next</AppText>
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -509,7 +510,7 @@ const SignupModal = ({
                   fadeInStep();
                 }}
               >
-                <Text style={styles.modalButtonText}>Preview</Text>
+                <AppText style={styles.modalButtonText}>Preview</AppText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalNextButton}
@@ -527,7 +528,7 @@ const SignupModal = ({
                   }
                 }}
               >
-                <Text style={styles.modalButtonText}>Next</Text>
+                <AppText style={styles.modalButtonText}>Next</AppText>
               </TouchableOpacity>
             </View>
             <Animated.View
@@ -547,9 +548,9 @@ const SignupModal = ({
                   borderRadius: 20,
                 }}
               >
-                <Text style={{ color: Colors.white, fontSize: 20 }}>
+                <AppText style={{ color: Colors.white, fontSize: 20 }}>
                   Check User Name
-                </Text>
+                </AppText>
               </TouchableOpacity>
             </Animated.View>
           </Animated.View>
@@ -593,7 +594,7 @@ const SignupModal = ({
                     fadeInStep();
                   }}
                 >
-                  <Text style={styles.modalButtonText}>Preview</Text>
+                  <AppText style={styles.modalButtonText}>Preview</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.modalNextButton}
@@ -611,7 +612,7 @@ const SignupModal = ({
                     }
                   }}
                 >
-                  <Text style={styles.modalButtonText}>Next</Text>
+                  <AppText style={styles.modalButtonText}>Next</AppText>
                 </TouchableOpacity>
               </View>
             </View>

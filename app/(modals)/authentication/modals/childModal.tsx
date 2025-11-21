@@ -18,6 +18,7 @@ import { GroupChat } from "@/interfaces/chatType";
 import * as Notification from "expo-notifications";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 type childModalNested = {
   id: string;
@@ -171,7 +172,7 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
                   onPress={item.onPress}
                   style={{ flexDirection: "row", gap: 10 }}
                 >
-                  <Text style={{ fontSize: 20 }}>{item.title}</Text>
+                  <AppText style={{ fontSize: 20 }}>{item.title}</AppText>
                 </TouchableOpacity>
                 <View>
                   {item.id === "2" && (

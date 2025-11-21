@@ -2,13 +2,13 @@ import * as Notifications from "expo-notifications";
 import * as Calendar from "expo-calendar";
 import { Platform } from "react-native";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import { Notifier, NotifierComponents } from "react-native-notifier";
 
 const getDefaultCalendarSource = async () => {
   const defaultCalendar = await Calendar.getDefaultCalendarAsync();
   return defaultCalendar.source;
 };
 const createCalendar = async () => {
-  const { colors: Colors } = useTheme();
   const defaultSource =
     Platform.OS === "ios"
       ? await getDefaultCalendarSource()
@@ -16,7 +16,6 @@ const createCalendar = async () => {
 
   const calendarId = await Calendar.createCalendarAsync({
     title: `Expo Calendar`,
-    color: Colors.primary,
     entityType: Calendar.EntityTypes.EVENT,
     sourceId: defaultSource.id,
     source: defaultSource,
@@ -70,10 +69,22 @@ export const scheduleNotificationForEvent = async ({
   startDate: Date;
 }) => {
   const calendarId = await createCalendar();
+
+  console.log(calendarId);
   const { eventId } = await createCalendarEvent({
     calendarId,
     endDate: endDate,
     startDate: startDate,
   });
+  if (eventId) {
+    console.log("success");
+    Notifier.showNotification({
+      title: "Successfully Added to Calendar",
+      description: "You can check",
+      Component: NotifierComponents.Alert,
+      componentProps: { alertType: "success" },
+    });
+  }
   await notificationCalendarEvent(startDate);
+  console.log("SDA");
 };

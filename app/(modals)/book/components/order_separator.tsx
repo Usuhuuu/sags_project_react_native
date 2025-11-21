@@ -3,7 +3,7 @@ import {
   OrderScreenSeparator,
   OrderDataTypes,
 } from "@/interfaces/order&book_type";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   FlatList,
@@ -14,44 +14,150 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { OrderItem } from "@/app/(modals)/book/components/order_inside_flatlist";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useTheme } from "../../context/themeContext";
+import * as SecureStorage from "expo-secure-store";
+import { differenceInMinutes } from "date-fns";
 
+export type Booking_Time_Validation_payload = {
+  time_slots: string;
+  date: string;
+  token: string;
+  sport_hall_id: string;
+  expireAt: string | Date;
+  createdAt: string | Date;
+};
 interface Order_Separator_props {
   data: OrderDataTypes;
   screen_type: OrderScreenSeparator;
   loadMore: () => void;
   loading: boolean;
+  page: Record<OrderScreenSeparator, number>;
 }
 const Order_Separator = ({
   data,
   screen_type,
   loadMore,
   loading,
+  page,
 }: Order_Separator_props) => {
   const { colors: Colors } = useTheme();
+  const [orderList, setOrderList] = useState<Return_Type[]>();
 
-  const list: Return_Type[] =
-    screen_type === OrderScreenSeparator.TODAY_UPCOMING
-      ? data?.today_upcoming || []
-      : screen_type === OrderScreenSeparator.HISTORY
-      ? data?.history || []
-      : [];
+  useEffect(() => {
+    if (screen_type === OrderScreenSeparator.TODAY_UPCOMING) {
+      setOrderList(data?.today_upcoming);
+    } else if (screen_type === OrderScreenSeparator.HISTORY) {
+      setOrderList(data?.history);
+    }
+  }, [screen_type, data]);
+
   const [loadingEffect, setLoadingEffect] = useState<boolean>(false);
 
-  const uniqueList = useMemo(() => {
-    const seen = new Set();
-    const filtered = list.filter((item) => {
-      if (seen.has(item._id)) return false;
-      seen.add(item._id);
+  const getUniqueListWithSessions = async (
+    orderList: Return_Type[]
+  ): Promise<Return_Type[]> => {
+    if (!orderList || orderList.length === 0) return [];
+
+    let updatedList = [...orderList];
+
+    try {
+      const sessionStr = await SecureStorage.getItemAsync("paymentSession");
+      if (sessionStr) {
+        const tokens: string[] = JSON.parse(sessionStr);
+        if (tokens?.length > 0) {
+          // Filter valid tokens
+          const validTokens = tokens.filter((t) => {
+            try {
+              const decoded = atob(t);
+              const parsed = JSON.parse(decoded);
+              return (
+                differenceInMinutes(new Date(parsed?.expireAt), new Date()) > 0
+              );
+            } catch {
+              return false;
+            }
+          });
+
+          // Apply sessions
+          validTokens.forEach((session) => {
+            try {
+              const decoded = atob(session);
+              const parsed = JSON.parse(
+                decoded
+              ) as Booking_Time_Validation_payload;
+
+              updatedList = updatedList.map((hall) => {
+                if (
+                  hall.zaal_ID.toString() === parsed.sport_hall_id &&
+                  hall.day[0] === parsed.date &&
+                  Array.isArray(hall.blocks) &&
+                  hall.blocks
+                    .flat(Infinity)
+                    .some(
+                      (block) =>
+                        `${block.start_time}~${block.end_time}` ===
+                        parsed.time_slots
+                    )
+                ) {
+                  return {
+                    ...hall,
+                    session_obj: {
+                      time_slots: parsed.time_slots,
+                      date: parsed.date,
+                      token: parsed.token,
+                      sport_hall_id: parsed.sport_hall_id,
+                      expireAt: parsed.expireAt,
+                      createdAt: parsed.createdAt,
+                    },
+                  };
+                }
+                return hall;
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          });
+
+          await SecureStorage.setItemAsync(
+            "paymentSession",
+            JSON.stringify(validTokens)
+          );
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to parse paymentSession:", err);
+    }
+
+    // Remove duplicates using a single Set
+    const seen = new Set<string>();
+    const filtered = updatedList.filter((hall) => {
+      if (seen.has(hall._id)) return false;
+      seen.add(hall._id);
       return true;
     });
+
+    // Sort by day
     return filtered.sort((a, b) => {
       const dayA = new Date(Array.isArray(a.day) ? a.day[0] : a.day).getTime();
       const dayB = new Date(Array.isArray(b.day) ? b.day[0] : b.day).getTime();
       return dayA - dayB;
     });
-  }, [list]);
+  };
+
+  const [uniqueList, setUniqueList] = useState<Return_Type[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const load = async () => {
+        if (!orderList || orderList.length === 0) return; // skip if empty
+        const list = await getUniqueListWithSessions(orderList);
+        setUniqueList(list);
+      };
+      load();
+    }, [screen_type, page, orderList])
+  );
+
   const { height } = Dimensions.get("screen");
   const { height: windowHeight } = Dimensions.get("window");
 
@@ -67,7 +173,7 @@ const Order_Separator = ({
           ({ item }: { item: Return_Type }) => {
             return (
               <View>
-                <OrderItem item={item} />
+                <OrderItem item={[item]} />
               </View>
             );
           },

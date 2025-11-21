@@ -16,6 +16,7 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 interface ChangeNameModalProps {
   changeNameModalVisible: boolean;
@@ -131,10 +132,10 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
               justifyContent: "space-between",
             }}
           >
-            <Text style={{ color: "grey" }}>
+            <AppText style={{ color: "grey" }}>
               {groupChatSettings.thisNameWillBeVisibleToAll}
-            </Text>
-            <Text style={{ color: "grey" }}>{chatName.length}/100</Text>
+            </AppText>
+            <AppText style={{ color: "grey" }}>{chatName.length}/100</AppText>
           </View>
           <View
             style={{
@@ -158,9 +159,9 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
                 },
               ]}
             >
-              <Text style={{ fontSize: 20, fontWeight: "400" }}>
+              <AppText style={{ fontSize: 20, fontWeight: "400" }}>
                 {groupChatSettings.cancel}
-              </Text>
+              </AppText>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
