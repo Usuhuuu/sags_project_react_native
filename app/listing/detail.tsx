@@ -47,7 +47,7 @@ type TimeSlotItemProps = {
     unavailableWholeDay: boolean;
     joinableWholeDay: boolean;
   };
-  today: string;
+  today: Date;
 };
 
 const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
@@ -68,13 +68,19 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
 
     // Combine booking date with timeslot start time
     const [startHour, startMinute] = timeSlot.start_time.split(":").map(Number);
-    const slotDate = new Date(today); // bookingDate should be the day for this timeslot
+    const slotDate = new Date(today);
     slotDate.setHours(startHour, startMinute, 0, 0);
 
     // Disable only if this is today and slot time is past
-    const isPast = slotDate <= now && today === now.toISOString().split("T")[0];
+    const isSameDay =
+      today.getFullYear() === now.getFullYear() &&
+      today.getMonth() === now.getMonth() &&
+      today.getDate() === now.getDate();
+
+    const isPast = slotDate <= now && isSameDay;
     const isDisabled =
       wholeDayBooked.unavailableWholeDay || isUnavailable || isPast;
+
     return (
       <View style={styles.timeSlotView}>
         <TouchableOpacity
@@ -164,9 +170,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   setIsOrderScreenVisible,
 }) => {
   const { colors: Colors, theme } = useTheme();
-  const [today, setToday] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
+
+  const [today, setToday] = useState<Date>(new Date());
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [unavailableTimes, setUnavailableTimes] = useState<{
@@ -195,9 +200,11 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   }>({});
 
   const dateSlotGiver = useCallback(
-    async (date: string) => {
+    async (date: Date) => {
       setSelectedTimeSlots([]);
-      const odor = new Date(date).toISOString().split("T")[0];
+      const odor = new Date(date);
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const key = `${sportHallID}T${odor}`;
       if (timeslotCache[key]) {
         const cached = timeslotCache[key];
@@ -223,7 +230,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           joinableWholeDay: false,
         });
         const response = await axiosInstanceRegular.get(
-          `/timeslots/${sportHallID}/${odor}`
+          `/timeslots/${sportHallID}/${odor}/${encodeURIComponent(timezone)}`
         );
 
         if (response.status === 200 && response.data.success) {
@@ -299,7 +306,6 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   const baseTime_end = baseTimeSlot[baseTimeSlot.length - 1].end_time;
   const handleOrder = () => {
     const zaal_id = sportHallID;
-    console.log("checking");
     setIsOrderScreenVisible(false);
     useBookingStore.getState().setBookingDetails({
       ...formData,
@@ -311,6 +317,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
     });
     router.push(`/listing/book/${zaal_id}`);
   };
+
   const isSelected = selectedTimeSlots.includes("WHOLE_DAY");
   return (
     <View
@@ -369,7 +376,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                   selectedDayTextStyle={{ color: Colors.white }}
                   selectedDayNumberStyle={{ color: Colors.white }}
                   selectedContainerStyle={{ backgroundColor: Colors.primary }}
-                  onDateSelect={(date) => {
+                  onDateSelect={(date: Date) => {
                     dateSlotGiver(date);
                     setToday(date);
                   }}

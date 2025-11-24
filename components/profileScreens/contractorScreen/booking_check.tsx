@@ -20,23 +20,22 @@ import { useTheme } from "@/app/(modals)/context/themeContext";
 const BookingCheck = () => {
   const { colors: Colors } = useTheme();
 
-  const [today, setToday] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
+  const [today, setToday] = useState<Date>(new Date());
   const [listing, setListing] = useState<
     { start_time: string; end_time: string; isBooked: boolean }[]
   >([]);
   const { showCalendar, resetCalendar } = useCalendar();
   const [markedDates, setMarkedDates] = useState<Record<string, any>>({});
 
-  const onDateSelected = (date: string) => {
+  const onDateSelected = (date: Date) => {
     setToday(date);
   };
 
   const fetchSportData = async () => {
     try {
       const session = await SecureStorage.getItemAsync("contractor_session");
-      const [year, month, day] = today.split("-");
+      const year = today.getUTCFullYear();
+      const month = today.getUTCMonth();
       const config = session
         ? { headers: { "x-session-container": session } }
         : undefined;
@@ -71,8 +70,8 @@ const BookingCheck = () => {
         });
 
         // Highlight selected date
-        marked[today] = {
-          ...(marked[today] || {}),
+        marked[today.toISOString()] = {
+          ...(marked[today.toISOString()] || {}),
           selected: true,
           selectedColor: Colors.primary,
         };

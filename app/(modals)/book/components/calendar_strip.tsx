@@ -14,7 +14,7 @@ import { useTheme } from "@/app/(modals)/context/themeContext";
 dayjs.extend(isoWeek);
 
 interface WeekCalendarProps {
-  onDateSelect?: (date: string) => void;
+  onDateSelect?: (date: Date) => void;
   containerStyle?: ViewStyle;
   dayBoxStyle?: ViewStyle;
   selectedContainerStyle?: ViewStyle;
@@ -22,8 +22,8 @@ interface WeekCalendarProps {
   selectedDayNumberStyle?: TextStyle;
   todayBoxStyle?: ViewStyle;
   disabledDayStyle?: ViewStyle;
-  selectedDay: string;
-  setSelectedDay: React.Dispatch<SetStateAction<string>>;
+  selectedDay: Date;
+  setSelectedDay: React.Dispatch<SetStateAction<Date>>;
   textWeekStyle?: TextStyle;
   textDayStyle?: TextStyle;
   textMonthStyle?: TextStyle;
@@ -58,15 +58,15 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }).map((_, i) => {
       const date = currentWeekStart.add(i, "day");
-      const formatted = date.format("YYYY-MM-DD");
-      const isBeforeInit = date.isBefore(initialDayjs, "day");
+
       return {
-        date,
-        formatted,
+        date, // dayjs object
+        jsDate: date.toDate(), // native Date()
+        formatted: date.format("YYYY-MM-DDTHH:mm:ss"),
         label: date.format("dd"),
         day: date.format("D"),
         isToday: date.isSame(dayjs(), "day"),
-        isDisabled: isBeforeInit,
+        isDisabled: date.isBefore(initialDayjs, "day"),
       };
     });
   }, [currentWeekStart, initialDayjs]);
@@ -84,8 +84,8 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   // selection
   const handleSelect = (item: (typeof weekDays)[0]) => {
     if (!item?.formatted || item.isDisabled) return;
-    setSelectedDay(item.formatted);
-    onDateSelect?.(item.formatted);
+    setSelectedDay(new Date(item.formatted));
+    onDateSelect?.(new Date(item.formatted));
     return item.formatted;
   };
 
@@ -95,7 +95,6 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
       const newWeekStart = selectedDayjs.startOf("isoWeek");
 
       if (!newWeekStart.isSame(currentWeekStart, "week")) {
-        console.log(newWeekStart);
         setCurrentWeekStart(newWeekStart);
       }
     }
@@ -172,7 +171,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
         }}
       >
         {weekDays.map((item, index) => {
-          const isSelected = selectedDay === item.formatted;
+          const isSelected = dayjs(selectedDay).isSame(item.jsDate, "day");
           return (
             <TouchableOpacity
               key={index}

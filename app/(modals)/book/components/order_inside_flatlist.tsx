@@ -179,7 +179,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
         label: "Continue Pay",
         resolve: (data: Return_Type) => {
           if (!data.session_obj || data.full_paid) return null;
-          return data.session_obj; // pass raw session data
+          return data.session_obj;
         },
       },
     ],
@@ -187,16 +187,19 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
       {
         label: `${orderLangInit.bookingInfo.date}`,
         resolve: (data: Return_Type) =>
-          `${format(new Date(data.day[0]), "MMMM d, yyyy")}`,
+          `${format(new Date(data.day), "MMMM d, yyyy")}`,
       },
       {
         label: `${orderLangInit.bookingInfo.time}`,
         resolve: (data: any) =>
-          `${data?.blocks[0]?.[0]?.start_time ?? ""} ~ ${
-            data?.blocks[0]?.[0]?.end_time ?? ""
+          `${format(data.blocks[0].start_time, "HH:mm")} ~ ${
+            format(data.blocks[0].end_time, "HH:mm") ?? ""
           }`,
       },
-      { label: "Status", key: "block_booking_status" },
+      {
+        label: "Status",
+        resolve: (data: any) => `${data.blocks[0].block_booking_status}`,
+      },
       {
         label: `${orderLangInit.bookingInfo.playerNeeded}`,
         resolve: (data: Return_Type) =>
@@ -344,7 +347,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
                   </Text>
                 </View>
                 <Text style={{ color: Colors.themeColorTextSecondary }}>
-                  {format(new Date(data.day[0]), "MMMM d, yyyy")}
+                  {format(new Date(data.day), "MMMM d, yyyy")}
                 </Text>
 
                 {data.blocks.map((block, index) => (
@@ -363,13 +366,13 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
                           color={Colors.themeColorTextSecondary}
                         />
                         <Text style={{ color: Colors.themeColorTextSecondary }}>
-                          {block.start_time}
+                          {format(new Date(block.start_time), "HH:mm")}
                         </Text>
                         <Text style={{ color: Colors.themeColorTextSecondary }}>
                           ~
                         </Text>
                         <Text style={{ color: Colors.themeColorTextSecondary }}>
-                          {block.end_time}
+                          {format(new Date(block.end_time), "kk:mm")}
                         </Text>
                       </View>
                     </View>

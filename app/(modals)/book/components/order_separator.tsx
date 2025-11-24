@@ -21,7 +21,7 @@ import { differenceInMinutes } from "date-fns";
 
 export type Booking_Time_Validation_payload = {
   time_slots: string;
-  date: string;
+  date: Date;
   token: string;
   sport_hall_id: string;
   expireAt: string | Date;
@@ -97,7 +97,7 @@ const Order_Separator = ({
               updatedList = updatedList.map((hall) => {
                 if (
                   hall.zaal_ID.toString() === parsed.sport_hall_id &&
-                  hall.day[0] === parsed.date &&
+                  hall.day === parsed.date &&
                   Array.isArray(hall.blocks) &&
                   hall.blocks
                     .flat(Infinity)

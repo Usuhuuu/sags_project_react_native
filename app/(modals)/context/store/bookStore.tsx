@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 type BookingData = {
   name: string;
-  date: string;
+  date: Date;
   sportHallID: string;
   price: {
     oneHour: string;

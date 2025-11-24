@@ -174,6 +174,9 @@ const TransactionPage = () => {
         return;
       }
       const dateOnly = bookingDetails.date;
+      const timezone = encodeURIComponent(
+        Intl.DateTimeFormat().resolvedOptions().timeZone
+      );
       let response: AxiosResponse;
 
       setWaiting(!waiting);
@@ -196,6 +199,7 @@ const TransactionPage = () => {
           {
             sport_hall_id: bookingDetails.sportHallID,
             date: dateOnly,
+            timezone,
             reserved_blocks: reservationBlocks,
           },
           {
@@ -203,14 +207,17 @@ const TransactionPage = () => {
           }
         );
       } else {
+        console.log(bookingDetails.workTime);
         response = await axiosInstance.post(
           "/auth/book",
           {
             sport_hall_id: bookingDetails.sportHallID,
             date: dateOnly,
+            timezone,
             reserved_blocks: [
               {
                 wholeDay: true,
+                workTime: bookingDetails.workTime,
                 num_players: wholeDayPeople,
                 current_player: 1,
                 time_slots: ["wholeDay"],
@@ -286,7 +293,9 @@ const TransactionPage = () => {
     },
     {
       label: "Date",
-      value: bookingDetails?.date,
+      value: bookingDetails?.date
+        ? format(new Date(bookingDetails.date), "MMMM d, yyyy")
+        : undefined,
       icon: (
         <Fontisto name="date" size={24} color={Colors.themeColorTextPure} />
       ),

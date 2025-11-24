@@ -25,7 +25,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../(modals)/context/themeContext";
-import { addHours } from "date-fns";
+import { addHours, differenceInMinutes } from "date-fns";
 
 const OrderScreen = () => {
   const { colors: Colors } = useTheme();
@@ -113,7 +113,8 @@ const OrderScreen = () => {
     {
       shouldRetryOnError: false,
       revalidateOnMount: true,
-      refreshInterval: 10 * 1000,
+      refreshWhenHidden: false,
+      refreshInterval: 10000,
     }
   );
 
@@ -139,22 +140,20 @@ const OrderScreen = () => {
         }
       }
       if (unique.length === 0) return;
-
       const offSetHour = new Date().getTimezoneOffset() / -60;
       const now = addHours(new Date(), offSetHour);
       const sorted = unique.reduce(
         (acc, booking, index) => {
-          const bookingDate = booking?.day[0];
+          const bookingDate = booking?.day;
 
           const historyBlocks: Booking_Block_Type[] = [];
           const upcomingBlocks: Booking_Block_Type[] = [];
 
           booking.blocks.forEach((block) => {
-            const [hour, minute] = block.start_time.split(":").map(Number);
-            const blockTime = new Date(bookingDate);
-            const newHour = blockTime.setHours(hour, minute, 0, 0);
-            const beforeDistribute = addHours(newHour, offSetHour);
-            if (beforeDistribute < now) {
+            const startTime = new Date(block.start_time);
+            const blockTime = new Date();
+            const diff = differenceInMinutes(startTime, blockTime);
+            if (diff < 15) {
               historyBlocks.push(block);
             } else {
               upcomingBlocks.push(block);

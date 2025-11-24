@@ -6,8 +6,8 @@ export type Booking_Data_Type = {
   success: boolean;
 };
 export type Booking_Block_Type = {
-  start_time: string;
-  end_time: String;
+  start_time: Date;
+  end_time: Date;
   num_players: number;
   current_player: number;
   totalPrice: number;
@@ -17,7 +17,7 @@ export type Booking_Block_Type = {
 export type Return_Type = {
   _id: string;
   zaal_ID: string;
-  day: string[];
+  day: Date;
   blocks: Booking_Block_Type[]
   total_amount: number;
   zaal_info: SportHallDataType;
