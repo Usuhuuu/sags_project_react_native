@@ -9,8 +9,8 @@ import {
 import { router, Tabs } from "expo-router";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { LinearGradient } from "expo-linear-gradient";
-import ExploreHeader from "@/components/ExploreHeader"; // Import your ExploreHeader component
-import InfoScreen from "@/components/InfoScreen"; // Example drawer screen
+import ExploreHeader from "@/components/ExploreHeader";
+import InfoScreen from "@/components/InfoScreen";
 import Dtraining from "@/components/training";
 import CustomDrawerContent from "@/components/CostumDrawerContent";
 import {
@@ -63,7 +63,7 @@ export const TabsLayout = () => {
         ),
 
         headerStyle: {
-          backgroundColor: Colors.containerColor,
+          backgroundColor: Colors.backgroundColor,
         },
         headerTintColor: Colors.themeColorTextPure,
         headerTitleStyle: { color: Colors.primary },
@@ -455,6 +455,7 @@ const Layout = () => {
           options={{
             drawerLabel: name,
             headerShown: noHeadRender.includes(name) ? false : true,
+
             drawerIcon: () => (
               <Ionicons
                 name={icon as keyof typeof Ionicons.glyphMap}
@@ -510,8 +511,9 @@ const Layout = () => {
               fontSize: 24,
             },
             headerStyle: {
-              backgroundColor: Colors.light,
+              backgroundColor: Colors.backgroundColor,
             },
+            headerShadowVisible: false,
           }}
         />
       )

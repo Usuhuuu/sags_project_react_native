@@ -225,7 +225,9 @@ function RootLayoutNav() {
         options={{
           headerShown: true,
           title: `${t("Notifications")}`,
+          headerStyle: { backgroundColor: Colors.backgroundColor },
           headerTitleStyle: { fontSize: 28, color: Colors.primary },
+          headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={28} color={Colors.primary} />
@@ -237,6 +239,8 @@ function RootLayoutNav() {
         name="(modals)/chat/[item]"
         options={{
           headerTintColor: Colors.primary,
+          headerStyle: { backgroundColor: Colors.backgroundColor },
+          headerTitleStyle: { fontSize: 28, color: Colors.primary },
           animation: "fade",
           headerShown: false,
           headerLeft: () => {
@@ -271,7 +275,8 @@ function RootLayoutNav() {
         name="listing/review/[zaalReview]"
         options={{
           headerTitle: "Sport Hall Review",
-          headerTitleStyle: { color: Colors.primary },
+          headerStyle: { backgroundColor: Colors.backgroundColor },
+          headerTitleStyle: { fontSize: 28, color: Colors.primary },
           headerRight: () => (
             <TouchableOpacity>
               <AntDesign name="edit" size={24} color="black" />
@@ -284,9 +289,10 @@ function RootLayoutNav() {
         name="listing/review/util/inner_zaal_review"
         options={{
           headerShown: true,
+          headerStyle: { backgroundColor: Colors.backgroundColor },
+          headerTitleStyle: { fontSize: 28, color: Colors.primary },
           headerShadowVisible: false,
           headerTitle: "Zaal Review",
-          headerTitleStyle: { color: Colors.primary },
         }}
       />
     </Stack>

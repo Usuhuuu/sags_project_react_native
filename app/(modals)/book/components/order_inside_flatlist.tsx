@@ -26,7 +26,7 @@ import { useTheme } from "../../context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
 export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
-  const { colors: Colors } = useTheme();
+  const { colors: Colors, theme } = useTheme();
   const data = item[0];
   const expanded = useSharedValue(0);
   const textOpacity = useSharedValue(1);
@@ -264,7 +264,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
             borderRadius: 12,
             shadowColor: Colors.shadowColor,
             shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.15,
+            shadowOpacity: 0.7,
             shadowRadius: 6,
             elevation: 4,
             gap: 10,

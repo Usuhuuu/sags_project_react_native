@@ -281,6 +281,7 @@ const OrderScreen = () => {
             <TouchableOpacity
               onPress={() => {
                 handleFade();
+                setLoading(!loading);
                 setScreenSeparator(OrderScreenSeparator.TODAY_UPCOMING);
               }}
               style={[
@@ -317,6 +318,7 @@ const OrderScreen = () => {
               ]}
               onPress={() => {
                 handleFade();
+                setLoading(!loading);
                 setScreenSeparator(OrderScreenSeparator.HISTORY);
               }}
             >
