@@ -63,6 +63,8 @@ export const auth_swr = (
 ) => {
   const { pathname, cacheKey, loginStatus } = item;
   const swrKey = loginStatus ? [cacheKey, true] : null;
+  if (!loginStatus) {
+  }
 
   const { data, error, isLoading } = useSWR(
     swrKey,

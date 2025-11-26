@@ -25,7 +25,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../(modals)/context/themeContext";
-import { addHours, differenceInMinutes } from "date-fns";
+import { differenceInMinutes } from "date-fns";
 
 const OrderScreen = () => {
   const { colors: Colors } = useTheme();
@@ -90,12 +90,29 @@ const OrderScreen = () => {
   const { t } = useTranslation();
   const orderLangInit: any = t("orderScreen", { returnObjects: true });
 
-  const shouldFetch = !!LoginStatus;
   const timezone = encodeURIComponent(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
+
+  useEffect(() => {
+    if (!LoginStatus) {
+      setBookingData({
+        today_upcoming: [],
+        history: [],
+      });
+      setPages({
+        [OrderScreenSeparator.TODAY_UPCOMING]: 1,
+        [OrderScreenSeparator.HISTORY]: 1,
+      });
+      setHasMore({
+        [OrderScreenSeparator.TODAY_UPCOMING]: true,
+        [OrderScreenSeparator.HISTORY]: true,
+      });
+      console.log(page, hasMore, bookingData);
+    }
+  }, [LoginStatus]);
   const { data, error, isLoading } = regular_swr(
-    shouldFetch
+    LoginStatus
       ? {
           item: {
             pathname: `/auth/book/${date}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
@@ -140,12 +157,8 @@ const OrderScreen = () => {
         }
       }
       if (unique.length === 0) return;
-      const offSetHour = new Date().getTimezoneOffset() / -60;
-      const now = addHours(new Date(), offSetHour);
       const sorted = unique.reduce(
         (acc, booking, index) => {
-          const bookingDate = booking?.day;
-
           const historyBlocks: Booking_Block_Type[] = [];
           const upcomingBlocks: Booking_Block_Type[] = [];
 

@@ -26,6 +26,12 @@ export type FormData = {
     wholeDay: string;
   };
   workTime?: string;
+  image?: string[];
+  location: {
+    latitude: string;
+    longitude: string;
+    smart_location?: string;
+  };
 };
 export type baseTimeSlotType = {
   start_time: string;
@@ -314,6 +320,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       date: today,
       workTime: formData.workTime,
       baseTime_startAndEnd: `${baseTime_start}~${baseTime_end}`,
+      image: formData.image,
     });
     router.push(`/listing/book/${zaal_id}`);
   };

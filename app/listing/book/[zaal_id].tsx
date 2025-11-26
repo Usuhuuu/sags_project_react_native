@@ -4,19 +4,10 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import {
-  AntDesign,
-  Feather,
-  FontAwesome,
-  Fontisto,
-  Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { Feather, FontAwesome, Fontisto, Ionicons } from "@expo/vector-icons";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import StepIndicator from "react-native-step-indicator";
 import axiosInstance from "@/hooks/axiosInstance";
@@ -25,10 +16,12 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import { scheduleNotificationForEvent } from "@/utils/calendarReminder";
 import { mutate } from "swr";
 import { useTheme } from "@/app/(modals)/context/themeContext";
-import AppText from "@/constants/appTextDefault";
 import Confirm_Modal from "./support_components/confirmation_modal";
 import { addHours, format } from "date-fns";
 import * as SecureStorage from "expo-secure-store";
+import Step_One from "./support_components/step_1";
+import Step_Two from "./support_components/step_2";
+import Step_Three from "./support_components/step_3";
 
 export type ReservationBlock = {
   start_time: string;
@@ -39,29 +32,6 @@ export type ReservationBlock = {
   wholeDay?: boolean;
 };
 
-const customStyles = {
-  stepIndicatorSize: 30,
-  currentStepIndicatorSize: 35,
-  separatorStrokeWidth: 2,
-  currentStepStrokeWidth: 3,
-  stepStrokeCurrentColor: "#4c9aff",
-  stepStrokeWidth: 2,
-  stepStrokeFinishedColor: "#4c9aff",
-  stepStrokeUnFinishedColor: "#aaaaaa",
-  separatorFinishedColor: "#4c9aff",
-  separatorUnFinishedColor: "#aaaaaa",
-  stepIndicatorFinishedColor: "#4c9aff",
-  stepIndicatorUnFinishedColor: "#ffffff",
-  stepIndicatorCurrentColor: "#ffffff",
-  stepIndicatorLabelFontSize: 13,
-  currentStepIndicatorLabelFontSize: 13,
-  stepIndicatorLabelCurrentColor: "#4c9aff",
-  stepIndicatorLabelFinishedColor: "#ffffff",
-  stepIndicatorLabelUnFinishedColor: "#aaaaaa",
-  labelColor: "#999999",
-  labelSize: 13,
-  currentStepLabelColor: "#4c9aff",
-};
 const groupConnectedTimeSlots = (slots: string[]) => {
   if (slots.includes("WHOLE_DAY")) return [["WHOLE_DAY"]];
 
@@ -100,23 +70,30 @@ const groupConnectedTimeSlots = (slots: string[]) => {
 
 const TransactionPage = () => {
   const { colors: Colors } = useTheme();
-  const styles = StyleSheet.create({
-    innerContainer: {
-      backgroundColor: Colors.backgroundColor,
-      flex: 1,
-      alignItems: "center",
-      gap: 20,
-    },
-    buttons: {
-      width: "45%",
-      alignItems: "center",
-      padding: 10,
-      borderWidth: 1,
-      gap: 10,
-      borderColor: Colors.darkGrey,
-      borderRadius: 5,
-    },
-  });
+  const customStyles = {
+    stepIndicatorSize: 30,
+    currentStepIndicatorSize: 35,
+    separatorStrokeWidth: 2,
+    currentStepStrokeWidth: 3,
+    stepStrokeCurrentColor: Colors.primary,
+    stepStrokeWidth: 2,
+    stepStrokeFinishedColor: Colors.primary,
+    stepStrokeUnFinishedColor: "#aaaaaa",
+    separatorFinishedColor: Colors.primary,
+    separatorUnFinishedColor: "#aaaaaa",
+    stepIndicatorFinishedColor: Colors.primary,
+    stepIndicatorUnFinishedColor: "#ffffff",
+    stepIndicatorCurrentColor: "#ffffff",
+    stepIndicatorLabelFontSize: 13,
+    currentStepIndicatorLabelFontSize: 13,
+    stepIndicatorLabelCurrentColor: Colors.primary,
+    stepIndicatorLabelFinishedColor: Colors.themeColorTextPure,
+    stepIndicatorLabelUnFinishedColor: Colors.darkGrey,
+    labelColor: Colors.darkGrey,
+    labelSize: 13,
+    currentStepLabelColor: Colors.primary,
+  };
+
   const [steps, setSteps] = useState<number>(0);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[][]>([]);
   const [playersNeeded, setPlayersNeeded] = useState<{ [key: number]: number }>(
@@ -146,18 +123,21 @@ const TransactionPage = () => {
 
   const saveToken = async (token: string) => {
     try {
-      const existing = await SecureStorage.getItemAsync("paymentSession");
-      let tokens: string[] = [];
-      if (existing && existing.trim().startsWith("[")) {
-        tokens = JSON.parse(existing);
-      }
-      tokens.push(token);
-      await SecureStorage.setItemAsync(
-        "paymentSession",
-        JSON.stringify(tokens)
+      const indexStr = await SecureStorage.getItemAsync("paymentSessionIndex");
+      let index = indexStr ? parseInt(indexStr, 10) : 0;
+      index += 1;
+      const expireAt = Date.now() + 15 * 60 * 1000;
+      const sessionData = JSON.stringify({ token, expireAt });
+      await SecureStorage.setItemAsync(`paymentSession_${index}`, sessionData);
+      await SecureStorage.setItemAsync("paymentSessionIndex", index.toString());
+
+      console.log(
+        `Saved paymentSession_${index} (expires at ${new Date(
+          expireAt
+        ).toISOString()})`
       );
-    } catch (e) {
-      console.error("SecureStore error:", e);
+    } catch (err) {
+      console.error("SecureStore error:", err);
     }
   };
   const handleOrder = async () => {
@@ -420,946 +400,40 @@ const TransactionPage = () => {
               }}
             >
               {steps === 0 && (
-                <View style={styles.innerContainer}>
-                  <AppText
-                    style={{
-                      fontSize: 24,
-                      fontWeight: 400,
-                      textAlign: "left",
-                      color: Colors.themeColorTextPure,
-                    }}
-                  >
-                    {bookingDetails?.name}
-                  </AppText>
-                  {/* check section */}
-                  <View
-                    style={{
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      width: "70%",
-                      borderColor: Colors.themeColorTextPure,
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        padding: 20,
-                        borderBottomWidth: 1,
-                        borderBottomColor: Colors.themeColorTextPure,
-                      }}
-                    >
-                      <AppText
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 300,
-                          color: Colors.themeColorTextPure,
-                        }}
-                      >
-                        Date
-                      </AppText>
-                      <AppText
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 300,
-                          color: Colors.themeColorTextPure,
-                        }}
-                      >
-                        {bookingDetails?.date
-                          ? format(
-                              new Date(bookingDetails.date),
-                              "MMMM d, yyyy"
-                            )
-                          : ""}
-                      </AppText>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "column",
-                      }}
-                    >
-                      {wholeDay ? (
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            padding: 20,
-                          }}
-                        >
-                          <AppText
-                            style={{
-                              fontSize: 18,
-                              fontWeight: 300,
-                              color: Colors.themeColorTextPure,
-                            }}
-                          >
-                            Time
-                          </AppText>
-                          <AppText
-                            style={{
-                              fontSize: 18,
-                              fontWeight: 300,
-                              color: Colors.themeColorTextPure,
-                            }}
-                          >
-                            {bookingDetails?.workTime}
-                          </AppText>
-                        </View>
-                      ) : (
-                        <>
-                          {selectedTimeSlots.map((group, index) => {
-                            const startTime = group[0].split("~")[0];
-                            const endTime =
-                              group[group.length - 1].split("~")[1];
-                            const isLast =
-                              index === selectedTimeSlots.length - 1;
-                            return (
-                              <View
-                                key={index}
-                                style={{
-                                  flexDirection: "row",
-                                  justifyContent: "space-between",
-                                  padding: 20,
-                                  borderBottomWidth: isLast ? 0 : 1,
-                                  borderColor: Colors.themeColorTextPure,
-                                }}
-                              >
-                                <AppText
-                                  style={{
-                                    fontSize: 18,
-                                    fontWeight: 300,
-                                    color: Colors.themeColorTextPure,
-                                  }}
-                                >
-                                  Time {index + 1}
-                                </AppText>
-                                <AppText
-                                  style={{
-                                    fontSize: 18,
-                                    fontWeight: 300,
-                                    color: Colors.themeColorTextPure,
-                                  }}
-                                >
-                                  {startTime} – {endTime}
-                                </AppText>
-                              </View>
-                            );
-                          })}
-                        </>
-                      )}
-                    </View>
-                  </View>
-                  {/* price section */}
-                  <View
-                    style={{
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      width: "70%",
-                      borderColor: Colors.themeColorTextPure,
-                    }}
-                  >
-                    {!wholeDay && (
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          padding: 20,
-                          borderBottomWidth: 1,
-                          alignItems: "center",
-                          borderBottomColor: Colors.themeColorTextPure,
-                        }}
-                      >
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            gap: 5,
-                            alignItems: "center",
-                          }}
-                        >
-                          <MaterialCommunityIcons
-                            name="clock-time-nine-outline"
-                            size={24}
-                            color={Colors.themeColorTextPure}
-                          />
-                          <AppText
-                            style={{
-                              fontSize: 18,
-                              fontWeight: 300,
-                              color: Colors.themeColorTextPure,
-                            }}
-                          >
-                            1 Hour
-                          </AppText>
-                        </View>
-                        <AppText
-                          style={{
-                            fontSize: 18,
-                            fontWeight: 300,
-                            color: Colors.themeColorTextPure,
-                          }}
-                        >
-                          ₮{bookingDetails?.price.oneHour}
-                        </AppText>
-                      </View>
-                    )}
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        padding: 20,
-                      }}
-                    >
-                      <AppText style={{ color: Colors.themeColorTextPure }}>
-                        TOTAL
-                      </AppText>
-                      <AppText style={{ color: Colors.themeColorTextPure }}>
-                        ₮
-                        {wholeDay
-                          ? bookingDetails?.price?.wholeDay
-                          : (bookingDetails?.selectedTimeSlots.length ?? 0) *
-                            Number(bookingDetails?.price.oneHour)}
-                      </AppText>
-                    </View>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      width: "90%",
-                      justifyContent: "center",
-                      gap: 20,
-                      alignItems: "center",
-                      flex: 1,
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={[
-                        styles.buttons,
-                        { backgroundColor: Colors.primary },
-                      ]}
-                      onPress={() => setSteps(steps + 1)}
-                    >
-                      <AppText style={{ color: Colors.white }}>Next</AppText>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                <Step_One
+                  bookingDetails={bookingDetails}
+                  wholeDay={wholeDay}
+                  selectedTimeSlots={selectedTimeSlots}
+                  steps={steps}
+                  setSteps={setSteps}
+                />
               )}
               {steps === 1 && (
-                <View style={[styles.innerContainer, {}]}>
-                  <View
-                    style={{
-                      width: "90%",
-                      gap: 10,
-                    }}
-                  >
-                    {wholeDay ? (
-                      <View
-                        style={{
-                          flexDirection: "column",
-                          justifyContent: "space-between",
-                          padding: 10,
-                          gap: 5,
-                          borderWidth: 1,
-                          borderColor: Colors.littleDark,
-                          borderRadius: 5,
-                        }}
-                      >
-                        <AppText
-                          style={{
-                            fontSize: 18,
-                            fontWeight: 300,
-                            color: Colors.themeColorTextPure,
-                          }}
-                        >
-                          {bookingDetails?.workTime}
-                        </AppText>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            borderWidth: 1,
-                            padding: 5,
-                            borderColor: Colors.littleDark,
-                          }}
-                        >
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: 5,
-                            }}
-                          >
-                            <MaterialIcons
-                              name="people-alt"
-                              size={24}
-                              color={Colors.themeColorTextPure}
-                            />
-                            <AppText
-                              style={{ color: Colors.themeColorTextPure }}
-                            >
-                              Peoples Needed
-                            </AppText>
-                          </View>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                            }}
-                          >
-                            <TouchableOpacity
-                              onPress={() => {
-                                if (wholeDayPeople < 20) {
-                                  setWholeDayPeople(wholeDayPeople + 1);
-                                } else {
-                                  Notifier.showNotification({
-                                    title: "Oops",
-                                    description:
-                                      "Needed people must be belov 20",
-                                    Component: NotifierComponents.Alert,
-                                    componentProps: { alertType: "warn" },
-                                  });
-                                }
-                              }}
-                            >
-                              <AntDesign
-                                name="plus"
-                                size={20}
-                                color={Colors.themeColorTextPure}
-                              />
-                            </TouchableOpacity>
-                            <AppText style={{ fontSize: 20 }}>
-                              {wholeDayPeople}
-                            </AppText>
-                            <TouchableOpacity
-                              onPress={() => {
-                                if (wholeDayPeople > 0)
-                                  setWholeDayPeople(wholeDayPeople - 1);
-                              }}
-                            >
-                              <AntDesign
-                                name="minus"
-                                size={20}
-                                color={Colors.themeColorTextPure}
-                              />
-                            </TouchableOpacity>
-                          </View>
-                        </View>
-                      </View>
-                    ) : (
-                      <>
-                        {selectedTimeSlots.map((group, index) => {
-                          const startTime = group[0].split("~")[0];
-                          const endTime = group[group.length - 1].split("~")[1];
-                          return (
-                            <View
-                              key={index}
-                              style={{
-                                flexDirection: "column",
-                                justifyContent: "space-between",
-                                padding: 10,
-                                gap: 5,
-                                borderWidth: 1,
-                                borderColor: Colors.littleDark,
-                                borderRadius: 5,
-                              }}
-                            >
-                              <AppText
-                                style={{
-                                  fontSize: 18,
-                                  fontWeight: 300,
-                                  color: Colors.themeColorTextPure,
-                                }}
-                              >
-                                Session {index + 1}
-                              </AppText>
-                              <AppText
-                                style={{
-                                  fontSize: 18,
-                                  fontWeight: 300,
-                                  color: Colors.themeColorTextPure,
-                                }}
-                              >
-                                {startTime} – {endTime}
-                              </AppText>
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                  borderWidth: 1,
-                                  padding: 5,
-                                  borderColor: Colors.littleDark,
-                                }}
-                              >
-                                <View
-                                  style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    gap: 5,
-                                  }}
-                                >
-                                  <MaterialIcons
-                                    name="people-alt"
-                                    size={24}
-                                    color={Colors.themeColorTextPure}
-                                  />
-                                  <AppText
-                                    style={{ color: Colors.themeColorTextPure }}
-                                  >
-                                    Peoples Needed
-                                  </AppText>
-                                </View>
-                                <View
-                                  style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <TouchableOpacity
-                                    onPress={() => {
-                                      if (
-                                        playersNeeded[index] < 20 ||
-                                        (playersNeeded[index] ?? 0) === 0
-                                      ) {
-                                        setPlayersNeeded((prev) => ({
-                                          ...prev,
-                                          [index]: (prev[index] || 0) + 1,
-                                        }));
-                                      } else {
-                                        Notifier.showNotification({
-                                          title: "Oops",
-                                          description:
-                                            "Needed people must be belov 20",
-                                          Component: NotifierComponents.Alert,
-                                          componentProps: { alertType: "warn" },
-                                        });
-                                      }
-                                    }}
-                                  >
-                                    <AntDesign
-                                      name="plus"
-                                      size={20}
-                                      color={Colors.themeColorTextPure}
-                                    />
-                                  </TouchableOpacity>
-                                  <AppText
-                                    style={{
-                                      fontSize: 20,
-                                      color: Colors.themeColorTextPure,
-                                    }}
-                                  >
-                                    {playersNeeded[index] ?? 0}{" "}
-                                  </AppText>
-                                  <TouchableOpacity
-                                    onPress={() => {
-                                      setPlayersNeeded((prev) => ({
-                                        ...prev,
-                                        [index]: Math.max(
-                                          (prev[index] || 0) - 1,
-                                          0
-                                        ),
-                                      }));
-                                    }}
-                                  >
-                                    <AntDesign
-                                      name="minus"
-                                      size={20}
-                                      color={Colors.themeColorTextPure}
-                                    />
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </View>
-                          );
-                        })}
-                      </>
-                    )}
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      width: "90%",
-                      justifyContent: "center",
-                      gap: 20,
-                      alignItems: "center",
-                      flex: 1,
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={styles.buttons}
-                      onPress={() => setSteps(steps - 1)}
-                    >
-                      <AppText style={{ color: Colors.themeColorTextPure }}>
-                        Preview
-                      </AppText>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[
-                        styles.buttons,
-                        { backgroundColor: Colors.primary },
-                      ]}
-                      onPress={() => setSteps(steps + 1)}
-                    >
-                      <AppText style={{ color: Colors.white }}>Next</AppText>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                <Step_Two
+                  wholeDay={wholeDay}
+                  steps={steps}
+                  setSteps={setSteps}
+                  bookingDetails={bookingDetails}
+                  selectedTimeSlots={selectedTimeSlots}
+                  wholeDayPeople={wholeDayPeople}
+                  setWholeDayPeople={setWholeDayPeople}
+                  playersNeeded={playersNeeded}
+                  setPlayersNeeded={setPlayersNeeded}
+                />
               )}
               {steps === 2 && (
-                <View style={[styles.innerContainer, {}]}>
-                  <View
-                    style={{
-                      width: "90%",
-                      gap: 10,
-                    }}
-                  >
-                    <View>
-                      <AppText
-                        style={{
-                          fontSize: 24,
-                          color: Colors.themeColorTextPure,
-                        }}
-                      >
-                        Booking Confirmation
-                      </AppText>
-                    </View>
-
-                    <View
-                      style={{
-                        gap: 10,
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          borderWidth: 1,
-                          padding: 20,
-                          borderRadius: 5,
-                          justifyContent: "space-between",
-                          borderColor: Colors.themeColorTextPure,
-                        }}
-                      >
-                        <AppText
-                          style={{
-                            fontSize: 18,
-                            fontWeight: 300,
-                            color: Colors.themeColorTextPure,
-                          }}
-                        >
-                          {bookingDetails?.name}
-                        </AppText>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          borderWidth: 1,
-                          padding: 20,
-                          borderRadius: 5,
-                          justifyContent: "space-between",
-                          borderColor: Colors.themeColorTextPure,
-                        }}
-                      >
-                        <AppText
-                          style={{
-                            fontSize: 18,
-                            fontWeight: 300,
-                            color: Colors.themeColorTextPure,
-                          }}
-                        >
-                          Date
-                        </AppText>
-                        <AppText
-                          style={{
-                            fontSize: 18,
-                            fontWeight: 300,
-                            color: Colors.themeColorTextPure,
-                          }}
-                        >
-                          {bookingDetails?.date
-                            ? format(
-                                new Date(bookingDetails.date),
-                                "MMMM d, yyyy"
-                              )
-                            : ""}
-                        </AppText>
-                      </View>
-                    </View>
-                    <AppText
-                      style={{ fontSize: 24, color: Colors.themeColorTextPure }}
-                    >
-                      Times & Player Needed
-                    </AppText>
-                    <View style={{ gap: 10 }}>
-                      {wholeDay ? (
-                        <View
-                          style={{
-                            flexDirection: "column",
-                            justifyContent: "space-between",
-                            gap: 5,
-                            borderWidth: 1,
-                            borderColor: Colors.themeColorTextPure,
-                            borderRadius: 5,
-                          }}
-                        >
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              justifyContent: "space-between",
-                              padding: 20,
-                              borderBottomWidth: 1,
-                              alignItems: "center",
-                              borderBottomColor: Colors.themeColorTextPure,
-                            }}
-                          >
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                gap: 5,
-                                alignItems: "center",
-                              }}
-                            >
-                              <MaterialCommunityIcons
-                                name="clock-time-nine-outline"
-                                size={24}
-                                color={Colors.themeColorTextPure}
-                              />
-                              <AppText
-                                style={{
-                                  fontSize: 18,
-                                  fontWeight: 300,
-                                  color: Colors.themeColorTextPure,
-                                }}
-                              >
-                                Whole Day
-                              </AppText>
-                            </View>
-                            <AppText
-                              style={{
-                                fontSize: 18,
-                                fontWeight: 300,
-                                color: Colors.themeColorTextPure,
-                              }}
-                            >
-                              ₮{bookingDetails?.price.wholeDay}
-                            </AppText>
-                          </View>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              justifyContent: "space-between",
-                              padding: 20,
-                              borderBottomWidth: 1,
-                              alignItems: "center",
-                              borderBottomColor: Colors.themeColorTextPure,
-                            }}
-                          >
-                            <AppText style={{ fontSize: 18, fontWeight: 300 }}>
-                              Peoples
-                            </AppText>
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <AppText
-                                style={{
-                                  fontSize: 18,
-                                  fontWeight: 300,
-                                  color: Colors.themeColorTextPure,
-                                }}
-                              >
-                                {wholeDayPeople}
-                              </AppText>
-                              <MaterialIcons
-                                name="people-alt"
-                                size={24}
-                                color={Colors.themeColorTextPure}
-                              />
-                            </View>
-                          </View>
-                          <View
-                            style={{
-                              marginTop: 10,
-                              padding: 10,
-                              gap: 5,
-                            }}
-                          >
-                            <AppText
-                              style={{
-                                fontSize: 18,
-                                fontWeight: "bold",
-                                textAlign: "center",
-                                color: Colors.themeColorTextPure,
-                              }}
-                            >
-                              Booker's Total: ₮
-                              {wholeDayPeople <= 0
-                                ? bookingDetails?.price.wholeDay
-                                : Number(bookingDetails?.price.wholeDay) /
-                                  wholeDayPeople}
-                            </AppText>
-                          </View>
-                        </View>
-                      ) : (
-                        <>
-                          <View style={{ gap: 10 }}>
-                            {selectedTimeSlots.map((group, index) => {
-                              const startTime = group[0].split("~")[0];
-                              const endTime =
-                                group[group.length - 1].split("~")[1];
-                              const isLast =
-                                index === selectedTimeSlots.length - 1;
-                              return (
-                                <View
-                                  key={index}
-                                  style={{
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    padding: 10,
-                                    gap: 5,
-                                    borderWidth: 1,
-                                    borderColor: Colors.themeColorTextPure,
-                                    borderRadius: 5,
-                                  }}
-                                >
-                                  <AppText
-                                    style={{
-                                      fontSize: 18,
-                                      fontWeight: 300,
-                                      color: Colors.themeColorTextPure,
-                                    }}
-                                  >
-                                    {startTime} – {endTime}
-                                  </AppText>
-                                  <AppText
-                                    style={{
-                                      fontSize: 18,
-                                      fontWeight: 300,
-                                      color: Colors.themeColorTextPure,
-                                    }}
-                                  >
-                                    {playersNeeded[index] || 0} Person
-                                  </AppText>
-                                </View>
-                              );
-                            })}
-                          </View>
-                          <View
-                            style={{
-                              flexDirection: "column",
-                              justifyContent: "space-between",
-                              gap: 5,
-                              borderWidth: 1,
-                              borderColor: Colors.themeColorTextPure,
-                              borderRadius: 5,
-                            }}
-                          >
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                padding: 20,
-                                borderBottomWidth: 1,
-                                alignItems: "center",
-                                borderBottomColor: Colors.themeColorTextPure,
-                              }}
-                            >
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  gap: 5,
-                                  alignItems: "center",
-                                }}
-                              >
-                                <MaterialCommunityIcons
-                                  name="clock-time-nine-outline"
-                                  size={24}
-                                  color={Colors.themeColorTextPure}
-                                />
-                                <AppText
-                                  style={{
-                                    fontSize: 18,
-                                    fontWeight: 300,
-                                    color: Colors.themeColorTextPure,
-                                  }}
-                                >
-                                  1 Hour
-                                </AppText>
-                              </View>
-                              <AppText
-                                style={{
-                                  fontSize: 18,
-                                  fontWeight: 300,
-                                  color: Colors.themeColorTextPure,
-                                }}
-                              >
-                                ₮{bookingDetails?.price.oneHour}
-                              </AppText>
-                            </View>
-                            <View>
-                              {(() => {
-                                return (
-                                  <>
-                                    {selectedTimeSlots.map((group, index) => {
-                                      const startTime = group[0].split("~")[0];
-                                      const endTime =
-                                        group[group.length - 1].split("~")[1];
-
-                                      const getHour = (time: string) => {
-                                        const [hourStr] = time.split(":");
-                                        return parseInt(hourStr, 10);
-                                      };
-
-                                      const startHour = getHour(startTime);
-                                      const endHour = getHour(endTime);
-                                      const durationHours = endHour - startHour;
-
-                                      const costPerHour = 1000;
-                                      const totalCost =
-                                        durationHours * costPerHour;
-
-                                      const totalPeople =
-                                        (playersNeeded[index] || 0) + 1;
-
-                                      const paymentPerPeople =
-                                        totalPeople > 0
-                                          ? totalCost / totalPeople
-                                          : 0;
-
-                                      // Add to booker’s total
-                                      paymentPerPeopleArray.push(
-                                        paymentPerPeople
-                                      );
-                                      totalBookerPaymentArray.push(
-                                        paymentPerPeople
-                                      );
-
-                                      return (
-                                        <View
-                                          key={index}
-                                          style={{
-                                            flexDirection: "column",
-                                            justifyContent: "space-evenly",
-                                            padding: 10,
-                                          }}
-                                        >
-                                          <AppText
-                                            style={{
-                                              fontSize: 16,
-                                              fontWeight: "300",
-                                              color: Colors.themeColorTextPure,
-                                            }}
-                                          >
-                                            Session {index + 1}:
-                                          </AppText>
-                                          <View
-                                            style={{
-                                              flexDirection: "row",
-                                              justifyContent: "space-around",
-                                            }}
-                                          >
-                                            <AppText
-                                              style={{
-                                                fontSize: 18,
-                                                fontWeight: 300,
-                                                color:
-                                                  Colors.themeColorTextPure,
-                                              }}
-                                            >
-                                              {durationHours} Hours
-                                            </AppText>
-                                            <AppText
-                                              style={{
-                                                fontSize: 18,
-                                                fontWeight: 300,
-                                                color:
-                                                  Colors.themeColorTextPure,
-                                              }}
-                                            >
-                                              {totalPeople} Players
-                                            </AppText>
-                                            <AppText
-                                              style={{
-                                                fontSize: 18,
-                                                fontWeight: 300,
-                                                color:
-                                                  Colors.themeColorTextPure,
-                                              }}
-                                            >
-                                              ₮{paymentPerPeople.toFixed(2)} Per
-                                              Person
-                                            </AppText>
-                                          </View>
-                                        </View>
-                                      );
-                                    })}
-
-                                    <View
-                                      style={{
-                                        marginTop: 10,
-                                        padding: 10,
-                                        borderTopWidth: 1,
-                                        borderColor: Colors.littleDark,
-                                      }}
-                                    >
-                                      <AppText
-                                        style={{
-                                          fontSize: 18,
-                                          fontWeight: "bold",
-                                          textAlign: "center",
-                                          color: Colors.themeColorTextPure,
-                                        }}
-                                      >
-                                        Booker's Total: ₮
-                                        {totalBookerPaymentArray
-                                          .reduce((sum, v) => sum + v, 0)
-                                          .toFixed(2)}
-                                      </AppText>
-                                    </View>
-                                  </>
-                                );
-                              })()}
-                            </View>
-                          </View>
-                        </>
-                      )}
-                    </View>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      width: "90%",
-                      justifyContent: "center",
-                      gap: 20,
-                      alignItems: "center",
-                      flex: 1,
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={styles.buttons}
-                      onPress={() => setSteps(steps - 1)}
-                    >
-                      <AppText style={{ color: Colors.themeColorTextPure }}>
-                        Preview
-                      </AppText>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[
-                        styles.buttons,
-                        { backgroundColor: Colors.primary },
-                      ]}
-                      onPress={() => {
-                        handleOrder();
-                      }}
-                    >
-                      <AppText style={{ color: Colors.themeColorTextPure }}>
-                        Book
-                      </AppText>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                <Step_Three
+                  bookingDetails={bookingDetails}
+                  wholeDay={wholeDay}
+                  selectedTimeSlots={selectedTimeSlots}
+                  steps={steps}
+                  setSteps={setSteps}
+                  wholeDayPeople={wholeDayPeople}
+                  playersNeeded={playersNeeded}
+                  paymentPerPeopleArray={paymentPerPeopleArray}
+                  totalBookerPaymentArray={totalBookerPaymentArray}
+                  handleOrder={handleOrder}
+                />
               )}
             </ScrollView>
           </View>

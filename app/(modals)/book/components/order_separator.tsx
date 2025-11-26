@@ -35,6 +35,7 @@ interface Order_Separator_props {
   setLoading: React.Dispatch<SetStateAction<boolean>>;
   page: Record<OrderScreenSeparator, number>;
 }
+
 const Order_Separator = ({
   data,
   screen_type,
@@ -69,69 +70,62 @@ const Order_Separator = ({
     let updatedList = [...orderList];
 
     try {
-      const sessionStr = await SecureStorage.getItemAsync("paymentSession");
-      if (sessionStr) {
-        const tokens: string[] = JSON.parse(sessionStr);
-        if (tokens?.length > 0) {
-          // Filter valid tokens
-          const validTokens = tokens.filter((t) => {
-            try {
-              const decoded = atob(t);
-              const parsed = JSON.parse(decoded);
-              return (
-                differenceInMinutes(new Date(parsed?.expireAt), new Date()) > 0
-              );
-            } catch {
-              return false;
-            }
-          });
+      const indexStr = await SecureStorage.getItemAsync("paymentSessionIndex");
+      const index = indexStr ? parseInt(indexStr, 10) : 0;
+      const now = Date.now();
+      const validSessions: string[] = [];
 
-          // Apply sessions
-          validTokens.forEach((session) => {
-            try {
-              const decoded = atob(session);
-              const parsed = JSON.parse(
-                decoded
-              ) as Booking_Time_Validation_payload;
+      for (let i = 1; i <= index; i++) {
+        const dataStr = await SecureStorage.getItemAsync(`paymentSession_${i}`);
+        if (!dataStr) continue;
 
-              updatedList = updatedList.map((hall) => {
-                if (
-                  hall.zaal_ID.toString() === parsed.sport_hall_id &&
-                  hall.day === parsed.date &&
-                  Array.isArray(hall.blocks) &&
-                  hall.blocks
-                    .flat(Infinity)
-                    .some(
-                      (block) =>
-                        `${block.start_time}~${block.end_time}` ===
-                        parsed.time_slots
-                    )
-                ) {
-                  return {
-                    ...hall,
-                    session_obj: {
-                      time_slots: parsed.time_slots,
-                      date: parsed.date,
-                      token: parsed.token,
-                      sport_hall_id: parsed.sport_hall_id,
-                      expireAt: parsed.expireAt,
-                      createdAt: parsed.createdAt,
-                    },
-                  };
-                }
-                return hall;
-              });
-            } catch (err) {
-              console.log(err);
-            }
-          });
-
-          await SecureStorage.setItemAsync(
-            "paymentSession",
-            JSON.stringify(validTokens)
-          );
+        const { token, expireAt } = JSON.parse(dataStr);
+        if (expireAt > now) validSessions.push(token);
+        else {
+          console.log("Invalid Sessions", i);
+          await SecureStorage.deleteItemAsync(`paymentSession_${i}`);
         }
       }
+
+      validSessions.forEach((session) => {
+        try {
+          const decoded = atob(session);
+          const parsed = JSON.parse(decoded) as Booking_Time_Validation_payload;
+          updatedList = updatedList.map((hall) => {
+            const [parsed_start_time, parsed_end_time] =
+              parsed.time_slots.split("~");
+
+            const sameSportHall =
+              hall.zaal_ID.toString() === parsed.sport_hall_id.toString();
+            const sameDay =
+              new Date(hall.day).getTime() === new Date(parsed.date).getTime();
+
+            const sameTimeSlots = hall.blocks.some(
+              (block) =>
+                new Date(block.start_time).getTime() ===
+                  new Date(parsed_start_time).getTime() &&
+                new Date(block.end_time).getTime() ===
+                  new Date(parsed_end_time).getTime()
+            );
+            if (sameSportHall && sameDay && sameTimeSlots) {
+              return {
+                ...hall,
+                session_obj: {
+                  time_slots: parsed.time_slots,
+                  date: parsed.date,
+                  token: parsed.token,
+                  sport_hall_id: parsed.sport_hall_id,
+                  expireAt: parsed.expireAt,
+                  createdAt: parsed.createdAt,
+                },
+              };
+            }
+            return hall;
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      });
     } catch (err) {
       console.warn("Failed to parse paymentSession:", err);
     }

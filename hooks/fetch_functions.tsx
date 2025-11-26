@@ -1,5 +1,4 @@
 import axiosInstance from "@/hooks/axiosInstance";
-import { AxiosError } from "axios";
 
 export const fetchRoleAndProfile = async (
   path: String,
@@ -49,7 +48,7 @@ export const normalFetch = async (url: string) => {
   try {
     const response = await axiosInstance.get(url);
     return response.data;
-  } catch (err) {
+  } catch (err: any) {
     throw err;
   }
 };

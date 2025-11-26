@@ -249,6 +249,12 @@ const DetailsPage = () => {
       oneHour: "",
       wholeDay: "",
     },
+    image: [],
+    location: {
+      latitude: "",
+      longitude: "",
+      smart_location: "",
+    },
   });
   const { sportHallID } = useLocalSearchParams();
   const listing = (SportHallData as unknown as SportHallDataType[]).find(
@@ -407,7 +413,13 @@ const DetailsPage = () => {
     input: any,
     name: any,
     price: any,
-    workTime: string | undefined
+    workTime: string | undefined,
+    imageUrls: string[] | undefined,
+    location?: {
+      latitude: string;
+      longitude: string;
+      smart_location?: string | undefined;
+    }
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -415,6 +427,8 @@ const DetailsPage = () => {
       name: name,
       price: price,
       workTime: workTime,
+      image: imageUrls,
+      location: location ? location : prev.location,
     }));
   };
 
@@ -423,7 +437,9 @@ const DetailsPage = () => {
       sportHallID,
       listing?.name,
       listing?.price,
-      `${listing?.workTime.startTime}~${listing?.workTime.endTime}`
+      `${listing?.workTime.startTime}~${listing?.workTime.endTime}`,
+      listing?.imageUrls,
+      listing?.location
     );
   }, [sportHallID]);
 

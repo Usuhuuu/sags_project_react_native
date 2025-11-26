@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type BookingData = {
+export type BookingData = {
   name: string;
   date: Date;
   sportHallID: string;
@@ -11,6 +11,12 @@ type BookingData = {
   selectedTimeSlots: string[];
   workTime?: string;
   baseTime_startAndEnd: string;
+  image: string[] | undefined;
+  location: {
+    latitude: string;
+    longitude: string;
+    smart_location?: string;
+  };
 };
 
 type BookingState = {
