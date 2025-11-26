@@ -37,7 +37,9 @@ const ListingBottomSheet = ({
       snapPoints={snapPoints}
       enableOverDrag={false}
       animatedPosition={bottomSheetY} // Connect shared value hereW
-      // Connect shared value here
+      handleStyle={{
+        backgroundColor: Colors.backgroundColor,
+      }}
       handleIndicatorStyle={{
         backgroundColor: Colors.primary,
         width: 60,
@@ -46,7 +48,7 @@ const ListingBottomSheet = ({
       style={{
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.backgroundColor,
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -55,7 +57,7 @@ const ListingBottomSheet = ({
     >
       <View
         style={{
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.backgroundColor,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
           flex: 1,
@@ -67,8 +69,8 @@ const ListingBottomSheet = ({
             onPress={showMap}
             style={{
               backgroundColor: Colors.primary,
-              borderRadius: 20,
-              height: 50,
+              borderRadius: 15,
+              height: 40,
               flexDirection: "row",
               justifyContent: "center",
               alignItems: "center",
@@ -80,6 +82,7 @@ const ListingBottomSheet = ({
               shadowRadius: 4,
               elevation: 5,
               bottom: 30,
+              gap: 5,
             }}
           >
             <Text style={styles.btnText}>Map</Text>

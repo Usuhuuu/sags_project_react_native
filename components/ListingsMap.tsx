@@ -11,10 +11,10 @@ import * as Location from "expo-location";
 import { SportHallDataType } from "@/interfaces/listing";
 import { useRouter } from "expo-router";
 import MapViewClustering from "react-native-map-clustering";
-import { Colors } from "react-native/Libraries/NewAppScreen";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as SecureStorage from "expo-secure-store";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 const INITIAL_REGION = {
   latitude: 47.918873,
@@ -31,6 +31,60 @@ const ListingsMap = memo(
     listings: SportHallDataType[];
     selectedCategory: string;
   }) => {
+    const { colors, theme } = useTheme();
+    const styles = StyleSheet.create({
+      container: {
+        flex: 1,
+      },
+      clusterMarker: {
+        borderRadius: 20,
+        backgroundColor: colors.primary,
+        justifyContent: "center",
+        alignItems: "center",
+        width: 40,
+        height: 40,
+      },
+      clusterText: {
+        color: "#fff",
+        textAlign: "center",
+        fontWeight: "bold",
+      },
+      locationButton: {
+        position: "absolute",
+        bottom: 40,
+        right: 10,
+        backgroundColor: "#90c9fb",
+        borderRadius: 25,
+        width: 40,
+        height: 40,
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 5,
+        shadowColor: colors.shadowColor,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+      },
+      change: {
+        position: "absolute",
+        bottom: 100,
+        right: 10,
+        backgroundColor: colors.themeColorTextPure,
+        borderRadius: 25,
+        borderColor: colors.primary,
+        borderWidth: 2,
+        width: 40,
+        height: 40,
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 5,
+        shadowColor: colors.shadowColor,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+      },
+    });
+
     const [hasLocationPermission, setHasLocationPermission] = useState(false);
     const [filteredHalls, setFilteredHalls] = useState<SportHallDataType[]>([]);
     const [userLocation, setUserLocation] = useState<{
@@ -115,7 +169,7 @@ const ListingsMap = memo(
               latitude: geometry.coordinates[1],
             }}
           >
-            <View style={styles.clusterMarker}>
+            <View style={[styles.clusterMarker, {}]}>
               <Text style={styles.clusterText}>{points}</Text>
             </View>
           </Marker>
@@ -144,6 +198,8 @@ const ListingsMap = memo(
           }
           clusterColor=""
           renderCluster={renderCluster}
+          mapType="standard"
+          userInterfaceStyle={theme}
         >
           {filteredHalls.map((item: SportHallDataType) => (
             <Marker
@@ -172,59 +228,5 @@ const ListingsMap = memo(
     );
   }
 );
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    bottom: 50,
-  },
-  clusterMarker: {
-    borderRadius: 20,
-    backgroundColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 40,
-    height: 40,
-  },
-  clusterText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  locationButton: {
-    position: "absolute",
-    bottom: 40,
-    right: 10,
-    backgroundColor: "#90c9fb",
-    borderRadius: 25,
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5, // For Android shadow
-    shadowColor: "#000", // For iOS shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  change: {
-    position: "absolute",
-    bottom: 100,
-    right: 10,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 25,
-    borderColor: "#b0d9fc",
-    borderWidth: 2,
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5, // For Android shadow
-    shadowColor: "#000", // For iOS shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-});
 
 export default ListingsMap;

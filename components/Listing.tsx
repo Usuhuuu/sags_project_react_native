@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  ReactElement,
+} from "react";
 import {
   View,
   StyleSheet,
@@ -18,6 +24,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { SportHallDataType } from "@/interfaces/listing";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 interface Props {
   listings: SportHallDataType[];
@@ -27,6 +34,75 @@ interface Props {
 
 const ListingComponent = ({ listings: items, category }: Props) => {
   const { colors: Colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      paddingTop: 5,
+      paddingHorizontal: 16,
+    },
+    itemContainer: {
+      marginBottom: 20,
+      borderRadius: 20,
+      overflow: "hidden",
+    },
+    backgroundImage: {
+      width: "100%",
+      height: 200,
+      justifyContent: "flex-end",
+      resizeMode: "cover",
+    },
+    detailsContainer: {
+      padding: 20,
+      justifyContent: "flex-end",
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+      width: "100%",
+    },
+    text: {
+      color: "white",
+      fontSize: 16,
+      fontWeight: "bold",
+      marginBottom: 5,
+    },
+    ratingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginVertical: 5,
+    },
+    locationContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingRight: 10,
+    },
+    placeholderImage: {
+      width: 20,
+      height: 20,
+      marginRight: 8,
+    },
+    flatListContent: {},
+    icon: {
+      width: 23,
+      height: 23,
+    },
+
+    categoryButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 5,
+    },
+
+    viewButton: {
+      backgroundColor: "rgba(97, 179, 250, 0) ",
+      height: 200,
+      width: 40,
+      position: "absolute",
+      right: 0,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+  });
 
   const [loading, setLoading] = useState(false);
   const listRef = useRef<BottomSheetFlatListMethods>(null);
@@ -111,7 +187,7 @@ const ListingComponent = ({ listings: items, category }: Props) => {
     selected,
     onPress,
   }: {
-    label: string;
+    label: ReactElement<any, any>;
     selected: boolean;
     onPress: () => void;
   }) => (
@@ -131,7 +207,7 @@ const ListingComponent = ({ listings: items, category }: Props) => {
           selected && {
             fontSize: 18,
             fontWeight: "bold",
-            color: Colors.primary,
+            color: Colors.themeColorTextPure,
           }, // Change text color to white when selected
         ]}
       >
@@ -142,16 +218,16 @@ const ListingComponent = ({ listings: items, category }: Props) => {
 
   return (
     <LinearGradient
-      colors={["#f8f9fa", Colors.primary]}
+      colors={[Colors.backgroundColor, Colors.primary]}
       start={[0, 0]}
       end={[0, 1]}
-      style={[styles.container, {}]}
+      style={[styles.container, { flex: 1 }]}
     >
       <View
         style={{
           flexDirection: "row",
           justifyContent: "space-around",
-          backgroundColor: Colors.light,
+          backgroundColor: Colors.backgroundColor,
           borderRadius: 20,
           paddingVertical: 8,
           marginVertical: 10,
@@ -164,7 +240,7 @@ const ListingComponent = ({ listings: items, category }: Props) => {
         {["ойрхон ", "шилдэг", "зөвлөx"].map((label) => (
           <CategoryButton
             key={label}
-            label={label}
+            label={<AppText>{label}</AppText>}
             selected={selected === label}
             onPress={() => handleCategoryPress(label)}
           />
@@ -192,74 +268,5 @@ const ListingComponent = ({ listings: items, category }: Props) => {
     </LinearGradient>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 5,
-    paddingHorizontal: 16,
-  },
-  itemContainer: {
-    marginBottom: 20,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  backgroundImage: {
-    width: "100%",
-    height: 200,
-    justifyContent: "flex-end",
-    resizeMode: "cover",
-  },
-  detailsContainer: {
-    padding: 20,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    width: "100%",
-  },
-  text: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 5,
-  },
-  locationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingRight: 10,
-  },
-  placeholderImage: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
-  },
-  flatListContent: {},
-  icon: {
-    width: 23,
-    height: 23,
-  },
-
-  categoryButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 5, // Optional for round corners
-  },
-
-  viewButton: {
-    backgroundColor: "rgba(97, 179, 250, 0) ",
-    height: 200,
-    width: 40,
-    position: "absolute",
-    right: 0,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
 
 export default ListingComponent;

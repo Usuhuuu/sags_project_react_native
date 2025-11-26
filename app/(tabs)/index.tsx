@@ -36,7 +36,7 @@ const Page = () => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={{ flex: 1, paddingTop: top }}>
+      <View style={{ flex: 1 }}>
         <Stack.Screen
           options={{
             header: () => (

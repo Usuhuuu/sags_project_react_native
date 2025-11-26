@@ -50,13 +50,15 @@ export const TabsLayout = () => {
         headerShadowVisible: false,
         tabBarStyle: {
           backgroundColor: Colors.containerColor,
-          borderTopColor: Colors.primary,
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
         },
 
         tabBarBackground: () => (
           <LinearGradient
-            colors={[Colors.secondary, Colors.primary]}
-            start={{ x: 0, y: 0.2 }}
+            colors={[Colors.backgroundColor, Colors.primary]}
+            start={{ x: 0, y: 0.7 }}
             end={{ x: 0, y: 1 }}
             style={StyleSheet.absoluteFill}
           />
@@ -86,9 +88,7 @@ export const TabsLayout = () => {
               style={{
                 padding: 5,
                 borderRadius: 20,
-                backgroundColor: focused
-                  ? Colors.themeColorTextPure
-                  : "transparent",
+                backgroundColor: focused ? Colors.primary : "transparent",
               }}
             >
               <Image
@@ -121,9 +121,7 @@ export const TabsLayout = () => {
               style={{
                 padding: 5,
                 borderRadius: 20,
-                backgroundColor: focused
-                  ? Colors.themeColorTextPure
-                  : "transparent",
+                backgroundColor: focused ? Colors.primary : "transparent",
               }}
             >
               <Image
@@ -198,9 +196,7 @@ export const TabsLayout = () => {
               style={{
                 padding: 5,
                 borderRadius: 20,
-                backgroundColor: focused
-                  ? Colors.themeColorTextPure
-                  : "transparent",
+                backgroundColor: focused ? Colors.primary : "transparent",
               }}
             >
               <Image
@@ -241,9 +237,7 @@ export const TabsLayout = () => {
               style={{
                 padding: 5,
                 borderRadius: 20,
-                backgroundColor: focused
-                  ? Colors.themeColorTextPure
-                  : "transparent",
+                backgroundColor: focused ? Colors.primary : "transparent",
               }}
             >
               <Image
@@ -271,9 +265,7 @@ export const TabsLayout = () => {
               style={{
                 padding: 5,
                 borderRadius: 20,
-                backgroundColor: focused
-                  ? Colors.themeColorTextPure
-                  : "transparent",
+                backgroundColor: focused ? Colors.primary : "transparent",
               }}
             >
               <Image

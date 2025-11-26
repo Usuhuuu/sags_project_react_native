@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
   Dimensions,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
@@ -44,12 +45,11 @@ interface Props {
 }
 
 const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
-  const { colors: Colors } = useTheme();
+  const { colors: Colors, theme } = useTheme();
   const styles = StyleSheet.create({
     container: {
       height: 170,
       overflow: "visible",
-      backgroundColor: "transparent",
     },
     actionRowWrapper: {
       flexDirection: "row",
@@ -63,8 +63,8 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       alignItems: "center",
       width: 250,
       height: 40,
-      backgroundColor: Colors.white,
-      borderColor: "#b0d9fc",
+      backgroundColor: Colors.themeColorTextPure,
+      borderColor: Colors.primary,
       borderWidth: 2,
       borderRadius: 20,
       elevation: 10,
@@ -77,7 +77,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor: Colors.light,
+      backgroundColor: Colors.themeColorTextPure,
       elevation: 10,
       shadowOpacity: 0.3,
       shadowRadius: 3,
@@ -108,9 +108,8 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     },
     scrollViewContent: {
       flexDirection: "row",
-      alignItems: "center",
-      gap: 15,
-      paddingHorizontal: 10,
+      gap: 10,
+      paddingLeft: 10,
     },
     categoriesBtn: {
       alignItems: "center",
@@ -133,7 +132,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       shadowRadius: 3,
     },
     titleText: {
-      color: Colors.dark,
+      color: Colors.themeColorTextPure,
       fontWeight: "500",
       alignItems: "center",
       justifyContent: "center",
@@ -184,10 +183,10 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   const animatedContainerStyle = useAnimatedStyle(() => {
     const backgroundColor = interpolateColor(
       bottomSheetY.value,
-      [windowHeight * 0.9, 0],
-      ["rgba(255,255,255,0)", Colors.light]
+      [windowHeight * 0.00001, 0],
+      ["transparent", Colors.backgroundColor]
     );
-    return { backgroundColor };
+    return { backgroundColor: backgroundColor };
   });
 
   // Notification badge animation
@@ -228,8 +227,8 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   };
   const { width } = Dimensions.get("screen");
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <StatusBar barStyle="light-content" backgroundColor="#61b3fa" />
+    <SafeAreaView style={{ backgroundColor: Colors.backgroundColor, flex: 1 }}>
+      {/* <StatusBar barStyle="light-content" backgroundColor="#61b3fa" /> */}
       <View style={styles.container}>
         {/* Action Row */}
         <View style={styles.actionRowWrapper}>
@@ -262,7 +261,10 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
           <TouchableOpacity style={styles.notification} onPress={openDrawer}>
             <Image
               source={require("../assets/sport-icons/menu.png")}
-              style={{ width: 24, height: 24 }}
+              style={{
+                width: 24,
+                height: 24,
+              }}
             />
           </TouchableOpacity>
         </View>
@@ -291,16 +293,17 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
                     activeIndex === index
                       ? styles.categoriesBtnActive
                       : styles.categoriesBtn,
-                    { width: itemWidth, height: 80 },
+                    { width: itemWidth, height: "auto" },
                   ]}
                   onPress={() => selectCategory(index)}
                 >
-                  <View style={styles.iconContainer}>
-                    <Image
-                      source={iconMap[item.icon]}
-                      style={{ width: 25, height: 25 }}
-                    />
-                  </View>
+                  <Image
+                    source={iconMap[item.icon]}
+                    style={{
+                      width: 25,
+                      height: 25,
+                    }}
+                  />
                   <Text
                     style={[
                       styles.titleText,
