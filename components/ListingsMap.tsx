@@ -69,7 +69,7 @@ const ListingsMap = memo(
         position: "absolute",
         bottom: 100,
         right: 10,
-        backgroundColor: colors.white,
+        backgroundColor: colors.primary,
         borderRadius: 25,
         borderColor: colors.primary,
         borderWidth: 2,
