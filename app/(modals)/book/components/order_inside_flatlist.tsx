@@ -293,7 +293,10 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
                 <View
                   style={{
                     flexDirection: "row",
-                    backgroundColor: Colors.containerLittleGrey,
+                    backgroundColor:
+                      theme === "dark"
+                        ? Colors.containerLittleGrey
+                        : Colors.grey,
                     alignItems: "center",
                     gap: 5,
                     padding: 10,
@@ -562,14 +565,22 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
                     <TouchableOpacity
                       style={{
                         padding: 10,
-                        backgroundColor: Colors.darkGrey,
+                        backgroundColor:
+                          theme === "dark" ? Colors.darkGrey : Colors.grey,
                         justifyContent: "center",
                         alignItems: "center",
                         borderRadius: 5,
                       }}
                     >
                       <View>
-                        <Text style={{ color: Colors.themeColorTextSecondary }}>
+                        <Text
+                          style={{
+                            color:
+                              theme === "dark"
+                                ? Colors.themeColorTextSecondary
+                                : Colors.dark,
+                          }}
+                        >
                           {orderLangInit.contactCostumerService}
                         </Text>
                       </View>

@@ -21,6 +21,7 @@ import { auth_swr } from "@/hooks/useswr";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { notificationPermission } from "@/hooks/permissions";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import AppText from "@/constants/appTextDefault";
 interface UserData {
   email: string;
   firstName: string;
@@ -29,7 +30,7 @@ interface UserData {
   unique_user_ID: string;
 }
 const CustomDrawerContent = (props: any) => {
-  const { colors: Colors } = useTheme();
+  const { colors: Colors, theme } = useTheme();
   const styles = StyleSheet.create({
     container: {},
     header: {
@@ -38,7 +39,7 @@ const CustomDrawerContent = (props: any) => {
       borderBottomColor: Colors.primary,
       alignItems: "center",
       flexDirection: "row",
-      backgroundColor: Colors.light,
+      backgroundColor: Colors.backgroundColor,
       maxWidth: "100%",
     },
 
@@ -77,7 +78,8 @@ const CustomDrawerContent = (props: any) => {
     },
     log: {
       justifyContent: "center",
-      backgroundColor: Colors.grey,
+      backgroundColor:
+        theme === "dark" ? Colors.containerLittleGrey : Colors.grey,
     },
     logInside: {
       flexDirection: "row",
@@ -175,7 +177,13 @@ const CustomDrawerContent = (props: any) => {
   }, [data, error]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.light, maxWidth: "100%" }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: Colors.backgroundColor,
+        maxWidth: "100%",
+      }}
+    >
       <DrawerContentScrollView
         {...props}
         contentContainerStyle={styles.container}
@@ -194,11 +202,13 @@ const CustomDrawerContent = (props: any) => {
               style={styles.headerTouchable}
               onPress={() => router.push("/(modals)/authentication/login")}
             >
-              <Text style={styles.headerText}>{t("aboutUs.login")}</Text>
+              <AppText style={styles.headerText}>{t("aboutUs.login")}</AppText>
             </TouchableOpacity>
-            <Text style={styles.headerText}>&</Text>
+            <AppText style={styles.headerText}>&</AppText>
             <TouchableOpacity style={styles.headerTouchable}>
-              <Text style={styles.headerText}>{t("aboutUs.register")}</Text>
+              <AppText style={styles.headerText}>
+                {t("aboutUs.register")}
+              </AppText>
             </TouchableOpacity>
           </View>
         ) : (
@@ -210,7 +220,7 @@ const CustomDrawerContent = (props: any) => {
               />
             </TouchableOpacity>
             <View style={{ width: width / 2.2 }}>
-              <Text
+              <AppText
                 style={{
                   color: Colors.primary,
                   fontSize: 20,
@@ -218,8 +228,10 @@ const CustomDrawerContent = (props: any) => {
                 }}
               >
                 {userData?.unique_user_ID}
-              </Text>
-              <Text style={styles.userDataContainer}>{userData?.email}</Text>
+              </AppText>
+              <AppText style={styles.userDataContainer}>
+                {userData?.email}
+              </AppText>
             </View>
           </View>
         )}
@@ -230,13 +242,13 @@ const CustomDrawerContent = (props: any) => {
           <View style={styles.logInside}>
             <TouchableOpacity style={styles.logInsideTouchable}>
               <Ionicons name="people" size={24} color={Colors.darkGrey} />
-              <Text style={styles.logText}>{t("aboutUs.aboutUs")}</Text>
+              <AppText style={styles.logText}>{t("aboutUs.aboutUs")}</AppText>
             </TouchableOpacity>
           </View>
           <View style={styles.logInside}>
             <TouchableOpacity style={styles.logInsideTouchable}>
               <Ionicons name="help" size={24} color={Colors.darkGrey} />
-              <Text style={styles.logText}>{t("aboutUs.helps")}</Text>
+              <AppText style={styles.logText}>{t("aboutUs.helps")}</AppText>
             </TouchableOpacity>
           </View>
 
@@ -247,14 +259,15 @@ const CustomDrawerContent = (props: any) => {
                 size={24}
                 color={Colors.darkGrey}
               />
-              <Text style={styles.logText}>{t("aboutUs.contactUs")}</Text>
+              <AppText style={styles.logText}>{t("aboutUs.contactUs")}</AppText>
             </TouchableOpacity>
           </View>
         </View>
         <View
           style={{
             padding: 20,
-            backgroundColor: Colors.grey,
+            backgroundColor:
+              theme === "dark" ? Colors.containerLittleGrey : Colors.grey,
             flexDirection: "row",
             justifyContent: "center",
             gap: 30,
@@ -278,11 +291,15 @@ const CustomDrawerContent = (props: any) => {
       <View
         style={[
           styles.footer,
-          { paddingBottom: 20 + bottom, backgroundColor: Colors.grey },
+          {
+            paddingBottom: 20 + bottom,
+            backgroundColor:
+              theme === "dark" ? Colors.containerLittleGrey : Colors.grey,
+          },
         ]}
       >
         <FontAwesome name="copyright" size={24} color="black" />
-        <Text style={styles.rightsText}>All rights reserved</Text>
+        <AppText style={styles.rightsText}>All rights reserved</AppText>
       </View>
     </View>
   );

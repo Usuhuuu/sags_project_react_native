@@ -445,9 +445,11 @@ const Layout = () => {
           name={name}
           component={component}
           options={{
+            drawerActiveTintColor: Colors.primary,
+            drawerInactiveTintColor: Colors.themeColorTextPure,
             drawerLabel: name,
-            headerShown: noHeadRender.includes(name) ? false : true,
 
+            headerShown: noHeadRender.includes(name) ? false : true,
             drawerIcon: () => (
               <Ionicons
                 name={icon as keyof typeof Ionicons.glyphMap}
@@ -523,9 +525,6 @@ const Layout = () => {
         },
         drawerType: "slide",
         headerShown: false,
-        drawerStyle: {
-          backgroundColor: "#eefafb",
-        },
       }}
     >
       {renderScreens()}

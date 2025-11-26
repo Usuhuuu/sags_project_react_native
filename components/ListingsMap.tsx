@@ -53,7 +53,7 @@ const ListingsMap = memo(
         position: "absolute",
         bottom: 40,
         right: 10,
-        backgroundColor: "#90c9fb",
+        backgroundColor: colors.primary,
         borderRadius: 25,
         width: 40,
         height: 40,
@@ -69,7 +69,7 @@ const ListingsMap = memo(
         position: "absolute",
         bottom: 100,
         right: 10,
-        backgroundColor: colors.themeColorTextPure,
+        backgroundColor: colors.white,
         borderRadius: 25,
         borderColor: colors.primary,
         borderWidth: 2,
@@ -215,14 +215,22 @@ const ListingsMap = memo(
           ))}
         </MapViewClustering>
         <TouchableOpacity style={styles.change} onPress={goToUserLocation}>
-          <Ionicons name="swap-horizontal" size={24} color="#000" />
+          <Ionicons
+            name="swap-horizontal"
+            size={24}
+            color={colors.themeColorTextPure}
+          />
         </TouchableOpacity>
         {/* Custom Location Button */}
         <TouchableOpacity
           style={styles.locationButton}
           onPress={goToUserLocation}
         >
-          <FontAwesome name="location-arrow" size={24} color="#000" />
+          <FontAwesome
+            name="location-arrow"
+            size={24}
+            color={colors.themeColorTextPure}
+          />
         </TouchableOpacity>
       </View>
     );

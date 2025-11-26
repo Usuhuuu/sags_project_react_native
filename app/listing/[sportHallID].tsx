@@ -2,7 +2,6 @@ import React, { useEffect, useLayoutEffect, useState } from "react";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import {
   View,
-  Text,
   StyleSheet,
   Image,
   Dimensions,
@@ -20,7 +19,6 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-
 import Animated, {
   SlideInDown,
   interpolate,
@@ -28,66 +26,16 @@ import Animated, {
   useAnimatedStyle,
   useScrollViewOffset,
 } from "react-native-reanimated";
-import { defaultStyles } from "@/constants/Styles";
 import { LinearGradient } from "expo-linear-gradient";
 import OrderScreen, { FormData } from "./detail";
 import { SportHallDataType } from "@/interfaces/listing";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../(modals)/context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 const { width } = Dimensions.get("window");
 const IMG_HEIGHT = 500;
 const bottompadding = width * 0.1;
-
-const featureIcons = {
-  changingRoom: {
-    icon: (
-      <MaterialCommunityIcons name="ceiling-light" size={24} color="black" />
-    ),
-    label: "Хувцас солих өрөө",
-  },
-  shower: {
-    icon: <FontAwesome name="shower" size={24} color="black" />,
-    label: "Душ",
-  },
-  lighting: {
-    icon: (
-      <MaterialCommunityIcons name="ceiling-light" size={24} color="black" />
-    ),
-    label: "Гэрэлтүүлэг",
-  },
-  spectatorSeats: {
-    icon: (
-      <MaterialCommunityIcons name="ceiling-light" size={24} color="black" />
-    ),
-    label: "Үзэгчдийн суудал",
-  },
-  parking: {
-    icon: <FontAwesome5 name="parking" size={24} color="black" />,
-    label: "Зогсоол",
-  },
-  freeWifi: {
-    icon: <AntDesign name="wifi" size={24} color="black" />,
-    label: "Free WiFi",
-  },
-  scoreboard: {
-    icon: (
-      <MaterialCommunityIcons name="ceiling-light" size={24} color="black" />
-    ),
-    label: "Онооны самбар",
-  },
-  speaker: {
-    icon: <FontAwesome name="volume-up" size={24} color="black" />,
-    label: "Чанга яригч",
-  },
-  microphone: {
-    icon: <FontAwesome name="microphone" size={24} color="black" />,
-    label: "Микрофон",
-  },
-  // tennis: { icon: "tennis-ball", label: "Теннис" },
-  // billiards: { icon: "circle", label: "Билльярд" },
-  // darts: { icon: "target", label: "Дартс" },
-};
 
 const DetailsPage = () => {
   const { colors: Colors } = useTheme();
@@ -130,7 +78,7 @@ const DetailsPage = () => {
     },
     rooms: {
       fontSize: 12,
-      color: Colors.dark,
+      color: Colors.themeColorTextPure,
       marginVertical: 4,
     },
     ratings: {
@@ -178,7 +126,7 @@ const DetailsPage = () => {
       gap: 4,
     },
     footerPrice: {
-      fontSize: 18,
+      fontSize: 20,
       fontFamily: "mon-sb",
     },
     roundButton: {
@@ -214,7 +162,7 @@ const DetailsPage = () => {
       height: 40,
     },
     btn: {
-      borderColor: Colors.dark,
+      borderColor: Colors.themeColorTextPure,
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",
@@ -223,7 +171,7 @@ const DetailsPage = () => {
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      backgroundColor: Colors.shadowColor,
       justifyContent: "center",
       alignItems: "center",
       borderColor: "black",
@@ -235,12 +183,108 @@ const DetailsPage = () => {
       width: "90%",
       height: "90%",
     },
+    iconColor: {
+      color: Colors.themeColorTextPure,
+    },
   });
+
+  const featureIcons = {
+    changingRoom: {
+      icon: (
+        <MaterialCommunityIcons
+          name="ceiling-light"
+          size={24}
+          color={Colors.themeColorTextPure}
+        />
+      ),
+      label: "Хувцас солих өрөө",
+    },
+    shower: {
+      icon: (
+        <FontAwesome
+          name="shower"
+          size={24}
+          color={Colors.themeColorTextPure}
+        />
+      ),
+      label: "Душ",
+    },
+    lighting: {
+      icon: (
+        <MaterialCommunityIcons
+          name="ceiling-light"
+          size={24}
+          color={Colors.themeColorTextPure}
+        />
+      ),
+      label: "Гэрэлтүүлэг",
+    },
+    spectatorSeats: {
+      icon: (
+        <MaterialCommunityIcons
+          name="ceiling-light"
+          size={24}
+          color={Colors.themeColorTextPure}
+        />
+      ),
+      label: "Үзэгчдийн суудал",
+    },
+    parking: {
+      icon: (
+        <FontAwesome5
+          name="parking"
+          size={24}
+          color={Colors.themeColorTextPure}
+        />
+      ),
+      label: "Зогсоол",
+    },
+    freeWifi: {
+      icon: (
+        <AntDesign name="wifi" size={24} color={Colors.themeColorTextPure} />
+      ),
+      label: "Free WiFi",
+    },
+    scoreboard: {
+      icon: (
+        <MaterialCommunityIcons
+          name="ceiling-light"
+          size={24}
+          color={Colors.themeColorTextPure}
+        />
+      ),
+      label: "Онооны самбар",
+    },
+    speaker: {
+      icon: (
+        <FontAwesome
+          name="volume-up"
+          size={24}
+          color={Colors.themeColorTextPure}
+        />
+      ),
+      label: "Чанга яригч",
+    },
+    microphone: {
+      icon: (
+        <FontAwesome
+          name="microphone"
+          size={24}
+          color={Colors.themeColorTextPure}
+        />
+      ),
+      label: "Микрофон",
+    },
+    // tennis: { icon: "tennis-ball", label: "Теннис" },
+    // billiards: { icon: "circle", label: "Билльярд" },
+    // darts: { icon: "target", label: "Дартс" },
+  };
+
   const [isOrderScreenVisible, setIsOrderScreenVisible] =
     useState<boolean>(false);
   const [infoHeight, setInfoHeight] = useState(0);
   const [iconsOverflow, setIconsOverflow] = useState<boolean>(false);
-  const [footerBgColor, setFooterBgColor] = useState(`rgba(255, 255, 255, 1)`);
+  const [footerBgColor, setFooterBgColor] = useState(Colors.backgroundColor);
   const [formData, setFormData] = useState<FormData>({
     sportHallID: "",
     date: "",
@@ -266,8 +310,15 @@ const DetailsPage = () => {
   const handleScroll = (event: any) => {
     const scrollY = event.nativeEvent.contentOffset.y;
 
+    const hexToRgba = (hex: string, alpha: number) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r},${g},${b},${alpha})`;
+    };
+
     const newColor = Math.max(0, Math.min(1, 1 - scrollY / 200));
-    setFooterBgColor(`rgba(255, 255, 255, ${newColor})`);
+    setFooterBgColor(hexToRgba(Colors.backgroundColor, newColor));
   };
 
   const shareListing = async () => {
@@ -460,7 +511,7 @@ const DetailsPage = () => {
           style={[styles.image, imageAnimatedStyle]}
           resizeMode="cover"
         />
-        <Text>{listing?.sportHallID}</Text>
+        <AppText>{listing?.sportHallID}</AppText>
         <View
           onLayout={(event) => {
             const { height } = event.nativeEvent.layout;
@@ -469,7 +520,7 @@ const DetailsPage = () => {
           style={styles.infoContainer}
         >
           <LinearGradient
-            colors={["#f8f9fa", Colors.primary]}
+            colors={[Colors.backgroundColor, Colors.primary]}
             start={[0, 0]}
             end={[0, 2]}
             style={{
@@ -493,7 +544,7 @@ const DetailsPage = () => {
               alignItems: "center",
             }}
           >
-            <Text style={styles.name}>{listing?.name}</Text>
+            <AppText style={styles.name}>{listing?.name}</AppText>
             <TouchableOpacity style={styles.hostView}>
               <ImageBackground
                 source={require("@/assets/images/listingicons/map.png")}
@@ -505,7 +556,9 @@ const DetailsPage = () => {
                 }}
               >
                 <Ionicons name="location" size={24} color="white" />
-                <Text style={{ color: "white", fontSize: 12 }}>Zvg chig</Text>
+                <AppText style={{ color: "white", fontSize: 12 }}>
+                  Zvg chig
+                </AppText>
               </ImageBackground>
             </TouchableOpacity>
           </View>
@@ -533,15 +586,15 @@ const DetailsPage = () => {
                 source={require("@/assets/images/placeholder.png")}
                 style={styles.placeholderImage}
               />
-              <Text style={{ fontSize: 12 }}>
+              <AppText style={{ fontSize: 10 }}>
                 {listing?.location.smart_location}
-              </Text>
+              </AppText>
             </View>
 
             {/* Rating container */}
             <View
               style={{
-                flex: iconsOverflow ? 0.25 : 0.3, // Shrinks width if icons overflow
+                flex: iconsOverflow ? 0.25 : 0.3,
                 alignItems: "center",
                 borderColor: Colors.grey,
                 borderWidth: 1,
@@ -552,16 +605,14 @@ const DetailsPage = () => {
             >
               <View
                 style={{
-                  flexDirection: "row",
                   flexWrap: "wrap",
                   justifyContent: "center",
                   marginTop: 5,
                 }}
               >
                 <MaterialIcons name="sports-score" size={18} color="red" />
-                <Text style={{ fontSize: 12 }}>review oruulan sda</Text>
                 <TouchableOpacity onPress={handleViewReviews}>
-                  <Text style={styles.ratings}>total review sda</Text>
+                  <AppText style={styles.ratings}>total review</AppText>
                 </TouchableOpacity>
               </View>
             </View>
@@ -578,7 +629,7 @@ const DetailsPage = () => {
                 marginLeft: 5,
               }}
             >
-              <Text style={styles.rooms}>Facilities</Text>
+              <AppText style={styles.rooms}>Facilities</AppText>
               <View
                 style={{
                   flexDirection: "row",
@@ -595,12 +646,12 @@ const DetailsPage = () => {
           </View>
           {/* Description data like address hereggui ymnud lalar */}
           <View>
-            <Text style={styles.description}>{listing?.address}</Text>
-            <Text>{listing?.phoneNumber}</Text>
-            <Text>
+            <AppText style={styles.description}>{listing?.address}</AppText>
+            <AppText>{listing?.phoneNumber}</AppText>
+            <AppText>
               {listing?.workTime.startTime}
               {listing?.workTime.endTime}
-            </Text>
+            </AppText>
           </View>
         </View>
       </Animated.ScrollView>
@@ -618,15 +669,24 @@ const DetailsPage = () => {
           }}
         >
           <TouchableOpacity style={styles.footerText}>
-            <Text style={styles.footerPrice}>€{listing?.price.oneHour}</Text>
-            <Text>/1 tsag</Text>
+            <AppText style={styles.footerPrice}>
+              €{listing?.price.oneHour}
+            </AppText>
+            <AppText style={styles.footerPrice}>/ 1 tsag</AppText>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setIsOrderScreenVisible(true)}
             style={[styles.btn, { paddingRight: 20, paddingLeft: 20 }]}
           >
-            <Text style={defaultStyles.btnText}>zahialga</Text>
+            <AppText
+              style={{
+                fontWeight: 600,
+                fontSize: 20,
+              }}
+            >
+              Zahialga
+            </AppText>
           </TouchableOpacity>
         </View>
       </Animated.View>
@@ -634,7 +694,7 @@ const DetailsPage = () => {
       <Modal
         animationType="slide"
         visible={isOrderScreenVisible}
-        transparent={true}
+        transparent
         onRequestClose={() => setIsOrderScreenVisible(false)}
       >
         <View style={styles.modalOverlay}>
