@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   ScrollView,
@@ -54,7 +52,7 @@ const Page = () => {
       justifyContent: "center",
     },
     inputContainer: {
-      marginBottom: 0,
+      gap: 10,
     },
     input: {
       height: 50,
@@ -332,11 +330,7 @@ const Page = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
     >
-      <ImageBackground
-        source={require("@/assets/images/zurag1.jpg")}
-        style={{ flex: 1 }}
-        resizeMode="cover"
-      >
+      <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
@@ -345,85 +339,100 @@ const Page = () => {
           }}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.inputContainer}>
-            <TextInput
-              autoCapitalize="none"
-              placeholder={loginDetails.email}
-              value={email}
-              onChangeText={setEmail}
-              style={styles.input}
-              placeholderTextColor={Colors.darkGrey}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <TextInput
-              autoCapitalize="none"
-              placeholder={loginDetails.password}
-              secureTextEntry={passwordHide}
-              value={password}
-              onChangeText={setPassword}
-              style={styles.input}
-              placeholderTextColor={Colors.darkGrey}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={handlePasswordToggle}
-            >
-              <Ionicons
-                name={passwordHide ? "eye-off" : "eye"}
-                size={24}
-                color="#666"
-              />
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.button, styles.loginBtn]}
-            onPress={handleSubmit}
-            disabled={loading}
+          <View
+            style={{
+              backgroundColor: Colors.containerColor,
+              borderRadius: 10,
+              padding: 20,
+              shadowColor: Colors.shadowColor,
+              shadowOffset: { height: 0, width: 0 },
+              shadowOpacity: 0.5,
+              opacity: 5,
+            }}
           >
-            <AppText style={styles.buttonText}>{loginDetails.login}</AppText>
-          </TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <TextInput
+                autoCapitalize="none"
+                placeholder={loginDetails.email}
+                value={email}
+                onChangeText={setEmail}
+                style={styles.input}
+                placeholderTextColor={Colors.darkGrey}
+              />
+              <View style={styles.inputContainer}>
+                <TextInput
+                  autoCapitalize="none"
+                  placeholder={loginDetails.password}
+                  secureTextEntry={passwordHide}
+                  value={password}
+                  onChangeText={setPassword}
+                  style={styles.input}
+                  placeholderTextColor={Colors.darkGrey}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={handlePasswordToggle}
+                >
+                  <Ionicons
+                    name={passwordHide ? "eye-off" : "eye"}
+                    size={24}
+                    color="#666"
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
 
-          <View style={styles.separatorView}>
-            <View style={styles.separatorLine} />
-            <AppText style={[styles.separatorText, { fontSize: 18 }]}>
-              or
-            </AppText>
-            <View style={styles.separatorLine} />
-          </View>
-
-          <View style={styles.socialButtons}>
             <TouchableOpacity
-              style={styles.btnOutline}
-              onPress={handleGoogleLogin}
+              style={[styles.button, styles.loginBtn]}
+              onPress={handleSubmit}
+              disabled={loading}
             >
-              <Ionicons name="logo-google" size={24} style={styles.btnIcon} />
-              <AppText style={styles.btnOutlineText}>
-                {loginDetails.continuewithgoogle}
-              </AppText>
+              <AppText style={styles.buttonText}>{loginDetails.login}</AppText>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.btnOutline}
-              onPress={handleFacebookLogin}
-            >
-              <Ionicons name="logo-facebook" size={24} style={styles.btnIcon} />
-              <AppText style={styles.btnOutlineText}>
-                {loginDetails.continuewithfacebook}
+            <View style={styles.separatorView}>
+              <View style={styles.separatorLine} />
+              <AppText style={[styles.separatorText, { fontSize: 18 }]}>
+                or
               </AppText>
-            </TouchableOpacity>
+              <View style={styles.separatorLine} />
+            </View>
 
-            <TouchableOpacity
-              style={styles.btnOutline}
-              onPress={() => setIsModalVisible(true)}
-            >
-              <Ionicons name="person-add" size={24} style={styles.btnIcon} />
-              <AppText style={styles.btnOutlineText}>
-                {loginDetails.signUp}
-              </AppText>
-            </TouchableOpacity>
+            <View style={styles.socialButtons}>
+              <TouchableOpacity
+                style={styles.btnOutline}
+                onPress={handleGoogleLogin}
+              >
+                <Ionicons name="logo-google" size={24} style={styles.btnIcon} />
+                <AppText style={styles.btnOutlineText}>
+                  {loginDetails.continuewithgoogle}
+                </AppText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.btnOutline}
+                onPress={handleFacebookLogin}
+              >
+                <Ionicons
+                  name="logo-facebook"
+                  size={24}
+                  style={styles.btnIcon}
+                />
+                <AppText style={styles.btnOutlineText}>
+                  {loginDetails.continuewithfacebook}
+                </AppText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.btnOutline}
+                onPress={() => setIsModalVisible(true)}
+              >
+                <Ionicons name="person-add" size={24} style={styles.btnIcon} />
+                <AppText style={styles.btnOutlineText}>
+                  {loginDetails.signUp}
+                </AppText>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
 
@@ -436,7 +445,7 @@ const Page = () => {
           setSteps={setSteps}
           path={path}
         />
-      </ImageBackground>
+      </View>
     </KeyboardAvoidingView>
   );
 };

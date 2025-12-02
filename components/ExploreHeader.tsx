@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
 import {
-  StatusBar,
   View,
   Text,
   StyleSheet,
@@ -8,7 +7,6 @@ import {
   ScrollView,
   Image,
   Dimensions,
-  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DrawerActions, useNavigation } from "@react-navigation/native";

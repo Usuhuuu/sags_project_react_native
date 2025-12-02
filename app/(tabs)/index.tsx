@@ -13,7 +13,6 @@ const Page = () => {
   const listingsData = require("@/assets/Data/sportHall.json");
   const [category, setCategory] = useState<string>("basket_ball");
   const items = useMemo(() => listingsData as any[], []);
-  const { top } = useSafeAreaInsets();
   const bottomSheetY = useSharedValue(0); // Shared value to track bottom sheet position
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 

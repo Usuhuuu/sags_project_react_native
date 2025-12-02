@@ -100,7 +100,7 @@ const SignupModal = ({
       width: "95%",
       height: "100%",
       marginHorizontal: 10,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.backgroundColor,
     },
     modalHeader: {
       flexDirection: "row",
@@ -308,6 +308,7 @@ const SignupModal = ({
       visible={isModalVisible}
       animationType="slide"
       presentationStyle="formSheet"
+      style={{ backgroundColor: Colors.backgroundColor }}
     >
       <View
         style={[
