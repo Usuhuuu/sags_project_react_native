@@ -357,8 +357,6 @@ const DirectChatScreen: React.FC = ({}) => {
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
-              borderBottomColor: Colors.lightGrey,
-              borderBottomWidth: 1,
               maxWidth: "100%",
               marginHorizontal: 10,
               height: "10%",

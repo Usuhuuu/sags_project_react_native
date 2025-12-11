@@ -7,7 +7,7 @@ export const fetchRoleAndProfile = async (
   if (LoginStatus) {
     try {
       const response = await axiosInstance.get(`/auth/profile_${path}`);
-      if (response.data.success && !response.data.auth) {
+      if (!response.data.success && !response.data.auth) {
         throw new Error(response.data.message);
       }
 

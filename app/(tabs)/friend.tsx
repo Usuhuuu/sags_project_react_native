@@ -184,11 +184,7 @@ const FriendRequest = () => {
           }}
         >
           <View style={friend_style.searchContainer}>
-            <FontAwesome
-              name="search"
-              size={18}
-              color={Colors.littleDarkGrey}
-            />
+            <FontAwesome name="search" size={18} color={Colors.darkGrey} />
             <TouchableOpacity>
               <TextInput
                 value={searchValue}

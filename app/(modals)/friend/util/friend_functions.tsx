@@ -6,11 +6,12 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Image } from "react-native";
 import { useFriendStore } from "@/app/(modals)/context/store/friendStore";
 import { useTheme } from "../../context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 export const FriendItem = React.memo(
   ({ item, userStatus }: { item: FriendsType; userStatus: string }) => {
     const { setFriendDetails } = useFriendStore();
-    const { colors: Colors } = useTheme();
+    const { colors: Colors, theme } = useTheme();
 
     return (
       <View
@@ -22,7 +23,7 @@ export const FriendItem = React.memo(
           justifyContent: "space-between",
           marginVertical: 7,
           borderRadius: 5,
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.containerColor,
           shadowColor: Colors.dark,
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
@@ -39,14 +40,28 @@ export const FriendItem = React.memo(
           }}
         >
           <View
-            style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1 }}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              borderWidth: 2,
+              borderColor:
+                theme === "dark" ? Colors.primary : Colors.themeColorTextPure,
+            }}
           >
             <Image source={{ uri: item.userImage }} />
           </View>
-          <Text style={{ color: Colors.dark, fontSize: 16, fontWeight: 500 }}>
+          <AppText
+            style={{
+              fontSize: 22,
+              fontWeight: 500,
+              color:
+                theme === "dark" ? Colors.primary : Colors.themeColorTextPure,
+            }}
+          >
             {item.unique_user_ID.charAt(0).toUpperCase() +
               item.unique_user_ID.slice(1) || "PISDA"}
-          </Text>
+          </AppText>
         </View>
         <View style={{ flexDirection: "row", gap: 5 }}>
           {/* friend section */}

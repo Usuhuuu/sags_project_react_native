@@ -25,88 +25,98 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
-export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
-  const { colors: Colors, theme } = useTheme();
-  const data = item;
-  const expanded = useSharedValue(0);
-  const textOpacity = useSharedValue(1);
-  const [toggle, setToggle] = useState(false);
+export const OrderItem = React.memo(
+  ({ item }: { item: Return_Type }) => {
+    const { colors: Colors, theme } = useTheme();
+    const data = item;
+    const expanded = useSharedValue(0);
+    const textOpacity = useSharedValue(1);
+    const [toggle, setToggle] = useState(false);
 
-  const toggleExpand = () => {
-    textOpacity.value = withTiming(0, { duration: 150 }, () => {
-      runOnJS(setToggle)(!toggle);
-      textOpacity.value = withTiming(1, { duration: 150 });
-    });
-    expanded.value = withTiming(expanded.value === 0 ? 1 : 0, {
-      duration: 50,
-    });
-  };
-  const blockCount = data?.blocks?.length;
-  const perBlockHeight = 60 * blockCount;
-
-  const animatedCardStyle = useAnimatedStyle(() => {
-    const baseHeight = 600 + perBlockHeight;
-    const isConfirmed = data?.blocks?.[0]?.block_booking_status === "confirmed";
-    const hasSession = !!data?.session_obj;
-
-    let extra = 10;
-    if (isConfirmed) extra = 50;
-    else if (hasSession) extra = 100;
-    const expandedHeight = perBlockHeight + baseHeight + extra;
-    const notExtendedHeight = perBlockHeight + extra;
-
-    return {
-      height: withTiming(
-        interpolate(
-          expanded.value,
-          [0, 1],
-          [200 + notExtendedHeight, expandedHeight],
-          Extrapolate.CLAMP
-        ),
-        {
-          duration: 100,
-          easing: Easing.inOut(Easing.cubic),
-        }
-      ),
-    };
-  });
-
-  const animatedContentStyle = useAnimatedStyle(() => {
-    const isExpanding = expanded.value === 1;
-
-    const opacity = withTiming(expanded.value, {
-      duration: isExpanding ? 400 : 150,
-      easing: Easing.inOut(Easing.cubic),
-    });
-
-    const translateY = withTiming(
-      interpolate(expanded.value, [0, 1], [10, 0]),
-      { duration: 300, easing: Easing.inOut(Easing.cubic) }
-    );
-
-    return {
-      opacity,
-      transform: [{ translateY }],
-    };
-  });
-  const animatedTextStyle = useAnimatedStyle(() => ({
-    opacity: textOpacity.value,
-  }));
-
-  const handleCancel = async (item: string) => {
-    try {
-      const response = await axiosInstance.post("/auth/bookcancel", {
-        transaction_ID: item,
-        reason: "Tsag amjihgui bolson",
+    const toggleExpand = () => {
+      textOpacity.value = withTiming(0, { duration: 150 }, () => {
+        runOnJS(setToggle)(!toggle);
+        textOpacity.value = withTiming(1, { duration: 150 });
       });
-      if (response.status === 200 && response.data.success) {
-        Notifier.showNotification({
-          title: "Successfully Canceled Order",
-          description: "Your booking has been canceled.",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
+      expanded.value = withTiming(expanded.value === 0 ? 1 : 0, {
+        duration: 50,
+      });
+    };
+    const blockCount = data?.blocks?.length;
+    const perBlockHeight = 60 * blockCount;
+
+    const animatedCardStyle = useAnimatedStyle(() => {
+      const baseHeight = 600 + perBlockHeight;
+      const isConfirmed =
+        data?.blocks?.[0]?.block_booking_status === "confirmed";
+      const hasSession = !!data?.session_obj;
+
+      let extra = 10;
+      if (isConfirmed) extra = 50;
+      else if (hasSession) extra = 100;
+      const expandedHeight = perBlockHeight + baseHeight + extra;
+      const notExtendedHeight = perBlockHeight + extra;
+
+      return {
+        height: withTiming(
+          interpolate(
+            expanded.value,
+            [0, 1],
+            [200 + notExtendedHeight, expandedHeight],
+            Extrapolate.CLAMP
+          ),
+          {
+            duration: 100,
+            easing: Easing.inOut(Easing.cubic),
+          }
+        ),
+      };
+    });
+
+    const animatedContentStyle = useAnimatedStyle(() => {
+      const isExpanding = expanded.value === 1;
+
+      const opacity = withTiming(expanded.value, {
+        duration: isExpanding ? 400 : 150,
+        easing: Easing.inOut(Easing.cubic),
+      });
+
+      const translateY = withTiming(
+        interpolate(expanded.value, [0, 1], [10, 0]),
+        { duration: 300, easing: Easing.inOut(Easing.cubic) }
+      );
+
+      return {
+        opacity,
+        transform: [{ translateY }],
+      };
+    });
+    const animatedTextStyle = useAnimatedStyle(() => ({
+      opacity: textOpacity.value,
+    }));
+
+    const handleCancel = async (item: string) => {
+      try {
+        const response = await axiosInstance.post("/auth/bookcancel", {
+          transaction_ID: item,
+          reason: "Tsag amjihgui bolson",
         });
-      } else {
+        if (response.status === 200 && response.data.success) {
+          Notifier.showNotification({
+            title: "Successfully Canceled Order",
+            description: "Your booking has been canceled.",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "success" },
+          });
+        } else {
+          Notifier.showNotification({
+            title: "Failed",
+            description: "Couldn't find order.",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "error" },
+          });
+        }
+      } catch (err: any) {
         Notifier.showNotification({
           title: "Failed",
           description: "Couldn't find order.",
@@ -114,579 +124,589 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
           componentProps: { alertType: "error" },
         });
       }
-    } catch (err: any) {
-      Notifier.showNotification({
-        title: "Failed",
-        description: "Couldn't find order.",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "error" },
+    };
+    const { t } = useTranslation();
+    const orderLangInit: any = t("orderScreen", { returnObjects: true });
+
+    const useCountdown = (expireAt?: string | Date) => {
+      const [secondsLeft, setSecondsLeft] = useState(() => {
+        if (expireAt === undefined || expireAt === null) return 0;
+        const diff = differenceInSeconds(new Date(expireAt), new Date());
+        return Math.max(isNaN(diff) ? 0 : diff, 0);
       });
-    }
-  };
-  const { t } = useTranslation();
-  const orderLangInit: any = t("orderScreen", { returnObjects: true });
 
-  const useCountdown = (expireAt?: string | Date) => {
-    const [secondsLeft, setSecondsLeft] = useState(() => {
-      if (expireAt === undefined || expireAt === null) return 0;
-      const diff = differenceInSeconds(new Date(expireAt), new Date());
-      return Math.max(isNaN(diff) ? 0 : diff, 0);
-    });
+      useEffect(() => {
+        if (expireAt === undefined || expireAt === null) {
+          setSecondsLeft(0);
+          return;
+        }
 
-    useEffect(() => {
-      if (expireAt === undefined || expireAt === null) {
-        setSecondsLeft(0);
-        return;
-      }
+        const interval = setInterval(() => {
+          const raw = differenceInSeconds(new Date(expireAt), new Date());
+          const sec = Math.max(isNaN(raw) ? 0 : raw, 0);
+          setSecondsLeft(sec);
 
-      const interval = setInterval(() => {
-        const raw = differenceInSeconds(new Date(expireAt), new Date());
-        const sec = Math.max(isNaN(raw) ? 0 : raw, 0);
-        setSecondsLeft(sec);
+          if (sec <= 0) clearInterval(interval);
+        }, 1000);
 
-        if (sec <= 0) clearInterval(interval);
-      }, 1000);
+        return () => clearInterval(interval);
+      }, [expireAt]);
 
-      return () => clearInterval(interval);
-    }, [expireAt]);
+      const minutes = Math.floor(secondsLeft / 60);
+      const seconds = secondsLeft % 60;
 
-    const minutes = Math.floor(secondsLeft / 60);
-    const seconds = secondsLeft % 60;
+      return { minutes, seconds, secondsLeft };
+    };
 
-    return { minutes, seconds, secondsLeft };
-  };
-
-  const { minutes, seconds, secondsLeft } = useCountdown(
-    data.session_obj?.expireAt
-  );
-
-  const dataDetails = useMemo(
-    () => ({
-      paymentInfo: [
-        {
-          label: `${orderLangInit.paymentInfo.paymentMethod}`,
-          key: "payment_method",
-        },
-        {
-          label: `${orderLangInit.paymentInfo.totalAmount}`,
-          key: "total_amount",
-        },
-        {
-          label: `${orderLangInit.paymentInfo.paymentStatusPaid}`,
-          resolve: (data: Return_Type) =>
-            `${data.full_paid ? "Paid" : "Pending"}`,
-        },
-        {
-          label: "Continue Pay",
-          resolve: (data: Return_Type) => {
-            if (!data.session_obj || data.full_paid) return null;
-            return data.session_obj;
-          },
-        },
-      ],
-      bookingInfo: [
-        {
-          label: `${orderLangInit.bookingInfo.date}`,
-          resolve: (data: Return_Type) =>
-            `${format(new Date(data.day), "MMMM d, yyyy")}`,
-        },
-        {
-          label: `${orderLangInit.bookingInfo.time}`,
-          resolve: (data: any) =>
-            `${format(data.blocks[0].start_time, "HH:mm")} ~ ${
-              format(data.blocks[0].end_time, "HH:mm") ?? ""
-            }`,
-        },
-        {
-          label: "Status",
-          resolve: (data: any) => `${data.blocks[0].block_booking_status}`,
-        },
-        {
-          label: `${orderLangInit.bookingInfo.playerNeeded}`,
-          resolve: (data: Return_Type) =>
-            `${
-              data.blocks[0].num_players > 0
-                ? data.blocks[0].current_player / data.blocks[0].num_players
-                : ""
-            }`,
-        },
-      ],
-      playerInfo: [
-        {
-          label: `${orderLangInit.playerInfo.playerName}`,
-          resolve: (data: Return_Type) =>
-            `${data.paying_peoples[0].paying_user_info[0].unique_user_ID}`,
-        },
-
-        {
-          label: `${orderLangInit.playerInfo.playerContact}`,
-          resolve: (data: Return_Type) =>
-            `${data.paying_peoples[0].paying_user_info[0].phoneNumber}`,
-        },
-        {
-          label: `${orderLangInit.playerInfo.playerPaymentStatus}`,
-          resolve: (data: Return_Type) =>
-            `${data.paying_peoples[0].payment_status}`,
-        },
-        {
-          label: `${orderLangInit.playerInfo.playerPaymentAmount}`,
-          resolve: (data: Return_Type) =>
-            `${data.paying_peoples[0].amountPaid}`,
-        },
-      ],
-    }),
-    []
-  );
-
-  const ContinuePayButton = ({ session }: any) => {
-    return (
-      <TouchableOpacity
-        style={{
-          backgroundColor: Colors.green,
-          alignItems: "center",
-          padding: 10,
-          borderRadius: 10,
-          flexDirection: "row",
-          justifyContent: "center",
-          gap: 5,
-        }}
-        onPress={() => console.log("Pay:", session.token)}
-      >
-        <MaterialIcons name="payment" size={24} color={Colors.white} />
-        <AppText style={{ fontWeight: "bold", fontSize: 16 }}>Pay Now</AppText>
-      </TouchableOpacity>
+    const { minutes, seconds, secondsLeft } = useCountdown(
+      data.session_obj?.expireAt
     );
-  };
 
-  return (
-    <View style={{ width: "100%", padding: 10 }}>
-      <Animated.View
-        style={[
+    const dataDetails = useMemo(
+      () => ({
+        paymentInfo: [
           {
-            padding: 20,
-            backgroundColor: Colors.containerColor,
-            borderRadius: 12,
-            shadowColor: Colors.shadowColor,
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.7,
-            shadowRadius: 6,
-            elevation: 4,
-            gap: 10,
+            label: `${orderLangInit.paymentInfo.paymentMethod}`,
+            key: "payment_method",
           },
-          animatedCardStyle,
-        ]}
-      >
-        <View
+          {
+            label: `${orderLangInit.paymentInfo.totalAmount}`,
+            key: "total_amount",
+          },
+          {
+            label: `${orderLangInit.paymentInfo.paymentStatusPaid}`,
+            resolve: (data: Return_Type) =>
+              `${data.full_paid ? "Paid" : "Pending"}`,
+          },
+          {
+            label: "Continue Pay",
+            resolve: (data: Return_Type) => {
+              if (!data.session_obj || data.full_paid) return null;
+              return data.session_obj;
+            },
+          },
+        ],
+        bookingInfo: [
+          {
+            label: `${orderLangInit.bookingInfo.date}`,
+            resolve: (data: Return_Type) =>
+              `${format(new Date(data.day), "MMMM d, yyyy")}`,
+          },
+          {
+            label: `${orderLangInit.bookingInfo.time}`,
+            resolve: (data: any) =>
+              `${format(data.blocks[0].start_time, "HH:mm")} ~ ${
+                format(data.blocks[0].end_time, "HH:mm") ?? ""
+              }`,
+          },
+          {
+            label: "Status",
+            resolve: (data: any) => `${data.blocks[0].block_booking_status}`,
+          },
+          {
+            label: `${orderLangInit.bookingInfo.playerNeeded}`,
+            resolve: (data: Return_Type) =>
+              `${
+                data.blocks[0].num_players > 0
+                  ? data.blocks[0].current_player / data.blocks[0].num_players
+                  : ""
+              }`,
+          },
+        ],
+        playerInfo: [
+          {
+            label: `${orderLangInit.playerInfo.playerName}`,
+            resolve: (data: Return_Type) =>
+              `${data.paying_peoples[0].paying_user_info[0].unique_user_ID}`,
+          },
+
+          {
+            label: `${orderLangInit.playerInfo.playerContact}`,
+            resolve: (data: Return_Type) =>
+              `${data.paying_peoples[0].paying_user_info[0].phoneNumber}`,
+          },
+          {
+            label: `${orderLangInit.playerInfo.playerPaymentStatus}`,
+            resolve: (data: Return_Type) =>
+              `${data.paying_peoples[0].payment_status}`,
+          },
+          {
+            label: `${orderLangInit.playerInfo.playerPaymentAmount}`,
+            resolve: (data: Return_Type) =>
+              `${data.paying_peoples[0].amountPaid}`,
+          },
+        ],
+      }),
+      []
+    );
+
+    const ContinuePayButton = ({ session }: any) => {
+      return (
+        <TouchableOpacity
           style={{
-            width: "100%",
-            height: "100%",
+            backgroundColor: Colors.green,
+            alignItems: "center",
+            padding: 10,
+            borderRadius: 10,
+            flexDirection: "row",
+            justifyContent: "center",
+            gap: 5,
           }}
+          onPress={() => console.log("Pay:", session.token)}
+        >
+          <MaterialIcons name="payment" size={24} color={Colors.white} />
+          <AppText style={{ fontWeight: "bold", fontSize: 16 }}>
+            Pay Now
+          </AppText>
+        </TouchableOpacity>
+      );
+    };
+
+    return (
+      <View style={{ width: "100%", padding: 10 }}>
+        <Animated.View
+          style={[
+            {
+              padding: 20,
+              backgroundColor: Colors.containerColor,
+              borderRadius: 12,
+              shadowColor: Colors.shadowColor,
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.7,
+              shadowRadius: 6,
+              elevation: 4,
+              gap: 10,
+            },
+            animatedCardStyle,
+          ]}
         >
           <View
             style={{
-              flexDirection: "column",
-              justifyContent: "space-between",
               width: "100%",
-              gap: 10,
               height: "100%",
             }}
           >
-            <View style={{ height: "70%", gap: 20 }}>
-              {/* Basic Info */}
-              {data.session_obj && secondsLeft > 0 ? (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    backgroundColor:
-                      theme === "dark"
-                        ? Colors.containerLittleGrey
-                        : Colors.grey,
-                    alignItems: "center",
-                    gap: 5,
-                    padding: 10,
-                    borderRadius: 10,
-                    width: "100%",
-                  }}
-                >
+            <View
+              style={{
+                flexDirection: "column",
+                justifyContent: "space-between",
+                width: "100%",
+                gap: 10,
+                height: "100%",
+              }}
+            >
+              <View style={{ height: "70%", gap: 20 }}>
+                {/* Basic Info */}
+                {data.session_obj && secondsLeft > 0 ? (
                   <View
                     style={{
                       flexDirection: "row",
-                      justifyContent: "center",
+                      backgroundColor:
+                        theme === "dark"
+                          ? Colors.containerLittleGrey
+                          : Colors.grey,
                       alignItems: "center",
-                      gap: 7,
+                      gap: 5,
+                      padding: 10,
+                      borderRadius: 10,
+                      width: "100%",
                     }}
                   >
-                    <FontAwesome
-                      name="check-circle"
-                      size={24}
-                      color={Colors.primary}
-                    />
-                    <AppText
+                    <View
                       style={{
-                        color: Colors.themeColorTextPure,
-                        fontSize: 20,
-                        fontWeight: "500",
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 7,
                       }}
                     >
-                      Confirm Your Book
-                    </AppText>
-                  </View>
-
-                  <AppText
-                    style={{ color: "red", fontSize: 20, fontWeight: "600" }}
-                  >
-                    {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
-                  </AppText>
-                </View>
-              ) : (
-                <View></View>
-              )}
-              <View style={{ gap: 15 }}>
-                <View style={{ flexDirection: "row" }}>
-                  <Text
-                    style={{
-                      fontSize: 20,
-                      fontWeight: "400",
-                      color: Colors.themeColorTextPure,
-                    }}
-                  >
-                    {data.zaal_info.name}
-                  </Text>
-                </View>
-                <Text style={{ color: Colors.themeColorTextSecondary }}>
-                  {format(new Date(data.day), "MMMM d, yyyy")}
-                </Text>
-
-                {data.blocks.map((block, index) => (
-                  <View
-                    key={index}
-                    style={{ marginBottom: 8, maxHeight: 45, minHeight: 45 }}
-                  >
-                    {/* Time Row */}
-                    <View style={{ flexDirection: "row" }}>
-                      <View
-                        style={{ flexDirection: "row", width: "50%", gap: 3 }}
+                      <FontAwesome
+                        name="check-circle"
+                        size={24}
+                        color={Colors.primary}
+                      />
+                      <AppText
+                        style={{
+                          color: Colors.themeColorTextPure,
+                          fontSize: 20,
+                          fontWeight: "500",
+                        }}
                       >
-                        <FontAwesome6
-                          name="clock-four"
-                          size={15}
-                          color={Colors.themeColorTextSecondary}
-                        />
-                        <Text style={{ color: Colors.themeColorTextSecondary }}>
-                          {format(new Date(block.start_time), "HH:mm")}
-                        </Text>
-                        <Text style={{ color: Colors.themeColorTextSecondary }}>
-                          ~
-                        </Text>
-                        <Text style={{ color: Colors.themeColorTextSecondary }}>
-                          {format(new Date(block.end_time), "kk:mm")}
-                        </Text>
-                      </View>
+                        Confirm Your Book
+                      </AppText>
                     </View>
 
-                    {/* Player Info */}
-                    <View style={{ flexDirection: "column" }}>
+                    <AppText
+                      style={{ color: "red", fontSize: 20, fontWeight: "600" }}
+                    >
+                      {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+                    </AppText>
+                  </View>
+                ) : (
+                  <View></View>
+                )}
+                <View style={{ gap: 15 }}>
+                  <View style={{ flexDirection: "row" }}>
+                    <Text
+                      style={{
+                        fontSize: 20,
+                        fontWeight: "400",
+                        color: Colors.themeColorTextPure,
+                      }}
+                    >
+                      {data.zaal_info.name}
+                    </Text>
+                  </View>
+                  <Text style={{ color: Colors.themeColorTextSecondary }}>
+                    {format(new Date(data.day), "MMMM d, yyyy")}
+                  </Text>
+
+                  {data.blocks.map((block, index) => (
+                    <View
+                      key={index}
+                      style={{ marginBottom: 8, maxHeight: 45, minHeight: 45 }}
+                    >
+                      {/* Time Row */}
                       <View style={{ flexDirection: "row" }}>
                         <View
-                          style={{
-                            flexDirection: "row",
-                            width: "50%",
-                            gap: 3,
-                            padding: 4,
-                          }}
+                          style={{ flexDirection: "row", width: "50%", gap: 3 }}
                         >
-                          <Fontisto
-                            name="persons"
+                          <FontAwesome6
+                            name="clock-four"
                             size={15}
                             color={Colors.themeColorTextSecondary}
                           />
                           <Text
                             style={{ color: Colors.themeColorTextSecondary }}
                           >
-                            {block.current_player}
+                            {format(new Date(block.start_time), "HH:mm")}
                           </Text>
                           <Text
                             style={{ color: Colors.themeColorTextSecondary }}
                           >
-                            /
+                            ~
                           </Text>
                           <Text
                             style={{ color: Colors.themeColorTextSecondary }}
                           >
-                            {block.num_players == 0
-                              ? (block.num_players += 1)
-                              : block.num_players}
+                            {format(new Date(block.end_time), "kk:mm")}
                           </Text>
                         </View>
+                      </View>
 
-                        {/* Status badge */}
-                        <View
-                          style={{
-                            justifyContent: "center",
-                            alignItems: "center",
-                            flex: 1,
-                          }}
-                        >
+                      {/* Player Info */}
+                      <View style={{ flexDirection: "column" }}>
+                        <View style={{ flexDirection: "row" }}>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              width: "50%",
+                              gap: 3,
+                              padding: 4,
+                            }}
+                          >
+                            <Fontisto
+                              name="persons"
+                              size={15}
+                              color={Colors.themeColorTextSecondary}
+                            />
+                            <Text
+                              style={{ color: Colors.themeColorTextSecondary }}
+                            >
+                              {block.current_player}
+                            </Text>
+                            <Text
+                              style={{ color: Colors.themeColorTextSecondary }}
+                            >
+                              /
+                            </Text>
+                            <Text
+                              style={{ color: Colors.themeColorTextSecondary }}
+                            >
+                              {block.num_players == 0
+                                ? (block.num_players += 1)
+                                : block.num_players}
+                            </Text>
+                          </View>
+
+                          {/* Status badge */}
                           <View
                             style={{
                               justifyContent: "center",
                               alignItems: "center",
-                              backgroundColor:
-                                block.num_players === block.current_player &&
-                                block.num_players !== 0
-                                  ? Colors.green
-                                  : Colors.warningYellow,
-                              padding: 2,
-                              borderRadius: 10,
-                              paddingHorizontal: 10,
+                              flex: 1,
                             }}
+                          >
+                            <View
+                              style={{
+                                justifyContent: "center",
+                                alignItems: "center",
+                                backgroundColor:
+                                  block.num_players === block.current_player &&
+                                  block.num_players !== 0
+                                    ? Colors.green
+                                    : Colors.warningYellow,
+                                padding: 2,
+                                borderRadius: 10,
+                                paddingHorizontal: 10,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  borderRadius: 10,
+                                  color:
+                                    block.num_players ===
+                                      block.current_player &&
+                                    block.num_players !== 0
+                                      ? Colors.white
+                                      : Colors.yellowText,
+                                }}
+                              >
+                                {block.num_players === block.current_player &&
+                                block.num_players !== 0
+                                  ? `${orderLangInit.confirmed}`
+                                  : `${orderLangInit.waiting}`}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+
+                        {/* Progress bar */}
+                        <ProgressBar
+                          progress={
+                            block.num_players > 0
+                              ? block.current_player / block.num_players
+                              : 1
+                          }
+                          color={Colors.primary}
+                        />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+                {/* Expandable Details Section */}
+                <Animated.View style={[animatedContentStyle]}>
+                  <View style={{ height: "auto" }}>
+                    <View style={{ flexDirection: "column" }}>
+                      {Object.entries(dataDetails).map(
+                        ([sectionKey, fields]) => (
+                          <View
+                            key={`${sectionKey}`}
+                            style={{ marginBottom: 10 }}
                           >
                             <Text
                               style={{
-                                borderRadius: 10,
-                                color:
-                                  block.num_players === block.current_player &&
-                                  block.num_players !== 0
-                                    ? Colors.white
-                                    : Colors.yellowText,
+                                fontWeight: "600",
+                                marginBottom: 6,
+                                color: Colors.themeColorTextPure,
                               }}
                             >
-                              {block.num_players === block.current_player &&
-                              block.num_players !== 0
-                                ? `${orderLangInit.confirmed}`
-                                : `${orderLangInit.waiting}`}
+                              {sectionKey === "paymentInfo"
+                                ? `${orderLangInit.paymentInfo.paymentInfo}`
+                                : sectionKey === "bookingInfo"
+                                ? `${orderLangInit.bookingInfo.bookingInfo}`
+                                : `${orderLangInit.playerInfo.playerInfo}`}
                             </Text>
+                            {fields.map((field) => {
+                              const value =
+                                "resolve" in field &&
+                                typeof field.resolve === "function"
+                                  ? field.resolve(data)
+                                  : (data as any)?.[field.key] ?? "";
+                              if (field.label === "Continue Pay" && value) {
+                                return (
+                                  <View
+                                    key={field.label}
+                                    style={{
+                                      paddingVertical: secondsLeft > 0 ? 10 : 0,
+                                    }}
+                                  >
+                                    <ContinuePayButton session={value} />
+                                  </View>
+                                );
+                              }
+                              return (
+                                <View
+                                  key={field.label}
+                                  style={{
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    marginBottom: 4,
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      color: Colors.themeColorTextSecondary,
+                                    }}
+                                  >
+                                    {field.label}
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      color: Colors.themeColorTextSecondary,
+                                    }}
+                                  >
+                                    {value}
+                                  </Text>
+                                </View>
+                              );
+                            })}
                           </View>
-                        </View>
-                      </View>
-
-                      {/* Progress bar */}
-                      <ProgressBar
-                        progress={
-                          block.num_players > 0
-                            ? block.current_player / block.num_players
-                            : 1
-                        }
-                        color={Colors.primary}
-                      />
+                        )
+                      )}
                     </View>
-                  </View>
-                ))}
-              </View>
-              {/* Expandable Details Section */}
-              <Animated.View style={[animatedContentStyle]}>
-                <View style={{ height: "auto" }}>
-                  <View style={{ flexDirection: "column" }}>
-                    {Object.entries(dataDetails).map(([sectionKey, fields]) => (
-                      <View key={`${sectionKey}`} style={{ marginBottom: 10 }}>
-                        <Text
+                    <View
+                      style={{
+                        flexDirection: "column",
+                        gap: 5,
+                      }}
+                    >
+                      {data.blocks[0].block_booking_status === "waiting" && (
+                        <TouchableOpacity
                           style={{
-                            fontWeight: "600",
-                            marginBottom: 6,
-                            color: Colors.themeColorTextPure,
+                            padding: 10,
+                            backgroundColor: "#FF4433",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            borderRadius: 5,
                           }}
                         >
-                          {sectionKey === "paymentInfo"
-                            ? `${orderLangInit.paymentInfo.paymentInfo}`
-                            : sectionKey === "bookingInfo"
-                            ? `${orderLangInit.bookingInfo.bookingInfo}`
-                            : `${orderLangInit.playerInfo.playerInfo}`}
-                        </Text>
-                        {fields.map((field) => {
-                          const value =
-                            "resolve" in field &&
-                            typeof field.resolve === "function"
-                              ? field.resolve(data)
-                              : (data as any)?.[field.key] ?? "";
-                          if (field.label === "Continue Pay" && value) {
-                            return (
-                              <View
-                                key={field.label}
-                                style={{
-                                  paddingVertical: secondsLeft > 0 ? 10 : 0,
-                                }}
-                              >
-                                <ContinuePayButton session={value} />
-                              </View>
-                            );
-                          }
-                          return (
-                            <View
-                              key={field.label}
-                              style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                marginBottom: 4,
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  color: Colors.themeColorTextSecondary,
-                                }}
-                              >
-                                {field.label}
-                              </Text>
-                              <Text
-                                style={{
-                                  color: Colors.themeColorTextSecondary,
-                                }}
-                              >
-                                {value}
-                              </Text>
-                            </View>
-                          );
-                        })}
-                      </View>
-                    ))}
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "column",
-                      gap: 5,
-                    }}
-                  >
-                    {data.blocks[0].block_booking_status === "waiting" && (
+                          <View>
+                            <Text style={{ color: Colors.containerColor }}>
+                              {orderLangInit.cancelBooking}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      )}
+
                       <TouchableOpacity
                         style={{
                           padding: 10,
-                          backgroundColor: "#FF4433",
+                          backgroundColor:
+                            theme === "dark" ? Colors.darkGrey : Colors.grey,
                           justifyContent: "center",
                           alignItems: "center",
                           borderRadius: 5,
                         }}
                       >
                         <View>
-                          <Text style={{ color: Colors.containerColor }}>
-                            {orderLangInit.cancelBooking}
+                          <Text
+                            style={{
+                              color:
+                                theme === "dark"
+                                  ? Colors.themeColorTextSecondary
+                                  : Colors.dark,
+                            }}
+                          >
+                            {orderLangInit.contactCostumerService}
                           </Text>
                         </View>
                       </TouchableOpacity>
-                    )}
-
-                    <TouchableOpacity
-                      style={{
-                        padding: 10,
-                        backgroundColor:
-                          theme === "dark" ? Colors.darkGrey : Colors.grey,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        borderRadius: 5,
-                      }}
-                    >
-                      <View>
-                        <Text
-                          style={{
-                            color:
-                              theme === "dark"
-                                ? Colors.themeColorTextSecondary
-                                : Colors.dark,
-                          }}
-                        >
-                          {orderLangInit.contactCostumerService}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              </Animated.View>
-              {item.blocks[0].block_booking_status === "confirmed" && (
-                <View
-                  style={{
-                    zIndex: 1,
-                    position: "absolute",
-                    height: "100%",
-                    width: "100%",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
+                </Animated.View>
+                {item.blocks[0].block_booking_status === "confirmed" && (
                   <View
                     style={{
-                      padding: 20,
-                      borderRadius: 20,
-                      borderColor: "red",
-                      borderWidth: 1,
-                      width: "60%",
+                      zIndex: 1,
+                      position: "absolute",
+                      height: "100%",
+                      width: "100%",
+                      justifyContent: "center",
                       alignItems: "center",
                     }}
                   >
-                    <Text
-                      style={{ color: "red", fontSize: 20, fontWeight: 500 }}
-                    >
-                      {orderLangInit.alreadyPlayed}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-            {/* Buttons */}
-            <View
-              style={{
-                flexDirection: "row",
-                width: "100%",
-                justifyContent: "center",
-              }}
-            >
-              <View
-                style={{
-                  width: "100%",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                <TouchableOpacity
-                  onPress={toggleExpand}
-                  style={{
-                    width: "100%",
-                    borderRadius: 5,
-                    borderWidth: 1,
-                    borderColor: Colors.themeColorTextPure,
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    padding: 10,
-                  }}
-                >
-                  <Animated.View
-                    style={[
-                      {
-                        flexDirection: "row",
-                        width: "100%",
-                        justifyContent: "space-between",
-                      },
-                      animatedTextStyle,
-                    ]}
-                  >
-                    <Text
+                    <View
                       style={{
-                        color: Colors.themeColorTextPure,
-                        fontWeight: "500",
-                        fontSize: 18,
+                        padding: 20,
+                        borderRadius: 20,
+                        borderColor: "red",
+                        borderWidth: 1,
+                        width: "60%",
+                        alignItems: "center",
                       }}
                     >
-                      {!toggle
-                        ? `${orderLangInit.viewDetails}`
-                        : `${orderLangInit.close}`}
-                    </Text>
-                    {!toggle ? (
-                      <Feather
-                        name="arrow-down"
-                        size={24}
-                        color={Colors.themeColorTextPure}
-                      />
-                    ) : (
-                      <Feather
-                        name="arrow-up"
-                        size={24}
-                        color={Colors.themeColorTextPure}
-                      />
-                    )}
-                  </Animated.View>
-                </TouchableOpacity>
+                      <Text
+                        style={{ color: "red", fontSize: 20, fontWeight: 500 }}
+                      >
+                        {orderLangInit.alreadyPlayed}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+              {/* Buttons */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "center",
+                }}
+              >
+                <View
+                  style={{
+                    width: "100%",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={toggleExpand}
+                    style={{
+                      width: "100%",
+                      borderRadius: 5,
+                      borderWidth: 1,
+                      borderColor: Colors.themeColorTextPure,
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      padding: 10,
+                    }}
+                  >
+                    <Animated.View
+                      style={[
+                        {
+                          flexDirection: "row",
+                          width: "100%",
+                          justifyContent: "space-between",
+                        },
+                        animatedTextStyle,
+                      ]}
+                    >
+                      <Text
+                        style={{
+                          color: Colors.themeColorTextPure,
+                          fontWeight: "500",
+                          fontSize: 18,
+                        }}
+                      >
+                        {!toggle
+                          ? `${orderLangInit.viewDetails}`
+                          : `${orderLangInit.close}`}
+                      </Text>
+                      {!toggle ? (
+                        <Feather
+                          name="arrow-down"
+                          size={24}
+                          color={Colors.themeColorTextPure}
+                        />
+                      ) : (
+                        <Feather
+                          name="arrow-up"
+                          size={24}
+                          color={Colors.themeColorTextPure}
+                        />
+                      )}
+                    </Animated.View>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
-        </View>
-      </Animated.View>
-    </View>
-  );
-});
+        </Animated.View>
+      </View>
+    );
+  },
+  (prevProps, nextProps) => {
+    return prevProps.item._id === nextProps.item._id;
+  }
+);
