@@ -3,7 +3,13 @@ import {
   OrderScreenSeparator,
   OrderDataTypes,
 } from "@/interfaces/order&book_type";
-import React, { SetStateAction, useCallback, useEffect, useState } from "react";
+import React, {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   View,
   FlatList,
@@ -45,6 +51,16 @@ const Order_Separator = ({
   const { colors: Colors } = useTheme();
   const [orderList, setOrderList] = useState<Return_Type[]>();
   const [uniqueList, setUniqueList] = useState<Return_Type[]>([]);
+  const [listLoading, setListLoading] = useState(true);
+  const sessionCacheRef = useRef<{
+    tokens: string[];
+    lastIndex: number | null;
+  }>({
+    tokens: [],
+    lastIndex: null,
+  });
+  const { height } = Dimensions.get("screen");
+  const { height: windowHeight } = Dimensions.get("window");
 
   useEffect(() => {
     setUniqueList([]);
@@ -55,29 +71,42 @@ const Order_Separator = ({
     }
   }, [screen_type, data]);
 
+  const loadValidSessions = async (): Promise<string[]> => {
+    try {
+      const indexStr = await SecureStorage.getItemAsync("paymentSessionIndex");
+      const index = indexStr ? parseInt(indexStr, 10) : 0;
+      if (
+        sessionCacheRef.current.lastIndex === index &&
+        sessionCacheRef.current.tokens.length
+      ) {
+        return sessionCacheRef.current.tokens;
+      }
+
+      const now = Date.now();
+      const valid: string[] = [];
+      for (let i = 1; i <= index; i++) {
+        const dataStr = await SecureStorage.getItemAsync(`paymentSession_${i}`);
+        if (!dataStr) continue;
+        const { token, expireAt } = JSON.parse(dataStr);
+        if (expireAt > now) valid.push(token);
+        else {
+          await SecureStorage.deleteItemAsync(`paymentSession_${i}`);
+        }
+      }
+      sessionCacheRef.current = { tokens: valid, lastIndex: index };
+      return valid;
+    } catch (err) {
+      console.warn("session load failed", err);
+      return [];
+    }
+  };
   const getUniqueListWithSessions = async (
     orderList: Return_Type[]
   ): Promise<Return_Type[]> => {
     if (!orderList || orderList.length === 0) return [];
     let updatedList = [...orderList];
     try {
-      const indexStr = await SecureStorage.getItemAsync("paymentSessionIndex");
-      const index = indexStr ? parseInt(indexStr, 10) : 0;
-      const now = Date.now();
-      const validSessions: string[] = [];
-
-      for (let i = 1; i <= index; i++) {
-        const dataStr = await SecureStorage.getItemAsync(`paymentSession_${i}`);
-        if (!dataStr) continue;
-
-        const { token, expireAt } = JSON.parse(dataStr);
-        if (expireAt > now) validSessions.push(token);
-        else {
-          console.log("Invalid Sessions", i);
-          await SecureStorage.deleteItemAsync(`paymentSession_${i}`);
-        }
-      }
-
+      const validSessions = await loadValidSessions();
       validSessions.forEach((session) => {
         try {
           const decoded = atob(session);
@@ -117,7 +146,6 @@ const Order_Separator = ({
           console.log(err);
         }
       });
-      setLoading(false);
     } catch (err) {
       console.warn("Failed to parse paymentSession:", err);
     }
@@ -139,16 +167,18 @@ const Order_Separator = ({
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
+
       const load = async () => {
+        setListLoading(true);
         if (!orderList || orderList.length === 0) {
           setUniqueList([]);
-          setLoading(false);
+          setListLoading(false);
           return;
         }
         const list = await getUniqueListWithSessions(orderList);
         if (isActive) {
           setUniqueList(list);
-          setLoading(false);
+          setListLoading(false);
         }
       };
       load();
@@ -157,9 +187,10 @@ const Order_Separator = ({
       };
     }, [orderList])
   );
-
-  const { height } = Dimensions.get("screen");
-  const { height: windowHeight } = Dimensions.get("window");
+  const renderItem = useCallback(
+    ({ item }: { item: Return_Type }) => <OrderItem item={item} />,
+    []
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
@@ -182,19 +213,11 @@ const Order_Separator = ({
           onEndReachedThreshold={0.1}
           initialNumToRender={5}
           windowSize={5}
+          removeClippedSubviews={false}
           style={{ flex: 1, backgroundColor: Colors.backgroundColor }}
-          renderItem={useCallback(
-            ({ item }: { item: Return_Type }) => {
-              return (
-                <View>
-                  <OrderItem item={[item]} />
-                </View>
-              );
-            },
-            [screen_type]
-          )}
+          renderItem={renderItem}
           ListEmptyComponent={
-            loading ? (
+            listLoading ? (
               <View
                 style={{
                   justifyContent: "center",
@@ -299,7 +322,7 @@ const Order_Separator = ({
             )
           }
           ListFooterComponent={
-            loading ? (
+            listLoading ? (
               <View
                 style={{
                   justifyContent: "center",

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import Animated, {
   useSharedValue,
@@ -25,9 +25,9 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
-export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
+export const OrderItem = React.memo(({ item }: { item: Return_Type }) => {
   const { colors: Colors, theme } = useTheme();
-  const data = item[0];
+  const data = item;
   const expanded = useSharedValue(0);
   const textOpacity = useSharedValue(1);
   const [toggle, setToggle] = useState(false);
@@ -160,79 +160,83 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
     data.session_obj?.expireAt
   );
 
-  const dataDetails = {
-    paymentInfo: [
-      {
-        label: `${orderLangInit.paymentInfo.paymentMethod}`,
-        key: "payment_method",
-      },
-      {
-        label: `${orderLangInit.paymentInfo.totalAmount}`,
-        key: "total_amount",
-      },
-      {
-        label: `${orderLangInit.paymentInfo.paymentStatusPaid}`,
-        resolve: (data: Return_Type) =>
-          `${data.full_paid ? "Paid" : "Pending"}`,
-      },
-      {
-        label: "Continue Pay",
-        resolve: (data: Return_Type) => {
-          if (!data.session_obj || data.full_paid) return null;
-          return data.session_obj;
+  const dataDetails = useMemo(
+    () => ({
+      paymentInfo: [
+        {
+          label: `${orderLangInit.paymentInfo.paymentMethod}`,
+          key: "payment_method",
         },
-      },
-    ],
-    bookingInfo: [
-      {
-        label: `${orderLangInit.bookingInfo.date}`,
-        resolve: (data: Return_Type) =>
-          `${format(new Date(data.day), "MMMM d, yyyy")}`,
-      },
-      {
-        label: `${orderLangInit.bookingInfo.time}`,
-        resolve: (data: any) =>
-          `${format(data.blocks[0].start_time, "HH:mm")} ~ ${
-            format(data.blocks[0].end_time, "HH:mm") ?? ""
-          }`,
-      },
-      {
-        label: "Status",
-        resolve: (data: any) => `${data.blocks[0].block_booking_status}`,
-      },
-      {
-        label: `${orderLangInit.bookingInfo.playerNeeded}`,
-        resolve: (data: Return_Type) =>
-          `${
-            data.blocks[0].num_players > 0
-              ? data.blocks[0].current_player / data.blocks[0].num_players
-              : ""
-          }`,
-      },
-    ],
-    playerInfo: [
-      {
-        label: `${orderLangInit.playerInfo.playerName}`,
-        resolve: (data: Return_Type) =>
-          `${data.paying_peoples[0].paying_user_info[0].unique_user_ID}`,
-      },
+        {
+          label: `${orderLangInit.paymentInfo.totalAmount}`,
+          key: "total_amount",
+        },
+        {
+          label: `${orderLangInit.paymentInfo.paymentStatusPaid}`,
+          resolve: (data: Return_Type) =>
+            `${data.full_paid ? "Paid" : "Pending"}`,
+        },
+        {
+          label: "Continue Pay",
+          resolve: (data: Return_Type) => {
+            if (!data.session_obj || data.full_paid) return null;
+            return data.session_obj;
+          },
+        },
+      ],
+      bookingInfo: [
+        {
+          label: `${orderLangInit.bookingInfo.date}`,
+          resolve: (data: Return_Type) =>
+            `${format(new Date(data.day), "MMMM d, yyyy")}`,
+        },
+        {
+          label: `${orderLangInit.bookingInfo.time}`,
+          resolve: (data: any) =>
+            `${format(data.blocks[0].start_time, "HH:mm")} ~ ${
+              format(data.blocks[0].end_time, "HH:mm") ?? ""
+            }`,
+        },
+        {
+          label: "Status",
+          resolve: (data: any) => `${data.blocks[0].block_booking_status}`,
+        },
+        {
+          label: `${orderLangInit.bookingInfo.playerNeeded}`,
+          resolve: (data: Return_Type) =>
+            `${
+              data.blocks[0].num_players > 0
+                ? data.blocks[0].current_player / data.blocks[0].num_players
+                : ""
+            }`,
+        },
+      ],
+      playerInfo: [
+        {
+          label: `${orderLangInit.playerInfo.playerName}`,
+          resolve: (data: Return_Type) =>
+            `${data.paying_peoples[0].paying_user_info[0].unique_user_ID}`,
+        },
 
-      {
-        label: `${orderLangInit.playerInfo.playerContact}`,
-        resolve: (data: Return_Type) =>
-          `${data.paying_peoples[0].paying_user_info[0].phoneNumber}`,
-      },
-      {
-        label: `${orderLangInit.playerInfo.playerPaymentStatus}`,
-        resolve: (data: Return_Type) =>
-          `${data.paying_peoples[0].payment_status}`,
-      },
-      {
-        label: `${orderLangInit.playerInfo.playerPaymentAmount}`,
-        resolve: (data: Return_Type) => `${data.paying_peoples[0].amountPaid}`,
-      },
-    ],
-  };
+        {
+          label: `${orderLangInit.playerInfo.playerContact}`,
+          resolve: (data: Return_Type) =>
+            `${data.paying_peoples[0].paying_user_info[0].phoneNumber}`,
+        },
+        {
+          label: `${orderLangInit.playerInfo.playerPaymentStatus}`,
+          resolve: (data: Return_Type) =>
+            `${data.paying_peoples[0].payment_status}`,
+        },
+        {
+          label: `${orderLangInit.playerInfo.playerPaymentAmount}`,
+          resolve: (data: Return_Type) =>
+            `${data.paying_peoples[0].amountPaid}`,
+        },
+      ],
+    }),
+    []
+  );
 
   const ContinuePayButton = ({ session }: any) => {
     return (
@@ -474,10 +478,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
                 <View style={{ height: "auto" }}>
                   <View style={{ flexDirection: "column" }}>
                     {Object.entries(dataDetails).map(([sectionKey, fields]) => (
-                      <View
-                        key={`${sectionKey}-${Math.random()}`}
-                        style={{ marginBottom: 10 }}
-                      >
+                      <View key={`${sectionKey}`} style={{ marginBottom: 10 }}>
                         <Text
                           style={{
                             fontWeight: "600",
@@ -588,7 +589,7 @@ export const OrderItem = React.memo(({ item }: { item: Return_Type[] }) => {
                   </View>
                 </View>
               </Animated.View>
-              {item[0].blocks[0].block_booking_status === "confirmed" && (
+              {item.blocks[0].block_booking_status === "confirmed" && (
                 <View
                   style={{
                     zIndex: 1,

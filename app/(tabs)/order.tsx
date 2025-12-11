@@ -237,7 +237,9 @@ const OrderScreen = () => {
   const opacity = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
+    opacity: withTiming(opacity.value, {
+      duration: 1000,
+    }),
   }));
 
   const handleFade = (fadeDuration = 50, fadeLevel = 0.6) => {
@@ -263,10 +265,6 @@ const OrderScreen = () => {
       ),
     });
   }, [navigation, setModalVisible]);
-
-  useEffect(() => {
-    console.log(loading);
-  }, [loading]);
 
   return (
     <Animated.View
