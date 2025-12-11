@@ -1,5 +1,5 @@
 import { OrderScreenSeparator } from "@/interfaces/order&book_type";
-import { AntDesign, Entypo, Fontisto } from "@expo/vector-icons";
+import { AntDesign, Entypo } from "@expo/vector-icons";
 import React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

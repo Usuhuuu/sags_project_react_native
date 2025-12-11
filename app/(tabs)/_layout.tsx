@@ -37,7 +37,7 @@ import { Animated, Easing } from "react-native";
 import { useTheme } from "../(modals)/context/themeContext";
 
 export const TabsLayout = () => {
-  const { colors: Colors } = useTheme();
+  const { colors: Colors, theme } = useTheme();
   const { t } = useTranslation();
   const { LoginStatus } = useAuth();
   const bottomSheetY = useSharedValue(0);
@@ -50,7 +50,8 @@ export const TabsLayout = () => {
         headerShadowVisible: false,
         tabBarStyle: {
           backgroundColor: Colors.containerColor,
-          borderTopWidth: 0,
+          borderTopWidth: theme === "dark" ? 0 : 1,
+          borderTopColor: Colors.containerColor,
           elevation: 0,
           shadowOpacity: 0,
         },

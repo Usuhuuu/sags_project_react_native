@@ -22,6 +22,8 @@ import * as SecureStorage from "expo-secure-store";
 import Step_One from "./support_components/step_1";
 import Step_Two from "./support_components/step_2";
 import Step_Three from "./support_components/step_3";
+import { useNavigation } from "@react-navigation/native";
+import { TabNavTypes } from "@/interfaces/tabScreenType";
 
 export type ReservationBlock = {
   start_time: string;
@@ -70,6 +72,7 @@ const groupConnectedTimeSlots = (slots: string[]) => {
 
 const TransactionPage = () => {
   const { colors: Colors } = useTheme();
+  const navigation = useNavigation<TabNavTypes>();
   const customStyles = {
     stepIndicatorSize: 30,
     currentStepIndicatorSize: 35,
@@ -299,6 +302,7 @@ const TransactionPage = () => {
       ),
     },
   ];
+
   const addToCalendar = async () => {
     if (wholeDay) {
       if (!reserved_times) return;
@@ -383,7 +387,11 @@ const TransactionPage = () => {
                   stepCount={3}
                 />
               </View>
-              <TouchableOpacity onPress={() => {}}>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate("order");
+                }}
+              >
                 <Feather
                   name="more-vertical"
                   size={30}

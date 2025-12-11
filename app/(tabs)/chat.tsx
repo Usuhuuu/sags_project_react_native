@@ -662,6 +662,11 @@ const ChatComponent: React.FC = () => {
                           flexDirection: "row",
                           backgroundColor: Colors.containerColor,
                           borderRadius: 10,
+                          shadowColor: Colors.shadowColor,
+                          shadowOffset: { width: 4, height: 2 },
+                          shadowOpacity: 0.4,
+                          opacity: 4,
+                          marginVertical: 5,
                         }}
                       >
                         <TouchableOpacity
@@ -726,6 +731,10 @@ const ChatComponent: React.FC = () => {
                           marginVertical: 5,
                           width: "100%",
                           gap: "4%",
+                          shadowColor: Colors.shadowColor,
+                          shadowOffset: { width: 0, height: 0 },
+                          shadowOpacity: 0.4,
+                          opacity: 4,
                         }}
                       >
                         <TouchableOpacity

@@ -1,4 +1,10 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import React, {
   useCallback,
   useEffect,
@@ -69,7 +75,7 @@ const OrderScreen = () => {
     today_upcoming: [],
     history: [],
   });
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [date, setDate] = useState<string>(new Date().toISOString());
   const [page, setPages] = useState<Record<OrderScreenSeparator, number>>({
     [OrderScreenSeparator.TODAY_UPCOMING]: 1,
@@ -258,6 +264,10 @@ const OrderScreen = () => {
     });
   }, [navigation, setModalVisible]);
 
+  useEffect(() => {
+    console.log(loading);
+  }, [loading]);
+
   return (
     <Animated.View
       style={[
@@ -270,104 +280,110 @@ const OrderScreen = () => {
         animatedStyle,
       ]}
     >
-      <View
-        style={[
-          {
-            backgroundColor: Colors.backgroundColor,
-            height: "100%",
-            width: "100%",
-          },
-        ]}
-      >
+      {loading ? null : (
         <View
-          style={{
-            height: "100%",
-            marginHorizontal: 10,
-          }}
+          style={[
+            {
+              backgroundColor: Colors.backgroundColor,
+              height: "100%",
+              width: "100%",
+            },
+          ]}
         >
           <View
-            style={[
-              style.separatorContainer,
-              { backgroundColor: Colors.containerColor },
-            ]}
+            style={{
+              height: "100%",
+              marginHorizontal: 10,
+            }}
           >
-            <TouchableOpacity
-              onPress={() => {
-                handleFade();
-                setLoading(!loading);
-                setScreenSeparator(OrderScreenSeparator.TODAY_UPCOMING);
-              }}
+            <View
               style={[
-                style.separator,
-                {
-                  backgroundColor:
-                    screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
-                      ? Colors.primary
-                      : Colors.containerColor,
-                },
+                style.separatorContainer,
+                { backgroundColor: Colors.containerColor },
               ]}
             >
-              <Text
-                style={{
-                  color:
-                    screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
-                      ? Colors.white
-                      : Colors.darkGrey,
+              <TouchableOpacity
+                onPress={() => {
+                  handleFade();
+                  setLoading(true);
+                  setScreenSeparator(OrderScreenSeparator.TODAY_UPCOMING);
                 }}
+                style={[
+                  style.separator,
+                  {
+                    backgroundColor:
+                      screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
+                        ? Colors.primary
+                        : Colors.containerColor,
+                  },
+                ]}
+                disabled={
+                  screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
+                }
               >
-                {orderLangInit.todayUpcoming}
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={{
+                    color:
+                      screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
+                        ? Colors.white
+                        : Colors.darkGrey,
+                  }}
+                >
+                  {orderLangInit.todayUpcoming}
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[
-                style.separator,
-                {
-                  backgroundColor:
-                    screenSeparator === OrderScreenSeparator.HISTORY
-                      ? Colors.primary
-                      : Colors.containerColor,
-                },
-              ]}
-              onPress={() => {
-                handleFade();
-                setLoading(!loading);
-                setScreenSeparator(OrderScreenSeparator.HISTORY);
-              }}
-            >
-              <Text
-                style={{
-                  color:
-                    screenSeparator === OrderScreenSeparator.HISTORY
-                      ? Colors.white
-                      : Colors.darkGrey,
+              <TouchableOpacity
+                style={[
+                  style.separator,
+                  {
+                    backgroundColor:
+                      screenSeparator === OrderScreenSeparator.HISTORY
+                        ? Colors.primary
+                        : Colors.containerColor,
+                  },
+                ]}
+                onPress={() => {
+                  handleFade();
+                  setLoading(true);
+                  setScreenSeparator(OrderScreenSeparator.HISTORY);
                 }}
+                disabled={screenSeparator === OrderScreenSeparator.HISTORY}
               >
-                {orderLangInit.history}
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <Text
+                  style={{
+                    color:
+                      screenSeparator === OrderScreenSeparator.HISTORY
+                        ? Colors.white
+                        : Colors.darkGrey,
+                  }}
+                >
+                  {orderLangInit.history}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          <Filter_Modals
-            screenSeparator={screenSeparator}
-            setScreenSeparator={setScreenSeparator}
-            modalVisible={modalVisible}
-            setModalVisible={setModalVisible}
-            setDate={setDate}
-          />
-
-          <View style={{ flex: 1 }}>
-            <Order_Separator
-              data={bookingData}
-              screen_type={screenSeparator}
-              loading={loading}
-              loadMore={loadMore}
-              setLoading={setLoading}
-              page={page}
+            <Filter_Modals
+              screenSeparator={screenSeparator}
+              setScreenSeparator={setScreenSeparator}
+              modalVisible={modalVisible}
+              setModalVisible={setModalVisible}
+              setDate={setDate}
             />
+
+            <View style={{ flex: 1 }}>
+              <Order_Separator
+                data={bookingData}
+                screen_type={screenSeparator}
+                loading={loading}
+                loadMore={loadMore}
+                setLoading={setLoading}
+                page={page}
+              />
+            </View>
           </View>
         </View>
-      </View>
+      )}
     </Animated.View>
   );
 };

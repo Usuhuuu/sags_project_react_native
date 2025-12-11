@@ -126,7 +126,7 @@ export const newMessagePrepareFunction = (
 
 export const MemoizedChatItem = React.memo(
   ({ item, userDatas }: { item: Message; userDatas: any }) => {
-    const { colors: Colors } = useTheme();
+    const { colors: Colors, theme } = useTheme();
     const styles = StyleSheet.create({
       container: {
         flex: 1,
@@ -262,7 +262,7 @@ export const MemoizedChatItem = React.memo(
             styles.msjContainer,
             {
               alignItems: userSelf ? "flex-end" : "flex-start",
-              paddingVertical: 3,
+              paddingVertical: 1,
             },
           ]}
         >
@@ -297,8 +297,15 @@ export const MemoizedChatItem = React.memo(
                         borderBottomLeftRadius: 10,
                         borderBottomRightRadius: 10,
                         borderTopRightRadius: 10,
-                        backgroundColor: Colors.white,
-                        borderColor: Colors.white,
+                        //borderTopLeftRadius: item.showTimeGap ? 10 : 0,
+                        backgroundColor:
+                          theme === "dark"
+                            ? Colors.littleDarkGrey
+                            : Colors.white,
+                        borderColor:
+                          theme === "dark"
+                            ? Colors.littleDarkGrey
+                            : Colors.lightGrey,
                         marginRight: 100,
                       },
                 ]}
@@ -318,7 +325,10 @@ export const MemoizedChatItem = React.memo(
                 <Text
                   style={{
                     fontSize: 11,
-                    color: Colors.dark,
+                    color:
+                      theme === "dark"
+                        ? Colors.themeColorTextSecondary
+                        : Colors.dark,
                     fontWeight: "300",
                     marginTop: 2,
                     alignSelf: userSelf ? "flex-end" : "flex-start",
@@ -331,7 +341,10 @@ export const MemoizedChatItem = React.memo(
                 <Text
                   style={{
                     fontSize: 11,
-                    color: Colors.dark,
+                    color:
+                      theme === "dark"
+                        ? Colors.themeColorTextSecondary
+                        : Colors.dark,
                     fontWeight: "300",
                     marginTop: 2,
                     alignSelf: userSelf ? "flex-end" : "flex-start",

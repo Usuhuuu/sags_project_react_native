@@ -25,7 +25,7 @@ function GroupChatComponent({
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 4,
-      width: "90%",
+      width: "95%",
     },
   });
   return (

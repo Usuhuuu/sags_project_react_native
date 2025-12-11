@@ -33,7 +33,7 @@ import { useTheme } from "../context/themeContext";
 
 const DirectChatScreen: React.FC = ({}) => {
   const { item } = useLocalSearchParams();
-  const { colors: Colors } = useTheme();
+  const { colors: Colors, theme } = useTheme();
   const styles = StyleSheet.create({
     input: {
       flex: 1,
@@ -345,7 +345,7 @@ const DirectChatScreen: React.FC = ({}) => {
     </View>
   ) : (
     <SafeAreaProvider>
-      <SafeAreaView style={{ backgroundColor: Colors.white }}>
+      <SafeAreaView style={{ backgroundColor: Colors.backgroundColor }}>
         <View
           style={{
             height: "100%",
@@ -391,7 +391,13 @@ const DirectChatScreen: React.FC = ({}) => {
               >
                 <Avatar.Image source={{ uri: userDataParsed.userImage }} />
                 <View style={{ gap: 5, alignSelf: "center" }}>
-                  <Text style={{ fontSize: 20, fontWeight: "500" }}>
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: "500",
+                      color: Colors.themeColorTextPure,
+                    }}
+                  >
                     {typeof item === "string"
                       ? item.toUpperCase()[0] + item.slice(1)
                       : ""}
@@ -430,7 +436,8 @@ const DirectChatScreen: React.FC = ({}) => {
             inverted
             style={[
               {
-                backgroundColor: Colors.lightGrey,
+                backgroundColor:
+                  theme === "dark" ? Colors.containerColor : Colors.lightGrey,
                 paddingBottom: 40,
               },
             ]}
@@ -517,6 +524,7 @@ const DirectChatScreen: React.FC = ({}) => {
                   placeholderTextColor={Colors.darkGrey}
                   clearTextOnFocus={false}
                   multiline
+                  placeholder="Type a message..."
                 />
               </View>
 

@@ -34,7 +34,7 @@ import {
 import { ThemeProvider, useTheme } from "./(modals)/context/themeContext";
 
 export const unstable_settings = {
-  initialRouteName: "(tabs)",
+  initialRouteName: "/(tabs)",
 };
 
 Sentry.init({
@@ -42,16 +42,13 @@ Sentry.init({
   tracesSampleRate: 1.0,
 });
 
-interface RootLayoutProps {
-  children: ReactNode;
-}
 type SimpleNotificationContent = {
   title: string;
   body: string;
   data?: any;
 };
 
-function RootLayout({ children }: RootLayoutProps) {
+export function RootLayout({ children }: { children: ReactNode }) {
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
@@ -188,7 +185,7 @@ function RootLayout({ children }: RootLayoutProps) {
   return <RootLayoutNav />;
 }
 
-function RootLayoutNav() {
+export function RootLayoutNav() {
   const router = useRouter();
   const { t } = useTranslation();
   const { colors: Colors } = useTheme();
@@ -298,6 +295,7 @@ function RootLayoutNav() {
     </Stack>
   );
 }
+
 export default Sentry.wrap(() => (
   <ThemeProvider>
     <GestureHandlerRootView>

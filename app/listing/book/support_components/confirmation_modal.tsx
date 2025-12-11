@@ -1,15 +1,16 @@
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
+import { TabNavTypes } from "@/interfaces/tabScreenType";
 import {
   FontAwesome,
   FontAwesome5,
   FontAwesome6,
   Ionicons,
 } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { SetStateAction } from "react";
 import { Modal, TouchableOpacity, View } from "react-native";
-import { usePathname } from "expo-router";
 
 interface Confirm_Modal_Props {
   confirmModal: boolean;
@@ -29,9 +30,9 @@ const Confirm_Modal = ({
   confirmationDetails,
   addToCalendar,
 }: Confirm_Modal_Props) => {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
+  const navigation = useNavigation<TabNavTypes>();
   const router = useRouter();
-  console.log(usePathname());
   return (
     <Modal visible={confirmModal} transparent animationType="fade">
       <View
@@ -154,9 +155,19 @@ const Confirm_Modal = ({
                 <FontAwesome
                   name="calendar"
                   size={24}
-                  color={colors.themeColorTextPure}
+                  color={
+                    theme === "light" ? colors.white : colors.themeColorTextPure
+                  }
                 />
-                <AppText style={{ textAlign: "center" }}>
+                <AppText
+                  style={{
+                    textAlign: "center",
+                    color:
+                      theme === "light"
+                        ? colors.white
+                        : colors.themeColorTextPure,
+                  }}
+                >
                   Add To Calendar
                 </AppText>
               </TouchableOpacity>
@@ -171,14 +182,24 @@ const Confirm_Modal = ({
                   justifyContent: "center",
                   gap: 10,
                 }}
-                onPress={() => router.navigate("/order")}
+                onPress={() => navigation.navigate("order")}
               >
                 <FontAwesome6
                   name="ticket"
                   size={24}
-                  color={colors.themeColorTextPure}
+                  color={
+                    theme === "light" ? colors.white : colors.themeColorTextPure
+                  }
                 />
-                <AppText style={{ textAlign: "center" }}>
+                <AppText
+                  style={{
+                    textAlign: "center",
+                    color:
+                      theme === "light"
+                        ? colors.white
+                        : colors.themeColorTextPure,
+                  }}
+                >
                   View My Bookings
                 </AppText>
               </TouchableOpacity>
