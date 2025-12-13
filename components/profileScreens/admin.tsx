@@ -5,7 +5,11 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 
-const ProfileAdmin = ({}) => {
+interface ProfileAdminProps {
+  copyToClipboard: () => Promise<void>;
+  formData: any;
+}
+const ProfileAdmin = ({ copyToClipboard, formData }: ProfileAdminProps) => {
   const { colors: Colors } = useTheme();
 
   const sendNotification = async () => {

@@ -13,7 +13,15 @@ import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 
-const ContractorPage: React.FC = ({}) => {
+interface ProfileAdminProps {
+  copyToClipboard: () => Promise<void>;
+  formData: any;
+}
+
+const ContractorPage: React.FC<ProfileAdminProps> = ({
+  copyToClipboard,
+  formData,
+}) => {
   const { colors: Colors } = useTheme();
 
   const sendNotification = async () => {

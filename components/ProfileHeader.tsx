@@ -35,6 +35,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Swipeable } from "react-native-gesture-handler";
 import { useTranslation } from "react-i18next";
 import { FriendsType } from "@/interfaces/friendType";
+import { useTheme } from "@/app/(modals)/context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 const IMG_HEIGHT = 200;
 const { width } = Dimensions.get("window");
@@ -57,6 +59,7 @@ function CarouselItem({
   index: number;
   scrollX: any;
 }) {
+  const { colors, theme } = useTheme();
   const animatedStyle = useAnimatedStyle(() => {
     const inputRange = [index - 1, index, index + 1];
     const scale = interpolate(scrollX.value, inputRange, [0.7, 1, 0.7]);
@@ -74,9 +77,35 @@ function CarouselItem({
   });
 
   return (
-    <Animated.View style={[styles.menuItem, animatedStyle]}>
+    <Animated.View
+      style={[
+        {
+          flex: 1,
+          flexDirection: "column",
+          padding: 10,
+          width: _itemSize + 10,
+          height: _itemSize + 10,
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: 50,
+          backgroundColor: colors.containerColor,
+          borderWidth: 1,
+          borderColor:
+            theme === "dark" ? colors.primary : colors.themeColorTextPure,
+        },
+        animatedStyle,
+      ]}
+    >
       <Image source={item.icon} style={{ width: 50, height: 50 }} />
-      <Text style={styles.titleText}>{item.name}</Text>
+      <AppText
+        style={{
+          fontSize: 16,
+          fontWeight: "600",
+          marginTop: 5,
+        }}
+      >
+        {item.name}
+      </AppText>
     </Animated.View>
   );
 }
@@ -93,6 +122,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
   const navigation = useNavigation();
 
   const scrollX = useSharedValue(0);
+  const { colors: Colors, theme } = useTheme();
 
   const { t } = useTranslation();
   const profileLanguageData: any = t("profilesdaData", { returnObjects: true });
@@ -109,6 +139,126 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
     { name: data.rewards, icon: require("@/assets/tab-icons/athlete.png") },
   ];
   const [selectedItem, setSelectedItem] = useState(menu[1].name); // Default center
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      marginTop: 25,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginBottom: 10,
+      color: Colors.primary,
+    },
+    subHeader: {
+      fontSize: 24,
+      color: "#666",
+    },
+    titleText: {
+      fontSize: 16,
+      fontWeight: "600",
+      marginTop: 5,
+    },
+    gradientBackground: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      borderRadius: 20,
+    },
+    menuItem: {
+      flex: 1,
+      flexDirection: "column",
+      padding: 10,
+      width: _itemSize + 10,
+      height: _itemSize + 10,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 50,
+      backgroundColor: Colors.light,
+      borderWidth: 1,
+    },
+    savedListContainer: {
+      maxHeight: 300, // You can adjust based on your layout
+      paddingHorizontal: 10,
+    },
+    scrollContent: {
+      paddingBottom: 10,
+    },
+
+    menuContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme === "dark" ? Colors.backgroundColor : Colors.light,
+      borderTopStartRadius: 500,
+      borderBottomEndRadius: 500,
+      borderTopEndRadius: 200,
+      borderBottomStartRadius: 200,
+      marginTop: 100,
+      height: 200,
+    },
+    dynamicText: {
+      fontSize: 18,
+      fontWeight: "500",
+      color: Colors.dark,
+      backgroundColor: Colors.light,
+      padding: 15,
+      borderRadius: 10,
+    },
+
+    image: {
+      height: IMG_HEIGHT,
+      width: width,
+      borderBottomLeftRadius: 10,
+      borderBottomRightRadius: 10,
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
+    },
+    bar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      marginRight: 20,
+    },
+    header: {
+      backgroundColor: "transparent",
+      height: 80,
+    },
+
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#fff",
+      padding: 10,
+      marginBottom: 10,
+      borderRadius: 10,
+      shadowColor: "#000",
+      shadowOpacity: 0.1,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 3,
+    },
+    cardImage: {
+      width: 60,
+      height: 60,
+      borderRadius: 8,
+      marginRight: 10,
+    },
+    cardTextContainer: {
+      flex: 1,
+    },
+    cardTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    cardSubtitle: {
+      fontSize: 14,
+      color: "gray",
+    },
+  });
+
   useEffect(() => {
     const loadSavedCourts = async () => {
       try {
@@ -268,7 +418,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={["#e5f0ff", "#ffffff"]}
+        colors={[Colors.primary, Colors.backgroundColor]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
@@ -287,10 +437,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
           style={{
             marginTop: -20, // slight overlap if desired
             marginHorizontal: 20,
-            backgroundColor: "#fff",
+            backgroundColor: Colors.containerColor,
             borderRadius: 10,
             padding: 20,
-            shadowColor: "#000",
+            shadowColor: Colors.shadowColor,
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.25,
             shadowRadius: 3.84,
@@ -299,15 +449,15 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
             borderColor: Colors.primary,
           }}
         >
-          <Text style={styles.headerTitle}>{data.profile}</Text>
-          <Text style={styles.titleText}>{data.userName} :</Text>
-          <Text style={styles.subHeader}>{userData?.unique_user_ID}</Text>
-          <Text style={styles.titleText}>{data.name} :</Text>
-          <Text style={styles.subHeader}>
+          <AppText style={styles.headerTitle}>{data.profile}</AppText>
+          <AppText style={styles.titleText}>{data.userName} :</AppText>
+          <AppText style={styles.subHeader}>{userData?.unique_user_ID}</AppText>
+          <AppText style={styles.titleText}>{data.name} :</AppText>
+          <AppText style={styles.subHeader}>
             {userData?.userNames?.firstName} {userData?.userNames?.lastName}
-          </Text>
-          <Text style={styles.titleText}>{data.email} :</Text>
-          <Text style={styles.subHeader}>{userData?.email}</Text>
+          </AppText>
+          <AppText style={styles.titleText}>{data.email} :</AppText>
+          <AppText style={styles.subHeader}>{userData?.email}</AppText>
         </Animated.View>
 
         {/* Carousel Section */}
@@ -384,128 +534,5 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-
-    marginTop: 25,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: Colors.primary,
-  },
-  subHeader: {
-    fontSize: 24,
-    color: "#666",
-  },
-  titleText: {
-    color: Colors.dark,
-    fontSize: 16,
-    fontWeight: "600",
-    marginTop: 5,
-  },
-  gradientBackground: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: 20,
-  },
-  menuItem: {
-    flex: 1,
-    flexDirection: "column",
-    padding: 10,
-    width: _itemSize + 10,
-    height: _itemSize + 10,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 50,
-    backgroundColor: Colors.light,
-    borderWidth: 1,
-  },
-  savedListContainer: {
-    maxHeight: 300, // You can adjust based on your layout
-    paddingHorizontal: 10,
-  },
-  scrollContent: {
-    paddingBottom: 10,
-  },
-
-  menuContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.secondary,
-    borderTopStartRadius: 500,
-    borderBottomEndRadius: 500,
-    borderTopEndRadius: 200,
-    borderBottomStartRadius: 200,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    marginTop: 100,
-    height: 200,
-  },
-  dynamicText: {
-    fontSize: 18,
-    fontWeight: "500",
-    color: Colors.dark,
-    backgroundColor: Colors.light,
-    padding: 15,
-    borderRadius: 10,
-  },
-
-  image: {
-    height: IMG_HEIGHT,
-    width: width,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  bar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    marginRight: 20,
-  },
-  header: {
-    backgroundColor: "transparent",
-    height: 80,
-  },
-
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  cardImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    marginRight: 10,
-  },
-  cardTextContainer: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: "gray",
-  },
-});
 
 export default ProfileHeader;

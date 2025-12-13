@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ProfileHeader from "@/components/ProfileHeader";
 import { auth_swr } from "@/hooks/useswr";
@@ -45,15 +45,15 @@ const NormalUser: React.FC<ProfileNormalUserProps> = () => {
   }, [data, error]);
 
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <LinearGradient
-        colors={[Colors.primary, "#ffffff"]}
+        colors={[Colors.primary, Colors.backgroundColor]}
         style={styles.background}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
       <ProfileHeader userData={userData as any} />
-    </>
+    </View>
   );
 };
 

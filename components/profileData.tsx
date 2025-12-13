@@ -13,6 +13,7 @@ import * as Haptics from "expo-haptics";
 import { PieChart } from "react-native-chart-kit";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 const categories = [
   {
@@ -57,17 +58,17 @@ const iconMap: { [key: string]: any } = {
 };
 
 const ProfileData = () => {
-  const { colors: Colors } = useTheme();
+  const { colors: Colors, theme } = useTheme();
   const styles = StyleSheet.create({
     container: {
       borderRadius: 20,
       padding: 20,
-      backgroundColor: "#ffffff",
+      backgroundColor: Colors.backgroundColor,
       margin: 10,
       elevation: 4,
-      shadowColor: "#000",
-      shadowOpacity: 0.1,
-      shadowOffset: { width: 0, height: 2 },
+      shadowColor: Colors.shadowColor,
+      shadowOpacity: 0.4,
+      shadowOffset: { width: 2, height: 2 },
     },
     gradientBackground: {
       position: "absolute",
@@ -88,7 +89,7 @@ const ProfileData = () => {
     activityTitle: {
       fontSize: 18,
       fontWeight: "bold",
-      color: "#333",
+      color: Colors.themeColorTextPure,
     },
     categoriesBtn: {
       paddingHorizontal: 10,
@@ -105,7 +106,7 @@ const ProfileData = () => {
       alignItems: "center",
     },
     iconContainer: {
-      backgroundColor: "white",
+      backgroundColor: theme === "dark" ? Colors.primary : Colors.white,
       padding: 8,
       borderRadius: 30,
       marginBottom: 5,
@@ -113,7 +114,7 @@ const ProfileData = () => {
     titleText: {
       fontSize: 12,
       fontWeight: "bold",
-      color: "black",
+      color: Colors.themeColorTextPure,
     },
     chartContainer: {
       alignItems: "center",
@@ -243,9 +244,9 @@ const ProfileData = () => {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={["#e5f0ff", "#ffffff"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        colors={[Colors.primary, Colors.backgroundColor]}
+        start={{ x: 0, y: 1 }}
+        end={{ x: 1, y: 1.1 }}
         style={styles.gradientBackground}
       />
 

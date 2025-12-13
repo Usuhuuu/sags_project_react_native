@@ -579,7 +579,9 @@ const ChatComponent: React.FC = () => {
   const chatInitLang: any = t("chatRoom", { returnObjects: true });
 
   return (
-    <View style={{ width: width }}>
+    <View
+      style={{ width: width, backgroundColor: Colors.backgroundColor, flex: 1 }}
+    >
       {noChatExist ? (
         <View
           style={{
@@ -626,6 +628,7 @@ const ChatComponent: React.FC = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 flex: 1,
+                backgroundColor: Colors.backgroundColor,
               }}
             >
               <ActivityIndicator size={"large"} color={Colors.primary} />
