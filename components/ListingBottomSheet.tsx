@@ -1,5 +1,11 @@
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import React, { useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Listings from "@/components/Listing";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { SportHallDataType } from "@/interfaces/listing";
@@ -19,10 +25,15 @@ const ListingBottomSheet = ({
   bottomSheetY,
 }: ListingBottomSheetProps) => {
   const { colors: Colors } = useTheme();
-
   const bottomSheetRef = useRef<BottomSheet>(null);
-
   const [refresh, setrefresh] = useState<number>(0);
+
+  const filteredListData = useMemo(() => {
+    return listing.filter(
+      (item: SportHallDataType) =>
+        item.sportType[category as keyof typeof item.sportType] === true
+    );
+  }, [listing, category]);
 
   const showMap = () => {
     bottomSheetRef.current?.collapse();
@@ -36,7 +47,7 @@ const ListingBottomSheet = ({
       ref={bottomSheetRef}
       snapPoints={snapPoints}
       enableOverDrag={false}
-      animatedPosition={bottomSheetY} // Connect shared value hereW
+      animatedPosition={bottomSheetY}
       handleStyle={{
         backgroundColor: Colors.backgroundColor,
       }}
@@ -63,7 +74,11 @@ const ListingBottomSheet = ({
           flex: 1,
         }}
       >
-        <Listings listings={listing} category={category} refresh={refresh} />
+        <Listings
+          listings={filteredListData}
+          category={category}
+          refresh={refresh}
+        />
         <View style={styles.absoluteBtn}>
           <TouchableOpacity
             onPress={showMap}

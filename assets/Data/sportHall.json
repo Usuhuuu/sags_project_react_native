@@ -3,15 +3,17 @@
     "sportHallID": "680345d35fe028e3c4db51ee",
     "name": "Цагаан Хуаран спорт комплекс",
     "address": "Улаанбаатар, Баянзүрх дүүрэг, 13-р хороолол",
-    "imageUrls": ["https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"],
+    "imageUrls": [
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+    ],
     "phoneNumber": "77112233",
     "workTime": {
-      "startTime":"10:00",
-      "endTime":"24:00"
+      "startTime": "10:00",
+      "endTime": "24:00"
     },
-    "price":{
-      "oneHour":1000,
-      "wholeDay":26000
+    "price": {
+      "oneHour": 1000,
+      "wholeDay": 26000
     },
     "availableTimeSlots": [
       { "start_time": "10:00", "end_time": "11:00" },
@@ -30,13 +32,16 @@
       { "start_time": "23:00", "end_time": "24:00" }
     ],
     "sportType": {
-  "basket_ball": false,
-  "volley_ball": false,
-  "foot_ball": false,
-  "tennis": true,
-  "bowling": false,
-  "golf": false
-},
+      "basket_ball": false,
+      "volley_ball": false,
+      "foot_ball": false,
+      "tennis": false,
+      "bowling": false,
+      "golf": false,
+      "computer": true,
+      "billiards": false,
+      "playstation": true
+    },
     "location": {
       "latitude": "47.9182",
       "longitude": "106.9170",
@@ -61,15 +66,17 @@
     "sportHallID": "682dc0e08b23d945aafbf8ba",
     "name": "MCU спорт комплекс",
     "address": "Улаанбаатар, Сүхбаатар дүүрэг",
-    "imageUrls": ["https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"],
+    "imageUrls": [
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+    ],
     "phoneNumber": "77223344",
     "workTime": {
-      "startTime":"10:00",
-      "endTime":"24:00"
+      "startTime": "10:00",
+      "endTime": "24:00"
     },
-    "price":{
-      "oneHour":1000,
-      "wholeDay":24000
+    "price": {
+      "oneHour": 1000,
+      "wholeDay": 24000
     },
     "availableTimeSlots": [
       { "start_time": "10:00", "end_time": "11:00" },
@@ -107,27 +114,29 @@
       "darts": false
     },
     "sportType": {
-  "basket_ball": true,
-  "volley_ball": false,
-  "foot_ball": true,
-  "tennis": true,
-  "bowling": false,
-  "golf": false
-}
+      "basket_ball": true,
+      "volley_ball": false,
+      "foot_ball": true,
+      "tennis": true,
+      "bowling": false,
+      "golf": false
+    }
   },
   {
     "sportHallID": "3",
     "name": "UG спорт заал",
     "address": "Улаанбаатар, Хан-Уул дүүрэг",
-    "imageUrls": ["https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"],
+    "imageUrls": [
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+    ],
     "phoneNumber": "88009900",
-   "workTime": {
-      "startTime":"10:00",
-      "endTime":"24:00"
+    "workTime": {
+      "startTime": "10:00",
+      "endTime": "24:00"
     },
-    "price":{
-      "oneHour":1000,
-      "wholeDay":22000
+    "price": {
+      "oneHour": 1000,
+      "wholeDay": 22000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -156,28 +165,33 @@
       "darts": false
     },
     "sportType": {
-  "basket_ball": false,
-  "volley_ball": false,
-  "foot_ball": false,
-  "tennis": true,
-  "bowling": true,
-  "golf": true
-}
+      "basket_ball": false,
+      "volley_ball": false,
+      "foot_ball": false,
+      "tennis": true,
+      "bowling": true,
+      "golf": true,
+      "computer": false,
+      "billiards": false,
+      "playstation": false
+    }
   },
-  
+
   {
     "sportHallID": "4",
     "name": "Таван Богд Фитнесс",
     "address": "Улаанбаатар, Сансар",
-    "imageUrls": ["https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"],
+    "imageUrls": [
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+    ],
     "phoneNumber": "99112233",
     "workTime": {
-      "startTime":"10:00",
-      "endTime":"24:00"
+      "startTime": "10:00",
+      "endTime": "24:00"
     },
-    "price":{
-      "oneHour":1000,
-      "wholeDay":34000
+    "price": {
+      "oneHour": 1000,
+      "wholeDay": 34000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -206,27 +220,29 @@
       "darts": true
     },
     "sportType": {
-  "basket_ball": false,
-  "volley_ball": false,
-  "foot_ball": true,
-  "tennis": true,
-  "bowling": false,
-  "golf": false
-}
+      "basket_ball": false,
+      "volley_ball": false,
+      "foot_ball": true,
+      "tennis": true,
+      "bowling": false,
+      "golf": false
+    }
   },
   {
     "sportHallID": "5",
     "name": "Galaxy спорт төв",
     "address": "Улаанбаатар, 3,4-р хороолол",
-    "imageUrls": ["https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"],
+    "imageUrls": [
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+    ],
     "phoneNumber": "77445566",
     "workTime": {
-      "startTime":"10:00",
-      "endTime":"24:00"
+      "startTime": "10:00",
+      "endTime": "24:00"
     },
-    "price":{
-      "oneHour":1000,
-      "wholeDay":44000
+    "price": {
+      "oneHour": 1000,
+      "wholeDay": 44000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -255,27 +271,29 @@
       "darts": true
     },
     "sportType": {
-  "basket_ball": true,
-  "volley_ball": true,
-  "foot_ball": true,
-  "tennis": true,
-  "bowling": false,
-  "golf": false
-}
+      "basket_ball": true,
+      "volley_ball": true,
+      "foot_ball": true,
+      "tennis": true,
+      "bowling": false,
+      "golf": false
+    }
   },
   {
     "sportHallID": "6",
     "name": "Next Step Gym",
     "address": "Улаанбаатар, Нархан хотхон",
-    "imageUrls": ["https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"],
+    "imageUrls": [
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+    ],
     "phoneNumber": "88990077",
     "workTime": {
-      "startTime":"10:00",
-      "endTime":"24:00"
+      "startTime": "10:00",
+      "endTime": "24:00"
     },
-    "price":{
-      "oneHour":1000,
-      "wholeDay":14000
+    "price": {
+      "oneHour": 1000,
+      "wholeDay": 14000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -304,27 +322,29 @@
       "darts": false
     },
     "sportType": {
-  "basket_ball": false,
-  "volley_ball": false,
-  "foot_ball": false,
-  "tennis": true,
-  "bowling": true,
-  "golf": true
-}
+      "basket_ball": false,
+      "volley_ball": false,
+      "foot_ball": false,
+      "tennis": true,
+      "bowling": true,
+      "golf": true
+    }
   },
   {
     "sportHallID": "7",
     "name": "Спортын төв ордон",
     "address": "Улаанбаатар, Чингэлтэй дүүрэг",
-    "imageUrls": ["https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"],
+    "imageUrls": [
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+    ],
     "phoneNumber": "88008800",
     "workTime": {
-      "startTime":"10:00",
-      "endTime":"24:00"
+      "startTime": "10:00",
+      "endTime": "24:00"
     },
-    "price":{
-      "oneHour":1000,
-      "wholeDay":23000
+    "price": {
+      "oneHour": 1000,
+      "wholeDay": 23000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -353,29 +373,31 @@
       "darts": false
     },
     "sportType": {
-  "basket_ball": true,
-  "volley_ball": false,
-  "foot_ball": false,
-  "tennis": true,
-  "bowling": false,
-  "golf": false
-}
+      "basket_ball": true,
+      "volley_ball": false,
+      "foot_ball": false,
+      "tennis": true,
+      "bowling": false,
+      "golf": false
+    }
   },
   {
     "sportHallID": "8",
     "name": "Аврагч спорт хороо",
     "address": "Улаанбаатар, Сонгинохайрхан",
-    "imageUrls": ["https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"],
+    "imageUrls": [
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+    ],
     "phoneNumber": "99001122",
     "workTime": {
-      "startTime":"10:00",
-      "endTime":"24:00"
+      "startTime": "10:00",
+      "endTime": "24:00"
     },
-    "price":{
-      "oneHour":1000,
-      "wholeDay":20000
+    "price": {
+      "oneHour": 1000,
+      "wholeDay": 20000
     },
-   "availableTimeSlots": [
+    "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
       { "start_time": "10:00", "end_time": "12:00" },
       { "start_time": "14:00", "end_time": "16:00" },
@@ -402,27 +424,29 @@
       "darts": true
     },
     "sportType": {
-  "basket_ball": true,
-  "volley_ball": false,
-  "foot_ball": true,
-  "tennis": true,
-  "bowling": false,
-  "golf": false
-}
+      "basket_ball": true,
+      "volley_ball": false,
+      "foot_ball": true,
+      "tennis": true,
+      "bowling": false,
+      "golf": false
+    }
   },
   {
     "sportHallID": "9",
     "name": "FitPro Arena",
     "address": "Улаанбаатар, Зайсан",
-    "imageUrls": ["https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"],
+    "imageUrls": [
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+    ],
     "phoneNumber": "88887766",
     "workTime": {
-      "startTime":"10:00",
-      "endTime":"24:00"
+      "startTime": "10:00",
+      "endTime": "24:00"
     },
-    "price":{
-      "oneHour":1000,
-      "wholeDay":29000
+    "price": {
+      "oneHour": 1000,
+      "wholeDay": 29000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -451,27 +475,29 @@
       "darts": false
     },
     "sportType": {
-  "basket_ball": false,
-  "volley_ball": false,
-  "foot_ball": false,
-  "tennis": true,
-  "bowling": true,
-  "golf": true
-}
+      "basket_ball": false,
+      "volley_ball": false,
+      "foot_ball": false,
+      "tennis": true,
+      "bowling": true,
+      "golf": true
+    }
   },
   {
     "sportHallID": "10",
     "name": "Olympic спорт ордон",
     "address": "Улаанбаатар, Баянгол дүүрэг",
-    "imageUrls": ["https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"],
+    "imageUrls": [
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+    ],
     "phoneNumber": "77220011",
     "workTime": {
-      "startTime":"10:00",
-      "endTime":"24:00"
+      "startTime": "10:00",
+      "endTime": "24:00"
     },
-    "price":{
-      "oneHour":1000,
-      "wholeDay":4000
+    "price": {
+      "oneHour": 1000,
+      "wholeDay": 4000
     },
     "availableTimeSlots": [
       { "start_time": "08:00", "end_time": "10:00" },
@@ -500,12 +526,12 @@
       "darts": true
     },
     "sportType": {
-  "basket_ball": true,
-  "volley_ball": false,
-  "foot_ball": true,
-  "tennis": true,
-  "bowling": false,
-  "golf": true
-}
+      "basket_ball": true,
+      "volley_ball": false,
+      "foot_ball": true,
+      "tennis": true,
+      "bowling": false,
+      "golf": true
+    }
   }
 ]

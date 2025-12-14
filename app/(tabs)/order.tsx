@@ -117,12 +117,13 @@ const OrderScreen = () => {
       console.log(page, hasMore, bookingData);
     }
   }, [LoginStatus]);
+  const dateString = new Date(date).toISOString().split("T")[0];
   const { data, error, isLoading } = regular_swr(
     LoginStatus
       ? {
           item: {
-            pathname: `/auth/book/${date}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
-            cacheKey: `booked_order_${screenSeparator}_${page[screenSeparator]}_${date}`,
+            pathname: `/auth/book/${dateString}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
+            cacheKey: `booked_order_${screenSeparator}_${page[screenSeparator]}_${dateString}`,
             loginStatus: LoginStatus,
           },
         }

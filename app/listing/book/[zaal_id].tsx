@@ -112,6 +112,7 @@ const TransactionPage = () => {
   >(undefined);
 
   const bookingDetails = useBookingStore((state) => state.bookingDetails);
+
   useEffect(() => {
     bookingDetails?.selectedTimeSlots.includes("WHOLE_DAY")
       ? setWholeDay(true)

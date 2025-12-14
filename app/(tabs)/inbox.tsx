@@ -296,7 +296,7 @@ const Page = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedParent, setSelectedParent] = useState<string | null>(null);
   const [selectedSort, setSelectedSort] = useState<string | null>(null);
-  const [today, setToday] = useState<string>(new Date().toISOString());
+  const [today, setToday] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [noMore, setNoMore] = useState<boolean>(false);
@@ -326,7 +326,9 @@ const Page = () => {
 
   const fetchPartnerSearching = useCallback(async () => {
     try {
-      const [year, month, day] = today.split("T")[0].split("-");
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
       const response = await axiosInstanceRegular.get(
         `/timeslots/partner/${year}/${month}/${day}?page=${page}`
       );
@@ -405,7 +407,7 @@ const Page = () => {
         mutate(
           [
             `booked_order_${OrderScreenSeparator.TODAY_UPCOMING}_1_${
-              today.split("T")[0]
+              today.toISOString().split("T")[0]
             }`,
             LoginStatus,
           ],
@@ -448,7 +450,7 @@ const Page = () => {
     },
   ];
 
-  const sortSlotGiver = (date: string) => {
+  const sortSlotGiver = (date: Date) => {
     console.log(date);
   };
   const translateX = useSharedValue(0);
@@ -487,7 +489,7 @@ const Page = () => {
     setSelectedParent(null); // Clear sorting category
     setModalVisible(false); // Close modal if open
 
-    const todayStr = new Date().toISOString().split("T")[0];
+    const todayStr = new Date();
     setToday(todayStr); // Reset calendar to today
     setPartnerLookingData({ findPartner: [] }); // Clear partner list
 

@@ -15,21 +15,23 @@ interface SportHallFeature {
 
 interface SportHallPrice {
   oneHour: string;
-    wholeDay: string;
+  wholeDay: string;
 }
 interface SportHallWorkTime {
   startTime: string;
   endTime: string;
 }
 
-
-interface SportHallSportType{
+interface SportHallSportType {
   basket_ball: boolean;
   volley_ball: boolean;
   foot_ball: boolean;
   tennis: boolean;
   bowling: boolean;
   golf: boolean;
+  computer: boolean;
+  billiards: boolean;
+  playstation: boolean;
 }
 
 export interface SportHallDataType {
@@ -39,23 +41,22 @@ export interface SportHallDataType {
   imageUrls: string[];
   phoneNumber: string;
   workTime: SportHallWorkTime;
-  price:SportHallPrice;
+  price: SportHallPrice;
   location: {
     latitude: string;
     longitude: string;
-    smart_location?:string
+    smart_location?: string;
   };
   availableTimeSlots: {
     start_time?: string;
     end_time?: string;
   }[];
-  listing_url?:string;
+  listing_url?: string;
   feature: SportHallFeature;
   rating?: number;
   distance?: number;
   priceSort?: number;
-  partnersLookingFor? : string
+  partnersLookingFor?: string;
   playersNeeded?: string;
   sportType: SportHallSportType;
-
 }

@@ -26,8 +26,6 @@ import Animated, {
   useAnimatedScrollHandler,
 } from "react-native-reanimated";
 import ProfileData from "./profileData";
-
-import Colors from "../constants/Colors";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";

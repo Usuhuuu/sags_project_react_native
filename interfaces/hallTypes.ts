@@ -1,0 +1,9 @@
+export enum HallTypesSeparator {
+  SPORTHALL = "SPORTHALL",
+  BILLIARDHALL = "BILLIARDHALL",
+  BOWLINGHALL = "BOWLINGHALL",
+  COMPUTERGAMESHALL = "COMPUTERGAMEHALL",
+  PLAYSTATIONHALL = "PLAYSTATIONHALL",
+}
+
+export type HallTypeStringValue = `${HallTypesSeparator}`;

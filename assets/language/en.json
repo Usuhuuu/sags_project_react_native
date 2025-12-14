@@ -1,336 +1,339 @@
 {
-    "type": "en",
-    "name": "English",
-    "author": "Zaal Togsolt",
-    "version": "1.0.0",
-    "data": {
-        "home": "Home",
-        "together":"Together",
-        "order": "Order",
-        "profile": "Profile",
-        "chat":"Chating Room",
-        "friends":"Friends",
-        "yes":"Yes",
-        "myBookings":"My Bookings",
-        "cancel":"Cancel",
-        "settings": [
-            {
-            "settingsDetails": "Settings",
-            "iconLocationSettings": "assets/icons/settings.png",
-            "settingSubtitle": "Update Your Settings Here",
-            "preferences": [
-                {
-                "headerPreferences": "Preferences",
-                "language": "Languages",
-                "iconLocationSettings": "globe",
-                "theme": "Theme",
-                "iconLocationTheme": "moon",
-                "notification": "Notification",
-                "iconLocationNotification": "notifications",
-                "about": "About",
-                "iconLocationAbout": "information-circle"
-                }
-            ],
-            "helpSupport": [
-                {
-                "helpSupport": "Help & Support",
-                "contractUs": "Contract Us",
-                "iconLocationContractUs": "mail",
-                "FAQ": "FAQ",
-                "iconLocationFAQ": "help-circle",
-                "termsConditions": "Terms & Conditions",
-                "iconLocationTerms&Conditions": "document",
-                "privacyPolicy": "Privacy Policy",
-                "iconLocationPrivacyPolicy": "lock-closed"
-                }
-            ],
-            "socialMedia": [
-                {
-                "socialMedia": "Social Media",
-                "facebook": "Facebook",
-                "iconLocationFacebook": "logo-facebook",
-                "twitter": "Twitter",
-                "iconLocationTwitter": "logo-twitter",
-                "instagram": "Instagram",
-                "iconLocationInstagram": "logo-instagram"
-                }
-            ],
-            "accountDetails": [
-                {
-                "account": "Account",
-                "profile": "Profile",
-                "iconLocationProfile": "person",
-                "changePassword": "Change Password",
-                "iconLocationChangePassword": "lock-closed",
-                "deleteAccount": "Delete Account",
-                "iconLocationdeleteAccount": "trash",
-                "iconLocationLogout": "log-out",
-                "logout": "Logout"
-                }
-            ]
-        }],
-        "sportTextIcons": [
-            { "id":"basket_ball","name": "Basket ball", "icon": "basketball" },
-            { "id":"foot_ball","name": "Foot ball", "icon": "football"  },
-            { "id":"volley_ball","name": "Volley ball",  "icon": "volleyball"  },
-            { "id":"tennis","name": "Tennis", "icon": "tennis" },
-            { "id":"bowling","name": "Bowling", "icon": "bowling"},
-            { "id":"golf","name": "Golf","icon": "golf" }
+  "type": "en",
+  "name": "English",
+  "author": "Zaal Togsolt",
+  "version": "1.0.0",
+  "data": {
+    "home": "Home",
+    "together": "Together",
+    "order": "Order",
+    "profile": "Profile",
+    "chat": "Chating Room",
+    "friends": "Friends",
+    "yes": "Yes",
+    "myBookings": "My Bookings",
+    "cancel": "Cancel",
+    "settings": [
+      {
+        "settingsDetails": "Settings",
+        "iconLocationSettings": "assets/icons/settings.png",
+        "settingSubtitle": "Update Your Settings Here",
+        "preferences": [
+          {
+            "headerPreferences": "Preferences",
+            "language": "Languages",
+            "iconLocationSettings": "globe",
+            "theme": "Theme",
+            "iconLocationTheme": "moon",
+            "notification": "Notification",
+            "iconLocationNotification": "notifications",
+            "about": "About",
+            "iconLocationAbout": "information-circle"
+          }
         ],
-        "login": 
-            {
-                "login": "Login",
-                "email": "Email",
-                "password": "Password",
-                "phoneNum": "Phone Number",
-                "verify": "Verify",
-                "verifyCode": "Verification Code",
-                "CheckCode": "Check Code",
-                "forgotPassword": "Forgot Password",
-                "continuewithgoogle": "Continue with Google",
-                "continuewithfacebook": "Continue with Facebook",
-                "signUp": "Sign Up"
-            },
-        "Register":[
-            {
-                "register": "Register",
-                "userID": "User ID",
-                "checkID": "Check ID",
-                "lastName": "Last Name",
-                "firstName": "First Name",
-                "email": "Email",
-                "phoneNum": "Phone Number",
-                "verificationCode": "Verification Code",
-                "sendVerificationCode": "Send Verification Code",
-                "verify": "Verify",
-                "password": "Password",
-                "confirmPassword": "Confirm Password",
-                "iagreetothe": "I agree to the ",
-                "termsConditions": "Terms & Conditions",
-                "privacyPolicy": "Privacy Policy"
-
-            }
+        "helpSupport": [
+          {
+            "helpSupport": "Help & Support",
+            "contractUs": "Contract Us",
+            "iconLocationContractUs": "mail",
+            "FAQ": "FAQ",
+            "iconLocationFAQ": "help-circle",
+            "termsConditions": "Terms & Conditions",
+            "iconLocationTerms&Conditions": "document",
+            "privacyPolicy": "Privacy Policy",
+            "iconLocationPrivacyPolicy": "lock-closed"
+          }
         ],
-        "DrawerScreen":[{
-            "userDrawer":[
-                {
-                    "home":"Home",
-                    "news":"News",
-                    "academy":"Academy",
-                    "settings":"Settings",
-                    "bookHistory":"Book History"
-                }
-            ],
-            "adminDrawer":[
-                {
-                    "adminPage":"Home",
-                    "userInfo":"User Information",
-                    "news":"News",
-                    "notificationPage":"Notification Page",
-                    "settings":"Settings"
-                }
-
-            ],
-            "contractorDrawer":[
-                {
-                    "contractorPage":"Home",
-                    "userInfo":"User Information",
-                    "news":"News",
-                    "statisticalPage":"Statistical Page",
-                    "notificationPage":"Notification Page",
-                    "settings":"Settings",
-                    "registerSportHall":"Register Sport Hall",
-                    "bookCheck":"Booking check"
-                }
-            ]
-        }],
-        "profilesdaData": [
-            {
-            "profileData": [
-                {
-                "profile": "Profile",
-                "userName": "Username",
-                "name": "Name",
-                "email": "Email",
-                "phoneNumber": "Phone Number",
-                "editProfile": "Edit Profile",
-                "saveProfile": "Save Changes",
-                "changePassword": "Change Password",
-                "savedHalls": "Saved Halls",
-                "archievements": "Achievements",
-                "rewards": "Rewards",
-                "miniiAmjilt": "My Success"
-                }
-                ]
-            }
+        "socialMedia": [
+          {
+            "socialMedia": "Social Media",
+            "facebook": "Facebook",
+            "iconLocationFacebook": "logo-facebook",
+            "twitter": "Twitter",
+            "iconLocationTwitter": "logo-twitter",
+            "instagram": "Instagram",
+            "iconLocationInstagram": "logo-instagram"
+          }
         ],
-        "RolePage":[{
-            "userRole":[
-                {
-                    "dashboard":"User Dashboard"
-                }
-            ],
-            "adminRole":[
-                {
-                    "dashboard":"Admin Dashboard"
-                }
-            ],
-            "contractorRole":[
-                {
-                    "dashboard":"Contractor Dashboard"
-                }
-            ]
-        }],
-        "userLogout":{
-            "logoutAlert":"Logout",
-            "logoutMessage":"Are you sure you want to logout?",
-            "cancel":"Cancel",
-            "yes":"Yes"
-        },
-        "aboutUs":{
-            "login":"Login",
-            "register":"Register",
-            "aboutUs":"About Us",
-            "helps":"Help",
-            "contactUs":"Contact Us",
-            "termsConditions":"Terms & Conditions",
-            "privacyPolicy":"Privacy Policy"
-        },
-        "userInfo":{
-            "userInfo":"User Information",
-            "firstName":"User First Name",
-            "lastName":"User Last Name",
-            "userName":"User Name",
-            "email":"Email",
-            "phoneNumber":"Phone Number",
-            "editProfile":"Edit Profile",
-            "saveProfile":"Save Edit"
-        },
-        "chatRoom":{
-            "chatRoom": "Chat Room",
-            "sendMsj": "Send",
-            "message": "Message",
-            "noMessage": "No Message",
-            "enterMessage": "Enter Message",
-            "groupChats":"Group Chats",
-            "individualChat":"Individual Chat",
-            "noChatYet":"No Chat Yet",
-            "onceYouJoin":"Once you join a game or make a frind,",
-            "yourChatWillAppearHere":"your chat will appear here"
-        },
-        "friendScreen":{
-            "noFriendRequest":"No Friend Requests yet.",
-            "noFriendsYet":" You don’t have any friends yet.",
-            "noFriendsAtAll":"No friend requests yet.",
-            "noSendRequests":"No send request yet.",
-            "noFriends":"No Friends",
-            "accept":"Accept",
-            "reject":"Reject",
-            "searchPlaceHolder":"Search & Add Friends",
-            "friends":"Friends",
-            "friendRequest": "Friend Request",
-            "friendRequestSent": "Friend Request Sent",
-            "noFriendRequestYet": "No Friend Request Yet",
-            "wantToMeetNewFriends":"Want to meet new friends?",
-            "startDiscoveringPlayersNearby":"Start discovering players nearby"
-        },
-        "togetherScreen":{
-            "swipeToPartner":"Swipe to find a partner",
-            "swipeDescription":" Swipe right to show unfiltered orders sport hall.",
-            "sortBy":"Sort By",
-            "back":"Back",
-            "rating":"Rating",
-            "hightFirst":"Highest First",
-            "lowFirst":"Lowest First",
-            "price":"Price",
-            "hightPrice":"Highest First",
-            "lowPrice":"Lowest First",
-            "partnerLookingFor":"Partner Looking For",
-            "feature":"Feature",
-            "openInMap":"Open in Map",
-            "partnerLookingForThisHall":"Partner looking for this hall",
-            "doYouWantJoinThisHall":"Do you want to join this hall?",
-            "join":"Join",
-            "cancel":"Cancel",
-            "alreadyJoined":"You have already joined this hall",
-            "wholeDay":"Whole Day"
-        },
-        "Notifications":"Notifications",
-        "groupChatSettings":{
-            "groupChatSettings":"Group Chat Settings",
-            "changeGroupName":"Change Group Name",
-            "members":"Members",
-            "searchInChannel":"Search in Channel",
-            "notifications":"Notification",
-            "leaveGroup":"Leave Group",
-            "reportGroup":"Report Group",
-            "editGroupName":"Edit Group Chat Name",
-            "thisNameWillBeVisibleToAll":"This name will be visible to all members of the group.",
-            "chatMembers":"Chat Members",
-            "addMembers":"Add Members",
-            "save":"Save",
-            "cancel":"Cancel",
-            "nameMustbeLessThan100":"Name must be less than 100 characters",
-            "copyLink":"Copy Link",
-            "close":"Close"
-        },
-        "orderScreen":{
-            "myBookings": "My Bookings",
-            "history": "History",
-            "todayUpcoming": "Bookings",
-            "filter": "Filter",
-            "filterText": "Filter your bookings.",
-            "noBookingsFound": "No bookings found",
-            "waiting": "Waiting",
-            "confirmed": "Confirmed",
-            "tryAdjustingFilter": "Try adjusting your filter to find what you're looking for.",
-            "alreadyPlayed": "Already Played",
-            "pending": "Pending",
-            "cancelled": "Cancelled",
-            "viewDetails": "View Details",
-            "cancelBooking": "Cancel Booking",
-            "close": "Close",
-            "contactCostumerService":"Contact Customer Service",
-            "paymentInfo":{
-                "paymentInfo": "Payment Info",
-                "paymentStatusPaid": "Paid",
-                "paymentStatusPending": "Pending",
-                "unpaid": "Unpaid",
-                "paymentMethod": "Payment Method",
-                "totalAmount": "Total Amount"
-            },
-            "bookingInfo":{
-                "bookingInfo": "Booking Info",
-                "date": "Date",
-                "time": "Time",
-                "statusConfirmed":"Confirmed",
-                "statusPending":"Pending",
-                "statusCancelled":"Cancelled",
-                "playerNeeded":"Player Needed"
-            },
-            "playerInfo":{
-                "playerInfo": "Player Info",
-                "playerName": "Player Name",
-                "playerContact": "Player Contact",
-                "playerEmail": "Player Email",
-                "playerPaymentAmount": "Payment Amount",
-                "playerPaymentStatus": "Payment Status"
-            },
-            "months": {
-                "january": "January",
-                "february": "February",
-                "march": "March",
-                "april": "April",
-                "may": "May",
-                "june": "June",
-                "july": "July",
-                "august": "August",
-                "september": "September",
-                "october": "October",
-                "november": "November",
-                "december": "December"
-            }
-        }
-        
+        "accountDetails": [
+          {
+            "account": "Account",
+            "profile": "Profile",
+            "iconLocationProfile": "person",
+            "changePassword": "Change Password",
+            "iconLocationChangePassword": "lock-closed",
+            "deleteAccount": "Delete Account",
+            "iconLocationdeleteAccount": "trash",
+            "iconLocationLogout": "log-out",
+            "logout": "Logout"
+          }
+        ]
+      }
+    ],
+    "sportTextIcons": [
+      { "id": "basket_ball", "name": "Basket ball", "icon": "basketball" },
+      { "id": "foot_ball", "name": "Foot ball", "icon": "football" },
+      { "id": "volley_ball", "name": "Volley ball", "icon": "volleyball" },
+      { "id": "tennis", "name": "Tennis", "icon": "tennis" },
+      { "id": "bowling", "name": "Bowling", "icon": "bowling" },
+      { "id": "golf", "name": "Golf", "icon": "golf" },
+      { "id": "computer", "name": "PC Room", "icon": "desktopComputer" },
+      { "id": "playstation", "name": "PlayStation", "icon": "gameController" }
+    ],
+    "login": {
+      "login": "Login",
+      "email": "Email",
+      "password": "Password",
+      "phoneNum": "Phone Number",
+      "verify": "Verify",
+      "verifyCode": "Verification Code",
+      "CheckCode": "Check Code",
+      "forgotPassword": "Forgot Password",
+      "continuewithgoogle": "Continue with Google",
+      "continuewithfacebook": "Continue with Facebook",
+      "signUp": "Sign Up"
+    },
+    "Register": [
+      {
+        "register": "Register",
+        "userID": "User ID",
+        "checkID": "Check ID",
+        "lastName": "Last Name",
+        "firstName": "First Name",
+        "email": "Email",
+        "phoneNum": "Phone Number",
+        "verificationCode": "Verification Code",
+        "sendVerificationCode": "Send Verification Code",
+        "verify": "Verify",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "iagreetothe": "I agree to the ",
+        "termsConditions": "Terms & Conditions",
+        "privacyPolicy": "Privacy Policy"
+      }
+    ],
+    "DrawerScreen": [
+      {
+        "userDrawer": [
+          {
+            "home": "Home",
+            "news": "News",
+            "academy": "Academy",
+            "settings": "Settings",
+            "bookHistory": "Book History"
+          }
+        ],
+        "adminDrawer": [
+          {
+            "adminPage": "Home",
+            "userInfo": "User Information",
+            "news": "News",
+            "notificationPage": "Notification Page",
+            "settings": "Settings"
+          }
+        ],
+        "contractorDrawer": [
+          {
+            "contractorPage": "Home",
+            "userInfo": "User Information",
+            "news": "News",
+            "statisticalPage": "Statistical Page",
+            "notificationPage": "Notification Page",
+            "settings": "Settings",
+            "registerSportHall": "Register Sport Hall",
+            "bookCheck": "Booking check"
+          }
+        ]
+      }
+    ],
+    "profilesdaData": [
+      {
+        "profileData": [
+          {
+            "profile": "Profile",
+            "userName": "Username",
+            "name": "Name",
+            "email": "Email",
+            "phoneNumber": "Phone Number",
+            "editProfile": "Edit Profile",
+            "saveProfile": "Save Changes",
+            "changePassword": "Change Password",
+            "savedHalls": "Saved Halls",
+            "archievements": "Achievements",
+            "rewards": "Rewards",
+            "miniiAmjilt": "My Success"
+          }
+        ]
+      }
+    ],
+    "RolePage": [
+      {
+        "userRole": [
+          {
+            "dashboard": "User Dashboard"
+          }
+        ],
+        "adminRole": [
+          {
+            "dashboard": "Admin Dashboard"
+          }
+        ],
+        "contractorRole": [
+          {
+            "dashboard": "Contractor Dashboard"
+          }
+        ]
+      }
+    ],
+    "userLogout": {
+      "logoutAlert": "Logout",
+      "logoutMessage": "Are you sure you want to logout?",
+      "cancel": "Cancel",
+      "yes": "Yes"
+    },
+    "aboutUs": {
+      "login": "Login",
+      "register": "Register",
+      "aboutUs": "About Us",
+      "helps": "Help",
+      "contactUs": "Contact Us",
+      "termsConditions": "Terms & Conditions",
+      "privacyPolicy": "Privacy Policy"
+    },
+    "userInfo": {
+      "userInfo": "User Information",
+      "firstName": "User First Name",
+      "lastName": "User Last Name",
+      "userName": "User Name",
+      "email": "Email",
+      "phoneNumber": "Phone Number",
+      "editProfile": "Edit Profile",
+      "saveProfile": "Save Edit"
+    },
+    "chatRoom": {
+      "chatRoom": "Chat Room",
+      "sendMsj": "Send",
+      "message": "Message",
+      "noMessage": "No Message",
+      "enterMessage": "Enter Message",
+      "groupChats": "Group Chats",
+      "individualChat": "Individual Chat",
+      "noChatYet": "No Chat Yet",
+      "onceYouJoin": "Once you join a game or make a frind,",
+      "yourChatWillAppearHere": "your chat will appear here"
+    },
+    "friendScreen": {
+      "noFriendRequest": "No Friend Requests yet.",
+      "noFriendsYet": " You don’t have any friends yet.",
+      "noFriendsAtAll": "No friend requests yet.",
+      "noSendRequests": "No send request yet.",
+      "noFriends": "No Friends",
+      "accept": "Accept",
+      "reject": "Reject",
+      "searchPlaceHolder": "Search & Add Friends",
+      "friends": "Friends",
+      "friendRequest": "Friend Request",
+      "friendRequestSent": "Friend Request Sent",
+      "noFriendRequestYet": "No Friend Request Yet",
+      "wantToMeetNewFriends": "Want to meet new friends?",
+      "startDiscoveringPlayersNearby": "Start discovering players nearby"
+    },
+    "togetherScreen": {
+      "swipeToPartner": "Swipe to find a partner",
+      "swipeDescription": " Swipe right to show unfiltered orders sport hall.",
+      "sortBy": "Sort By",
+      "back": "Back",
+      "rating": "Rating",
+      "hightFirst": "Highest First",
+      "lowFirst": "Lowest First",
+      "price": "Price",
+      "hightPrice": "Highest First",
+      "lowPrice": "Lowest First",
+      "partnerLookingFor": "Partner Looking For",
+      "feature": "Feature",
+      "openInMap": "Open in Map",
+      "partnerLookingForThisHall": "Partner looking for this hall",
+      "doYouWantJoinThisHall": "Do you want to join this hall?",
+      "join": "Join",
+      "cancel": "Cancel",
+      "alreadyJoined": "You have already joined this hall",
+      "wholeDay": "Whole Day"
+    },
+    "Notifications": "Notifications",
+    "groupChatSettings": {
+      "groupChatSettings": "Group Chat Settings",
+      "changeGroupName": "Change Group Name",
+      "members": "Members",
+      "searchInChannel": "Search in Channel",
+      "notifications": "Notification",
+      "leaveGroup": "Leave Group",
+      "reportGroup": "Report Group",
+      "editGroupName": "Edit Group Chat Name",
+      "thisNameWillBeVisibleToAll": "This name will be visible to all members of the group.",
+      "chatMembers": "Chat Members",
+      "addMembers": "Add Members",
+      "save": "Save",
+      "cancel": "Cancel",
+      "nameMustbeLessThan100": "Name must be less than 100 characters",
+      "copyLink": "Copy Link",
+      "close": "Close"
+    },
+    "orderScreen": {
+      "myBookings": "My Bookings",
+      "history": "History",
+      "todayUpcoming": "Bookings",
+      "filter": "Filter",
+      "filterText": "Filter your bookings.",
+      "noBookingsFound": "No bookings found",
+      "waiting": "Waiting",
+      "confirmed": "Confirmed",
+      "tryAdjustingFilter": "Try adjusting your filter to find what you're looking for.",
+      "alreadyPlayed": "Already Played",
+      "pending": "Pending",
+      "cancelled": "Cancelled",
+      "viewDetails": "View Details",
+      "cancelBooking": "Cancel Booking",
+      "close": "Close",
+      "contactCostumerService": "Contact Customer Service",
+      "paymentInfo": {
+        "paymentInfo": "Payment Info",
+        "paymentStatusPaid": "Paid",
+        "paymentStatusPending": "Pending",
+        "unpaid": "Unpaid",
+        "paymentMethod": "Payment Method",
+        "totalAmount": "Total Amount"
+      },
+      "bookingInfo": {
+        "bookingInfo": "Booking Info",
+        "date": "Date",
+        "time": "Time",
+        "statusConfirmed": "Confirmed",
+        "statusPending": "Pending",
+        "statusCancelled": "Cancelled",
+        "playerNeeded": "Player Needed"
+      },
+      "playerInfo": {
+        "playerInfo": "Player Info",
+        "playerName": "Player Name",
+        "playerContact": "Player Contact",
+        "playerEmail": "Player Email",
+        "playerPaymentAmount": "Payment Amount",
+        "playerPaymentStatus": "Payment Status"
+      },
+      "months": {
+        "january": "January",
+        "february": "February",
+        "march": "March",
+        "april": "April",
+        "may": "May",
+        "june": "June",
+        "july": "July",
+        "august": "August",
+        "september": "September",
+        "october": "October",
+        "november": "November",
+        "december": "December"
+      }
     }
+  }
 }

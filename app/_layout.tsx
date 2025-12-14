@@ -214,7 +214,7 @@ export function RootLayoutNav() {
 
       <Stack.Screen
         name="listing/[sportHallID]"
-        options={{ headerTitle: " " }}
+        options={{ headerShown: false }}
       />
 
       <Stack.Screen

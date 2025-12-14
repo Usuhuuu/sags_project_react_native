@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import Animated, {
   useSharedValue,
@@ -24,6 +24,7 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/themeContext";
 import AppText from "@/constants/appTextDefault";
+import { BlurView } from "expo-blur";
 
 export const OrderItem = React.memo(
   ({ item }: { item: Return_Type }) => {
@@ -62,7 +63,7 @@ export const OrderItem = React.memo(
           interpolate(
             expanded.value,
             [0, 1],
-            [200 + notExtendedHeight, expandedHeight],
+            [100 + notExtendedHeight, expandedHeight],
             Extrapolate.CLAMP
           ),
           {
@@ -263,19 +264,19 @@ export const OrderItem = React.memo(
     };
 
     return (
-      <View style={{ width: "100%", padding: 10 }}>
+      <View
+        style={{ width: "100%", paddingVertical: 20, paddingHorizontal: 5 }}
+      >
         <Animated.View
           style={[
             {
-              padding: 20,
               backgroundColor: Colors.containerColor,
-              borderRadius: 12,
               shadowColor: Colors.shadowColor,
-              shadowOffset: { width: 0, height: 3 },
-              shadowOpacity: 0.7,
+              shadowOffset: { width: 1, height: 1 },
+              shadowOpacity: 0.2,
               shadowRadius: 6,
               elevation: 4,
-              gap: 10,
+              borderRadius: 10,
             },
             animatedCardStyle,
           ]}
@@ -284,6 +285,7 @@ export const OrderItem = React.memo(
             style={{
               width: "100%",
               height: "100%",
+              padding: 15,
             }}
           >
             <View
@@ -295,7 +297,7 @@ export const OrderItem = React.memo(
                 height: "100%",
               }}
             >
-              <View style={{ height: "70%", gap: 20 }}>
+              <View style={{ height: "70%" }}>
                 {/* Basic Info */}
                 {data.session_obj && secondsLeft > 0 ? (
                   <View
@@ -337,7 +339,11 @@ export const OrderItem = React.memo(
                     </View>
 
                     <AppText
-                      style={{ color: "red", fontSize: 20, fontWeight: "600" }}
+                      style={{
+                        color: "red",
+                        fontSize: 20,
+                        fontWeight: "600",
+                      }}
                     >
                       {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
                     </AppText>
@@ -345,7 +351,7 @@ export const OrderItem = React.memo(
                 ) : (
                   <View></View>
                 )}
-                <View style={{ gap: 15 }}>
+                <View style={{ gap: 10 }}>
                   <View style={{ flexDirection: "row" }}>
                     <Text
                       style={{
@@ -364,12 +370,20 @@ export const OrderItem = React.memo(
                   {data.blocks.map((block, index) => (
                     <View
                       key={index}
-                      style={{ marginBottom: 8, maxHeight: 45, minHeight: 45 }}
+                      style={{
+                        marginBottom: 8,
+                        maxHeight: 45,
+                        minHeight: 45,
+                      }}
                     >
                       {/* Time Row */}
                       <View style={{ flexDirection: "row" }}>
                         <View
-                          style={{ flexDirection: "row", width: "50%", gap: 3 }}
+                          style={{
+                            flexDirection: "row",
+                            width: "50%",
+                            gap: 3,
+                          }}
                         >
                           <FontAwesome6
                             name="clock-four"
@@ -411,17 +425,23 @@ export const OrderItem = React.memo(
                               color={Colors.themeColorTextSecondary}
                             />
                             <Text
-                              style={{ color: Colors.themeColorTextSecondary }}
+                              style={{
+                                color: Colors.themeColorTextSecondary,
+                              }}
                             >
                               {block.current_player}
                             </Text>
                             <Text
-                              style={{ color: Colors.themeColorTextSecondary }}
+                              style={{
+                                color: Colors.themeColorTextSecondary,
+                              }}
                             >
                               /
                             </Text>
                             <Text
-                              style={{ color: Colors.themeColorTextSecondary }}
+                              style={{
+                                color: Colors.themeColorTextSecondary,
+                              }}
                             >
                               {block.num_players == 0
                                 ? (block.num_players += 1)
@@ -472,14 +492,16 @@ export const OrderItem = React.memo(
                         </View>
 
                         {/* Progress bar */}
-                        <ProgressBar
-                          progress={
-                            block.num_players > 0
-                              ? block.current_player / block.num_players
-                              : 1
-                          }
-                          color={Colors.primary}
-                        />
+                        <View style={{ marginTop: 5 }}>
+                          <ProgressBar
+                            progress={
+                              block.num_players > 0
+                                ? block.current_player / block.num_players
+                                : 1
+                            }
+                            color={Colors.primary}
+                          />
+                        </View>
                       </View>
                     </View>
                   ))}
@@ -627,7 +649,11 @@ export const OrderItem = React.memo(
                       }}
                     >
                       <Text
-                        style={{ color: "red", fontSize: 20, fontWeight: 500 }}
+                        style={{
+                          color: "red",
+                          fontSize: 20,
+                          fontWeight: 500,
+                        }}
                       >
                         {orderLangInit.alreadyPlayed}
                       </Text>

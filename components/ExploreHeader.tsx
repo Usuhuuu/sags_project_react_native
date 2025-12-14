@@ -26,6 +26,7 @@ import { router } from "expo-router";
 import type { SharedValue } from "react-native-reanimated";
 import { useNotificationStore } from "@/app/(modals)/context/store/notificationStore";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import LottieView from "lottie-react-native";
 
 // ICON MAP
 const iconMap: { [key: string]: any } = {
@@ -35,6 +36,8 @@ const iconMap: { [key: string]: any } = {
   tennis: require("../assets/sport-icons/table-tennis.png"),
   bowling: require("../assets/sport-icons/lanes.png"),
   golf: require("../assets/sport-icons/golf.png"),
+  desktopComputer: require("../assets/sport-icons/pc.png"),
+  gameController: require("../assets/sport-icons/playstation.png"),
 };
 
 interface Props {
@@ -115,8 +118,8 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     },
     categoriesBtnActive: {
       alignItems: "center",
-      borderBottomColor: Colors.primary,
-      borderBottomWidth: 2,
+      borderColor: Colors.primary,
+      borderWidth: 1.5,
     },
     iconContainer: {
       width: 40,
@@ -148,6 +151,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     (state) => state.loadNotifications
   );
   const notifications = useNotificationStore((state) => state.notifications);
+  const notificationAnimationRef = useRef<LottieView>(null);
 
   useEffect(() => {
     loadNotifications();
@@ -162,6 +166,10 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   // If you want to track count:
   useEffect(() => {
     setNotificationCount(notifications.length);
+    if (notifications.length > 0) {
+      notificationAnimationRef.current?.reset();
+      notificationAnimationRef.current?.play();
+    }
   }, [notifications]);
 
   // Animate icons wrapper up as sheet moves
@@ -227,6 +235,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   return (
     <SafeAreaView style={{ backgroundColor: Colors.backgroundColor, flex: 1 }}>
       {/* <StatusBar barStyle="light-content" backgroundColor="#61b3fa" /> */}
+
       <View style={styles.container}>
         {/* Action Row */}
         <View style={styles.actionRowWrapper}>
@@ -239,12 +248,14 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
 
           {/* Notification */}
           <TouchableOpacity
-            style={styles.notification}
+            style={[styles.notification]}
             onPress={() => router.push("/listing/notification")}
           >
-            <Image
-              source={require("../assets/sport-icons/notification.png")}
-              style={{ width: 30, height: 30 }}
+            <LottieView
+              ref={notificationAnimationRef}
+              loop={false}
+              source={require("../assets/sport-icons/animated/notification.json")}
+              style={{ width: 70, height: 70 }}
             />
             {notificationCount > 0 && (
               <Animated.View style={[styles.badge, badgeAnimatedStyle]}>
@@ -291,7 +302,17 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
                     activeIndex === index
                       ? styles.categoriesBtnActive
                       : styles.categoriesBtn,
-                    { width: itemWidth, height: "auto" },
+                    {
+                      width: itemWidth,
+                      height: 50,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      backgroundColor: Colors.backgroundColor,
+                      shadowColor: Colors.shadowColor,
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.3,
+                      borderRadius: 25,
+                    },
                   ]}
                   onPress={() => selectCategory(index)}
                 >
@@ -302,16 +323,6 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
                       height: 25,
                     }}
                   />
-                  <Text
-                    style={[
-                      styles.titleText,
-                      { lineHeight: 18, textAlign: "center" },
-                    ]}
-                    numberOfLines={2} // limit to max 2 lines
-                    ellipsizeMode="tail" // optional: truncate if too long
-                  >
-                    {item.name}
-                  </Text>
                 </TouchableOpacity>
               );
             })}
