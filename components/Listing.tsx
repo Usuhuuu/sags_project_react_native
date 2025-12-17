@@ -22,7 +22,7 @@ import {
   BottomSheetFlatListMethods,
 } from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
-import { SportHallDataType } from "@/interfaces/listing";
+import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
@@ -125,12 +125,13 @@ const ListingComponent = ({ listings: items, category }: Props) => {
     },
     [router]
   );
+
   const ListingItem = React.memo(
     ({
       item,
       onPress,
     }: {
-      item: SportHallDataType;
+      item: SportHallDataType | EsportHallDataType;
       onPress: (id: string) => void;
     }) => {
       return (
@@ -161,7 +162,13 @@ const ListingComponent = ({ listings: items, category }: Props) => {
                 <Text style={styles.text}>{item.neighbourhood}</Text> */}
               </View>
 
-              <Text style={styles.text}>${item.price.oneHour} tugrug</Text>
+              {"price" in item ? (
+                <AppText>{item.price.oneHour} / hr</AppText>
+              ) : "prices" in item ? (
+                <Text style={styles.text}>
+                  ${item.prices.regularPc.oneHour} / hr
+                </Text>
+              ) : null}
 
               <TouchableOpacity style={styles.viewButton}>
                 <Image

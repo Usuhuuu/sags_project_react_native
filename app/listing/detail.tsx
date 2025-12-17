@@ -16,6 +16,7 @@ import { useBookingStore } from "../(modals)/context/store/bookStore";
 import Calendar from "./book/modal_calendar";
 import WeekCalendar from "@/app/(modals)/book/components/calendar_strip";
 import { useTheme } from "../(modals)/context/themeContext";
+import { HallTypesSeparator } from "@/interfaces/hallTypes";
 
 export type FormData = {
   sportHallID: string;
@@ -164,11 +165,12 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
 
 interface OrderScreenProps {
   formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
   baseTimeSlot: baseTimeSlotType[];
   sportHallID: string;
   setIsOrderScreenVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  hallType: HallTypesSeparator;
 }
+
 const OrderScreen: React.FC<OrderScreenProps> = ({
   formData,
   baseTimeSlot,
@@ -310,6 +312,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   }, [today]);
   const baseTime_start = baseTimeSlot[0].start_time;
   const baseTime_end = baseTimeSlot[baseTimeSlot.length - 1].end_time;
+
   const handleOrder = () => {
     const zaal_id = sportHallID;
     setIsOrderScreenVisible(false);

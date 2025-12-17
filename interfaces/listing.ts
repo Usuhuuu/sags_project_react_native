@@ -17,6 +17,13 @@ interface SportHallPrice {
   oneHour: string;
   wholeDay: string;
 }
+
+interface EsportHallPrices {
+  regularPc: SportHallPrice;
+  vipPc: SportHallPrice;
+  stagePc: SportHallPrice;
+}
+
 interface SportHallWorkTime {
   startTime: string;
   endTime: string;
@@ -35,6 +42,7 @@ interface SportHallSportType {
 }
 
 export interface SportHallDataType {
+  prices: any;
   sportHallID: string;
   name: string;
   address: string;
@@ -59,4 +67,24 @@ export interface SportHallDataType {
   partnersLookingFor?: string;
   playersNeeded?: string;
   sportType: SportHallSportType;
+}
+
+export interface EsportHallDataType {
+  sportHallID: string;
+  name: string;
+  address: string;
+  imageUrls: string[];
+  phoneNumber: string;
+  workTime: SportHallWorkTime;
+  prices: EsportHallPrices;
+  location: {
+    latitude: string;
+    longitude: string;
+    smart_location?: string;
+  };
+  listing_url?: string;
+  feature: SportHallFeature;
+  rating?: number;
+  distance?: number;
+  priceSort?: number;
 }

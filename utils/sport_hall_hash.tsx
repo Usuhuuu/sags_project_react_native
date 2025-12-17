@@ -1,15 +1,19 @@
 import SportHallData from "@/assets/Data/sportHall.json";
-import { SportHallDataType } from "@/interfaces/listing";
+import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
 
 export const HashedSportData = SportHallData.reduce<
-  Record<string, SportHallDataType>
+  Record<string, SportHallDataType | EsportHallDataType>
 >((acc, hall) => {
   acc[hall.sportHallID] = {
     ...hall,
     price: {
-      oneHour: String(hall.price.oneHour),
-      wholeDay: String(hall.price.wholeDay),
+      oneHour: String(hall.price?.oneHour),
+      wholeDay: String(hall.price?.wholeDay),
     },
-  };
+    prices: hall.prices ?? {
+      oneHour: String(hall.price?.oneHour),
+      wholeDay: String(hall.price?.wholeDay),
+    },
+  } as SportHallDataType | EsportHallDataType;
   return acc;
 }, {});

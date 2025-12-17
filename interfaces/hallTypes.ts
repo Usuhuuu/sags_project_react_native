@@ -6,4 +6,11 @@ export enum HallTypesSeparator {
   PLAYSTATIONHALL = "PLAYSTATIONHALL",
 }
 
+export enum HallDetailSeparator {
+  DETAILS = "details",
+  AMENTITIES = "amentities",
+  REVIEW = "review",
+}
+export type HallDetailStringValue = `${HallDetailSeparator}`;
+
 export type HallTypeStringValue = `${HallTypesSeparator}`;

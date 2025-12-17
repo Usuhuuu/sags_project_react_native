@@ -3,7 +3,7 @@ import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import SportHallData from "@/assets/Data/sportHall.json";
 
-import { SportHallDataType } from "@/interfaces/listing";
+import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
 import { HallTypesSeparator } from "@/interfaces/hallTypes";
 import SportHall from "./hall_screens/sportHall";
 import Pc_Halls from "./hall_screens/pcHall";
@@ -16,7 +16,7 @@ const DetailsPage = () => {
   const [hallSeparator, setHallSeparotor] = useState<HallTypesSeparator | null>(
     null
   );
-  const listing = (SportHallData as unknown as SportHallDataType[]).find(
+  const listing = SportHallData.find(
     (item) => item.sportHallID === sportHallID
   );
   const hallSeparatorFunc = () => {
@@ -51,7 +51,6 @@ const DetailsPage = () => {
 
   useEffect(() => {
     hallSeparatorFunc();
-    console.log("Hall Separator:", hallSeparator);
     if (hallSeparator !== undefined || null) {
       setLoading(false);
     }
@@ -69,7 +68,8 @@ const DetailsPage = () => {
         <View style={{ flex: 1 }}>
           {hallSeparator === HallTypesSeparator.SPORTHALL && listing && (
             <SportHall
-              listing={listing}
+              listing={listing as unknown as SportHallDataType}
+              hallType={hallSeparator}
               sportHallID={
                 Array.isArray(sportHallID) ? sportHallID[0] : sportHallID
               }
@@ -78,10 +78,11 @@ const DetailsPage = () => {
           {hallSeparator === HallTypesSeparator.COMPUTERGAMESHALL &&
             listing && (
               <Pc_Halls
-                listing={listing}
+                listing={listing as unknown as EsportHallDataType}
                 sportHallID={
                   Array.isArray(sportHallID) ? sportHallID[0] : sportHallID
                 }
+                hallType={hallSeparator}
               />
             )}
         </View>

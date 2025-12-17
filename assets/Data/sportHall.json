@@ -11,9 +11,19 @@
       "startTime": "10:00",
       "endTime": "24:00"
     },
-    "price": {
-      "oneHour": 1000,
-      "wholeDay": 26000
+    "prices": {
+      "regularPc": {
+        "oneHour": 1500,
+        "wholeDay": 35000
+      },
+      "vipPc": {
+        "oneHour": 2500,
+        "wholeDay": 55000
+      },
+      "stagePc": {
+        "oneHour": 4000,
+        "wholeDay": 90000
+      }
     },
     "availableTimeSlots": [
       { "start_time": "10:00", "end_time": "11:00" },
@@ -38,8 +48,8 @@
       "tennis": false,
       "bowling": false,
       "golf": false,
-      "computer": true,
       "billiards": false,
+      "computer": true,
       "playstation": true
     },
     "location": {
@@ -67,7 +77,10 @@
     "name": "MCU спорт комплекс",
     "address": "Улаанбаатар, Сүхбаатар дүүрэг",
     "imageUrls": [
-      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353"
+      "https://images.adsttc.com/media/images/6111/a12c/770b/fe01/6517/ae05/newsletter/016-modrice-slavik.jpg?1628545353",
+      "https://www.sportsflooringsystem.com/wp-content/uploads/2023/04/sports-hall.jpg",
+      "https://www.sportsflooringsystem.com/wp-content/uploads/2023/04/indoor-sports-hall.jpg",
+      "https://www.sportsflooringsystem.com/wp-content/uploads/2023/04/sports-hall-builder.jpg"
     ],
     "phoneNumber": "77223344",
     "workTime": {

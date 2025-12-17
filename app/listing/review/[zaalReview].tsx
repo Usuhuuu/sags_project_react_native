@@ -7,15 +7,13 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { AntDesign, Entypo } from "@expo/vector-icons";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import SportHallData from "@/assets/Data/sportHall.json";
-import { SportHallDataType } from "@/interfaces/listing";
-import { axiosInstanceRegular } from "@/hooks/axiosInstance";
+import { router, useNavigation } from "expo-router";
 import StarRating from "@/app/listing/review/util/star_rating";
 import * as Progress from "react-native-progress";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
-interface Review {
+export interface Review {
   _id: string;
   rating: number;
   review_message: string;
@@ -30,51 +28,24 @@ interface Review {
     star_count_5: number;
   };
 }
+interface SportHallReviewPageProps {
+  sport_hall_id: string;
+  reviews: Record<string, Review>;
+  rating: number;
+  count: number;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+}
 
-const SportHallReviewPage = () => {
-  const { colors: Colors } = useTheme();
+const SportHallReviewPage = ({
+  sport_hall_id,
+  reviews,
+  rating,
+  count,
+  setPage,
+}: SportHallReviewPageProps) => {
+  const { colors: Colors, theme } = useTheme();
 
-  const [reviews, setReviews] = useState<Record<string, Review>>({});
-  const [rating, setRating] = useState<number>(0);
-  const [count, setCount] = useState<number>(0);
-  const [page, setPage] = useState<number>(0);
   const [filterRating, setFilterRating] = useState<number | "All">("All");
-
-  const sport_hall_id = useLocalSearchParams().zaalReview as string;
-  const zaal_data = (SportHallData as unknown as SportHallDataType[]).find(
-    (item) => {
-      return item.sportHallID == sport_hall_id;
-    }
-  );
-
-  const fetch_zaal_review = async () => {
-    try {
-      const response = await axiosInstanceRegular.get(
-        `/zaal-review/${sport_hall_id}?page=${page}`
-      );
-      if (response.status === 200 && response.data.success) {
-        setReviews((prev) => {
-          const newMap = { ...prev };
-          const existingReviews = new Set(Object.keys(prev));
-          response.data.data.reviews.forEach((review: Review) => {
-            if (!existingReviews.has(review._id)) {
-              newMap[review._id] = review;
-            }
-          });
-          return newMap;
-        });
-        setRating(response.data.data.avg_rating);
-        setCount(response.data.data.review_count);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    fetch_zaal_review();
-  }, [page]);
-
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -106,12 +77,8 @@ const SportHallReviewPage = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.white }}>
-      <View
-        style={{
-          padding: 20,
-        }}
-      >
+    <View style={{ backgroundColor: Colors.backgroundColor, width: "95%" }}>
+      <View>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <View
             style={{
@@ -120,7 +87,12 @@ const SportHallReviewPage = () => {
             }}
           >
             <Text
-              style={{ color: Colors.dark, fontSize: 40, fontWeight: "600" }}
+              style={{
+                color:
+                  theme === "dark" ? Colors.themeColorTextPure : Colors.dark,
+                fontSize: 40,
+                fontWeight: "600",
+              }}
             >
               {rating ? rating : 0}
             </Text>
@@ -236,7 +208,14 @@ const SportHallReviewPage = () => {
                 }}
               >
                 <Text
-                  style={{ color: Colors.dark, fontSize: 18, fontWeight: 600 }}
+                  style={{
+                    color:
+                      theme === "dark"
+                        ? Colors.themeColorTextPure
+                        : Colors.dark,
+                    fontSize: 18,
+                    fontWeight: 600,
+                  }}
                 >
                   Comment
                 </Text>
@@ -256,6 +235,7 @@ const SportHallReviewPage = () => {
             data={filterReviews(filterRating)}
             keyExtractor={(item) => item._id}
             style={{ height: "80%" }}
+            scrollEnabled={false}
             renderItem={({ item }) => (
               <View
                 style={{
@@ -266,14 +246,14 @@ const SportHallReviewPage = () => {
                   borderWidth: 1,
                 }}
               >
-                <Text style={{ fontWeight: "bold" }}>
+                <AppText style={{ fontWeight: "bold" }}>
                   {item.user_unique_name}
-                </Text>
+                </AppText>
                 <StarRating rating={item.rating} starSize={20} />
-                <Text>{item.review_message}</Text>
-                <Text style={{ fontSize: 12, color: "#888" }}>
+                <AppText>{item.review_message}</AppText>
+                <AppText style={{ fontSize: 12, color: Colors.darkGrey }}>
                   {new Date(item.updatedAt).toLocaleDateString()}
-                </Text>
+                </AppText>
               </View>
             )}
             ListEmptyComponent={() => (

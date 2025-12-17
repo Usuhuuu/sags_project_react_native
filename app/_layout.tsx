@@ -1,6 +1,6 @@
 import "@/utils/i18";
-import "react-native-reanimated";
-import { AntDesign, Ionicons } from "@expo/vector-icons";
+import { configureReanimatedLogger } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { router, Stack, useRouter } from "expo-router";
@@ -32,6 +32,11 @@ import {
   reminderPermission,
 } from "@/hooks/permissions";
 import { ThemeProvider, useTheme } from "./(modals)/context/themeContext";
+
+configureReanimatedLogger({
+  strict: false,
+  level: 1,
+});
 
 export const unstable_settings = {
   initialRouteName: "/(tabs)",
@@ -268,20 +273,7 @@ export function RootLayoutNav() {
           headerShown: false,
         }}
       />
-      <Stack.Screen
-        name="listing/review/[zaalReview]"
-        options={{
-          headerTitle: "Sport Hall Review",
-          headerStyle: { backgroundColor: Colors.backgroundColor },
-          headerTitleStyle: { fontSize: 28, color: Colors.primary },
-          headerRight: () => (
-            <TouchableOpacity>
-              <AntDesign name="edit" size={24} color="black" />
-            </TouchableOpacity>
-          ),
-          headerShadowVisible: false,
-        }}
-      />
+
       <Stack.Screen
         name="listing/review/util/inner_zaal_review"
         options={{
