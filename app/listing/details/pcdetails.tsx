@@ -1,8 +1,8 @@
+import { useBookingStore } from "@/app/(modals)/context/store/bookStore";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { EsportHallDataType } from "@/interfaces/listing";
 import { EvilIcons, Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -10,7 +10,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   Image,
   ImageBackground,
 } from "react-native";
@@ -23,16 +22,24 @@ interface OrderScreenPCProps {
   orderModelVisible?: boolean;
   setOrderModelVisible?: React.Dispatch<React.SetStateAction<boolean>>;
 }
-
+type EsportFormData = {
+  tier: string;
+  hours: number | string;
+  date: Date;
+};
 const OrderScreenPC = ({
   listing,
   orderModelVisible,
   setOrderModelVisible,
 }: OrderScreenPCProps) => {
   const { theme, colors } = useTheme();
-  const width = Dimensions.get("window").width;
-  const [tier, setTier] = useState("Regular");
-  const [hours, setHours] = useState(1);
+  const [formData, setFormData] = useState<EsportFormData>({
+    tier: "regular",
+    hours: 1,
+    date: new Date(),
+  });
+  const [tier, setTier] = useState("regular");
+  const [hours, setHours] = useState<number>(1);
 
   const tiers = [
     {
@@ -66,6 +73,21 @@ const OrderScreenPC = ({
   ];
 
   const totalPrice = packages.find((p) => p.value === hours)?.price || 0;
+
+  const handleOrder = () => {
+    setFormData((prev) => ({ ...prev, date: new Date() }));
+    setOrderModelVisible?.(true);
+    useBookingStore.getState().setBookingDetails({
+      name: listing.name,
+      date: new Date(),
+      sportHallID: listing.sportHallID,
+      price: listing.prices,
+      workTime: "09:00 - 23:00",
+      image: listing.imageUrls,
+      location: listing.location,
+    });
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -109,11 +131,18 @@ const OrderScreenPC = ({
           {tiers.map((item) => (
             <TouchableOpacity
               key={item.id}
-              onPress={() => setTier(item.id)}
+              onPress={() =>
+                setFormData((prev) => ({ ...prev, tier: item.id }))
+              }
               style={[
                 styles.tierCard,
                 {
-                  borderColor: item.id === tier ? colors.primary : undefined,
+                  borderColor:
+                    item.id === formData.tier ? colors.primary : colors.dark,
+                  borderWidth: item.id === formData.tier ? 2 : undefined,
+                  borderRadius: 12,
+                  shadowColor:
+                    item.id === formData.tier ? colors.primary : "#000",
                 },
               ]}
             >
@@ -121,7 +150,7 @@ const OrderScreenPC = ({
 
               <View
                 style={{
-                  flex: 1,
+                  overflow: "hidden",
                   borderRadius: 10,
                 }}
               >
@@ -141,7 +170,6 @@ const OrderScreenPC = ({
                         width: "50%",
                         resizeMode: "cover",
                       }}
-                      resizeMode="contain"
                     />
                     <View>
                       <Text style={styles.tierLabel}>{item.label}</Text>
@@ -169,17 +197,21 @@ const OrderScreenPC = ({
           {packages.map((pkg) => (
             <TouchableOpacity
               key={pkg.value}
-              onPress={() => setHours(pkg.value)}
+              onPress={() =>
+                setFormData((prev) => ({ ...prev, hours: pkg.value }))
+              }
               style={[
                 styles.packageBtn,
-                hours === pkg.value && { backgroundColor: colors.primary },
+                formData.hours === pkg.value && {
+                  backgroundColor: colors.primary,
+                },
                 pkg.isSpecial && styles.specialBtn,
                 {
                   shadowColor: colors.shadowColor,
                   shadowOpacity: 0.4,
                   shadowOffset: { width: 2, height: 2 },
                   backgroundColor:
-                    pkg.value === hours
+                    pkg.value === formData.hours
                       ? colors.primary
                       : colors.backgroundColor,
                 },
@@ -190,7 +222,7 @@ const OrderScreenPC = ({
                   styles.packageLabel,
                   {
                     color:
-                      pkg.value === hours
+                      pkg.value === formData.hours
                         ? colors.white
                         : colors.themeColorTextPure,
                   },
@@ -201,7 +233,7 @@ const OrderScreenPC = ({
               <Text
                 style={[
                   styles.packagePrice,
-                  hours === pkg.value && { color: colors.white },
+                  formData.hours === pkg.value && { color: colors.white },
                 ]}
               >
                 ₩{pkg.price.toLocaleString()}
@@ -292,7 +324,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     padding: 20,
     backgroundColor: "#1a1a24",
-    borderRadius: 20,
+    borderRadius: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -303,7 +335,7 @@ const styles = StyleSheet.create({
     backgroundColor: PC_BANG_BLUE,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 10,
   },
   bookBtnText: { fontWeight: "bold", fontSize: 16 },
 });

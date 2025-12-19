@@ -1,16 +1,14 @@
+import { EsportHallPrices, SportHallPrice } from "@/interfaces/listing";
 import { create } from "zustand";
 
 export type BookingData = {
   name: string;
   date: Date;
   sportHallID: string;
-  price: {
-    oneHour: string;
-    wholeDay: string;
-  };
-  selectedTimeSlots: string[];
+  price: EsportHallPrices | SportHallPrice;
+  selectedTimeSlots?: string[];
   workTime?: string;
-  baseTime_startAndEnd: string;
+  baseTime_startAndEnd?: string;
   image: string[] | undefined;
   location: {
     latitude: string;

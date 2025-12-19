@@ -8,17 +8,17 @@ import {
   Image,
   ActivityIndicator,
   Modal,
+  StyleSheet,
 } from "react-native";
 import { FormData } from "../detail";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import { router } from "expo-router";
-import { EvilIcons, Feather, FontAwesome5 } from "@expo/vector-icons";
+import { AntDesign, Feather, FontAwesome5 } from "@expo/vector-icons";
 import Carousel, {
   ICarouselInstance,
   Pagination,
 } from "react-native-reanimated-carousel";
-import { useSharedValue } from "react-native-reanimated";
 import AppText from "@/constants/appTextDefault";
 import SportHallReviewPage, { Review } from "../review/[zaalReview]";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
@@ -27,7 +27,11 @@ import {
   HallTypesSeparator,
 } from "@/interfaces/hallTypes";
 import OrderScreenPC from "../details/pcdetails";
-import LinearGradient from "react-native-linear-gradient";
+import { LinearGradient } from "react-native-linear-gradient";
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+} from "react-native-reanimated";
 
 interface PC_HallsProps {
   listing: EsportHallDataType;
@@ -63,7 +67,7 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
       smart_location: "",
     },
   });
-  const { width } = Dimensions.get("window");
+  const { width, height } = Dimensions.get("window");
   const featureIcons = {
     wifi: {
       label: "Wi-Fi",
@@ -71,7 +75,7 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
         <Feather
           name="wifi"
           size={24}
-          color={theme === "dark" ? Colors.dark : Colors.white}
+          color={theme === "dark" ? Colors.white : Colors.white}
         />
       ),
     },
@@ -81,7 +85,7 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
         <FontAwesome5
           name="parking"
           size={24}
-          color={theme === "dark" ? Colors.dark : Colors.white}
+          color={theme === "dark" ? Colors.white : Colors.white}
         />
       ),
     },
@@ -90,6 +94,8 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
   const reviewFetchRef = useRef<boolean>(false);
 
   const progress = useSharedValue(0);
+  const scrollY = useSharedValue(0);
+
   const [activeTab, setActiveTab] = useState<HallDetailSeparator>(
     HallDetailSeparator.DETAILS
   );
@@ -289,61 +295,36 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
     );
   }, [listing]);
 
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
-      <ScrollView style={{ flex: 1, height: "90%" }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: Colors.backgroundColor }}
+      edges={["left", "right", "top"]}
+    >
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        contentContainerStyle={{
+          backgroundColor: Colors.backgroundColor,
+        }}
+      >
         <View
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginHorizontal: 5,
-            position: "absolute",
-            zIndex: 10,
-            width: width - 10,
-            marginTop: 10,
+            height: 350,
+            borderBottomLeftRadius: 40,
+            borderBottomRightRadius: 40,
+            overflow: "hidden",
           }}
         >
-          <TouchableOpacity
-            style={{
-              padding: 7,
-              borderRadius: 25,
-              backgroundColor:
-                theme === "dark" ? Colors.shadowColor : Colors.primary,
-            }}
-            onPress={() => {
-              router.back();
-            }}
-          >
-            <Feather
-              name="arrow-left"
-              size={24}
-              color={
-                theme === "dark" ? Colors.themeColorTextPure : Colors.white
-              }
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              backgroundColor:
-                theme === "dark" ? Colors.shadowColor : Colors.primary,
-              padding: 7,
-              borderRadius: 25,
-            }}
-          >
-            <EvilIcons
-              name="heart"
-              size={24}
-              color={
-                theme === "dark" ? Colors.themeColorTextPure : Colors.white
-              }
-            />
-          </TouchableOpacity>
-        </View>
-        <View>
           <Carousel
             ref={imageRef}
             width={width}
-            height={250}
+            height={400}
             loop={true}
             autoPlay={false}
             data={listing.imageUrls}
@@ -352,13 +333,13 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
               progress.value = absoluteProgress;
             }}
             renderItem={({ item }) => (
-              <View style={{ flex: 1 }}>
-                <Image
-                  source={{ uri: item }}
-                  style={{ width: "100%", height: "100%" }}
-                  resizeMode="cover"
-                />
-              </View>
+              <Image
+                source={{ uri: item }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                }}
+              />
             )}
           />
           <Pagination.Custom
@@ -375,7 +356,7 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
             }}
             containerStyle={{
               gap: 12,
-              bottom: 10,
+              bottom: 120,
             }}
             horizontal
             onPress={(index: number) => {
@@ -385,50 +366,75 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
               });
             }}
           />
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.iconCircle}
+              onPress={() => router.back()}
+            >
+              <Feather name="arrow-left" size={22} color="black" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconCircle}>
+              <AntDesign name="hearto" size={22} color="black" />
+            </TouchableOpacity>
+          </View>
         </View>
-        <LinearGradient
-          colors={[Colors.themeColorTextPure, Colors.primary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ flex: 1 }}
+        <View
+          style={[
+            styles.titleCard,
+            { backgroundColor: Colors.backgroundColor },
+          ]}
         >
-          <View style={{ marginHorizontal: 10, flex: 1 }}>
-            {/* HEADER HALL TITLE */}
-            <View style={{ paddingTop: 10 }}>
-              <AppText style={{ fontSize: 25, fontWeight: "bold" }}>
-                {listing.name}
-              </AppText>
-            </View>
+          <AppText
+            style={{
+              fontSize: 22,
+              fontWeight: "bold",
+              marginBottom: 8,
+            }}
+          >
+            {listing.name}
+          </AppText>
+          <View style={styles.ratingRow}>
+            <AntDesign name="star" size={16} color="#FFD700" />
+            <AppText style={styles.ratingText}>
+              4.8 <AppText style={{ color: "gray" }}>(124 reviews)</AppText>
+            </AppText>
+          </View>
+        </View>
+
+        <LinearGradient
+          colors={
+            theme === "dark"
+              ? [Colors.backgroundColor, Colors.primary]
+              : [Colors.backgroundColor, Colors.primary]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={{ flex: 1, paddingBottom: 100 }}
+        >
+          <View
+            style={{ marginHorizontal: 10, flex: 1, justifyContent: "center" }}
+          >
             {/* TABS SECTION */}
             <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-evenly",
-                paddingVertical: 10,
-                width: "100%",
-              }}
+              style={[
+                styles.tabContainer,
+                { borderBottomColor: Colors.backgroundColor },
+              ]}
             >
               {tabs.map((tab) => (
                 <TouchableOpacity
                   key={tab.key}
-                  onPress={() => setActiveTab(tab.key as any)}
-                  style={{
-                    borderBottomWidth: activeTab === tab.key ? 2 : 0,
-                    borderColor: Colors.primary,
-                    width: "33.3%",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    paddingVertical: 10,
-                  }}
+                  onPress={() => setActiveTab(tab.key)}
+                  style={[
+                    styles.tabItem,
+                    activeTab === tab.key && styles.activeTabBorder,
+                  ]}
                 >
                   <AppText
-                    style={{
-                      color:
-                        activeTab === tab.key
-                          ? Colors.themeColorTextPure
-                          : Colors.themeColorTextSecondary,
-                      fontWeight: activeTab === tab.key ? "bold" : "normal",
-                    }}
+                    style={[
+                      styles.tabLabel,
+                      activeTab === tab.key && styles.activeTabLabel,
+                    ]}
                   >
                     {tab.label}
                   </AppText>
@@ -463,61 +469,68 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
             </View>
           </View>
         </LinearGradient>
-      </ScrollView>
+      </Animated.ScrollView>
       {/* Stick Button */}
       <View
-        style={{
-          flexDirection: "row",
-          position: "sticky",
-          marginHorizontal: 10,
-          bottom: 20,
-          borderTopColor: Colors.shadowColor,
-          borderTopWidth: 1,
-          paddingTop: 10,
-          backgroundColor: Colors.backgroundColor,
-        }}
+        style={[
+          styles.bottomBar,
+          {
+            backgroundColor:
+              theme === "dark"
+                ? Colors.backgroundColor
+                : Colors.backgroundColor,
+          },
+        ]}
       >
-        <View
-          style={{
-            width: "20%",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+        <View>
           <AppText
             style={{
-              color: Colors.darkGrey,
-              justifyContent: "center",
-              alignItems: "center",
-              flexDirection: "column",
+              color: "grey",
+              fontSize: 12,
             }}
           >
-            Price
+            Total Price
           </AppText>
-          {/* <AppText style={{ fontWeight: "bold" }}>
-            ${listing.prices.regularPc.oneHour} / hr
-          </AppText> */}
-        </View>
-        <View style={{ width: "80%" }}>
-          <TouchableOpacity
-            style={{
-              padding: 10,
-              backgroundColor: Colors.primary,
-              borderRadius: 25,
-            }}
-            onPress={() => setIsOrderScreenVisible(true)}
+          <AppText
+            style={[
+              styles.priceText,
+              {
+                color: Colors.primary,
+              },
+            ]}
           >
+            ₮80k
             <AppText
               style={{
-                color: Colors.themeColorTextPure,
-                textAlign: "center",
-                fontSize: 20,
+                fontSize: 14,
+                fontWeight: "normal",
+                color: "grey",
               }}
             >
-              Book Now
+              / hour
             </AppText>
-          </TouchableOpacity>
+          </AppText>
         </View>
+        <TouchableOpacity
+          style={[
+            styles.bookButton,
+            {
+              backgroundColor: Colors.primary,
+            },
+          ]}
+          onPress={() => setIsOrderScreenVisible(true)}
+        >
+          <AppText
+            style={[
+              styles.bookButtonText,
+              {
+                color: Colors.backgroundColor,
+              },
+            ]}
+          >
+            Book Now →
+          </AppText>
+        </TouchableOpacity>
       </View>
       {/* Booking TimeSlot Selection */}
       <Modal
@@ -559,5 +572,101 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  imageContainer: {
+    height: 350,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    overflow: "hidden",
+  },
+  headerButtons: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    right: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  iconCircle: {
+    backgroundColor: "rgba(255,255,255,0.6)",
+    padding: 10,
+    borderRadius: 25,
+  },
+  titleCard: {
+    marginHorizontal: 20,
+    marginTop: -60,
+    borderRadius: 30,
+    padding: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  titleText: { fontSize: 22, fontWeight: "bold", marginBottom: 8 },
+  ratingRow: { flexDirection: "row", alignItems: "center" },
+  ratingText: { fontSize: 14, fontWeight: "600" },
+  tabContainer: {
+    flexDirection: "row",
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  tabItem: { flex: 1, alignItems: "center", paddingVertical: 12 },
+  activeTabBorder: { borderBottomWidth: 2, borderBottomColor: "#1A73E8" },
+  tabLabel: { color: "gray", fontSize: 15 },
+  activeTabLabel: { color: "#1A73E8", fontWeight: "bold" },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 25,
+    marginBottom: 10,
+  },
+  descriptionText: { color: "#666", lineHeight: 22 },
+  facilityGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  facilityItem: { alignItems: "center" },
+  facilityIconCircle: {
+    backgroundColor: "#F0F7FF",
+    padding: 15,
+    borderRadius: 30,
+    marginBottom: 8,
+  },
+  facilityLabel: { fontSize: 12, color: "gray" },
+  hoursCard: {
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  statusBadge: { flexDirection: "row", alignItems: "center" },
+  timeText: { fontSize: 18, fontWeight: "bold", letterSpacing: 1 },
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    backgroundColor: "white",
+    padding: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    elevation: 20,
+  },
+  priceText: { fontSize: 24, fontWeight: "bold", color: "#1A73E8" },
+  bookButton: {
+    paddingVertical: 15,
+    paddingHorizontal: 35,
+    borderRadius: 25,
+  },
+  bookButtonText: { color: "white", fontWeight: "bold", fontSize: 16 },
+});
 
 export default Pc_Halls;

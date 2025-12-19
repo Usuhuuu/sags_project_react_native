@@ -13,7 +13,6 @@ import * as Haptics from "expo-haptics";
 import { PieChart } from "react-native-chart-kit";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/app/(modals)/context/themeContext";
-import AppText from "@/constants/appTextDefault";
 
 const categories = [
   {

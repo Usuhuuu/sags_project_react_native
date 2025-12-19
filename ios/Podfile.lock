@@ -6,6 +6,8 @@ PODS:
   - AppAuth/ExternalUserAgent (1.7.6):
     - AppAuth/Core
   - boost (1.84.0)
+  - BVLinearGradient (2.8.3):
+    - React-Core
   - DoubleConversion (1.1.6)
   - EXApplication (5.9.1):
     - ExpoModulesCore
@@ -2129,6 +2131,7 @@ PODS:
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+  - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXApplication (from `../node_modules/expo-application/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
@@ -2259,6 +2262,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
+  BVLinearGradient:
+    :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXApplication:
@@ -2478,6 +2483,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
+  BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXApplication: ec862905fdab3a15bf6bd8ca1a99df7fc02d7762
   EXConstants: 89d35611505a8ce02550e64e43cd05565da35f9a

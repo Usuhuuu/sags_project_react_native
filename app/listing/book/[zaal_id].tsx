@@ -114,7 +114,7 @@ const TransactionPage = () => {
   const bookingDetails = useBookingStore((state) => state.bookingDetails);
 
   useEffect(() => {
-    bookingDetails?.selectedTimeSlots.includes("WHOLE_DAY")
+    bookingDetails?.selectedTimeSlots?.includes("WHOLE_DAY")
       ? setWholeDay(true)
       : setSelectedTimeSlots(() =>
           groupConnectedTimeSlots(bookingDetails?.selectedTimeSlots ?? [])
