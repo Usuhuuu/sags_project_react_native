@@ -178,9 +178,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   setIsOrderScreenVisible,
 }) => {
   const { colors: Colors, theme } = useTheme();
-
   const [today, setToday] = useState<Date>(new Date());
-
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [unavailableTimes, setUnavailableTimes] = useState<{
     joinable: string[];
@@ -195,9 +193,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
     unavailableWholeDay: false,
     joinableWholeDay: false,
   });
-
   const CACHE_TTL = 10 * 60 * 1000;
-
   const [timeslotCache] = useState<{
     [key: string]: {
       joinable: string[];
@@ -316,6 +312,14 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   const handleOrder = () => {
     const zaal_id = sportHallID;
     setIsOrderScreenVisible(false);
+    const normalizedPrice = {
+      oneHour: formData.price.oneHour,
+      wholeDay: formData.price.wholeDay,
+      regularPc: (formData as any).price?.regularPc ?? "0",
+      vipPc: (formData as any).price?.vipPc ?? "0",
+      stagePc: (formData as any).price?.stagePc ?? "0",
+    };
+
     useBookingStore.getState().setBookingDetails({
       ...formData,
       sportHallID: zaal_id,
@@ -323,9 +327,10 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       date: today,
       workTime: formData.workTime,
       baseTime_startAndEnd: `${baseTime_start}~${baseTime_end}`,
-      image: formData.image,
+      imageUrls: formData.image,
+      price: normalizedPrice,
     });
-    router.push(`/listing/book/${zaal_id}`);
+    router.push(`/listing/book/sport/${zaal_id}`);
   };
 
   const isSelected = selectedTimeSlots.includes("WHOLE_DAY");

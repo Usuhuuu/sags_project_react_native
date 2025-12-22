@@ -1,9 +1,11 @@
-import { useBookingStore } from "@/app/(modals)/context/store/bookStore";
+import {
+  EsportBookingData,
+  useBookingStore,
+} from "@/app/(modals)/context/store/bookStore";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { EsportHallDataType } from "@/interfaces/listing";
-import { EvilIcons, Feather } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ScrollView,
   View,
@@ -17,30 +19,23 @@ import {
 const PC_BANG_BLUE = "#00d2ff";
 const PC_BANG_PURPLE = "#9d50bb";
 
-interface OrderScreenPCProps {
-  listing: EsportHallDataType;
-  orderModelVisible?: boolean;
-  setOrderModelVisible?: React.Dispatch<React.SetStateAction<boolean>>;
+interface Step_one_pc_props {
+  listing: EsportBookingData | undefined;
+  step?: number;
+  setStep?: React.Dispatch<React.SetStateAction<number>>;
+  hallId: string;
 }
 type EsportFormData = {
   tier: string;
   hours: number | string;
   date: Date;
 };
-const OrderScreenPC = ({
-  listing,
-  orderModelVisible,
-  setOrderModelVisible,
-}: OrderScreenPCProps) => {
-  const { theme, colors } = useTheme();
-  const [formData, setFormData] = useState<EsportFormData>({
-    tier: "regular",
-    hours: 1,
-    date: new Date(),
-  });
-  const [tier, setTier] = useState("regular");
-  const [hours, setHours] = useState<number>(1);
 
+const Step_one_pc = ({ listing, step, setStep, hallId }: Step_one_pc_props) => {
+  const { theme, colors } = useTheme();
+
+  const [tier, setTier] = useState<"regular" | "vip" | "stage">("regular");
+  const [hours, setHours] = useState<number | string>(1);
   const tiers = [
     {
       id: "regular",
@@ -64,7 +59,6 @@ const OrderScreenPC = ({
       backgroundImage: require("@/assets/images/computerImage/stage.png"),
     },
   ];
-
   const packages = [
     { label: "1 Hour", value: 1, price: 1200 },
     { label: "3 Hours", value: 3, price: 3000 },
@@ -72,55 +66,31 @@ const OrderScreenPC = ({
     { label: "WHOLE DAY", value: 24, price: 18000, isSpecial: true },
   ];
 
-  const totalPrice = packages.find((p) => p.value === hours)?.price || 0;
+  const bookingDetails = useBookingStore(
+    (state) => state.esportBookingDetails
+  ) as EsportBookingData;
 
-  const handleOrder = () => {
-    setFormData((prev) => ({ ...prev, date: new Date() }));
-    setOrderModelVisible?.(true);
-    useBookingStore.getState().setBookingDetails({
-      name: listing.name,
-      date: new Date(),
-      sportHallID: listing.sportHallID,
-      price: listing.prices,
-      workTime: "09:00 - 23:00",
-      image: listing.imageUrls,
-      location: listing.location,
-    });
-  };
+  const setBookingDetails = useBookingStore(
+    (state) => state.setEsportBookingDetails
+  );
+
+  const updateBookingDetails = useCallback(
+    ({
+      updateField,
+      value,
+    }: {
+      updateField: "tier" | "hours";
+      value: string | number;
+    }) => {
+      console.log(updateField, value);
+      setBookingDetails({ [updateField]: value });
+    },
+    [setBookingDetails]
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
-        >
-          <TouchableOpacity
-            style={{
-              padding: 7,
-              borderRadius: 25,
-              backgroundColor:
-                theme === "dark" ? colors.shadowColor : colors.primary,
-            }}
-            onPress={() => {
-              setOrderModelVisible?.(false);
-            }}
-          >
-            <Feather name="arrow-left" size={24} color={colors.white} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              backgroundColor:
-                theme === "dark" ? colors.shadowColor : colors.primary,
-              padding: 7,
-              borderRadius: 25,
-            }}
-          >
-            <EvilIcons name="heart" size={24} color={colors.white} />
-          </TouchableOpacity>
-        </View>
         <AppText style={styles.title}>Gamer's Haven</AppText>
         <AppText style={styles.subtitle}>
           Select your gaming environment
@@ -132,17 +102,22 @@ const OrderScreenPC = ({
             <TouchableOpacity
               key={item.id}
               onPress={() =>
-                setFormData((prev) => ({ ...prev, tier: item.id }))
+                updateBookingDetails({
+                  updateField: "tier",
+                  value: item.id,
+                })
               }
               style={[
                 styles.tierCard,
                 {
                   borderColor:
-                    item.id === formData.tier ? colors.primary : colors.dark,
-                  borderWidth: item.id === formData.tier ? 2 : undefined,
+                    item.id === bookingDetails.tier
+                      ? colors.primary
+                      : colors.dark,
+                  borderWidth: item.id === bookingDetails.tier ? 2 : undefined,
                   borderRadius: 12,
                   shadowColor:
-                    item.id === formData.tier ? colors.primary : "#000",
+                    item.id === bookingDetails.tier ? colors.primary : "#000",
                 },
               ]}
             >
@@ -198,11 +173,14 @@ const OrderScreenPC = ({
             <TouchableOpacity
               key={pkg.value}
               onPress={() =>
-                setFormData((prev) => ({ ...prev, hours: pkg.value }))
+                updateBookingDetails({
+                  updateField: "hours",
+                  value: pkg.value,
+                })
               }
               style={[
                 styles.packageBtn,
-                formData.hours === pkg.value && {
+                bookingDetails.hours === pkg.value && {
                   backgroundColor: colors.primary,
                 },
                 pkg.isSpecial && styles.specialBtn,
@@ -211,7 +189,7 @@ const OrderScreenPC = ({
                   shadowOpacity: 0.4,
                   shadowOffset: { width: 2, height: 2 },
                   backgroundColor:
-                    pkg.value === formData.hours
+                    pkg.value === bookingDetails.hours
                       ? colors.primary
                       : colors.backgroundColor,
                 },
@@ -222,7 +200,7 @@ const OrderScreenPC = ({
                   styles.packageLabel,
                   {
                     color:
-                      pkg.value === formData.hours
+                      pkg.value === bookingDetails.hours
                         ? colors.white
                         : colors.themeColorTextPure,
                   },
@@ -233,7 +211,7 @@ const OrderScreenPC = ({
               <Text
                 style={[
                   styles.packagePrice,
-                  formData.hours === pkg.value && { color: colors.white },
+                  bookingDetails.hours === pkg.value && { color: colors.white },
                 ]}
               >
                 ₩{pkg.price.toLocaleString()}
@@ -243,38 +221,6 @@ const OrderScreenPC = ({
         </View>
 
         {/* FOOTER / BOOKING */}
-        <View
-          style={[
-            styles.footer,
-            {
-              backgroundColor: colors.backgroundColor,
-              shadowColor: colors.shadowColor,
-              shadowOpacity: 0.5,
-              shadowOffset: { width: 2, height: 2 },
-            },
-          ]}
-        >
-          <View>
-            <AppText style={styles.footerLabel}>Total for {tier}</AppText>
-            <AppText style={styles.totalText}>
-              ₩{totalPrice.toLocaleString()}
-            </AppText>
-          </View>
-          <TouchableOpacity
-            style={[styles.bookBtn, { backgroundColor: colors.primary }]}
-          >
-            <Text
-              style={[
-                styles.bookBtnText,
-                {
-                  color: theme === "dark" ? colors.dark : colors.white,
-                },
-              ]}
-            >
-              Book Now
-            </Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </View>
   );
@@ -340,4 +286,4 @@ const styles = StyleSheet.create({
   bookBtnText: { fontWeight: "bold", fontSize: 16 },
 });
 
-export default OrderScreenPC;
+export default Step_one_pc;

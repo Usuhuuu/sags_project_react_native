@@ -26,7 +26,6 @@ import {
   HallDetailSeparator,
   HallTypesSeparator,
 } from "@/interfaces/hallTypes";
-import OrderScreenPC from "../details/pcdetails";
 import { LinearGradient } from "react-native-linear-gradient";
 import Animated, {
   useSharedValue,
@@ -35,11 +34,11 @@ import Animated, {
 
 interface PC_HallsProps {
   listing: EsportHallDataType;
-  sportHallID: string;
+  hallID: string;
   hallType: HallTypesSeparator;
 }
 
-const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
+const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
   const { colors: Colors, theme } = useTheme();
 
   const imageRef = useRef<ICarouselInstance>(null);
@@ -49,8 +48,7 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
   const [page, setPage] = useState<number>(0);
   const [noMoreReviews, setNoMoreReviews] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [isOrderScreenVisible, setIsOrderScreenVisible] =
-    useState<boolean>(false);
+
   const [formData, setFormData] = useState<FormData>({
     sportHallID: "",
     name: "",
@@ -279,7 +277,7 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
       name: name,
       price: price,
       workTime: workTime,
-      image: imageUrls,
+      imageUrls: imageUrls,
       location: location ? location : prev.location,
     }));
   };
@@ -518,7 +516,10 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
               backgroundColor: Colors.primary,
             },
           ]}
-          onPress={() => setIsOrderScreenVisible(true)}
+          onPress={() => {
+            const zaal_id = listing.sportHallID;
+            router.push(`/listing/book/esport/${zaal_id}`);
+          }}
         >
           <AppText
             style={[
@@ -532,43 +533,6 @@ const Pc_Halls = ({ listing, hallType }: PC_HallsProps) => {
           </AppText>
         </TouchableOpacity>
       </View>
-      {/* Booking TimeSlot Selection */}
-      <Modal
-        animationType="slide"
-        visible={isOrderScreenVisible}
-        transparent
-        onRequestClose={() => setIsOrderScreenVisible(false)}
-      >
-        <View
-          style={[
-            {
-              backgroundColor: Colors.shadowColor,
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              borderColor: "black",
-              borderWidth: 1,
-            },
-          ]}
-        >
-          <View
-            style={[
-              {
-                backgroundColor: Colors.light,
-                borderRadius: 10,
-                width: "90%",
-                height: "90%",
-              },
-            ]}
-          >
-            <OrderScreenPC
-              listing={listing}
-              orderModelVisible={isOrderScreenVisible}
-              setOrderModelVisible={setIsOrderScreenVisible}
-            />
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };

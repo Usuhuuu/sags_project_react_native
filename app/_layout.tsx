@@ -219,7 +219,7 @@ export function RootLayoutNav() {
 
       <Stack.Screen
         name="listing/[sportHallID]"
-        options={{ headerShown: false }}
+        options={{ headerShown: false, animation: "fade" }}
       />
 
       <Stack.Screen
@@ -262,13 +262,19 @@ export function RootLayoutNav() {
         }}
       />
       <Stack.Screen
-        name="listing/book/[zaal_id]"
+        name="listing/book/sport/[zaal_id]"
         options={{
           headerShown: false,
         }}
       />
       <Stack.Screen
         name="(modals)/user/[friend_name]"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="listing/book/esport/[zaal_id]"
         options={{
           headerShown: false,
         }}

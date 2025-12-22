@@ -1,4 +1,7 @@
-import { useBookingStore } from "@/app/(modals)/context/store/bookStore";
+import {
+  SportBookingData,
+  useBookingStore,
+} from "@/app/(modals)/context/store/bookStore";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -16,12 +19,12 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import { scheduleNotificationForEvent } from "@/utils/calendarReminder";
 import { mutate } from "swr";
 import { useTheme } from "@/app/(modals)/context/themeContext";
-import Confirm_Modal from "./support_components/confirmation_modal";
+import Confirm_Modal from "../support_components/confirmation_modal";
 import { addHours, format } from "date-fns";
 import * as SecureStorage from "expo-secure-store";
-import Step_One from "./support_components/step_1";
-import Step_Two from "./support_components/step_2";
-import Step_Three from "./support_components/step_3";
+import Step_One from "../support_components/step_1";
+import Step_Two from "../support_components/step_2";
+import Step_Three from "../support_components/step_3";
 import { useNavigation } from "@react-navigation/native";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
 
@@ -111,7 +114,9 @@ const TransactionPage = () => {
     ReservationBlock[] | undefined
   >(undefined);
 
-  const bookingDetails = useBookingStore((state) => state.bookingDetails);
+  const bookingDetails = useBookingStore(
+    (state) => state.sportBookingDetails
+  ) as SportBookingData;
 
   useEffect(() => {
     bookingDetails?.selectedTimeSlots?.includes("WHOLE_DAY")

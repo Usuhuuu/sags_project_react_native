@@ -13,12 +13,12 @@ interface SportHallFeature {
   darts: boolean;
 }
 
-interface SportHallPrice {
+export interface SportHallPrice {
   oneHour: string;
   wholeDay: string;
 }
 
-interface EsportHallPrices {
+export interface EsportHallPrices {
   regularPc: SportHallPrice;
   vipPc: SportHallPrice;
   stagePc: SportHallPrice;

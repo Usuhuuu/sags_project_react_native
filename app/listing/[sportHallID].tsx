@@ -8,9 +8,12 @@ import { HallTypesSeparator } from "@/interfaces/hallTypes";
 import SportHall from "./hall_screens/sportHall";
 import Pc_Halls from "./hall_screens/pcHall";
 import { ActivityIndicator } from "react-native-paper";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { useTheme } from "../(modals)/context/themeContext";
 
 const DetailsPage = () => {
   const { sportHallID } = useLocalSearchParams();
+  const { colors } = useTheme();
 
   const [loading, setLoading] = useState<boolean>(true);
   const [hallSeparator, setHallSeparotor] = useState<HallTypesSeparator | null>(
@@ -65,7 +68,11 @@ const DetailsPage = () => {
           <ActivityIndicator />
         </View>
       ) : (
-        <View style={{ flex: 1 }}>
+        <Animated.View
+          style={{ flex: 1, backgroundColor: colors.backgroundColor }}
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(200)}
+        >
           {hallSeparator === HallTypesSeparator.SPORTHALL && listing && (
             <SportHall
               listing={listing as unknown as SportHallDataType}
@@ -79,13 +86,13 @@ const DetailsPage = () => {
             listing && (
               <Pc_Halls
                 listing={listing as unknown as EsportHallDataType}
-                sportHallID={
+                hallID={
                   Array.isArray(sportHallID) ? sportHallID[0] : sportHallID
                 }
                 hallType={hallSeparator}
               />
             )}
-        </View>
+        </Animated.View>
       )}
     </View>
   );
