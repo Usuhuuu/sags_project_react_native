@@ -27,6 +27,7 @@ import type { SharedValue } from "react-native-reanimated";
 import { useNotificationStore } from "@/app/(modals)/context/store/notificationStore";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import LottieView from "lottie-react-native";
+import { HallCategoryValue } from "@/interfaces/listing";
 
 // ICON MAP
 const iconMap: { [key: string]: any } = {
@@ -41,7 +42,7 @@ const iconMap: { [key: string]: any } = {
 };
 
 interface Props {
-  onCategoryChanged: (category: string) => void;
+  onCategoryChanged: (category: HallCategoryValue) => void;
   bottomSheetY: SharedValue<number>;
 }
 

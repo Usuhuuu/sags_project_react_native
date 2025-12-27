@@ -115,7 +115,7 @@ const ListingsMap = memo(
       } else {
         const categoryKey = selectedCategory.toLowerCase();
         const filtered = listings.filter(
-          (hall) => hall.sportType[categoryKey as keyof typeof hall.sportType]
+          (hall) => hall.hall_types.main === categoryKey
         );
         setFilteredHalls(filtered);
       }
@@ -206,10 +206,10 @@ const ListingsMap = memo(
               key={item.sportHallID}
               onPress={() => onMarkerSelected(item)}
               coordinate={{
-                latitude: parseFloat(item.location.latitude),
-                longitude: parseFloat(item.location.longitude),
+                latitude: parseFloat(item.hall_location?.latitude),
+                longitude: parseFloat(item.hall_location?.longitude),
               }}
-              title={item.name}
+              title={item.hall_details.hall_name}
               //description={item.properties.summary ?? undefined}
             />
           ))}

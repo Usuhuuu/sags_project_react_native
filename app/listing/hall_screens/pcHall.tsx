@@ -1,4 +1,4 @@
-import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
+import { EsportHallDataType } from "@/interfaces/listing";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
@@ -7,7 +7,6 @@ import {
   View,
   Image,
   ActivityIndicator,
-  Modal,
   StyleSheet,
 } from "react-native";
 import { FormData } from "../detail";
@@ -151,28 +150,30 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
   }, [page, activeTab]);
 
   const priceGenerator = (type: "hour" | "wholeDay") => {
-    if (!listing.prices) return;
-    return Object.entries(listing.prices).map(([key, value], index) => (
-      <View
-        key={`price-${index}`}
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginVertical: 5,
-        }}
-      >
-        <AppText style={{ fontWeight: "500" }}>
-          {key
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())}
-        </AppText>
-        {type === "hour" ? (
-          <AppText>${value.oneHour} tugrug</AppText>
-        ) : (
-          <AppText>${value.wholeDay} tugrug</AppText>
-        )}
-      </View>
-    ));
+    if (!listing.hall_details.hall_price) return;
+    return Object.entries(listing.hall_details.hall_price).map(
+      ([key, value], index) => (
+        <View
+          key={`price-${index}`}
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginVertical: 5,
+          }}
+        >
+          <AppText style={{ fontWeight: "500" }}>
+            {key
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str) => str.toUpperCase())}
+          </AppText>
+          {type === "hour" ? (
+            <AppText>${value.oneHour} tugrug</AppText>
+          ) : (
+            <AppText>${value.wholeDay} tugrug</AppText>
+          )}
+        </View>
+      )
+    );
   };
 
   const detailGenerate = {
@@ -212,7 +213,7 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
       },
       {
         label: "Opening Hours",
-        value: `${listing.workTime.startTime} - ${listing.workTime.endTime}`,
+        value: `${listing.hall_details.hall_work_time.start_time} - ${listing.hall_details.hall_work_time.end_time}`,
       },
       {
         label: "Price Details Per Hour",
@@ -285,11 +286,11 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
   useEffect(() => {
     handleZaalId(
       listing.sportHallID,
-      listing.name,
-      listing.prices,
-      `${listing.workTime.startTime} - ${listing.workTime.endTime}`,
-      listing.imageUrls,
-      listing.location
+      listing.hall_details.hall_name,
+      listing.hall_details.hall_price,
+      `${listing.hall_details.hall_work_time.start_time} - ${listing.hall_details.hall_work_time.end_time}`,
+      listing.hall_details.hall_imageURLs,
+      listing.hall_details.hall_location
     );
   }, [listing]);
 
@@ -325,7 +326,7 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
             height={400}
             loop={true}
             autoPlay={false}
-            data={listing.imageUrls}
+            data={listing.hall_details.hall_imageURLs}
             scrollAnimationDuration={500}
             onProgressChange={(absoluteProgress) => {
               progress.value = absoluteProgress;
@@ -342,7 +343,7 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
           />
           <Pagination.Custom
             progress={progress}
-            data={listing.imageUrls}
+            data={listing.hall_details.hall_imageURLs ?? []}
             dotStyle={{
               width: 25,
               height: 4,
@@ -389,7 +390,7 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
               marginBottom: 8,
             }}
           >
-            {listing.name}
+            {listing.hall_details.hall_name}
           </AppText>
           <View style={styles.ratingRow}>
             <AntDesign name="star" size={16} color="#FFD700" />

@@ -28,8 +28,8 @@ export type EsportBookingData = {
     longitude: string;
     smart_location?: string;
   };
-  tier: "regular" | "vip" | "stage";
-  hours: number | string;
+  tier?: "regular" | "vip" | "stage";
+  hours?: number | string;
 };
 
 interface BookingState {

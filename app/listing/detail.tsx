@@ -320,7 +320,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       stagePc: (formData as any).price?.stagePc ?? "0",
     };
 
-    useBookingStore.getState().setBookingDetails({
+    useBookingStore.getState().setSportBookingDetails({
       ...formData,
       sportHallID: zaal_id,
       selectedTimeSlots: selectedTimeSlots,

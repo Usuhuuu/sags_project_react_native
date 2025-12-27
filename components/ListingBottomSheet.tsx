@@ -1,21 +1,19 @@
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useMemo, useRef, useState } from "react";
 import Listings from "@/components/Listing";
 import BottomSheet from "@gorhom/bottom-sheet";
-import { SportHallDataType } from "@/interfaces/listing";
+import {
+  EsportHallDataType,
+  HallCategoryValue,
+  SportHallDataType,
+} from "@/interfaces/listing";
 import { Ionicons } from "@expo/vector-icons";
 import type { SharedValue } from "react-native-reanimated";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 
 interface ListingBottomSheetProps {
-  listing: SportHallDataType[];
-  category: string;
+  listing: (SportHallDataType | EsportHallDataType)[];
+  category: HallCategoryValue;
   bottomSheetY: SharedValue<number>; // Shared value to track bottom sheet position
 }
 
@@ -29,10 +27,12 @@ const ListingBottomSheet = ({
   const [refresh, setrefresh] = useState<number>(0);
 
   const filteredListData = useMemo(() => {
-    return listing.filter(
-      (item: SportHallDataType) =>
-        item.sportType[category as keyof typeof item.sportType] === true
-    );
+    return listing.filter((item) => {
+      if (listing[0].hall_types.sub.includes(category as any)) {
+        return true;
+      }
+      return false;
+    });
   }, [listing, category]);
 
   const showMap = () => {

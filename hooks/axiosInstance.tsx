@@ -1,6 +1,5 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import { Alert } from "react-native";
 import Constants from "expo-constants";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 

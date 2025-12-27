@@ -27,13 +27,19 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "../context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
-type LoginInput = {
+export type LoginInput = {
   userName: string;
   firstName: string;
   lastName: string;
   email: string;
   userID: string;
   signUpTimer?: string;
+  phoneNumber: string;
+  password: string;
+  userAgreeTerms: {
+    agree_terms: boolean;
+    agree_privacy: boolean;
+  };
 };
 
 const initSteps = [
@@ -224,28 +230,44 @@ const SignupModal = ({
 
   const handleSubmit = async () => {
     try {
-      const response = await axiosInstanceRegular.post(
-        `/api/${path}`,
-        {
-          fbData: {
-            userName: formData.userName,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            signUpTimer: formData.signUpTimer,
-            userNotificationToken: notificationToken,
+      let response;
+      if (path === "signup") {
+        response = await axiosInstanceRegular.post(`/api/${path}`, {
+          userName: formData.userName,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          signUpTimer: formData.signUpTimer,
+          userNotificationToken: notificationToken,
+          unique_user_ID: formData.userName,
+          email: formData.email,
+          password: "password",
+          userAgreeTerms: formData.userAgreeTerms,
+        });
+      } else {
+        response = await axiosInstanceRegular.post(
+          `/api/${path}`,
+          {
+            fbData: {
+              userName: formData.userName,
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              email: formData.email,
+              signUpTimer: formData.signUpTimer,
+              userNotificationToken: notificationToken,
+            },
           },
-        },
-        {
-          timeout: 5000,
-        }
-      );
-      if (response.status === 200 && response.data.success) {
+          {
+            timeout: 5000,
+          }
+        );
+      }
+
+      if (response?.status === 200 && response?.data.success) {
         await SecureStore.setItemAsync(
           "Tokens",
           JSON.stringify({
-            accessToken: response.data.accessToken,
-            refreshToken: response.data.refreshToken,
+            accessToken: response?.data.accessToken,
+            refreshToken: response?.data.refreshToken,
           })
         );
         setModalVisible(false);
@@ -279,19 +301,6 @@ const SignupModal = ({
         useNativeDriver: true,
       }).start();
     });
-  };
-  const nextStep = () => {
-    if (steps < initSteps.length - 1) {
-      setSteps((prev) => prev + 1);
-      fadeInStep();
-    }
-  };
-
-  const previousStep = () => {
-    if (steps > 0) {
-      setSteps((prev) => prev - 1);
-      fadeInStep();
-    }
   };
   const getNotificationToken = async () => {
     const notificationtoken = await SecureStore.getItemAsync(
@@ -626,19 +635,23 @@ const SignupModal = ({
             {Object.entries(formData).map(([fields, value]) => (
               <View key={fields} style={styles.modalInputContainer}>
                 <Text>{fields}</Text>
-                <TextInput
-                  value={value}
-                  mode="outlined"
-                  style={styles.modalInput}
-                  theme={{
-                    colors: {
-                      primary: Colors.primary,
-                      outline: Colors.darkGrey,
-                      placeholder: Colors.darkGrey,
-                      background: Colors.white,
-                    },
-                  }}
-                />
+                {typeof value === "string" ? (
+                  <TextInput
+                    value={value}
+                    mode="outlined"
+                    style={styles.modalInput}
+                    theme={{
+                      colors: {
+                        primary: Colors.primary,
+                        outline: Colors.darkGrey,
+                        placeholder: Colors.darkGrey,
+                        background: Colors.white,
+                      },
+                    }}
+                  />
+                ) : (
+                  <></>
+                )}
               </View>
             ))}
             <TouchableOpacity

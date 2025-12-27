@@ -27,7 +27,7 @@ import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
 interface Props {
-  listings: SportHallDataType[];
+  listings: (SportHallDataType | EsportHallDataType)[];
   category: string;
   refresh: number;
 }
@@ -103,14 +103,13 @@ const ListingComponent = ({ listings: items, category }: Props) => {
       alignItems: "center",
     },
   });
-
   const [loading, setLoading] = useState(false);
   const listRef = useRef<BottomSheetFlatListMethods>(null);
   const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
 
   const handleCategoryPress = (label: string): void => {
-    setSelected(label); // Set selected label
+    setSelected(label);
   };
   useEffect(() => {
     setLoading(true);
@@ -125,6 +124,12 @@ const ListingComponent = ({ listings: items, category }: Props) => {
     },
     [router]
   );
+
+  const isSportHall = (
+    it: SportHallDataType | EsportHallDataType
+  ): it is SportHallDataType => {
+    return !!(it as SportHallDataType).hall_details?.hall_price?.oneHour;
+  };
 
   const ListingItem = React.memo(
     ({
@@ -144,7 +149,9 @@ const ListingComponent = ({ listings: items, category }: Props) => {
             style={styles.backgroundImage}
           >
             <View style={styles.detailsContainer}>
-              <Text style={styles.text}>{item.name}</Text>
+              <Text style={styles.text}>
+                {item.hall_details?.hall_name ?? "Hall Name"}
+              </Text>
 
               <View style={styles.ratingContainer}>
                 <MaterialIcons name="sports-score" size={24} color="red" />
@@ -162,12 +169,16 @@ const ListingComponent = ({ listings: items, category }: Props) => {
                 <Text style={styles.text}>{item.neighbourhood}</Text> */}
               </View>
 
-              {"price" in item ? (
+              {/* {"price" in item ? (
                 <AppText>{item.price.oneHour} / hr</AppText>
               ) : "prices" in item ? (
                 <Text style={styles.text}>
                   ${item.prices.regularPc.oneHour} / hr
                 </Text>
+              ) : null} */}
+
+              {isSportHall(item) ? (
+                <AppText>{item.hall_details.hall_price.oneHour} / hr</AppText>
               ) : null}
 
               <TouchableOpacity style={styles.viewButton}>
@@ -184,10 +195,13 @@ const ListingComponent = ({ listings: items, category }: Props) => {
     (prevProps, nextProps) => prevProps.item === nextProps.item
   );
 
-  const renderRow: ListRenderItem<SportHallDataType> = useCallback(
-    ({ item }) => <ListingItem item={item} onPress={handlePress} />,
-    [handlePress]
-  );
+  const renderRow: ListRenderItem<SportHallDataType | EsportHallDataType> =
+    useCallback(
+      ({ item }) => {
+        return <ListingItem item={item} onPress={handlePress} />;
+      },
+      [handlePress]
+    );
 
   const CategoryButton = ({
     label,

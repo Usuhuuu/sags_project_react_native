@@ -182,9 +182,9 @@ const TransactionPage = () => {
             time_slots: group,
           };
         });
-
+        const type = "sport";
         response = await axiosInstance.post(
-          "/auth/book",
+          `/auth/book/${type}`,
           {
             sport_hall_id: bookingDetails.sportHallID,
             date: dateOnly,

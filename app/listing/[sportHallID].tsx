@@ -3,7 +3,12 @@ import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import SportHallData from "@/assets/Data/sportHall.json";
 
-import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
+import {
+  EsportHallDataType,
+  HallCategoryType,
+  HallCategoryValue,
+  SportHallDataType,
+} from "@/interfaces/listing";
 import { HallTypesSeparator } from "@/interfaces/hallTypes";
 import SportHall from "./hall_screens/sportHall";
 import Pc_Halls from "./hall_screens/pcHall";
@@ -21,29 +26,23 @@ const DetailsPage = () => {
   );
   const listing = SportHallData.find(
     (item) => item.sportHallID === sportHallID
-  );
+  ) as unknown as SportHallDataType | EsportHallDataType;
   const hallSeparatorFunc = () => {
-    const sportType = listing?.sportType;
-    if (!sportType) return;
-    const activeTypes = Object.entries(sportType).filter(
-      ([, value]) => value === true
-    );
-    if (activeTypes.length > 1) {
-      console.log("Multiple sport types detected:", activeTypes);
-    }
+    const sportSet = new Set(listing?.hall_types.sub);
+    if (!sportSet) return;
     switch (true) {
-      case sportType.basket_ball ||
-        sportType.foot_ball ||
-        sportType.volley_ball:
+      case sportSet.has("basket_ball") ||
+        sportSet.has("foot_ball") ||
+        sportSet.has("volley_ball"):
         setHallSeparotor(HallTypesSeparator.SPORTHALL);
         break;
-      case sportType.billiards:
+      case sportSet.has("billiards"):
         setHallSeparotor(HallTypesSeparator.BILLIARDHALL);
         break;
-      case sportType.bowling:
+      case sportSet.has("bowling"):
         setHallSeparotor(HallTypesSeparator.BOWLINGHALL);
         break;
-      case sportType.computer || sportType.playstation:
+      case sportSet.has("computer") || sportSet.has("playstation"):
         setHallSeparotor(HallTypesSeparator.COMPUTERGAMESHALL);
         break;
       default:

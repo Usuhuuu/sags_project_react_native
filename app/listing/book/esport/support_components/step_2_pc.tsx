@@ -7,18 +7,13 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
-import React, { useEffect } from "react";
+import React from "react";
 import { Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
-import { EsportHallDataType } from "@/interfaces/listing";
-import Carousel, {
-  ICarouselInstance,
-  Pagination,
-} from "react-native-reanimated-carousel";
+import Carousel from "react-native-reanimated-carousel";
 import {
   EsportBookingData,
   useBookingStore,
 } from "@/app/(modals)/context/store/bookStore";
-import AppText from "@/constants/appTextDefault";
 
 interface Step_two_pc_props {
   listing: EsportBookingData | undefined;
@@ -29,6 +24,7 @@ const Step_two_pc = ({ listing, step, setStep }: Step_two_pc_props) => {
   const { width } = Dimensions.get("window");
   const bookingDetails = useBookingStore((state) => state.esportBookingDetails);
   if (!bookingDetails) return <Text>Loading...</Text>;
+
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scrollContent}>

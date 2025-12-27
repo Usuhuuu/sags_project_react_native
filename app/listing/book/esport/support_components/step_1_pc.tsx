@@ -4,7 +4,6 @@ import {
 } from "@/app/(modals)/context/store/bookStore";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
-import { EsportHallDataType } from "@/interfaces/listing";
 import React, { useCallback, useState } from "react";
 import {
   ScrollView,
@@ -14,24 +13,17 @@ import {
   StyleSheet,
   Image,
   ImageBackground,
+  ActivityIndicator,
 } from "react-native";
 
 const PC_BANG_BLUE = "#00d2ff";
 const PC_BANG_PURPLE = "#9d50bb";
 
 interface Step_one_pc_props {
-  listing: EsportBookingData | undefined;
-  step?: number;
-  setStep?: React.Dispatch<React.SetStateAction<number>>;
-  hallId: string;
+  bookSaveFunc: (data: Partial<EsportBookingData>) => void;
 }
-type EsportFormData = {
-  tier: string;
-  hours: number | string;
-  date: Date;
-};
 
-const Step_one_pc = ({ listing, step, setStep, hallId }: Step_one_pc_props) => {
+const Step_one_pc = ({ bookSaveFunc }: Step_one_pc_props) => {
   const { theme, colors } = useTheme();
 
   const [tier, setTier] = useState<"regular" | "vip" | "stage">("regular");
@@ -87,6 +79,14 @@ const Step_one_pc = ({ listing, step, setStep, hallId }: Step_one_pc_props) => {
     },
     [setBookingDetails]
   );
+
+  if (bookingDetails === null) {
+    return (
+      <View>
+        <ActivityIndicator size={"large"} color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.backgroundColor }}>

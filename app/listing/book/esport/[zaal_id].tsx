@@ -17,14 +17,11 @@ import { useNavigation } from "@react-navigation/native";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
 import AppText from "@/constants/appTextDefault";
 import HallData from "@/assets/Data/sportHall.json";
+import axiosInstance from "@/hooks/axiosInstance";
 
-interface BookingEsportHallProps {
-  listing: EsportHallDataType;
-  orderModelVisible: boolean;
-  setOrderModelVisible: React.Dispatch<React.SetStateAction<boolean>>;
-}
+interface BookingEsportHallProps {}
 
-const BookingEsportHall = ({}: BookingEsportHallProps) => {
+const BookingEsportHall = () => {
   const { colors, theme } = useTheme();
   const navigation = useNavigation<TabNavTypes>();
   const customStyles = {
@@ -51,31 +48,38 @@ const BookingEsportHall = ({}: BookingEsportHallProps) => {
     currentStepLabelColor: colors.primary,
   };
   const [step, setStep] = useState(0);
-  const [data, setData] = useState<
-    EsportHallDataType | SportBookingData | null
-  >(null);
+  const [isDataInited, setIsDataInited] = useState<boolean>(false);
+
   const { zaal_id } = useLocalSearchParams();
-  const listing = HallData.find((item) => item.sportHallID === zaal_id);
+  const listing = HallData.find((item) => item.sportHallID === zaal_id) as
+    | EsportHallDataType
+    | undefined;
 
   const bookingDetails: EsportBookingData = {
-    name: listing?.name ?? "",
+    name: listing?.hall_details.hall_name ?? "Hall Name",
     date: new Date(),
     sportHallID: listing?.sportHallID ?? "",
-    price: listing?.prices as unknown as EsportHallDataType["prices"],
-    imageUrls: listing?.imageUrls,
-    location: listing?.location ?? { latitude: "", longitude: "" },
+    price: listing?.hall_details.hall_price ?? (null as any),
+    imageUrls: listing?.hall_details.hall_imageURLs,
+    location: listing?.hall_details.hall_location ?? {
+      latitude: "",
+      longitude: "",
+    },
     tier: "regular",
     hours: 1,
   };
   const setBookingDetails = useBookingStore(
     (state) => state.setEsportBookingDetails
   );
-
+  const bookingData = useBookingStore((state) => state.esportBookingDetails);
   useEffect(() => {
-    if (listing) {
+    if (!isDataInited) {
       setBookingDetails(bookingDetails);
+      setIsDataInited(true);
     }
-  }, [listing, setBookingDetails]);
+    console.log(step);
+    console.log("Data", bookingData);
+  }, [step]);
   const packages = [
     { label: "1 Hour", value: 1, price: 1200 },
     { label: "3 Hours", value: 3, price: 3000 },
@@ -85,6 +89,22 @@ const BookingEsportHall = ({}: BookingEsportHallProps) => {
   const [tier, setTier] = useState("regular");
   const [hours, setHours] = useState<number>(1);
   const totalPrice = packages.find((p) => p.value === hours)?.price || 0;
+
+  const handleBooking = async () => {
+    try {
+      const timezone = encodeURIComponent(
+        Intl.DateTimeFormat().resolvedOptions().timeZone
+      );
+      const response = await axiosInstance.post(`/auth/book/esport`, {
+        sport_hall_id: bookingDetails.sportHallID,
+        date: bookingData?.date,
+        timezone: timezone,
+      });
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+    }
+  };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
       {/* Header */}
@@ -125,18 +145,7 @@ const BookingEsportHall = ({}: BookingEsportHallProps) => {
           <Feather name="more-vertical" size={30} color={colors.primary} />
         </TouchableOpacity>
       </View>
-      {step === 0 && (
-        <Step_one_pc
-          listing={
-            bookingDetails
-              ? (bookingDetails as unknown as EsportBookingData)
-              : undefined
-          }
-          step={step}
-          setStep={setStep}
-          hallId={typeof zaal_id === "string" ? zaal_id : zaal_id[0]}
-        />
-      )}
+      {step === 0 && <Step_one_pc bookSaveFunc={setBookingDetails} />}
       {step === 1 && (
         <Step_two_pc
           listing={
@@ -208,6 +217,9 @@ const BookingEsportHall = ({}: BookingEsportHallProps) => {
             style={[styles.bookBtn, { backgroundColor: colors.primary }]}
             onPress={() => {
               setStep?.(step! - 1);
+              if (step === 2) {
+                handleBooking();
+              }
             }}
           >
             <Text
@@ -224,7 +236,11 @@ const BookingEsportHall = ({}: BookingEsportHallProps) => {
           <TouchableOpacity
             style={[styles.bookBtn, { backgroundColor: colors.primary }]}
             onPress={() => {
-              setStep?.(step! + 1);
+              if (step === 2) {
+                handleBooking();
+              } else if (step <= 2) {
+                setStep?.(step! + 1);
+              }
             }}
           >
             <Text

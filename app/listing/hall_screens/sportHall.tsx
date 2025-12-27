@@ -207,11 +207,11 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
   useEffect(() => {
     handleZaalId(
       sportHallID,
-      listing?.name,
-      listing?.price,
-      `${listing?.workTime.startTime}~${listing?.workTime.endTime}`,
-      listing?.imageUrls,
-      listing?.location
+      listing?.hall_details.hall_name,
+      listing?.hall_details.hall_price,
+      `${listing?.hall_details.hall_work_time.start_time}~${listing?.hall_details.hall_work_time.end_time}`,
+      listing?.hall_details.hall_imageURLs,
+      listing?.hall_location
     );
   }, [sportHallID]);
   const detailGenerate = {
@@ -250,7 +250,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
       },
       {
         label: "Opening Hours",
-        value: `${listing.workTime.startTime} - ${listing.workTime.endTime}`,
+        value: `${listing.hall_details.hall_work_time.start_time} - ${listing.hall_details.hall_work_time.end_time}`,
       },
     ],
     amentities: [
@@ -365,7 +365,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
             height={400}
             loop={true}
             autoPlay={false}
-            data={listing.imageUrls}
+            data={listing.hall_details.hall_imageURLs ?? []}
             scrollAnimationDuration={500}
             onProgressChange={(absoluteProgress) => {
               progress.value = absoluteProgress;
@@ -382,7 +382,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
           />
           <Pagination.Custom
             progress={progress}
-            data={listing.imageUrls}
+            data={listing.hall_details.hall_imageURLs ?? []}
             dotStyle={{
               width: 25,
               height: 4,
@@ -429,7 +429,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
               marginBottom: 8,
             }}
           >
-            {listing.name}
+            {listing.hall_details.hall_name}
           </AppText>
           <View style={styles.ratingRow}>
             <AntDesign name="star" size={16} color="#FFD700" />
@@ -604,8 +604,8 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
               hallType={hallType}
               setIsOrderScreenVisible={setIsOrderScreenVisible}
               baseTimeSlot={
-                Array.isArray(listing?.availableTimeSlots)
-                  ? listing.availableTimeSlots
+                Array.isArray(listing?.base_time_slots)
+                  ? listing.base_time_slots
                       .filter(
                         (slot) =>
                           typeof slot.start_time === "string" &&

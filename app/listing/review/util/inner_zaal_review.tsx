@@ -78,7 +78,7 @@ const Inner_Zaal_Review = () => {
           }}
         >
           <Image
-            source={{ uri: zaal_data?.imageUrls?.[0] }}
+            source={{ uri: zaal_data?.hall_details.hall_imageURLs?.[0] }}
             style={{ width: 300, height: 200, borderRadius: 10 }}
           />
           <View
@@ -89,7 +89,7 @@ const Inner_Zaal_Review = () => {
             }}
           >
             <Text style={{ color: Colors.dark, fontWeight: 700, fontSize: 20 }}>
-              {zaal_data?.name ?? "Name"}
+              {zaal_data?.hall_details.hall_name ?? "Name"}
             </Text>
             <StarRating
               rating={rating}

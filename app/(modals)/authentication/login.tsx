@@ -17,20 +17,12 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/authContext";
 import { loginWithFacebook, loginWithGoogle } from "./third_party_instance";
-import SignupModal from "./signup_modal";
+import SignupModal, { LoginInput } from "./signup_modal";
 import { TextInput } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "../context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
-type LoginInput = {
-  userName: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  userID: string;
-  signUpTimer?: string;
-};
 const Page = () => {
   const { colors: Colors } = useTheme();
   const styles = StyleSheet.create({
@@ -148,7 +140,7 @@ const Page = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [passwordHide, setPasswordHide] = useState<boolean>(true);
   const [isItApple, setIsITApple] = useState<boolean>(false);
-  const [path, setPath] = useState<string>("");
+  const [path, setPath] = useState<string>("signup");
 
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [steps, setSteps] = useState<number>(0);
@@ -159,6 +151,12 @@ const Page = () => {
     email: "",
     userID: "",
     signUpTimer: "",
+    phoneNumber: "",
+    password: "",
+    userAgreeTerms: {
+      agree_terms: true,
+      agree_privacy: true,
+    },
   });
 
   const { logIn } = useAuth();
