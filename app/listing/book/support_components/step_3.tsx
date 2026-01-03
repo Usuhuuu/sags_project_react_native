@@ -1,4 +1,4 @@
-import { BookingData } from "@/app/(modals)/context/store/bookStore";
+import { SportBookingData } from "@/app/(modals)/context/store/bookStore";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import React, { SetStateAction } from "react";
@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
 interface Step_Three_Props {
-  bookingDetails: BookingData | null;
+  bookingDetails: SportBookingData | null;
   wholeDay: boolean;
   selectedTimeSlots: string[][];
   steps: number;

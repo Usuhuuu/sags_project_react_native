@@ -5,7 +5,7 @@ export type SportBookingData = {
   name: string;
   date: Date;
   sportHallID: string;
-  price: EsportHallPrices | SportHallPrice;
+  price: SportHallPrice;
   selectedTimeSlots?: string[];
   workTime?: string;
   baseTime_startAndEnd?: string;
@@ -30,6 +30,8 @@ export type EsportBookingData = {
   };
   tier?: "regular" | "vip" | "stage";
   hours?: number | string;
+  startTime?: Date | string;
+  bookingDate?: Date | string;
 };
 
 interface BookingState {

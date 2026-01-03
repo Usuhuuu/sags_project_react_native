@@ -9,6 +9,7 @@ import {
 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
+import LottieView from "lottie-react-native";
 import React, { SetStateAction } from "react";
 import { Modal, TouchableOpacity, View } from "react-native";
 
@@ -76,7 +77,7 @@ const Confirm_Modal = ({
               padding: 20,
             }}
           >
-            <Ionicons
+            {/* <Ionicons
               name="checkmark-circle-outline"
               size={100}
               color={colors.green}
@@ -85,7 +86,25 @@ const Confirm_Modal = ({
                 textShadowRadius: 10,
                 textShadowOffset: { width: 0, height: 0 },
               }}
-            />
+            /> */}
+            <View
+              style={{
+                width: 150,
+                height: 150,
+                shadowColor: colors.green,
+                shadowOpacity: 0.6,
+                shadowRadius: 20,
+                shadowOffset: { width: 0, height: 0 },
+                elevation: 12,
+              }}
+            >
+              <LottieView
+                source={require("@/assets/images/book/success.json")}
+                autoPlay
+                loop={false}
+                style={{ width: 150, height: 150 }}
+              />
+            </View>
             <AppText style={{ fontSize: 28 }}>Booking Confirmed!</AppText>
           </View>
 

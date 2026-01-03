@@ -2,19 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import SportHallData from "@/assets/Data/sportHall.json";
-
-import {
-  EsportHallDataType,
-  HallCategoryType,
-  HallCategoryValue,
-  SportHallDataType,
-} from "@/interfaces/listing";
+import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
 import { HallTypesSeparator } from "@/interfaces/hallTypes";
 import SportHall from "./hall_screens/sportHall";
 import Pc_Halls from "./hall_screens/pcHall";
 import { ActivityIndicator } from "react-native-paper";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useTheme } from "../(modals)/context/themeContext";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const DetailsPage = () => {
   const { sportHallID } = useLocalSearchParams();
@@ -64,7 +59,7 @@ const DetailsPage = () => {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <ActivityIndicator />
+          <OwnActivaterIndicator />
         </View>
       ) : (
         <Animated.View

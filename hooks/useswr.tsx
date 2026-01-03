@@ -11,6 +11,19 @@ interface useSWRProps {
   loginStatus: boolean;
   body?: string[];
 }
+export type SWR_regular_cache_key =
+  | readonly [
+      "booked_order",
+      string, // screenSeparator
+      number, // page
+      string // date
+    ]
+  | readonly ["group_chat"];
+type SWRRegularProps = {
+  pathname: string;
+  cacheKey: SWR_regular_cache_key | null;
+  loginStatus: boolean;
+};
 
 const onErrorRetry = (
   error: any,
@@ -26,34 +39,30 @@ const onErrorRetry = (
 };
 
 export const regular_swr = (
-  { item }: { item: useSWRProps },
+  { item }: { item: SWRRegularProps },
   config?: SWRConfiguration
 ) => {
-  const { pathname, cacheKey, loginStatus } = item;
-  const swrKey = loginStatus ? [cacheKey, loginStatus] : null;
+  const swrKey = item.loginStatus ? item.cacheKey : null;
 
-  const {
-    data: userData,
-    error: userError,
-    isLoading: userLoading,
-  } = useSWR(swrKey, {
-    fetcher: () => normalFetch(`${pathname}`),
-    revalidateOnFocus: config?.revalidateOnFocus ?? false,
-    dedupingInterval: config?.dedupingInterval ?? 10000,
-    shouldRetryOnError: true,
-    revalidateOnMount: config?.revalidateOnMount ?? true,
-    errorRetryCount: 3,
-    loadingTimeout: 3000,
-    onErrorRetry,
-    ...config,
-  });
-  if (!loginStatus) {
-    mutate([cacheKey, true], undefined, { revalidate: false });
-  }
+  const { data, error, isLoading } = useSWR(
+    swrKey,
+    () => normalFetch(item.pathname),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 10000,
+      shouldRetryOnError: true,
+      revalidateOnMount: true,
+      errorRetryCount: 3,
+      loadingTimeout: 3000,
+      onErrorRetry,
+      ...config,
+    }
+  );
+
   return {
-    data: userData,
-    error: userError,
-    isLoading: userLoading,
+    data,
+    error,
+    isLoading,
   };
 };
 
@@ -128,4 +137,14 @@ export const post_auth_swr = (
     error: userError,
     isLoading: userLoading,
   };
+};
+
+export const flush_regular_swr = () => {
+  mutate(
+    (key) =>
+      Array.isArray(key) &&
+      (key[0] === "booked_order" || key[0] === "group_chat"),
+    undefined,
+    { revalidate: true, throwOnError: true }
+  );
 };

@@ -1,9 +1,14 @@
 import {
+  TimePicker15Min,
+  WeekCalendarWithoutMonth,
+} from "@/app/(modals)/book/components/calendar_strip";
+import {
   EsportBookingData,
   useBookingStore,
 } from "@/app/(modals)/context/store/bookStore";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
 import {
   ScrollView,
@@ -14,20 +19,21 @@ import {
   Image,
   ImageBackground,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 const PC_BANG_BLUE = "#00d2ff";
 const PC_BANG_PURPLE = "#9d50bb";
 
-interface Step_one_pc_props {
-  bookSaveFunc: (data: Partial<EsportBookingData>) => void;
-}
-
-const Step_one_pc = ({ bookSaveFunc }: Step_one_pc_props) => {
+type FieldType = {
+  tier: String;
+  hours: number | string;
+  startTime: Date | string;
+  bookingDate: Date;
+};
+const Step_one_pc = () => {
   const { theme, colors } = useTheme();
-
-  const [tier, setTier] = useState<"regular" | "vip" | "stage">("regular");
-  const [hours, setHours] = useState<number | string>(1);
   const tiers = [
     {
       id: "regular",
@@ -51,11 +57,19 @@ const Step_one_pc = ({ bookSaveFunc }: Step_one_pc_props) => {
       backgroundImage: require("@/assets/images/computerImage/stage.png"),
     },
   ];
+  const [selectedData, setSelectedDate] = useState(new Date());
+  const [initTime, setInitTime] = useState(false);
   const packages = [
     { label: "1 Hour", value: 1, price: 1200 },
     { label: "3 Hours", value: 3, price: 3000 },
-    { label: "10 Hours", value: 10, price: 9000 },
-    { label: "WHOLE DAY", value: 24, price: 18000, isSpecial: true },
+    { label: "5 Hours", value: 5, price: 9000 },
+    {
+      label: "Night Pass",
+      value: 8,
+      price: 12000,
+      isSpecial: true,
+      night_time: "10PM - 6AM",
+    },
   ];
 
   const bookingDetails = useBookingStore(
@@ -71,8 +85,8 @@ const Step_one_pc = ({ bookSaveFunc }: Step_one_pc_props) => {
       updateField,
       value,
     }: {
-      updateField: "tier" | "hours";
-      value: string | number;
+      updateField: "tier" | "hours" | "startTime" | "bookingDate";
+      value: FieldType[typeof updateField];
     }) => {
       console.log(updateField, value);
       setBookingDetails({ [updateField]: value });
@@ -87,7 +101,6 @@ const Step_one_pc = ({ bookSaveFunc }: Step_one_pc_props) => {
       </View>
     );
   }
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -97,7 +110,12 @@ const Step_one_pc = ({ bookSaveFunc }: Step_one_pc_props) => {
         </AppText>
 
         {/* TIER SELECTION */}
-        <View style={styles.section}>
+        <View
+          style={{
+            backgroundColor: colors.backgroundColor,
+            marginBottom: 30,
+          }}
+        >
           {tiers.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -110,6 +128,7 @@ const Step_one_pc = ({ bookSaveFunc }: Step_one_pc_props) => {
               style={[
                 styles.tierCard,
                 {
+                  backgroundColor: colors.containerColor,
                   borderColor:
                     item.id === bookingDetails.tier
                       ? colors.primary
@@ -166,58 +185,214 @@ const Step_one_pc = ({ bookSaveFunc }: Step_one_pc_props) => {
           ))}
         </View>
 
+        <View style={[styles.section, { gap: 15 }]}>
+          <AppText style={styles.sectionTitle}>When you want to play</AppText>
+          <View style={{ gap: 10 }}>
+            <AppText style={{ color: colors.themeColorTextSecondary }}>
+              SELECT DATE
+            </AppText>
+            <WeekCalendarWithoutMonth
+              selectedDay={selectedData}
+              setSelectedDay={(date) => {
+                updateBookingDetails({
+                  updateField: "bookingDate",
+                  value: date,
+                });
+                setSelectedDate(date);
+              }}
+              containerStyle={{
+                flex: 1,
+                width: "100%",
+                height: "100%",
+                paddingBottom: 10,
+              }}
+              selectedDayTextStyle={{ color: colors.white }}
+              selectedDayNumberStyle={{ color: colors.white }}
+              selectedContainerStyle={{ backgroundColor: colors.primary }}
+              textWeekStyle={{
+                color: colors.darkGrey,
+                fontSize: 12,
+                fontWeight: "600",
+              }}
+              textDayStyle={{
+                color:
+                  theme === "dark" ? colors.themeColorTextPure : colors.dark,
+                fontWeight: "800",
+                fontSize: 17,
+              }}
+              dayBoxStyle={{
+                borderRadius: 15,
+                backgroundColor:
+                  theme === "dark" ? colors.containerColor : colors.white,
+              }}
+              monthTextStyle={{
+                color: colors.darkGrey,
+                fontSize: 15,
+                fontWeight: "500",
+              }}
+            />
+          </View>
+          <View style={{ gap: 10 }}>
+            <AppText>START TIME</AppText>
+            <View
+              style={{
+                shadowColor: colors.shadowColor,
+                shadowOpacity: 0.1,
+                shadowOffset: { width: 2, height: 5 },
+              }}
+            >
+              <TimePicker15Min
+                onSelect={updateBookingDetails}
+                formatedTime={bookingDetails.bookingDate}
+                init={initTime}
+                setInited={setInitTime}
+              />
+            </View>
+          </View>
+        </View>
+
         {/* TIME SELECTION */}
         <AppText style={styles.sectionTitle}>Choose Time Package</AppText>
-        <View style={styles.packageGrid}>
-          {packages.map((pkg) => (
-            <TouchableOpacity
-              key={pkg.value}
-              onPress={() =>
-                updateBookingDetails({
-                  updateField: "hours",
-                  value: pkg.value,
-                })
-              }
-              style={[
-                styles.packageBtn,
-                bookingDetails.hours === pkg.value && {
-                  backgroundColor: colors.primary,
-                },
-                pkg.isSpecial && styles.specialBtn,
-                {
-                  shadowColor: colors.shadowColor,
-                  shadowOpacity: 0.4,
-                  shadowOffset: { width: 2, height: 2 },
-                  backgroundColor:
-                    pkg.value === bookingDetails.hours
+        <View
+          style={{
+            flexDirection: "row",
+            width: "100%",
+            gap: 10,
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          {packages.map((pkg, index) => {
+            const isSelected = bookingDetails.hours === pkg.value;
+            const popular = pkg.label === "3 Hours";
+            return (
+              <TouchableOpacity
+                onPress={() => {
+                  updateBookingDetails({
+                    updateField: "hours",
+                    value: pkg.value,
+                  });
+                }}
+                style={{
+                  marginBottom: 15,
+                  alignItems: "center",
+                  justifyContent: pkg.isSpecial ? "flex-start" : "center",
+                  width: pkg.isSpecial ? "100%" : "30%",
+                  flexDirection: pkg.isSpecial ? "row" : "column",
+                  backgroundColor: pkg.isSpecial
+                    ? "transparent"
+                    : colors.containerColor,
+                  borderRadius: 12,
+                  borderWidth:
+                    pkg.isSpecial && isSelected ? 2 : isSelected ? 2 : 0,
+                  borderColor:
+                    pkg.isSpecial && isSelected
+                      ? PC_BANG_PURPLE
+                      : !pkg.isSpecial && isSelected
                       ? colors.primary
-                      : colors.backgroundColor,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.packageLabel,
-                  {
-                    color:
-                      pkg.value === bookingDetails.hours
-                        ? colors.white
-                        : colors.themeColorTextPure,
-                  },
-                ]}
+                      : colors.containerColor,
+                  shadowColor:
+                    pkg.isSpecial && isSelected
+                      ? PC_BANG_PURPLE
+                      : !pkg.isSpecial && isSelected
+                      ? colors.primary
+                      : "#000",
+                  shadowOpacity: 0.1,
+                  shadowOffset: { width: 2, height: 5 },
+                  shadowRadius: 5,
+                }}
+                key={index}
               >
-                {pkg.label}
-              </Text>
-              <Text
-                style={[
-                  styles.packagePrice,
-                  bookingDetails.hours === pkg.value && { color: colors.white },
-                ]}
-              >
-                ₩{pkg.price.toLocaleString()}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                {pkg.isSpecial ? (
+                  <LinearGradient
+                    colors={["#0C0C1E", "#2B1E4E"]}
+                    start={{ x: 0.7, y: 0.1 }}
+                    end={{ x: 0, y: 0 }}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flex: 1,
+                      padding: 15,
+                      borderRadius: 10,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 40,
+                          height: 40,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: 25,
+                          backgroundColor: "#3b296cff",
+                        }}
+                      >
+                        <Ionicons
+                          name="moon-sharp"
+                          size={30}
+                          color={"#C8B6FF"}
+                        />
+                      </View>
+                      <View>
+                        <AppText
+                          style={{ color: colors.themeColorTextSecondary }}
+                        >
+                          {pkg.label}
+                        </AppText>
+                        <AppText
+                          style={{
+                            fontSize: 11,
+                            color: colors.darkGrey,
+                          }}
+                        >
+                          {pkg.night_time}
+                        </AppText>
+                      </View>
+                    </View>
+                    <AppText style={{ color: colors.white }}>
+                      {pkg.price}
+                    </AppText>
+                  </LinearGradient>
+                ) : (
+                  <View
+                    style={{
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 10,
+                    }}
+                  >
+                    {popular && (
+                      <View
+                        style={{
+                          position: "absolute",
+                          top: -8,
+                          backgroundColor: colors.primary,
+                          paddingHorizontal: 8,
+                          borderRadius: 12,
+                        }}
+                      >
+                        <AppText style={{ color: colors.white }}>
+                          Popular
+                        </AppText>
+                      </View>
+                    )}
+                    <AppText style={{ color: colors.themeColorTextSecondary }}>
+                      {pkg.label}
+                    </AppText>
+                    <AppText>{pkg.price}</AppText>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* FOOTER / BOOKING */}

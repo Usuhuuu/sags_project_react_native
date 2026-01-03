@@ -24,7 +24,6 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/themeContext";
 import AppText from "@/constants/appTextDefault";
-import { BlurView } from "expo-blur";
 
 export const OrderItem = React.memo(
   ({ item }: { item: Return_Type }) => {
@@ -155,7 +154,6 @@ export const OrderItem = React.memo(
 
       const minutes = Math.floor(secondsLeft / 60);
       const seconds = secondsLeft % 60;
-
       return { minutes, seconds, secondsLeft };
     };
 
@@ -360,7 +358,7 @@ export const OrderItem = React.memo(
                         color: Colors.themeColorTextPure,
                       }}
                     >
-                      {data.zaal_info.name}
+                      {data.zaal_info.hall_details.hall_name}
                     </Text>
                   </View>
                   <Text style={{ color: Colors.themeColorTextSecondary }}>

@@ -17,6 +17,7 @@ import Calendar from "./book/modal_calendar";
 import WeekCalendar from "@/app/(modals)/book/components/calendar_strip";
 import { useTheme } from "../(modals)/context/themeContext";
 import { HallTypesSeparator } from "@/interfaces/hallTypes";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 export type FormData = {
   sportHallID: string;
@@ -350,7 +351,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
             height: "100%",
           }}
         >
-          <ActivityIndicator size="large" color="blue" style={styles.loader} />
+          <OwnActivaterIndicator />
         </View>
       ) : (
         <SafeAreaView

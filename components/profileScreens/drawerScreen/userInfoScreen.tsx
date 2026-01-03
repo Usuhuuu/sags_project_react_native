@@ -15,6 +15,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { TextInput } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const UserInfoScreen = () => {
   const { colors: Colors } = useTheme();
@@ -60,11 +61,7 @@ const UserInfoScreen = () => {
   }, [data, error, isLoading]);
 
   if (loading) {
-    return (
-      <>
-        <ActivityIndicator size="large" color={Colors.darkGrey} />
-      </>
-    );
+    return <OwnActivaterIndicator />;
   }
 
   interface UserEditInput {

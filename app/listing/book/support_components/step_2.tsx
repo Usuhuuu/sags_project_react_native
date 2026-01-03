@@ -1,4 +1,4 @@
-import { BookingData } from "@/app/(modals)/context/store/bookStore";
+import { SportBookingData } from "@/app/(modals)/context/store/bookStore";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
@@ -10,7 +10,7 @@ interface Step_Two_Props {
   wholeDay: boolean;
   steps: number;
   setSteps: React.Dispatch<SetStateAction<number>>;
-  bookingDetails: BookingData | null;
+  bookingDetails: SportBookingData | null;
   selectedTimeSlots: string[][];
   wholeDayPeople: number;
   setWholeDayPeople: React.Dispatch<SetStateAction<number>>;

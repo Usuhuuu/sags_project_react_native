@@ -123,20 +123,4 @@ export interface EsportHallDataType {
       smart_location?: string;
     };
   };
-  // name: string;
-  // address: string;
-  // imageUrls: string[];
-  // phoneNumber: string;
-  // workTime: SportHallWorkTime;
-  // prices: EsportHallPrices;
-  // location: {
-  //   latitude: string;
-  //   longitude: string;
-  //   smart_location?: string;
-  // };
-  // listing_url?: string;
-  // feature: SportHallFeature;
-  // rating?: number;
-  // distance?: number;
-  // priceSort?: number;
 }

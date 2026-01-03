@@ -19,6 +19,7 @@ import { useBookingStore } from "@/app/(modals)/context/store/bookStore";
 import { router } from "expo-router";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 type FilterType = "joinable" | "unavailable" | null;
 
@@ -201,7 +202,7 @@ function Calendar(
     }
     props.setIsOrderScreenVisible(false);
     console.log(props.sport_hall_id);
-    useBookingStore.getState().setBookingDetails({
+    useBookingStore.getState().setSportBookingDetails({
       ...props.formData,
       sportHallID: props.sport_hall_id,
       selectedTimeSlots: WHOLE_DAY,
@@ -271,11 +272,7 @@ function Calendar(
             height: "90%",
           }}
         >
-          <ActivityIndicator
-            size={"large"}
-            color={Colors.primary}
-            style={{ justifyContent: "center", alignSelf: "center" }}
-          />
+          <OwnActivaterIndicator />
         </View>
       ) : (
         <>

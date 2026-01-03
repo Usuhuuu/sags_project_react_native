@@ -14,6 +14,9 @@ import {
   EsportBookingData,
   useBookingStore,
 } from "@/app/(modals)/context/store/bookStore";
+import { format } from "date-fns";
+import { useTheme } from "@/app/(modals)/context/themeContext";
+import AppText from "@/constants/appTextDefault";
 
 interface Step_two_pc_props {
   listing: EsportBookingData | undefined;
@@ -22,15 +25,55 @@ interface Step_two_pc_props {
 }
 const Step_two_pc = ({ listing, step, setStep }: Step_two_pc_props) => {
   const { width } = Dimensions.get("window");
+  const { colors, theme } = useTheme();
   const bookingDetails = useBookingStore((state) => state.esportBookingDetails);
   if (!bookingDetails) return <Text>Loading...</Text>;
-
+  const renderItems = [
+    {
+      key: "date",
+      label: "Date",
+      value: bookingDetails.bookingDate
+        ? format(new Date(bookingDetails.bookingDate), "EEEE, MMM d, yyyy")
+        : undefined,
+      icon: <Entypo name="calendar" size={24} color="white" />,
+      isLast: false,
+    },
+    {
+      key: "tier",
+      label: "Zone Selection",
+      value: bookingDetails.tier,
+      icon: <MaterialIcons name="monitor" size={24} color="white" />,
+      isLast: false,
+    },
+    {
+      key: "hours",
+      label: "Time Package",
+      value: `${bookingDetails.hours} Hours Package`,
+      icon: <Feather name="clock" size={24} color="white" />,
+      isLast: false,
+    },
+    {
+      key: "startTime",
+      label: "Arrival Time",
+      date: bookingDetails.startTime as Date,
+      icon: <Feather name="watch" size={24} color="white" />,
+      isLast: true,
+    },
+  ];
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Venue Card */}
 
-        <View style={styles.venueCard}>
+        <View
+          style={[
+            styles.venueCard,
+            {
+              backgroundColor: colors.containerColor,
+              shadowColor: colors.shadowColor,
+            },
+          ]}
+        >
           <View style={styles.imageContainer}>
             <Carousel
               data={
@@ -45,21 +88,21 @@ const Step_two_pc = ({ listing, step, setStep }: Step_two_pc_props) => {
               height={180}
             />
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>Top Rated</Text>
+              <AppText style={styles.badgeText}>Top Rated</AppText>
             </View>
           </View>
 
           <View style={styles.venueInfo}>
             <View>
-              <Text style={styles.venueName}>{listing?.name}</Text>
+              <AppText style={styles.venueName}>{listing?.name}</AppText>
               <TouchableOpacity
                 onPress={() => {
                   console.log("Open map");
                 }}
               >
-                <Text style={styles.venueLocation}>
+                <AppText style={styles.venueLocation}>
                   📍 {listing?.location.smart_location}
-                </Text>
+                </AppText>
               </TouchableOpacity>
             </View>
           </View>
@@ -67,28 +110,62 @@ const Step_two_pc = ({ listing, step, setStep }: Step_two_pc_props) => {
 
         {/* Booking Details */}
         <Text style={styles.sectionTitle}>BOOKING DETAILS</Text>
-        <View style={styles.detailsCard}>
-          <DetailItem
-            icon={<Entypo name="calendar" size={24} color="black" />}
-            label="Date"
-            value={bookingDetails.date.toDateString()}
-          />
-          <DetailItem
-            icon={<MaterialIcons name="monitor" size={24} color="black" />}
-            label="Zone Selection"
-            value={bookingDetails.tier}
-          />
-          <DetailItem
-            icon={<Feather name="clock" size={24} color="black" />}
-            label="Time Package"
-            value={`${bookingDetails.hours} Hours Package`}
-            isLast
-          />
+        <View
+          style={[
+            styles.detailsCard,
+            {
+              backgroundColor: colors.containerColor,
+              shadowColor: colors.shadowColor,
+            },
+          ]}
+        >
+          {Array.isArray(renderItems) &&
+            renderItems.map((item, index) => {
+              const tierUpperCase =
+                item.key === "tier"
+                  ? item.value
+                      ?.toString()
+                      .replace(/^\w/, (char) => char.toUpperCase())
+                  : item.value;
+              return (
+                <View
+                  style={[styles.detailItem, !item.isLast && styles.itemBorder]}
+                  key={`${item.key}-${index}`}
+                >
+                  <View style={styles.iconCircle}>{item.icon}</View>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <AppText style={styles.detailLabel}>{item.label}</AppText>
+                    {item.value ? (
+                      <AppText style={styles.detailValue}>
+                        {tierUpperCase}
+                      </AppText>
+                    ) : item?.date ? (
+                      <AppText style={styles.detailValue}>
+                        {format(new Date(item.date), "HH:mm")}
+                      </AppText>
+                    ) : (
+                      <AppText>--:-- --</AppText>
+                    )}
+                  </View>
+                  <TouchableOpacity>
+                    <AppText style={styles.editText}>Edit</AppText>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
         </View>
 
         {/* Payment Summary */}
-        <Text style={styles.sectionTitle}>PAYMENT SUMMARY</Text>
-        <View style={styles.detailsCard}>
+        <AppText style={styles.sectionTitle}>PAYMENT SUMMARY</AppText>
+        <View
+          style={[
+            styles.detailsCard,
+            {
+              backgroundColor: colors.containerColor,
+              shadowColor: colors.shadowColor,
+            },
+          ]}
+        >
           <SummaryRow
             label={`${listing?.tier} zone rate (3 Hours)`}
             value="₩3,000"
@@ -96,44 +173,19 @@ const Step_two_pc = ({ listing, step, setStep }: Step_two_pc_props) => {
           <SummaryRow label="Service Fee" value="₩200" />
           <View style={styles.divider} />
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Amount</Text>
-            <Text style={styles.totalValue}>₩3,200</Text>
+            <AppText style={styles.totalLabel}>Total Amount</AppText>
+            <AppText style={styles.totalValue}>₩3,200</AppText>
           </View>
         </View>
 
-        <Text style={styles.footerTerms}>
+        <AppText style={styles.footerTerms}>
           By clicking "Confirm & Pay", you agree to our booking terms and house
           rules.
-        </Text>
+        </AppText>
       </ScrollView>
     </View>
   );
 };
-
-type DetailItemProps = {
-  icon: React.ReactNode;
-  label: string;
-  value: string | undefined;
-  isLast?: boolean;
-};
-
-const DetailItem: React.FC<DetailItemProps> = ({
-  icon,
-  label,
-  value,
-  isLast,
-}) => (
-  <View style={[styles.detailItem, !isLast && styles.itemBorder]}>
-    <View style={styles.iconCircle}>{icon}</View>
-    <View style={{ flex: 1, marginLeft: 12 }}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
-    </View>
-    <TouchableOpacity>
-      <Text style={styles.editText}>Edit</Text>
-    </TouchableOpacity>
-  </View>
-);
 
 type SummaryRowProps = {
   label: string;
@@ -142,8 +194,8 @@ type SummaryRowProps = {
 
 const SummaryRow: React.FC<SummaryRowProps> = ({ label, value }) => (
   <View style={styles.summaryRow}>
-    <Text style={styles.summaryLabel}>{label}</Text>
-    <Text style={styles.summaryValue}>{value}</Text>
+    <AppText style={styles.summaryLabel}>{label}</AppText>
+    <AppText style={styles.summaryValue}>{value}</AppText>
   </View>
 );
 
@@ -159,10 +211,10 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16 },
 
   venueCard: {
-    backgroundColor: "#1E2632",
     borderRadius: 16,
-    overflow: "hidden",
     marginBottom: 24,
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
   },
   imageContainer: { height: 180, position: "relative" },
   venueImage: { width: "100%", height: "100%" },
@@ -175,15 +227,15 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
   },
-  badgeText: { color: "white", fontSize: 12, fontWeight: "bold" },
+  badgeText: { fontSize: 12, fontWeight: "bold" },
   venueInfo: {
     padding: 16,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  venueName: { color: "white", fontSize: 20, fontWeight: "bold" },
-  venueLocation: { color: "#94A3B8", marginTop: 4 },
+  venueName: { fontSize: 20, fontWeight: "bold" },
+  venueLocation: { marginTop: 4 },
   gameIconContainer: {
     backgroundColor: "#2D3748",
     padding: 8,
@@ -198,10 +250,11 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   detailsCard: {
-    backgroundColor: "#1E2632",
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
+    shadowOpacity: 0.4,
+    shadowOffset: { width: 0, height: 2 },
   },
 
   detailItem: {
@@ -220,7 +273,6 @@ const styles = StyleSheet.create({
   },
   detailLabel: { color: "#94A3B8", fontSize: 12 },
   detailValue: {
-    color: "white",
     fontSize: 16,
     fontWeight: "600",
     marginTop: 2,
@@ -233,14 +285,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   summaryLabel: { color: "#94A3B8", fontSize: 15 },
-  summaryValue: { color: "white", fontSize: 15, fontWeight: "600" },
+  summaryValue: { fontSize: 15, fontWeight: "600" },
   divider: { height: 1, backgroundColor: "#2D3748", marginVertical: 12 },
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  totalLabel: { color: "white", fontSize: 18, fontWeight: "bold" },
+  totalLabel: { fontSize: 18, fontWeight: "bold" },
   totalValue: { color: "#3B82F6", fontSize: 20, fontWeight: "bold" },
 
   footerTerms: {

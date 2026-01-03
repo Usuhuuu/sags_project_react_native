@@ -20,27 +20,67 @@
     "base_time_slots": [
       {
         "start_time": "08:00",
+        "end_time": "09:00"
+      },
+      {
+        "start_time": "09:00",
         "end_time": "10:00"
       },
       {
         "start_time": "10:00",
+        "end_time": "11:00"
+      },
+      {
+        "start_time": "11:00",
         "end_time": "12:00"
       },
       {
+        "start_time": "12:00",
+        "end_time": "13:00"
+      },
+      {
         "start_time": "13:00",
+        "end_time": "14:00"
+      },
+      {
+        "start_time": "14:00",
         "end_time": "15:00"
       },
       {
         "start_time": "15:00",
+        "end_time": "16:00"
+      },
+      {
+        "start_time": "16:00",
         "end_time": "17:00"
       },
       {
+        "start_time": "17:00",
+        "end_time": "18:00"
+      },
+      {
         "start_time": "18:00",
+        "end_time": "19:00"
+      },
+      {
+        "start_time": "19:00",
         "end_time": "20:00"
       },
       {
         "start_time": "20:00",
+        "end_time": "21:00"
+      },
+      {
+        "start_time": "21:00",
         "end_time": "22:00"
+      },
+      {
+        "start_time": "22:00",
+        "end_time": "23:00"
+      },
+      {
+        "start_time": "23:00",
+        "end_time": "00:00"
       }
     ],
     "createdAt": "2025-12-26T07:02:43.342Z",
@@ -79,28 +119,68 @@
     },
     "base_time_slots": [
       {
+        "start_time": "08:00",
+        "end_time": "09:00"
+      },
+      {
         "start_time": "09:00",
+        "end_time": "10:00"
+      },
+      {
+        "start_time": "10:00",
+        "end_time": "11:00"
+      },
+      {
+        "start_time": "11:00",
         "end_time": "12:00"
       },
       {
         "start_time": "12:00",
+        "end_time": "13:00"
+      },
+      {
+        "start_time": "13:00",
+        "end_time": "14:00"
+      },
+      {
+        "start_time": "14:00",
         "end_time": "15:00"
       },
       {
         "start_time": "15:00",
+        "end_time": "16:00"
+      },
+      {
+        "start_time": "16:00",
+        "end_time": "17:00"
+      },
+      {
+        "start_time": "17:00",
         "end_time": "18:00"
       },
       {
         "start_time": "18:00",
+        "end_time": "19:00"
+      },
+      {
+        "start_time": "19:00",
+        "end_time": "20:00"
+      },
+      {
+        "start_time": "20:00",
         "end_time": "21:00"
       },
       {
         "start_time": "21:00",
-        "end_time": "00:00"
+        "end_time": "22:00"
       },
       {
-        "start_time": "00:00",
-        "end_time": "06:00"
+        "start_time": "22:00",
+        "end_time": "23:00"
+      },
+      {
+        "start_time": "23:00",
+        "end_time": "00:00"
       }
     ],
     "createdAt": "2025-12-26T07:08:13.152Z",
@@ -128,31 +208,67 @@
     "base_time_slots": [
       {
         "start_time": "08:00",
+        "end_time": "09:00"
+      },
+      {
+        "start_time": "09:00",
         "end_time": "10:00"
       },
       {
         "start_time": "10:00",
+        "end_time": "11:00"
+      },
+      {
+        "start_time": "11:00",
         "end_time": "12:00"
       },
       {
         "start_time": "12:00",
+        "end_time": "13:00"
+      },
+      {
+        "start_time": "13:00",
         "end_time": "14:00"
       },
       {
         "start_time": "14:00",
+        "end_time": "15:00"
+      },
+      {
+        "start_time": "15:00",
         "end_time": "16:00"
       },
       {
         "start_time": "16:00",
+        "end_time": "17:00"
+      },
+      {
+        "start_time": "17:00",
         "end_time": "18:00"
       },
       {
         "start_time": "18:00",
+        "end_time": "19:00"
+      },
+      {
+        "start_time": "19:00",
         "end_time": "20:00"
       },
       {
         "start_time": "20:00",
+        "end_time": "21:00"
+      },
+      {
+        "start_time": "21:00",
+        "end_time": "22:00"
+      },
+      {
+        "start_time": "22:00",
         "end_time": "23:00"
+      },
+      {
+        "start_time": "23:00",
+        "end_time": "00:00"
       }
     ],
     "createdAt": "2025-12-26T07:09:42.076Z",
@@ -191,28 +307,68 @@
     },
     "base_time_slots": [
       {
+        "start_time": "08:00",
+        "end_time": "09:00"
+      },
+      {
+        "start_time": "09:00",
+        "end_time": "10:00"
+      },
+      {
         "start_time": "10:00",
+        "end_time": "11:00"
+      },
+      {
+        "start_time": "11:00",
+        "end_time": "12:00"
+      },
+      {
+        "start_time": "12:00",
         "end_time": "13:00"
       },
       {
         "start_time": "13:00",
+        "end_time": "14:00"
+      },
+      {
+        "start_time": "14:00",
+        "end_time": "15:00"
+      },
+      {
+        "start_time": "15:00",
         "end_time": "16:00"
       },
       {
         "start_time": "16:00",
+        "end_time": "17:00"
+      },
+      {
+        "start_time": "17:00",
+        "end_time": "18:00"
+      },
+      {
+        "start_time": "18:00",
         "end_time": "19:00"
       },
       {
         "start_time": "19:00",
+        "end_time": "20:00"
+      },
+      {
+        "start_time": "20:00",
+        "end_time": "21:00"
+      },
+      {
+        "start_time": "21:00",
         "end_time": "22:00"
       },
       {
         "start_time": "22:00",
-        "end_time": "01:00"
+        "end_time": "23:00"
       },
       {
-        "start_time": "01:00",
-        "end_time": "07:00"
+        "start_time": "23:00",
+        "end_time": "00:00"
       }
     ],
     "createdAt": "2025-12-26T07:10:42.641Z",

@@ -1,17 +1,11 @@
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React, {
   useCallback,
   useEffect,
   useLayoutEffect,
   useState,
 } from "react";
-import { regular_swr } from "@/hooks/useswr";
+import { regular_swr, SWR_regular_cache_key } from "@/hooks/useswr";
 import { useAuth } from "../(modals)/context/authContext";
 import { HashedSportData } from "@/utils/sport_hall_hash";
 import Order_Separator from "../(modals)/book/components/order_separator";
@@ -118,22 +112,22 @@ const OrderScreen = () => {
     }
   }, [LoginStatus]);
   const dateString = new Date(date).toISOString().split("T")[0];
+  const swrKey = LoginStatus
+    ? ([
+        "booked_order",
+        screenSeparator,
+        page[screenSeparator],
+        dateString,
+      ] as const satisfies SWR_regular_cache_key)
+    : null;
   const { data, error, isLoading } = regular_swr(
-    LoginStatus
-      ? {
-          item: {
-            pathname: `/auth/book/${dateString}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
-            cacheKey: `booked_order_${screenSeparator}_${page[screenSeparator]}_${dateString}`,
-            loginStatus: LoginStatus,
-          },
-        }
-      : {
-          item: {
-            pathname: `/auth/book/${date}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
-            cacheKey: null,
-            loginStatus: LoginStatus,
-          },
-        },
+    {
+      item: {
+        pathname: `/auth/book/${dateString}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
+        cacheKey: swrKey,
+        loginStatus: LoginStatus,
+      },
+    },
     {
       shouldRetryOnError: false,
       revalidateOnMount: true,

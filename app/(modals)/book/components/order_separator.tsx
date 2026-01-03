@@ -23,6 +23,7 @@ import { OrderItem } from "@/app/(modals)/book/components/order_inside_flatlist"
 import { router, useFocusEffect } from "expo-router";
 import { useTheme } from "../../context/themeContext";
 import * as SecureStorage from "expo-secure-store";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 export type Booking_Time_Validation_payload = {
   time_slots: string;
@@ -31,6 +32,9 @@ export type Booking_Time_Validation_payload = {
   sport_hall_id: string;
   expireAt: string | Date;
   createdAt: string | Date;
+  type: "sport" | "esport";
+  startTime?: Date | string;
+  timePackage?: number;
 };
 interface Order_Separator_props {
   data: OrderDataTypes;
@@ -112,21 +116,53 @@ const Order_Separator = ({
           const decoded = atob(session);
           const parsed = JSON.parse(decoded) as Booking_Time_Validation_payload;
           updatedList = updatedList.map((hall) => {
-            const [parsed_start_time, parsed_end_time] =
-              parsed.time_slots.split("~");
+            let parsed_start_time = "",
+              parsed_end_time = "";
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (parsed.type === "esport" && parsed.startTime !== undefined) {
+              [parsed_start_time] = new Date(parsed.startTime)
+                .toLocaleTimeString("en-US", {
+                  timeZone: tz,
+                  hour12: false,
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+                .split(" - ");
+              [parsed_end_time] = new Date(
+                new Date(parsed.startTime).getTime() +
+                  (parsed.timePackage ?? 0) * 60000
+              )
+                .toLocaleTimeString("en-US", {
+                  timeZone: tz,
+                  hour12: false,
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+                .split(" - ");
+            } else if (parsed.type === "sport") {
+              [parsed_start_time, parsed_end_time] =
+                parsed.time_slots.split("~");
+            }
+            console.log("endTime work needed");
+
+            console.log(parsed_start_time, parsed_end_time);
 
             const sameSportHall =
               hall.zaal_ID.toString() === parsed.sport_hall_id.toString();
             const sameDay =
               new Date(hall.day).getTime() === new Date(parsed.date).getTime();
 
-            const sameTimeSlots = hall.blocks.some(
-              (block) =>
-                new Date(block.start_time).getTime() ===
-                  new Date(parsed_start_time).getTime() &&
-                new Date(block.end_time).getTime() ===
-                  new Date(parsed_end_time).getTime()
-            );
+            let sameTimeSlots =
+              parsed.type === "esport"
+                ? true
+                : hall.blocks.some(
+                    (block) =>
+                      new Date(block.start_time).getTime() ===
+                        new Date(parsed_start_time).getTime() &&
+                      new Date(block.end_time).getTime() ===
+                        new Date(parsed_end_time).getTime()
+                  );
+
             if (sameSportHall && sameDay && sameTimeSlots) {
               return {
                 ...hall,
@@ -137,13 +173,14 @@ const Order_Separator = ({
                   sport_hall_id: parsed.sport_hall_id,
                   expireAt: parsed.expireAt,
                   createdAt: parsed.createdAt,
+                  type: parsed.type,
                 },
               };
             }
             return hall;
           });
         } catch (err) {
-          console.log(err);
+          console.log("Error on validation session", err);
         }
       });
     } catch (err) {
@@ -203,7 +240,7 @@ const Order_Separator = ({
             backgroundColor: Colors.backgroundColor,
           }}
         >
-          <ActivityIndicator size={"large"} color={Colors.primary} />
+          <OwnActivaterIndicator />
         </View>
       ) : (
         <FlatList<Return_Type>
@@ -227,7 +264,7 @@ const Order_Separator = ({
                   backgroundColor: Colors.backgroundColor,
                 }}
               >
-                <ActivityIndicator size={"large"} color={Colors.primary} />
+                <OwnActivaterIndicator />
               </View>
             ) : (
               <View
@@ -332,7 +369,7 @@ const Order_Separator = ({
                   backgroundColor: Colors.backgroundColor,
                 }}
               >
-                <ActivityIndicator color={Colors.primary} size={"large"} />
+                <OwnActivaterIndicator />
               </View>
             ) : (
               <View style={{ justifyContent: "center", alignItems: "center" }}>

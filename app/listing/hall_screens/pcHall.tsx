@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
   Image,
-  ActivityIndicator,
   StyleSheet,
 } from "react-native";
 import { FormData } from "../detail";
@@ -25,11 +24,12 @@ import {
   HallDetailSeparator,
   HallTypesSeparator,
 } from "@/interfaces/hallTypes";
-import { LinearGradient } from "react-native-linear-gradient";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from "react-native-reanimated";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 interface PC_HallsProps {
   listing: EsportHallDataType;
@@ -48,22 +48,6 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
   const [noMoreReviews, setNoMoreReviews] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const [formData, setFormData] = useState<FormData>({
-    sportHallID: "",
-    name: "",
-    date: "",
-    price: {
-      oneHour: "",
-      wholeDay: "",
-    },
-    workTime: "",
-    image: [] as string[],
-    location: {
-      latitude: "",
-      longitude: "",
-      smart_location: "",
-    },
-  });
   const { width, height } = Dimensions.get("window");
   const featureIcons = {
     wifi: {
@@ -243,7 +227,7 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
                   alignItems: "center",
                 }}
               >
-                <ActivityIndicator />
+                <OwnActivaterIndicator />
               </View>
             ) : (
               <SportHallReviewPage
@@ -259,40 +243,6 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
       },
     ],
   };
-
-  const handleZaalId = (
-    input: any,
-    name: any,
-    price: any,
-    workTime: string | undefined,
-    imageUrls: string[] | undefined,
-    location?: {
-      latitude: string;
-      longitude: string;
-      smart_location?: string | undefined;
-    }
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      sport_hall_id: input,
-      name: name,
-      price: price,
-      workTime: workTime,
-      imageUrls: imageUrls,
-      location: location ? location : prev.location,
-    }));
-  };
-
-  useEffect(() => {
-    handleZaalId(
-      listing.sportHallID,
-      listing.hall_details.hall_name,
-      listing.hall_details.hall_price,
-      `${listing.hall_details.hall_work_time.start_time} - ${listing.hall_details.hall_work_time.end_time}`,
-      listing.hall_details.hall_imageURLs,
-      listing.hall_details.hall_location
-    );
-  }, [listing]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {

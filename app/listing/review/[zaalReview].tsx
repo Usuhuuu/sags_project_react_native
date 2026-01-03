@@ -12,6 +12,7 @@ import StarRating from "@/app/listing/review/util/star_rating";
 import * as Progress from "react-native-progress";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 export interface Review {
   _id: string;
@@ -280,7 +281,7 @@ const SportHallReviewPage = ({
                 <View style={{ padding: 10, alignItems: "center" }}>
                   <Text style={{ color: Colors.darkGrey }}>
                     {Object.keys(reviews).length >= 10 ? (
-                      <ActivityIndicator />
+                      <OwnActivaterIndicator />
                     ) : (
                       "No more reviews"
                     )}

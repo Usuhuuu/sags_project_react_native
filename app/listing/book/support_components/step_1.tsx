@@ -1,4 +1,7 @@
-import { BookingData } from "@/app/(modals)/context/store/bookStore";
+import {
+  EsportBookingData,
+  SportBookingData,
+} from "@/app/(modals)/context/store/bookStore";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import React, { SetStateAction } from "react";
@@ -7,7 +10,7 @@ import { format, isValid } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface Step_One_Props {
-  bookingDetails: BookingData | null;
+  bookingDetails: SportBookingData | null;
   wholeDay: boolean;
   selectedTimeSlots: string[][];
   steps: number;
@@ -112,7 +115,7 @@ const Step_One = ({
               style={{ flexDirection: "row", height: "80%", width: "100%" }}
             >
               <Image
-                source={{ uri: bookingDetails?.image?.[0] ?? "" }}
+                source={{ uri: bookingDetails?.imageUrls?.[0] ?? "" }}
                 style={{ width: "40%", height: "90%", borderRadius: 10 }}
               />
               <View style={{ height: "90%" }}>
@@ -328,7 +331,7 @@ const Step_One = ({
               ₮
               {wholeDay
                 ? bookingDetails?.price?.wholeDay
-                : (bookingDetails?.selectedTimeSlots.length ?? 0) *
+                : (selectedTimeSlots.length ?? 0) *
                   Number(bookingDetails?.price.oneHour)}
             </AppText>
           </View>

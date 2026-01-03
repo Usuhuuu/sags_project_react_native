@@ -32,6 +32,7 @@ import {
   reminderPermission,
 } from "@/hooks/permissions";
 import { ThemeProvider, useTheme } from "./(modals)/context/themeContext";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 configureReanimatedLogger({
   strict: false,
@@ -182,7 +183,7 @@ export function RootLayout({ children }: { children: ReactNode }) {
     // Show a loading/fallback UI if fonts are still loading or if there's an error
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <OwnActivaterIndicator />
       </View>
     );
   }

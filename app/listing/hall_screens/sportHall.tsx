@@ -21,7 +21,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
-  ActivityIndicator,
   StyleSheet,
 } from "react-native";
 import Animated, {
@@ -37,6 +36,7 @@ import {
   HallTypesSeparator,
 } from "@/interfaces/hallTypes";
 import { LinearGradient } from "expo-linear-gradient";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 interface SportHallProps {
   listing: SportHallDataType;
@@ -272,7 +272,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
                   alignItems: "center",
                 }}
               >
-                <ActivityIndicator />
+                <OwnActivaterIndicator />
               </View>
             ) : (
               <SportHallReviewPage

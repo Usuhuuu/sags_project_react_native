@@ -99,12 +99,15 @@ axiosInstance.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       const token = await SecureStore.getItemAsync("Tokens");
+      const notificationToken = await SecureStore.getItemAsync(
+        "notificationToken"
+      );
       if (token) {
         const { refreshToken } = JSON.parse(token);
         try {
           const newAccessToken = await axiosInstanceRegular.post(
             "/auth/refresh",
-            {},
+            { notificationToken },
             { headers: { Authorization: `Bearer ${refreshToken}` } }
           );
           switch (true) {

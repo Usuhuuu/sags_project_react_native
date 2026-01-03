@@ -25,6 +25,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 interface Props {
   listings: (SportHallDataType | EsportHallDataType)[];
@@ -269,7 +270,7 @@ const ListingComponent = ({ listings: items, category }: Props) => {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#000" />
+        <OwnActivaterIndicator />
       ) : (
         <BottomSheetFlatList
           ref={listRef}

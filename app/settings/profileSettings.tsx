@@ -17,6 +17,7 @@ import { router } from "expo-router";
 import { useTheme } from "../(modals)/context/themeContext";
 import Theme_Changer_Modal from "./components/theme_change";
 import Change_Language_Modal from "./components/language_change";
+import { flush_regular_swr } from "@/hooks/useswr";
 
 const ProfileSettings: React.FC = () => {
   const { colors: Colors } = useTheme();
@@ -217,6 +218,7 @@ const ProfileSettings: React.FC = () => {
                 logOut();
                 router.replace("..");
                 setForceRerender(!forceRerender);
+                flush_regular_swr();
               },
             },
           ]

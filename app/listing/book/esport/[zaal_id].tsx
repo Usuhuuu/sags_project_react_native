@@ -1,15 +1,20 @@
 import { useTheme } from "@/app/(modals)/context/themeContext";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Feather, FontAwesome, Fontisto, Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
+import {
+  TouchableOpacity,
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StepIndicator from "react-native-step-indicator";
 import Step_two_pc from "./support_components/step_2_pc";
 import { EsportHallDataType } from "@/interfaces/listing";
 import {
   EsportBookingData,
-  SportBookingData,
   useBookingStore,
 } from "@/app/(modals)/context/store/bookStore";
 import Step_one_pc from "@/app/listing/book/esport/support_components/step_1_pc";
@@ -18,8 +23,12 @@ import { TabNavTypes } from "@/interfaces/tabScreenType";
 import AppText from "@/constants/appTextDefault";
 import HallData from "@/assets/Data/sportHall.json";
 import axiosInstance from "@/hooks/axiosInstance";
-
-interface BookingEsportHallProps {}
+import { Notifier, NotifierComponents } from "react-native-notifier";
+import { saveToken } from "../util/session";
+import { mutate } from "swr";
+import Confirm_Modal from "../support_components/confirmation_modal";
+import { format, set } from "date-fns";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const BookingEsportHall = () => {
   const { colors, theme } = useTheme();
@@ -49,6 +58,8 @@ const BookingEsportHall = () => {
   };
   const [step, setStep] = useState(0);
   const [isDataInited, setIsDataInited] = useState<boolean>(false);
+  const [confirmModal, setConfirmModal] = useState<boolean>(false);
+  const [isWaiting, setIsWaiting] = useState<boolean>(false);
 
   const { zaal_id } = useLocalSearchParams();
   const listing = HallData.find((item) => item.sportHallID === zaal_id) as
@@ -77,8 +88,6 @@ const BookingEsportHall = () => {
       setBookingDetails(bookingDetails);
       setIsDataInited(true);
     }
-    console.log(step);
-    console.log("Data", bookingData);
   }, [step]);
   const packages = [
     { label: "1 Hour", value: 1, price: 1200 },
@@ -86,25 +95,136 @@ const BookingEsportHall = () => {
     { label: "10 Hours", value: 10, price: 9000 },
     { label: "WHOLE DAY", value: 24, price: 18000, isSpecial: true },
   ];
-  const [tier, setTier] = useState("regular");
-  const [hours, setHours] = useState<number>(1);
-  const totalPrice = packages.find((p) => p.value === hours)?.price || 0;
+  const totalPrice =
+    packages.find((p) => p.value === bookingData?.hours)?.price || 0;
 
   const handleBooking = async () => {
     try {
+      if (!bookingData) {
+        Notifier.showNotification({
+          title: "Booking Failed",
+          description: "Missing booking details.",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
+        return;
+      }
+      setIsWaiting(true);
+
       const timezone = encodeURIComponent(
         Intl.DateTimeFormat().resolvedOptions().timeZone
       );
-      const response = await axiosInstance.post(`/auth/book/esport`, {
-        sport_hall_id: bookingDetails.sportHallID,
-        date: bookingData?.date,
-        timezone: timezone,
-      });
-      console.log(response);
+
+      const response = await axiosInstance.post(
+        `/auth/book/esport`,
+        {
+          sport_hall_id: bookingDetails.sportHallID,
+          date: bookingData?.bookingDate,
+          timezone: timezone,
+          tier: bookingData?.tier,
+          hours: bookingData?.hours,
+          startTime: bookingData?.startTime,
+        },
+        {
+          timeout: 10000,
+        }
+      );
+      if (response.status === 200 && response.data.success) {
+        const token = response.data.session;
+        saveToken(token);
+        Notifier.showNotification({
+          title: "Successfully Booked",
+          description: "Check Booking from Order Section",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "success" },
+        });
+        const todayDayStr = new Date().toISOString().split("T")[0];
+        mutate(
+          (key) =>
+            Array.isArray(key) &&
+            key[0] === "booked_order" &&
+            key[1] === "TODAY_UPCOMING" &&
+            key[3] === todayDayStr,
+          undefined,
+          { revalidate: true, throwOnError: true }
+        );
+        setIsWaiting(false);
+        setConfirmModal(true);
+      }
     } catch (err) {
       console.log(err);
+      Notifier.showNotification({
+        title: "Booking Failed",
+        description: "An error occurred during booking. Please try again.",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "warn" },
+      });
+      setIsWaiting(false);
+    } finally {
+      setIsWaiting(false);
     }
   };
+
+  const confirmationDetails = [
+    {
+      label: "Booking Court",
+      value: bookingDetails?.name,
+      icon: (
+        <FontAwesome
+          name="building"
+          size={24}
+          color={colors.themeColorTextPure}
+        />
+      ),
+    },
+    {
+      label: "Date",
+      value: bookingDetails?.date
+        ? format(new Date(bookingDetails.date), "MMMM d, yyyy")
+        : undefined,
+      icon: (
+        <Fontisto name="date" size={24} color={colors.themeColorTextPure} />
+      ),
+    },
+    {
+      label: "Time",
+      value:
+        bookingDetails?.startTime && bookingDetails.startTime.toLocaleString(),
+      icon: (
+        <Ionicons
+          name="time-outline"
+          size={24}
+          color={colors.themeColorTextPure}
+        />
+      ),
+    },
+    {
+      label: "Player Needed",
+      resolve: (item: number) => 0,
+      icon: (
+        <Ionicons name="people" size={24} color={colors.themeColorTextPure} />
+      ),
+    },
+  ];
+  const addToCalendar = () => {
+    console.log("Add to calendar");
+  };
+
+  if (isWaiting) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.backgroundColor,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <OwnActivaterIndicator />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
       {/* Header */}
@@ -145,7 +265,7 @@ const BookingEsportHall = () => {
           <Feather name="more-vertical" size={30} color={colors.primary} />
         </TouchableOpacity>
       </View>
-      {step === 0 && <Step_one_pc bookSaveFunc={setBookingDetails} />}
+      {step === 0 && <Step_one_pc />}
       {step === 1 && (
         <Step_two_pc
           listing={
@@ -173,7 +293,9 @@ const BookingEsportHall = () => {
           ]}
         >
           <View>
-            <AppText style={styles.footerLabel}>Total for {tier}</AppText>
+            <AppText style={styles.footerLabel}>
+              Total for {bookingData?.tier}
+            </AppText>
             <AppText style={styles.totalText}>
               ₩{totalPrice.toLocaleString()}
             </AppText>
@@ -256,6 +378,12 @@ const BookingEsportHall = () => {
           </TouchableOpacity>
         </View>
       )}
+      <Confirm_Modal
+        confirmModal={confirmModal}
+        setConfirmModal={setConfirmModal}
+        confirmationDetails={confirmationDetails}
+        addToCalendar={addToCalendar}
+      />
     </SafeAreaView>
   );
 };

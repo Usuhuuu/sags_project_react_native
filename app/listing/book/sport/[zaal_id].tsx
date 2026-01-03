@@ -21,12 +21,13 @@ import { mutate } from "swr";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import Confirm_Modal from "../support_components/confirmation_modal";
 import { addHours, format } from "date-fns";
-import * as SecureStorage from "expo-secure-store";
 import Step_One from "../support_components/step_1";
 import Step_Two from "../support_components/step_2";
 import Step_Three from "../support_components/step_3";
 import { useNavigation } from "@react-navigation/native";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
+import { saveToken } from "../util/session";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 export type ReservationBlock = {
   start_time: string;
@@ -130,25 +131,6 @@ const TransactionPage = () => {
   const paymentPerPeopleArray: number[] = [];
   const totalBookerPaymentArray: number[] = [];
 
-  const saveToken = async (token: string) => {
-    try {
-      const indexStr = await SecureStorage.getItemAsync("paymentSessionIndex");
-      let index = indexStr ? parseInt(indexStr, 10) : 0;
-      index += 1;
-      const expireAt = Date.now() + 15 * 60 * 1000;
-      const sessionData = JSON.stringify({ token, expireAt });
-      await SecureStorage.setItemAsync(`paymentSession_${index}`, sessionData);
-      await SecureStorage.setItemAsync("paymentSessionIndex", index.toString());
-
-      console.log(
-        `Saved paymentSession_${index} (expires at ${new Date(
-          expireAt
-        ).toISOString()})`
-      );
-    } catch (err) {
-      console.error("SecureStore error:", err);
-    }
-  };
   const handleOrder = async () => {
     try {
       if (isOrdering) return;
@@ -182,9 +164,8 @@ const TransactionPage = () => {
             time_slots: group,
           };
         });
-        const type = "sport";
         response = await axiosInstance.post(
-          `/auth/book/${type}`,
+          `/auth/book/sport`,
           {
             sport_hall_id: bookingDetails.sportHallID,
             date: dateOnly,
@@ -198,7 +179,7 @@ const TransactionPage = () => {
       } else {
         console.log(bookingDetails.workTime);
         response = await axiosInstance.post(
-          "/auth/book",
+          `/auth/book/sport`,
           {
             sport_hall_id: bookingDetails.sportHallID,
             date: dateOnly,
@@ -227,8 +208,15 @@ const TransactionPage = () => {
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "success" },
         });
+        const todayDayStr = new Date(bookingDetails.date)
+          .toISOString()
+          .split("T")[0];
         mutate(
-          `booked_order_TODAY_UPCOMING_1_${bookingDetails.date}`,
+          (key) =>
+            Array.isArray(key) &&
+            key[0] === "booked_order" &&
+            key[1] === "TODAY_UPCOMING" &&
+            key[3] === todayDayStr,
           undefined,
           { revalidate: true, throwOnError: true }
         );
@@ -354,7 +342,7 @@ const TransactionPage = () => {
             flex: 1,
           }}
         >
-          <ActivityIndicator size={"large"} color={Colors.primary} />
+          <OwnActivaterIndicator />
         </View>
       ) : (
         <SafeAreaView style={{ backgroundColor: Colors.backgroundColor }}>

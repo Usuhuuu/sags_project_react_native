@@ -17,7 +17,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { differenceInDays } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../(modals)/context/authContext";
-import { auth_swr, regular_swr } from "../../hooks/useswr";
+import {
+  auth_swr,
+  regular_swr,
+  SWR_regular_cache_key,
+} from "../../hooks/useswr";
 import MainChatModal from "@/app/(modals)/authentication/modals/mainChatModal";
 import { useFocusEffect } from "expo-router";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
@@ -41,6 +45,7 @@ import FilterModal from "../(modals)/chat/components/filter_modal";
 import { useChatStore } from "../(modals)/context/store/chatStore";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "../(modals)/context/themeContext";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const ChatComponent: React.FC = () => {
   const { colors: Colors } = useTheme();
@@ -210,6 +215,10 @@ const ChatComponent: React.FC = () => {
       revalidateOnMount: true,
     }
   );
+
+  const regular_swr_key = LoginStatus
+    ? (["group_chat"] as const satisfies SWR_regular_cache_key)
+    : null;
   const {
     data: chatData,
     error: chatError,
@@ -218,7 +227,7 @@ const ChatComponent: React.FC = () => {
     {
       item: {
         pathname: "/auth/chatcheck",
-        cacheKey: "group_chat",
+        cacheKey: regular_swr_key,
         loginStatus: LoginStatus,
       },
     },
@@ -631,13 +640,13 @@ const ChatComponent: React.FC = () => {
                 backgroundColor: Colors.backgroundColor,
               }}
             >
-              <ActivityIndicator size={"large"} color={Colors.primary} />
+              <OwnActivaterIndicator />
             </View>
           ) : (
             <View style={[styles.container]}>
               {userLoading ? (
                 <View>
-                  <ActivityIndicator color={Colors.primary} size={"large"} />
+                  <OwnActivaterIndicator />
                 </View>
               ) : (
                 <View
