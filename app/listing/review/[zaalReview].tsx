@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { router, useNavigation } from "expo-router";
 import StarRating from "@/app/listing/review/util/star_rating";
@@ -78,7 +72,12 @@ const SportHallReviewPage = ({
   };
 
   return (
-    <View style={{ backgroundColor: Colors.backgroundColor, width: "95%" }}>
+    <View
+      style={{
+        backgroundColor: "transparent",
+        width: "95%",
+      }}
+    >
       <View>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <View
@@ -265,7 +264,11 @@ const SportHallReviewPage = ({
                   alignItems: "center",
                 }}
               >
-                <Text style={{ color: Colors.darkGrey }}>
+                <Text
+                  style={{
+                    color: theme === "dark" ? Colors.dark : Colors.darkGrey,
+                  }}
+                >
                   No reviews available
                 </Text>
               </View>
@@ -279,7 +282,11 @@ const SportHallReviewPage = ({
             ListFooterComponent={() => {
               return (
                 <View style={{ padding: 10, alignItems: "center" }}>
-                  <Text style={{ color: Colors.darkGrey }}>
+                  <Text
+                    style={{
+                      color: theme === "dark" ? Colors.dark : Colors.darkGrey,
+                    }}
+                  >
                     {Object.keys(reviews).length >= 10 ? (
                       <OwnActivaterIndicator />
                     ) : (

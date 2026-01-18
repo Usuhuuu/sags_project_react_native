@@ -75,8 +75,8 @@ export const DarkTheme = {
   yellowText: "#854D0E",
   shadowColor: "#000",
   shadowColor2: "#393939",
-  backgroundColor: "#1C1C1E",
-  containerColor: "#272A33",
+  backgroundColor: "#0e1218", //"#1C1C1E",
+  containerColor: "#151a20", //"#272A33", "#1C1C1E"
   themeColorTextPure: "#FFFFFF",
   themeColorTextSecondary: "#e5e5e5ff",
   themeContainerGrey: "#3c3f47",

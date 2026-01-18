@@ -13,7 +13,6 @@ import React, {
 import {
   View,
   FlatList,
-  ActivityIndicator,
   Text,
   Dimensions,
   Image,
@@ -41,7 +40,6 @@ interface Order_Separator_props {
   screen_type: OrderScreenSeparator;
   loadMore: () => void;
   loading: boolean;
-  setLoading: React.Dispatch<SetStateAction<boolean>>;
   page: Record<OrderScreenSeparator, number>;
 }
 
@@ -50,7 +48,6 @@ const Order_Separator = ({
   screen_type,
   loadMore,
   loading,
-  setLoading,
 }: Order_Separator_props) => {
   const { colors: Colors } = useTheme();
   const [orderList, setOrderList] = useState<Return_Type[]>();
@@ -67,7 +64,7 @@ const Order_Separator = ({
   const { height: windowHeight } = Dimensions.get("window");
 
   useEffect(() => {
-    setUniqueList([]);
+    //setUniqueList([]);
     if (screen_type === OrderScreenSeparator.TODAY_UPCOMING) {
       setOrderList(data?.today_upcoming);
     } else if (screen_type === OrderScreenSeparator.HISTORY) {
@@ -104,6 +101,7 @@ const Order_Separator = ({
       return [];
     }
   };
+
   const getUniqueListWithSessions = async (
     orderList: Return_Type[]
   ): Promise<Return_Type[]> => {
@@ -144,8 +142,6 @@ const Order_Separator = ({
                 parsed.time_slots.split("~");
             }
             console.log("endTime work needed");
-
-            console.log(parsed_start_time, parsed_end_time);
 
             const sameSportHall =
               hall.zaal_ID.toString() === parsed.sport_hall_id.toString();
@@ -195,6 +191,12 @@ const Order_Separator = ({
     });
     // Sort by day
     return filtered.sort((a, b) => {
+      const aHasSession = Boolean(a.session_obj);
+      const bHasSession = Boolean(b.session_obj);
+      if (aHasSession !== bHasSession) {
+        return aHasSession ? -1 : 1;
+      }
+
       const dayA = new Date(Array.isArray(a.day) ? a.day[0] : a.day).getTime();
       const dayB = new Date(Array.isArray(b.day) ? b.day[0] : b.day).getTime();
       return dayA - dayB;
@@ -228,7 +230,6 @@ const Order_Separator = ({
     ({ item }: { item: Return_Type }) => <OrderItem item={item} />,
     []
   );
-
   return (
     <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
       {loading ? (
@@ -245,7 +246,7 @@ const Order_Separator = ({
       ) : (
         <FlatList<Return_Type>
           data={uniqueList}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item, index) => `${item._id}-${index}`}
           onEndReached={loadMore}
           onEndReachedThreshold={0.1}
           initialNumToRender={5}

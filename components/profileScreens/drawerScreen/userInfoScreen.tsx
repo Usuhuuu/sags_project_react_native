@@ -3,14 +3,7 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { auth_swr } from "@/hooks/useswr";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  Image,
-  Alert,
-} from "react-native";
+import { View, Text, StyleSheet, Image, Alert } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { TextInput } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";

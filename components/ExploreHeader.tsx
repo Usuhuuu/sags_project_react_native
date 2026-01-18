@@ -250,7 +250,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
           {/* Notification */}
           <TouchableOpacity
             style={[styles.notification]}
-            onPress={() => router.push("/listing/notification")}
+            onPress={() => router.push("/listing/notification/notification")}
           >
             <LottieView
               ref={notificationAnimationRef}

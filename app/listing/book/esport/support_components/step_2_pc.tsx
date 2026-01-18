@@ -17,6 +17,7 @@ import {
 import { format } from "date-fns";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 interface Step_two_pc_props {
   listing: EsportBookingData | undefined;
@@ -25,9 +26,9 @@ interface Step_two_pc_props {
 }
 const Step_two_pc = ({ listing, step, setStep }: Step_two_pc_props) => {
   const { width } = Dimensions.get("window");
-  const { colors, theme } = useTheme();
+  const { colors } = useTheme();
   const bookingDetails = useBookingStore((state) => state.esportBookingDetails);
-  if (!bookingDetails) return <Text>Loading...</Text>;
+  if (!bookingDetails) return <OwnActivaterIndicator />;
   const renderItems = [
     {
       key: "date",

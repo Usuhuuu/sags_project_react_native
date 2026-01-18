@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Notifications from "expo-notifications";
 
 interface RawNotification {
   title: string;
@@ -39,7 +40,6 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
     const parsed: RawNotification[] = saved ? JSON.parse(saved) : [];
     const updated = [notif, ...parsed];
     await AsyncStorage.setItem("saved_notifications", JSON.stringify(updated));
-
     set((state) => ({
       notifications: [
         {
@@ -57,3 +57,36 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
     set({ notifications: [] });
   },
 }));
+
+export const bookingNotificationSchedule = async ({
+  title,
+  body,
+  bookingToken,
+}: {
+  title: string;
+  body: string;
+  bookingToken: string;
+}) => {
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+
+    for (const n of scheduled) {
+      if (n.identifier?.startsWith(`booking-${bookingToken}`)) {
+        await Notifications.cancelScheduledNotificationAsync(n.identifier);
+      }
+    }
+    for (const time of [0, 5, 13]) {
+      await Notifications.scheduleNotificationAsync({
+        identifier: `booking-${bookingToken}-${time}`,
+        content: { title: title, body: body },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: time === 0 ? 1 : time * 60,
+          repeats: false,
+        },
+      });
+    }
+  } catch (err) {
+    console.log("Notification scheduling error:", err);
+  }
+};

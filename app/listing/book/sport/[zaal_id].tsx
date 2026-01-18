@@ -3,13 +3,8 @@ import {
   useBookingStore,
 } from "@/app/(modals)/context/store/bookStore";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, TouchableOpacity, ScrollView } from "react-native";
 import { Feather, FontAwesome, Fontisto, Ionicons } from "@expo/vector-icons";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import StepIndicator from "react-native-step-indicator";
@@ -28,6 +23,10 @@ import { useNavigation } from "@react-navigation/native";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
 import { saveToken } from "../util/session";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import {
+  bookingNotificationSchedule,
+  useNotificationStore,
+} from "@/app/(modals)/context/store/notificationStore";
 
 export type ReservationBlock = {
   start_time: string;
@@ -111,6 +110,7 @@ const TransactionPage = () => {
 
   const [waiting, setWaiting] = useState<boolean>(false);
   const [confirmModal, setConfirmModal] = useState<boolean>(false);
+  const hasScheduled = useRef<boolean>(false);
   const [reserved_times, setReserved_times] = useState<
     ReservationBlock[] | undefined
   >(undefined);
@@ -202,12 +202,15 @@ const TransactionPage = () => {
         const token = response.data.session;
         saveToken(token);
 
-        Notifier.showNotification({
-          title: "Successfully Booked",
-          description: "Check Booking from Order Section",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
-        });
+        if (!hasScheduled.current) {
+          await bookingNotificationSchedule({
+            title: `Reminder: Payment Needed for ${bookingDetails.name}`,
+            body: `This is a reminder that your booking requires payment. Please complete the payment to confirm your booking.`,
+            bookingToken: token,
+          });
+          hasScheduled.current = true;
+        }
+
         const todayDayStr = new Date(bookingDetails.date)
           .toISOString()
           .split("T")[0];
@@ -216,7 +219,7 @@ const TransactionPage = () => {
             Array.isArray(key) &&
             key[0] === "booked_order" &&
             key[1] === "TODAY_UPCOMING" &&
-            key[3] === todayDayStr,
+            key[3] >= todayDayStr,
           undefined,
           { revalidate: true, throwOnError: true }
         );
@@ -446,6 +449,7 @@ const TransactionPage = () => {
         setConfirmModal={setConfirmModal}
         confirmationDetails={confirmationDetails}
         addToCalendar={addToCalendar}
+        hasScheduled={hasScheduled.current}
       />
     </SafeAreaProvider>
   );

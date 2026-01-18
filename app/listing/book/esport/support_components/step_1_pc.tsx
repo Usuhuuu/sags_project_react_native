@@ -19,7 +19,6 @@ import {
   Image,
   ImageBackground,
   ActivityIndicator,
-  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -32,7 +31,13 @@ type FieldType = {
   startTime: Date | string;
   bookingDate: Date;
 };
-const Step_one_pc = () => {
+const Step_one_pc = ({
+  initTime,
+  setInitTime,
+}: {
+  initTime: boolean;
+  setInitTime: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const { theme, colors } = useTheme();
   const tiers = [
     {
@@ -58,7 +63,6 @@ const Step_one_pc = () => {
     },
   ];
   const [selectedData, setSelectedDate] = useState(new Date());
-  const [initTime, setInitTime] = useState(false);
   const packages = [
     { label: "1 Hour", value: 1, price: 1200 },
     { label: "3 Hours", value: 3, price: 3000 },
@@ -194,6 +198,7 @@ const Step_one_pc = () => {
             <WeekCalendarWithoutMonth
               selectedDay={selectedData}
               setSelectedDay={(date) => {
+                console.log("selected date:", date);
                 updateBookingDetails({
                   updateField: "bookingDate",
                   value: date,

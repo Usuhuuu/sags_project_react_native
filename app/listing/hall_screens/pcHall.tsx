@@ -8,7 +8,6 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
-import { FormData } from "../detail";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import { router } from "expo-router";
@@ -48,7 +47,7 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
   const [noMoreReviews, setNoMoreReviews] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { width, height } = Dimensions.get("window");
+  const { width } = Dimensions.get("window");
   const featureIcons = {
     wifi: {
       label: "Wi-Fi",

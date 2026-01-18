@@ -16,7 +16,8 @@ export type SWR_regular_cache_key =
       "booked_order",
       string, // screenSeparator
       number, // page
-      string // date
+      string, // startTime
+      string | null // endTime
     ]
   | readonly ["group_chat"];
 type SWRRegularProps = {

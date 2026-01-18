@@ -61,7 +61,6 @@ export function RootLayout({ children }: { children: ReactNode }) {
   });
   const [fontError, setFontError] = useState<boolean>(false);
   const { LoginStatus } = useAuth();
-  const { colors: Colors } = useTheme();
 
   useEffect(() => {
     if (error) {
@@ -224,7 +223,7 @@ export function RootLayoutNav() {
       />
 
       <Stack.Screen
-        name="listing/notification"
+        name="listing/notification/notification"
         options={{
           headerShown: true,
           title: `${t("Notifications")}`,
@@ -289,6 +288,18 @@ export function RootLayoutNav() {
           headerTitleStyle: { fontSize: 28, color: Colors.primary },
           headerShadowVisible: false,
           headerTitle: "Zaal Review",
+        }}
+      />
+
+      {/* Settings Section */}
+      <Stack.Screen
+        name="settings/components/settings_notification"
+        options={{
+          headerShown: true,
+          headerStyle: { backgroundColor: Colors.backgroundColor },
+          headerTitleStyle: { fontSize: 28, color: Colors.primary },
+          headerShadowVisible: false,
+          headerTitle: "Notifications Settings",
         }}
       />
     </Stack>

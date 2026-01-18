@@ -1,10 +1,11 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
 import { regular_swr, SWR_regular_cache_key } from "@/hooks/useswr";
 import { useAuth } from "../(modals)/context/authContext";
 import { HashedSportData } from "@/utils/sport_hall_hash";
@@ -20,57 +21,22 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
-import Filter_Modals from "../(modals)/book/components/filter_modal";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../(modals)/context/themeContext";
-import { differenceInMinutes } from "date-fns";
+import { differenceInMinutes, set } from "date-fns";
+import { MonthCalendar } from "../(modals)/book/components/calendar_strip";
+import dayjs from "dayjs";
 
 const OrderScreen = () => {
   const { colors: Colors } = useTheme();
-  const style = StyleSheet.create({
-    separatorContainer: {
-      flexDirection: "row",
-      backgroundColor: Colors.backgroundColor,
-      padding: 2,
-      borderRadius: 10,
-    },
-    separator: {
-      padding: 10,
-      width: "50%",
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 10,
-    },
-
-    filterContainer: {
-      flexDirection: "row",
-      justifyContent: "space-around",
-    },
-    picker: {
-      alignItems: "center",
-    },
-    button: {
-      backgroundColor: "#eee",
-      borderRadius: 8,
-      marginVertical: 5,
-    },
-    buttonText: {
-      fontSize: 20,
-    },
-    value: {
-      fontSize: 22,
-      fontWeight: "bold",
-      marginVertical: 5,
-    },
-  });
   const [bookingData, setBookingData] = useState<OrderDataTypes>({
     today_upcoming: [],
     history: [],
   });
+  const [filteredBookingData, setFilteredBookingData] =
+    useState<OrderDataTypes>(bookingData);
   const [loading, setLoading] = useState<boolean>(true);
-  const [date, setDate] = useState<string>(new Date().toISOString());
   const [page, setPages] = useState<Record<OrderScreenSeparator, number>>({
     [OrderScreenSeparator.TODAY_UPCOMING]: 1,
     [OrderScreenSeparator.HISTORY]: 1,
@@ -84,11 +50,14 @@ const OrderScreen = () => {
   const [screenSeparator, setScreenSeparator] = useState<OrderScreenSeparator>(
     OrderScreenSeparator.TODAY_UPCOMING
   );
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const { LoginStatus } = useAuth();
   const { t } = useTranslation();
   const orderLangInit: any = t("orderScreen", { returnObjects: true });
+  const [calendarModalVisible, setCalendarModalVisible] = useState(false);
+  const [initDate, setInitDate] = useState(dayjs().toDate());
+  const [endDateValue, setEndDateValue] = useState<string | null>(null);
+  const [renderExtraData, setRenderExtraData] = useState<boolean>(false);
 
   const timezone = encodeURIComponent(
     Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -111,19 +80,26 @@ const OrderScreen = () => {
       console.log(page, hasMore, bookingData);
     }
   }, [LoginStatus]);
-  const dateString = new Date(date).toISOString().split("T")[0];
+  const dateString = dayjs(initDate).toISOString().split("T")[0];
+  const endDate = endDateValue
+    ? dayjs(endDateValue).format("YYYY-MM-DD")
+    : null;
+
+  const normalizedEndDate = endDate ?? "none";
   const swrKey = LoginStatus
     ? ([
         "booked_order",
         screenSeparator,
         page[screenSeparator],
         dateString,
+        normalizedEndDate,
       ] as const satisfies SWR_regular_cache_key)
     : null;
+  const endDateParam = endDate ? `&endDate=${endDate}` : "";
   const { data, error, isLoading } = regular_swr(
     {
       item: {
-        pathname: `/auth/book/${dateString}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}`,
+        pathname: `/auth/book/${dateString}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}${endDateParam}`,
         cacheKey: swrKey,
         loginStatus: LoginStatus,
       },
@@ -243,23 +219,58 @@ const OrderScreen = () => {
     });
   };
 
-  const navigation = useNavigation();
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => setModalVisible(true)}
-          style={{ marginRight: 16 }}
-        >
-          <Ionicons
-            name="filter-circle-outline"
-            size={28}
-            color={Colors.primary}
-          />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, setModalVisible]);
+  const FILTERS = [
+    {
+      label: "All",
+      value: "all",
+    },
+    {
+      label: "Waiting To Play",
+      value: "waiting",
+    },
+    {
+      label: "Confirmed Payments",
+      value: "confirmed",
+    },
+    {
+      label: "Pending Payments",
+      value: "pending",
+    },
+    {
+      label: "Cancelled",
+      value: "cancelled",
+    },
+  ];
+  const [active, setActive] = useState("all");
+
+  const handleMonthFilter = ({
+    startDate,
+    endDate,
+  }: {
+    startDate: Date;
+    endDate: Date;
+  }) => {
+    setEndDateValue(endDate ? dayjs(endDate).toISOString() : null);
+    setInitDate(startDate);
+  };
+
+  const handleFilterPress = useCallback(
+    (value: string) => {
+      if (value === active || !value) return;
+      else if (value === "all") setFilteredBookingData(bookingData);
+      setActive(value);
+      const temp = bookingData.today_upcoming.filter((item) =>
+        item.blocks.some((block) => block.block_booking_status === value)
+      );
+
+      setFilteredBookingData((prev) => ({
+        ...prev,
+        today_upcoming: temp,
+      }));
+      setRenderExtraData((prev) => !prev);
+    },
+    [active, bookingData]
+  );
 
   return (
     <Animated.View
@@ -355,22 +366,122 @@ const OrderScreen = () => {
                 </Text>
               </TouchableOpacity>
             </View>
+            <View
+              style={{
+                paddingHorizontal: 16,
+                paddingTop: 12,
+                backgroundColor: Colors.backgroundColor,
+              }}
+            >
+              {/* Header */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 12,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    letterSpacing: 1,
+                    color: "#6B7280",
+                    fontWeight: "600",
+                  }}
+                >
+                  QUICK FILTER
+                </Text>
 
-            <Filter_Modals
-              screenSeparator={screenSeparator}
-              setScreenSeparator={setScreenSeparator}
-              modalVisible={modalVisible}
-              setModalVisible={setModalVisible}
-              setDate={setDate}
+                <TouchableOpacity
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 18,
+                    backgroundColor: "#0B1220",
+                  }}
+                  onPress={() => {
+                    setCalendarModalVisible(true);
+                  }}
+                >
+                  <Ionicons
+                    name="calendar-outline"
+                    size={16}
+                    color="#4DA3FF"
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: "#4DA3FF",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {initDate
+                      ? dayjs(initDate).format("MMM DD, YYYY")
+                      : "Select Date"}
+                    {endDateValue !== null
+                      ? ` - ${dayjs(endDateValue).format("MMM DD, YYYY")}`
+                      : ""}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Filters */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                  flexDirection: "row",
+                }}
+              >
+                {FILTERS.map((item) => {
+                  const isActive = active === item.value;
+
+                  return (
+                    <TouchableOpacity
+                      key={item.value}
+                      onPress={() => handleFilterPress(item.value)}
+                      style={{
+                        paddingHorizontal: 18,
+                        paddingVertical: 8,
+                        borderRadius: 22,
+                        backgroundColor: isActive ? "#0B1220" : "#1F2933",
+                        borderWidth: isActive ? 1 : 0,
+                        borderColor: isActive ? "#4DA3FF" : "transparent",
+                        marginRight: 10,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          color: isActive ? "#4DA3FF" : "#9CA3AF",
+                          fontWeight: isActive ? "600" : "500",
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            <MonthCalendar
+              calendarModalVisible={calendarModalVisible}
+              setCalendarModalVisible={setCalendarModalVisible}
+              initDate={initDate}
+              handleMonthFilter={handleMonthFilter}
             />
 
             <View style={{ flex: 1 }}>
               <Order_Separator
-                data={bookingData}
+                data={filteredBookingData}
                 screen_type={screenSeparator}
                 loading={loading}
                 loadMore={loadMore}
-                setLoading={setLoading}
                 page={page}
               />
             </View>
@@ -380,5 +491,40 @@ const OrderScreen = () => {
     </Animated.View>
   );
 };
+const style = StyleSheet.create({
+  separatorContainer: {
+    flexDirection: "row",
+    padding: 2,
+    borderRadius: 10,
+  },
+  separator: {
+    padding: 10,
+    width: "50%",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+  },
+
+  filterContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  picker: {
+    alignItems: "center",
+  },
+  button: {
+    backgroundColor: "#eee",
+    borderRadius: 8,
+    marginVertical: 5,
+  },
+  buttonText: {
+    fontSize: 20,
+  },
+  value: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginVertical: 5,
+  },
+});
 
 export default OrderScreen;

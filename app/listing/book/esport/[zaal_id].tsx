@@ -1,14 +1,8 @@
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import { Feather, FontAwesome, Fontisto, Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
-import {
-  TouchableOpacity,
-  View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StepIndicator from "react-native-step-indicator";
 import Step_two_pc from "./support_components/step_2_pc";
@@ -27,8 +21,9 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import { saveToken } from "../util/session";
 import { mutate } from "swr";
 import Confirm_Modal from "../support_components/confirmation_modal";
-import { format, set } from "date-fns";
+import { format } from "date-fns";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import { bookingNotificationSchedule } from "@/app/(modals)/context/store/notificationStore";
 
 const BookingEsportHall = () => {
   const { colors, theme } = useTheme();
@@ -60,6 +55,9 @@ const BookingEsportHall = () => {
   const [isDataInited, setIsDataInited] = useState<boolean>(false);
   const [confirmModal, setConfirmModal] = useState<boolean>(false);
   const [isWaiting, setIsWaiting] = useState<boolean>(false);
+  const [bookSuccess, setBookSuccess] = useState<boolean>(false);
+  const [initTime, setInitTime] = useState<boolean>(false);
+  const hasScheduled = useRef<boolean>(false);
 
   const { zaal_id } = useLocalSearchParams();
   const listing = HallData.find((item) => item.sportHallID === zaal_id) as
@@ -138,21 +136,43 @@ const BookingEsportHall = () => {
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "success" },
         });
+        if (!hasScheduled.current) {
+          await bookingNotificationSchedule({
+            title: `Reminder: Payment Needed for ${bookingDetails.name}`,
+            body: `This is a reminder that your booking requires payment. Please complete the payment to confirm your booking.`,
+            bookingToken: token,
+          });
+          hasScheduled.current = true;
+        }
+
         const todayDayStr = new Date().toISOString().split("T")[0];
         mutate(
           (key) =>
             Array.isArray(key) &&
             key[0] === "booked_order" &&
             key[1] === "TODAY_UPCOMING" &&
-            key[3] === todayDayStr,
+            key[3] >= todayDayStr,
           undefined,
           { revalidate: true, throwOnError: true }
         );
+        setBookSuccess(response.data.success);
         setIsWaiting(false);
         setConfirmModal(true);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.log(err);
+      if ([409, 401].includes(err.response.status)) {
+        Notifier.showNotification({
+          title: "Booking Exists",
+          description:
+            err.response.data.message ||
+            "Conflict in booking. Please choose a different time.",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
+        setIsWaiting(false);
+        return;
+      }
       Notifier.showNotification({
         title: "Booking Failed",
         description: "An error occurred during booking. Please try again.",
@@ -206,6 +226,7 @@ const BookingEsportHall = () => {
       ),
     },
   ];
+
   const addToCalendar = () => {
     console.log("Add to calendar");
   };
@@ -265,7 +286,9 @@ const BookingEsportHall = () => {
           <Feather name="more-vertical" size={30} color={colors.primary} />
         </TouchableOpacity>
       </View>
-      {step === 0 && <Step_one_pc />}
+      {step === 0 && (
+        <Step_one_pc initTime={initTime} setInitTime={setInitTime} />
+      )}
       {step === 1 && (
         <Step_two_pc
           listing={
@@ -378,12 +401,15 @@ const BookingEsportHall = () => {
           </TouchableOpacity>
         </View>
       )}
-      <Confirm_Modal
-        confirmModal={confirmModal}
-        setConfirmModal={setConfirmModal}
-        confirmationDetails={confirmationDetails}
-        addToCalendar={addToCalendar}
-      />
+      {bookSuccess && (
+        <Confirm_Modal
+          confirmModal={confirmModal}
+          setConfirmModal={setConfirmModal}
+          confirmationDetails={confirmationDetails}
+          addToCalendar={addToCalendar}
+          hasScheduled={hasScheduled.current}
+        />
+      )}
     </SafeAreaView>
   );
 };

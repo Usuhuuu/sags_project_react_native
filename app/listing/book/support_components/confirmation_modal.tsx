@@ -1,12 +1,7 @@
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
-import {
-  FontAwesome,
-  FontAwesome5,
-  FontAwesome6,
-  Ionicons,
-} from "@expo/vector-icons";
+import { FontAwesome, FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
@@ -23,6 +18,7 @@ interface Confirm_Modal_Props {
     resolve?: (index: number) => string | number | undefined;
   }[];
   addToCalendar: () => void;
+  hasScheduled: boolean;
 }
 
 const Confirm_Modal = ({
@@ -30,6 +26,7 @@ const Confirm_Modal = ({
   setConfirmModal,
   confirmationDetails,
   addToCalendar,
+  hasScheduled,
 }: Confirm_Modal_Props) => {
   const { colors, theme } = useTheme();
   const navigation = useNavigation<TabNavTypes>();
@@ -77,16 +74,6 @@ const Confirm_Modal = ({
               padding: 20,
             }}
           >
-            {/* <Ionicons
-              name="checkmark-circle-outline"
-              size={100}
-              color={colors.green}
-              style={{
-                textShadowColor: colors.green,
-                textShadowRadius: 10,
-                textShadowOffset: { width: 0, height: 0 },
-              }}
-            /> */}
             <View
               style={{
                 width: 150,
@@ -201,7 +188,10 @@ const Confirm_Modal = ({
                   justifyContent: "center",
                   gap: 10,
                 }}
-                onPress={() => navigation.navigate("order")}
+                onPress={() => {
+                  navigation.navigate("order");
+                  hasScheduled && setConfirmModal(!confirmModal);
+                }}
               >
                 <FontAwesome6
                   name="ticket"

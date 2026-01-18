@@ -28,6 +28,7 @@ import AppText from "@/constants/appTextDefault";
 export const OrderItem = React.memo(
   ({ item }: { item: Return_Type }) => {
     const { colors: Colors, theme } = useTheme();
+
     const data = item;
     const expanded = useSharedValue(0);
     const textOpacity = useSharedValue(1);
@@ -49,11 +50,9 @@ export const OrderItem = React.memo(
       const baseHeight = 600 + perBlockHeight;
       const isConfirmed =
         data?.blocks?.[0]?.block_booking_status === "confirmed";
-      const hasSession = !!data?.session_obj;
 
-      let extra = 10;
+      let extra = 50;
       if (isConfirmed) extra = 50;
-      else if (hasSession) extra = 100;
       const expandedHeight = perBlockHeight + baseHeight + extra;
       const notExtendedHeight = perBlockHeight + extra;
 
@@ -62,7 +61,7 @@ export const OrderItem = React.memo(
           interpolate(
             expanded.value,
             [0, 1],
-            [100 + notExtendedHeight, expandedHeight],
+            [200 + notExtendedHeight, expandedHeight],
             Extrapolate.CLAMP
           ),
           {
@@ -126,6 +125,7 @@ export const OrderItem = React.memo(
       }
     };
     const { t } = useTranslation();
+
     const orderLangInit: any = t("orderScreen", { returnObjects: true });
 
     const useCountdown = (expireAt?: string | Date) => {
@@ -275,6 +275,7 @@ export const OrderItem = React.memo(
               shadowRadius: 6,
               elevation: 4,
               borderRadius: 10,
+              padding: 5,
             },
             animatedCardStyle,
           ]}
@@ -297,58 +298,58 @@ export const OrderItem = React.memo(
             >
               <View style={{ height: "70%" }}>
                 {/* Basic Info */}
-                {data.session_obj && secondsLeft > 0 ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 14,
+                  }}
+                >
                   <View
                     style={{
+                      paddingHorizontal: 14,
+                      paddingVertical: 6,
+                      borderRadius: 20,
+                      backgroundColor: "rgba(59,130,246,0.15)",
                       flexDirection: "row",
-                      backgroundColor:
-                        theme === "dark"
-                          ? Colors.containerLittleGrey
-                          : Colors.grey,
                       alignItems: "center",
-                      gap: 5,
-                      padding: 10,
-                      borderRadius: 10,
-                      width: "100%",
+                      gap: 6,
                     }}
                   >
                     <View
                       style={{
-                        flexDirection: "row",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        gap: 7,
+                        width: 6,
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: Colors.primary,
                       }}
-                    >
-                      <FontAwesome
-                        name="check-circle"
-                        size={24}
-                        color={Colors.primary}
-                      />
-                      <AppText
-                        style={{
-                          color: Colors.themeColorTextPure,
-                          fontSize: 20,
-                          fontWeight: "500",
-                        }}
-                      >
-                        Confirm Your Book
-                      </AppText>
-                    </View>
-
-                    <AppText
+                    />
+                    <Text
                       style={{
-                        color: "red",
-                        fontSize: 20,
+                        color: Colors.primary,
+                        fontSize: 12,
                         fontWeight: "600",
+                        letterSpacing: 0.5,
                       }}
                     >
-                      {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
-                    </AppText>
+                      {data.blocks[0].block_booking_status.toUpperCase()}
+                    </Text>
                   </View>
-                ) : (
-                  <View></View>
-                )}
+
+                  <Text
+                    style={{
+                      color: "#FF4D4F",
+                      fontSize: 14,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {data.session_obj && secondsLeft > 0
+                      ? `⏱ ${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`
+                      : Number(data.total_amount)}
+                  </Text>
+                </View>
+
                 <View style={{ gap: 10 }}>
                   <View style={{ flexDirection: "row" }}>
                     <Text
@@ -364,7 +365,6 @@ export const OrderItem = React.memo(
                   <Text style={{ color: Colors.themeColorTextSecondary }}>
                     {format(new Date(data.day), "MMMM d, yyyy")}
                   </Text>
-
                   {data.blocks.map((block, index) => (
                     <View
                       key={index}
@@ -448,7 +448,7 @@ export const OrderItem = React.memo(
                           </View>
 
                           {/* Status badge */}
-                          <View
+                          {/* <View
                             style={{
                               justifyContent: "center",
                               alignItems: "center",
@@ -486,7 +486,7 @@ export const OrderItem = React.memo(
                                   : `${orderLangInit.waiting}`}
                               </Text>
                             </View>
-                          </View>
+                          </View> */}
                         </View>
 
                         {/* Progress bar */}

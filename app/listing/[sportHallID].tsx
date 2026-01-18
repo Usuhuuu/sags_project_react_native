@@ -6,7 +6,6 @@ import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
 import { HallTypesSeparator } from "@/interfaces/hallTypes";
 import SportHall from "./hall_screens/sportHall";
 import Pc_Halls from "./hall_screens/pcHall";
-import { ActivityIndicator } from "react-native-paper";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useTheme } from "../(modals)/context/themeContext";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";

@@ -1,1102 +1,399 @@
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  Image,
-  StyleSheet,
-  Dimensions,
+  TextInput,
   TouchableOpacity,
-  Modal,
-  Pressable,
-  Platform,
-  Linking,
-  LayoutAnimation,
-  UIManager,
-  SafeAreaView,
+  ScrollView,
 } from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  runOnJS,
-  withRepeat,
-  withTiming,
-  Easing,
-  FadeIn,
-} from "react-native-reanimated";
-import {
-  GestureDetector,
-  Gesture,
-  FlatList,
-} from "react-native-gesture-handler";
-import { SportHallDataType } from "@/interfaces/listing";
-import SportHall from "@/assets/Data/sportHall.json";
-import CallWaveButton from "../listing/book/CallWaveButton";
-import axiosInstance, { axiosInstanceRegular } from "@/hooks/axiosInstance";
-import { format } from "date-fns";
-import { router, useFocusEffect } from "expo-router";
-import { ActivityIndicator } from "react-native-paper";
-import { mutate } from "swr";
-import { useAuth } from "../(modals)/context/authContext";
-import { useTranslation } from "react-i18next";
-import { Notifier, NotifierComponents } from "react-native-notifier";
-import WeekCalendar from "../(modals)/book/components/calendar_strip";
-import { OrderScreenSeparator } from "@/interfaces/order&book_type";
+import { Ionicons } from "@expo/vector-icons";
+import TogetherInsideFlatList from "../listing/together/together_inside_flatlist";
 import { useTheme } from "../(modals)/context/themeContext";
+import dayjs from "dayjs";
+import { axiosInstanceRegular } from "@/hooks/axiosInstance";
+import Bottom_Renderer from "../listing/together/bottom_renderer";
+import { MonthCalendar } from "../(modals)/book/components/calendar_strip";
 
-const { width } = Dimensions.get("window");
-const SWIPE_WIDTH = width - 170;
-const BUTTON_WIDTH = 40;
-
-export type PartnerBlock = {
-  end_time: any;
-  start_time: any;
-  totalPrice: string;
-  current_player: string;
-  num_players: string;
-  time_slots: string[];
-  _id: string;
+const POSTS: Post[] = [
+  {
+    id: "1",
+    user: "PixelHunter",
+    badge: "DIAMOND RANK · RECRUITMENT",
+    time: "14M AGO",
+    text: "Searching for a 5-man team at the Sport Hall. Prefer Diamond rank or above for the upcoming weekend qualifiers.",
+    likes: 12,
+    comments: 4,
+    joinable: true,
+  },
+  {
+    id: "2",
+    user: "GhostProtocol",
+    badge: "PRO ELITE",
+    time: "2H AGO",
+    text: "Does anyone have recommendations for low-latency monitors available at the lounge? Thinking of upgrading my setup for the next season.",
+    likes: 104,
+    comments: 28,
+    joinable: false,
+  },
+  {
+    id: "3",
+    user: "NovaCore",
+    badge: "SCRIM SESSION",
+    time: "5H AGO",
+    text: "LFM: Mid-lane specialist for a scrim session tomorrow night. 8 PM start. DM for invite code.",
+    likes: 3,
+    comments: 1,
+    joinable: true,
+  },
+];
+type Post = {
+  id: string;
+  user: string;
+  badge: string;
+  time: string;
+  text: string;
+  likes: number;
+  comments: number;
+  joinable: boolean;
 };
-type PartnerDataType = {
-  _id: string;
-  booking_status: string;
-  zaal_ID: string;
-  day: string[];
-  blocks: PartnerBlock[];
-  hallData: SportHallDataType;
-};
 
-if (Platform.OS === "android") {
-  UIManager.setLayoutAnimationEnabledExperimental &&
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+export type UBDistrict = {
+  id: string;
+  name: string;
+  label: string;
+  icon?: string;
+  type?: string;
+};
 
 const Page = () => {
-  const { colors: Colors } = useTheme();
-
-  const styles = StyleSheet.create({
-    container: {
-      padding: 16,
-      paddingBottom: 60,
-      width: "100%",
-      height: "100%",
-    },
-    card: {
-      backgroundColor: Colors.containerColor,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 20,
-      elevation: 3,
-      shadowColor: "#000",
-      shadowOpacity: 0.1,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 },
-      flexDirection: "column",
-    },
-
-    rail: {
-      width: SWIPE_WIDTH,
-      height: 40,
-      borderRadius: 30,
-      justifyContent: "center",
-      marginTop: 20,
-      marginBottom: 20,
-      borderWidth: 2,
-      borderColor: "#e0e0e0",
-    },
-    swipet: {
-      marginTop: 20,
-      marginBottom: 20,
-      fontSize: 16,
-      fontWeight: "bold",
-      color: "#333",
-      textAlign: "center",
-    },
-    swipeButton: {
-      width: BUTTON_WIDTH,
-      height: 20,
-      backgroundColor: Colors.primary,
-      borderRadius: 30,
-      borderWidth: 2,
-      borderColor: Colors.primary,
-      justifyContent: "center",
-      alignItems: "center",
-      position: "absolute",
-      zIndex: 1,
-    },
-    box: {
-      width: 60,
-      height: 60,
-      backgroundColor: "#ccc",
-      margin: 5,
-      borderRadius: 8,
-    },
-    calendars: {
-      height: "20%",
-      width: "100%",
-      marginBottom: 40,
-    },
-    swipeText: {
-      fontSize: 24,
-      color: "#fff",
-      fontWeight: "bold",
-    },
-    image: {
-      width: "40%",
-      height: 100,
-      borderRadius: 10,
-      marginBottom: 12,
-    },
-    toggleText: {
-      color: Colors.primary,
-      fontSize: 16,
-      fontWeight: "600",
-      textAlign: "center",
-      marginTop: 10,
-    },
-    content: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 10,
-      width: "100%",
-    },
-    title: {
-      fontSize: 12,
-      fontWeight: "bold",
-      marginBottom: 6,
-      color: Colors.themeColorTextPure,
-      textAlign: "center",
-    },
-    subTitle: {
-      marginTop: 10,
-      fontSize: 16,
-      fontWeight: "600",
-      color: Colors.themeColorTextSecondary,
-    },
-    text: {
-      fontSize: 14,
-      color: "#555",
-    },
-    featuresContainer: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 8,
-      marginTop: 8,
-    },
-    featureBadge: {
-      backgroundColor: "#e6f4ea",
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: "#a5d6a7",
-    },
-    featureText: {
-      fontSize: 12,
-      color: "#2e7d32",
-      fontWeight: "500",
-    },
-    animatedSort: {
-      marginTop: 8,
-      marginBottom: 8,
-    },
-    containermodal: {
-      padding: 16,
-    },
-    joinButton: {
-      backgroundColor: Colors.primary,
-      padding: 10,
-      borderRadius: 8,
-      flex: 1,
-      alignItems: "center",
-    },
-    cancelButton: {
-      backgroundColor: "#ccc",
-      padding: 10,
-      borderRadius: 8,
-      flex: 1,
-      alignItems: "center",
-      marginLeft: 10,
-    },
-    buttonText: {
-      color: Colors.themeColorTextPure,
-      fontWeight: "bold",
-    },
-
-    wave: {
-      position: "absolute",
-      width: 150,
-      height: 150,
-      borderRadius: 75,
-      backgroundColor: "rgba(33, 150, 243, 0.3)", // blueish wave
-    },
-    sortButton: {
-      backgroundColor: "#eee",
-      padding: 10,
-      borderRadius: 8,
-      alignItems: "center",
-      marginBottom: 10,
-      borderWidth: 1,
-      borderColor: "#ccc",
-    },
-    sortText: {
-      fontSize: 16,
-      color: Colors.primary,
-    },
-    overlay: {
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.5)",
-      justifyContent: "center",
-    },
-    modalContainer: {
-      backgroundColor: "#fff",
-      padding: 20,
-      borderTopRightRadius: 16,
-      borderTopLeftRadius: 16,
-      borderBottomLeftRadius: 16,
-      borderBottomRightRadius: 16,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 10,
-    },
-    modalTitle: {
-      fontSize: 20,
-      fontWeight: "700",
-      marginBottom: 16,
-      color: "#333",
-    },
-    option: {
-      paddingVertical: 12,
-      paddingHorizontal: 10,
-      borderBottomWidth: 1,
-      borderBottomColor: "#eee",
-    },
-    optionText: {
-      fontSize: 16,
-      color: "#444",
-    },
-    down: {
-      marginTop: 10,
-      padding: 10,
-      borderWidth: 1,
-      borderRadius: 10,
-      borderColor: Colors.themeColorTextPure,
-      backgroundColor: Colors.containerColor,
-      alignItems: "center",
-      justifyContent: "center",
-      width: "100%",
-    },
-  });
-
-  const [sportHalls, setSportHalls] = useState<SportHallDataType[] | null>(
-    null
-  );
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedParent, setSelectedParent] = useState<string | null>(null);
-  const [selectedSort, setSelectedSort] = useState<string | null>(null);
-  const [today, setToday] = useState<Date>(new Date());
+  const { colors, theme } = useTheme();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [date, setDate] = useState<dayjs.Dayjs>(dayjs());
   const [page, setPage] = useState<number>(1);
-  const [noMore, setNoMore] = useState<boolean>(false);
-  const [showList, setShowList] = useState<boolean>(false);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [partnerLookingData, setPartnerLookingData] = useState<{
-    findPartner: PartnerDataType[];
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("BGD");
+  const [selectedSportType, setSelectedSportType] =
+    useState<string>("basket_ball");
+  const [modelBottomRenderType, setModelBottomRenderType] = useState<
+    "district" | "sport_type"
+  >("district");
+
+  const [initDate, setInitDate] = useState<Date>(new Date());
+  const [monthCalendarVisible, setMonthCalendarVisible] =
+    useState<boolean>(false);
+  const [selectedDates, setSelectedDates] = useState<{
+    startDate: Date;
+    endDate: Date;
   }>();
-  const [sortedMergedData, setSortedMergedData] = useState<PartnerDataType[]>(
-    []
-  );
-  const [mergedData, setMergedData] = useState<PartnerDataType[] | null>(null);
 
-  const visibleSportHallsMap = SportHall.reduce<
-    Record<string, SportHallDataType>
-  >((acc, hall) => {
-    acc[hall.sportHallID] = {
-      ...hall,
-      price: {
-        oneHour: String(hall.price.oneHour),
-        wholeDay: String(hall.price.wholeDay),
-      },
-    };
-    return acc;
-  }, {});
-  const { LoginStatus } = useAuth();
+  const ULAANBAATAR_DISTRICTS_MAP: Record<string, UBDistrict> = {
+    BGD: {
+      id: "BGD",
+      name: "Bayangol",
+      label: "Баянгол дүүрэг",
+    },
+    BZD: {
+      id: "BZD",
+      name: "Bayanzurkh",
+      label: "Баянзүрх дүүрэг",
+    },
+    SKD: {
+      id: "SKD",
+      name: "Sukhbaatar",
+      label: "Сүхбаатар дүүрэг",
+    },
+    CHD: {
+      id: "CHD",
+      name: "Chingeltei",
+      label: "Чингэлтэй дүүрэг",
+    },
+    HUD: {
+      id: "HUD",
+      name: "Khan-Uul",
+      label: "Хан-Уул дүүрэг",
+    },
+    SHD: {
+      id: "SHD",
+      name: "Songinokhairkhan",
+      label: "Сонгинохайрхан дүүрэг",
+    },
+    NBD: {
+      id: "NBD",
+      name: "Nalaikh",
+      label: "Налайх дүүрэг",
+    },
+    BCD: {
+      id: "BCD",
+      name: "Baganuur",
+      label: "Багануур дүүрэг",
+    },
+    BHD: {
+      id: "BHD",
+      name: "Bagakhangai",
+      label: "Багахангай дүүрэг",
+    },
+  };
+  const SPORT_INDICATOR: Record<string, UBDistrict> = {
+    // -------- SPORTS --------
+    basket_ball: {
+      id: "basket_ball",
+      type: "sport",
+      name: "Basketball",
+      label: "Сагсан бөмбөг",
+      icon: "basketball",
+    },
+    foot_ball: {
+      id: "foot_ball",
+      type: "sport",
+      name: "Football",
+      label: "Хөлбөмбөг",
+      icon: "soccer-ball-o",
+    },
+    volley_ball: {
+      id: "volley_ball",
+      type: "sport",
+      name: "Volleyball",
+      label: "Волейбол",
+      icon: "volleyball",
+    },
+    badminton: {
+      id: "badminton",
+      type: "sport",
+      name: "Badminton",
+      label: "Бадминтон",
+    },
+    tennis: {
+      id: "tennis",
+      type: "sport",
+      name: "Tennis",
+      label: "Талбайн теннис",
+    },
 
-  const fetchPartnerSearching = useCallback(async () => {
+    // -------- ESPORTS --------
+    computer: {
+      id: "computer",
+      type: "esport",
+      name: "PC Gaming",
+      label: "Компьютер тоглоом",
+      icon: "desktop",
+    },
+    playstation: {
+      id: "playstation",
+      type: "esport",
+      name: "PlayStation",
+      label: "PlayStation",
+      icon: "game-controller",
+    },
+    xbox: {
+      id: "xbox",
+      type: "esport",
+      name: "Xbox",
+      label: "Xbox",
+      icon: "xbox",
+    },
+  };
+
+  const [filterData, setFilterData] = useState<any>(ULAANBAATAR_DISTRICTS_MAP);
+  const fetchData = async () => {
     try {
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, "0");
-      const day = String(today.getDate()).padStart(2, "0");
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const encodedTimezone = encodeURIComponent(timezone);
       const response = await axiosInstanceRegular.get(
-        `/timeslots/partner/${year}/${month}/${day}?page=${page}`
+        `/timeslots/partner/${date}/${encodedTimezone}?page=${page}`
       );
-      setPartnerLookingData((prev) => ({
-        ...prev,
-        findPartner: [
-          ...(prev?.findPartner || []),
-          ...(response.data.findPartner || []),
-        ],
-      }));
-      if (response.data.message === "last") {
-        setNoMore(true);
-        console.log("Reached last page, not incrementing page anymore.");
-        return;
-      }
-      setShowList(true);
-    } catch (err: any) {
-      console.log(err);
-    } finally {
-      setShowList(true);
-    }
-  }, []);
-  useEffect(() => {
-    fetchPartnerSearching();
-  }, []);
-
-  const fetchMore = () => {
-    if (noMore) setPage(page + 1);
-  };
-  useEffect(() => {
-    if (partnerLookingData?.findPartner?.length) {
-      const seen = new Set();
-
-      const merged = partnerLookingData.findPartner.flatMap((partner) => {
-        const hall = visibleSportHallsMap[partner.zaal_ID];
-
-        return partner.blocks
-          .filter((block) => {
-            const key = `${partner.zaal_ID}_${block.start_time}_${block.end_time}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          })
-          .map((block) => ({
-            _id: partner._id,
-            booking_status: partner.booking_status,
-            zaal_ID: partner.zaal_ID,
-            day: partner.day,
-            blocks: [block],
-            hallData: hall || null,
-          }));
-      });
-
-      setMergedData(merged);
-    }
-  }, [partnerLookingData]);
-
-  const handleJoin = async ({
-    blockID,
-    transactionID,
-  }: {
-    blockID: string;
-    transactionID: string;
-  }) => {
-    try {
-      const response = await axiosInstance.post(
-        `/auth/sporthall/join/${transactionID}/${blockID}`
-      );
-      if (response.status === 200 && response.data.success) {
-        Notifier.showNotification({
-          title: "Successfully joined group chat",
-          description: "You can check the booking details ",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
-        });
-        mutate(
-          [
-            `booked_order_${OrderScreenSeparator.TODAY_UPCOMING}_1_${
-              today.toISOString().split("T")[0]
-            }`,
-            LoginStatus,
-          ],
-          undefined,
-          { revalidate: true }
-        );
-        router.push("/order");
-      } else if (response.status === 409 && !response.data.success) {
-        Notifier.showNotification({
-          title: "Warning",
-          description: PartnerLanguage.alreadyJoined,
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
-        });
-      }
-    } catch (err: any) {
-      if (err.response.status === 409) {
-        Notifier.showNotification({
-          title: "Warning",
-          description: PartnerLanguage.alreadyJoined,
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
-        });
-      }
+    } catch (err) {
+      console.log("Error fetching data:", err);
     }
   };
-  const { t } = useTranslation();
-  const PartnerLanguage: any = t("togetherScreen", {
-    returnObjects: true,
-  });
 
-  const sortOptions = [
+  const filterSection = [
     {
-      label: PartnerLanguage.rating,
-      children: ["Highest First", "Lowest First"],
+      label: `Location: ${
+        ULAANBAATAR_DISTRICTS_MAP[selectedDistrict]?.name || "Select"
+      }`,
+      id: "district",
     },
     {
-      label: PartnerLanguage.price,
-      children: ["Lowest First", "Highest First"],
+      label: `Date: ${
+        selectedDates
+          ? `${dayjs(selectedDates.startDate).format("MMM D")} - ${dayjs(
+              selectedDates.endDate
+            ).format("MMM D")}`
+          : "Select"
+      }`,
+      id: "date",
+      type: "list",
+    },
+    {
+      label: `Sport Type: ${
+        SPORT_INDICATOR[selectedSportType]?.name || "Select"
+      }`,
+      id: "sport_type",
     },
   ];
-
-  const sortSlotGiver = (date: Date) => {
-    console.log(date);
-  };
-  const translateX = useSharedValue(0);
-  const isSwiping = useSharedValue(false);
-  const scale = useSharedValue(0);
-
   useEffect(() => {
-    setSportHalls(
-      SportHall.map((hall: any) => ({
-        ...hall,
-        price:
-          typeof hall.price === "object"
-            ? `One Hour: ${hall.price.oneHour}, Whole Day: ${hall.price.wholeDay}`
-            : hall.price,
-      }))
-    );
-  }, []);
+    fetchData();
+  }, [page]);
 
-  useEffect(() => {
-    scale.value = withRepeat(
-      withTiming(1.5, {
-        duration: 1000,
-        easing: Easing.out(Easing.ease),
-      }),
-      -1,
-      true
-    );
-  }, []);
-
-  const handleCompleteSwipe = () => {
-    setIsLoading(true);
-    setPage(1); // Reset pagination
-    setSportHalls(null); // Clear list temporarily
-    setExpandedIndex(null); // Collapse all cards
-    setSelectedSort(null); // Clear sorting
-    setSelectedParent(null); // Clear sorting category
-    setModalVisible(false); // Close modal if open
-
-    const todayStr = new Date();
-    setToday(todayStr); // Reset calendar to today
-    setPartnerLookingData({ findPartner: [] }); // Clear partner list
-
-    // Repopulate halls from original SportHall list
-    setSportHalls(
-      SportHall.map((hall: any) => ({
-        ...hall,
-        price:
-          typeof hall.price === "object"
-            ? `One Hour: ${hall.price.oneHour}, Whole Day: ${hall.price.wholeDay}`
-            : hall.price,
-      }))
-    ); // Restore full list from SportHall data
-
-    // Optionally delay to simulate load time
-    setTimeout(() => {
-      setIsLoading(false);
-      setShowList(true); // ensure list shows up
-    }, 500);
+  const selectFunc = ({
+    startDate,
+    endDate,
+  }: {
+    startDate: Date;
+    endDate: Date;
+  }) => {
+    console.log("Selected dates: ", startDate, endDate);
+    setSelectedDates({ startDate, endDate });
   };
 
-  const panGesture = Gesture.Pan()
-    .onStart(() => {
-      isSwiping.value = true;
-    })
-    .onUpdate((e) => {
-      if (e.translationX >= 0 && e.translationX <= SWIPE_WIDTH - BUTTON_WIDTH) {
-        translateX.value = e.translationX;
-      }
-    })
-    .onEnd(() => {
-      isSwiping.value = false;
-      if (translateX.value > SWIPE_WIDTH - BUTTON_WIDTH - 20) {
-        runOnJS(handleCompleteSwipe)();
-      }
-      translateX.value = withSpring(0);
-    });
-
-  const bounceStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          scale: withSpring(isSwiping.value ? 1 : 1.2, {
-            damping: 5,
-            stiffness: 100,
-          }),
-        },
-        {
-          translateY: withSpring(isSwiping.value ? 0 : -5, {
-            damping: 5,
-            stiffness: 100,
-          }),
-        },
-      ],
-      color: isSwiping.value ? Colors.primary : Colors.darkGrey,
-    };
-  });
-
-  const railAnimatedStyle = useAnimatedStyle(() => {
-    const progress = translateX.value / (SWIPE_WIDTH - BUTTON_WIDTH);
-    const startColor = [224, 224, 224];
-    const endColor = [33, 150, 243];
-
-    const r = startColor[0] + (endColor[0] - startColor[0]) * progress;
-    const g = startColor[1] + (endColor[1] - startColor[1]) * progress;
-    const b = startColor[2] + (endColor[2] - startColor[2]) * progress;
-
-    return {
-      borderColor: `rgb(${r}, ${g}, ${b})`,
-    };
-  });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    backgroundColor:
-      translateX.value > SWIPE_WIDTH - BUTTON_WIDTH - 20
-        ? Colors.primary
-        : Colors.secondary,
-    borderRadius: 20,
-    width: BUTTON_WIDTH,
-    height: 40,
-    justifyContent: "center",
-  }));
-  const sortMergedByPrice = (order: "lowest" | "highest") => {
-    const sorted = [...(mergedData || [])].sort((a, b) => {
-      const priceA = parseInt(a?.blocks?.[0]?.totalPrice || "", 10);
-      const priceB = parseInt(b?.blocks?.[0]?.totalPrice || "", 10);
-
-      console.log(
-        `Comparing A: zaal_ID=${a?.zaal_ID}, price=${priceA} with B: zaal_ID=${b?.zaal_ID}, price=${priceB}`
-      );
-
-      const isANaN = isNaN(priceA);
-      const isBNaN = isNaN(priceB);
-
-      if (isANaN && isBNaN) return 0;
-      if (isANaN) return 1; // A is invalid, B is valid → A goes last
-      if (isBNaN) return -1; // B is invalid, A is valid → B goes last
-
-      return order === "lowest" ? priceA - priceB : priceB - priceA;
-    });
-    console.log(
-      "Sorted result:",
-      sorted.map((item) => ({
-        zaal_ID: item.zaal_ID,
-        price: item?.blocks?.[0]?.totalPrice,
-      }))
-    );
-
-    setSortedMergedData(sorted);
-    setSelectedSort(
-      `Price:${order === "lowest" ? "Lowest First" : "Highest First"}`
-    );
-    setSelectedParent("Price");
-    setModalVisible(false);
-  };
-  function openGoogleMaps(arg0: number, arg1: number, address: string): void {
-    const scheme = Platform.select({
-      ios: "maps://0,0?q=",
-      android: "geo:0,0?q=",
-    });
-
-    const latLng = `${arg0},${arg1}`;
-    const query = address ? `${address}@${latLng}` : latLng;
-    const url = `${scheme}${encodeURIComponent(query)}`;
-
-    Linking.openURL(url).catch((err) =>
-      console.error("An error occurred", err)
-    );
-  }
-  const formatFeatureName = (key: string) => {
-    return key
-      .replace(/([A-Z])/g, " $1") // Add space before capital letters
-      .replace(/^./, (str) => str.toUpperCase()); // Capitalize first letter
-  };
-  const { height } = Dimensions.get("screen");
   return (
-    <SafeAreaView style={{ backgroundColor: Colors.backgroundColor, flex: 1 }}>
-      <FlatList
-        data={sortedMergedData.length ? sortedMergedData : mergedData}
-        extraData={mergedData}
-        keyExtractor={(item, index) => {
-          return `${item.zaal_ID}-${index}-${item.blocks[0].totalPrice}`;
-        }}
-        contentContainerStyle={[
-          styles.container,
-          {
-            height: "auto",
-            backgroundColor: Colors.backgroundColor,
-          },
-        ]}
-        ListHeaderComponent={
-          <>
-            {(sortedMergedData.length ? sortedMergedData : mergedData) && (
-              <>
-                <Animated.Text style={[styles.swipet, bounceStyle]}>
-                  {PartnerLanguage.swipeToPartner}
-                </Animated.Text>
-                <Text style={styles.text}>
-                  {PartnerLanguage.swipeDescription}
-                </Text>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: colors.backgroundColor,
+        paddingHorizontal: 16,
+      }}
+    >
+      <View>
+        {/* Search */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: "#0f0f0f",
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            height: 42,
+            marginBottom: 14,
+          }}
+        >
+          <Ionicons name="search" size={16} color={colors.darkGrey} />
+          <TextInput
+            placeholder="Search community posts..."
+            placeholderTextColor={colors.darkGrey}
+            style={{
+              flex: 1,
+              marginLeft: 8,
+              color: "#fff",
+              fontSize: 14,
+            }}
+          />
+        </View>
 
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Animated.View style={[styles.rail, railAnimatedStyle]}>
-                    <GestureDetector gesture={panGesture}>
-                      <Animated.View
-                        style={[styles.swipeButton, animatedStyle]}
-                      >
-                        <Text style={styles.swipeText}>→</Text>
-                      </Animated.View>
-                    </GestureDetector>
-                  </Animated.View>
-
-                  <View style={styles.containermodal}>
-                    <TouchableOpacity
-                      onPress={() => setModalVisible(true)}
-                      style={styles.sortButton}
-                    >
-                      <Text style={styles.sortText}>
-                        {PartnerLanguage.sortBy}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <Modal
-                  visible={modalVisible}
-                  animationType="slide"
-                  transparent
-                  onRequestClose={() => {
-                    setModalVisible(false);
-                    setSelectedParent(null);
-                  }}
-                >
-                  <Pressable
-                    style={styles.overlay}
-                    onPress={() => {
-                      setModalVisible(false);
-                      setSelectedParent(null);
-                    }}
-                  >
-                    <View style={styles.modalContainer}>
-                      <Text style={styles.modalTitle}>
-                        {PartnerLanguage.sortBy}
-                      </Text>
-                      <WeekCalendar
-                        selectedDay={today}
-                        setSelectedDay={setToday}
-                        containerStyle={styles.calendars}
-                        selectedDayTextStyle={{ color: Colors.white }}
-                        selectedDayNumberStyle={{ color: Colors.white }}
-                        selectedContainerStyle={{
-                          backgroundColor: Colors.primary,
-                        }}
-                        onDateSelect={(date) => {
-                          sortSlotGiver(date);
-                        }}
-                      />
-
-                      {!selectedParent ? (
-                        sortOptions.map((option) => (
-                          <TouchableOpacity
-                            key={option.label}
-                            style={styles.option}
-                            onPress={() =>
-                              option.children.length > 0
-                                ? setSelectedParent(option.label)
-                                : sortMergedByPrice("highest")
-                            }
-                          >
-                            <Text style={styles.optionText}>
-                              {option.label}
-                            </Text>
-                          </TouchableOpacity>
-                        ))
-                      ) : (
-                        <>
-                          <TouchableOpacity
-                            onPress={() => setSelectedParent(null)}
-                          >
-                            <Text
-                              style={{
-                                color: Colors.primary,
-                                marginBottom: 10,
-                              }}
-                            >
-                              ← {PartnerLanguage.back}
-                            </Text>
-                          </TouchableOpacity>
-                          {sortOptions
-                            .find((opt) => opt.label === selectedParent)
-                            ?.children.map((child, index) => (
-                              <Animated.View
-                                key={child}
-                                entering={FadeIn.duration(300).delay(
-                                  index * 100
-                                )}
-                              >
-                                <TouchableOpacity
-                                  style={styles.option}
-                                  onPress={() => {
-                                    sortMergedByPrice("lowest");
-                                  }}
-                                >
-                                  <Text style={styles.optionText}>{child}</Text>
-                                </TouchableOpacity>
-                              </Animated.View>
-                            ))}
-                        </>
-                      )}
-                    </View>
-                  </Pressable>
-                </Modal>
-              </>
-            )}
-          </>
-        }
-        initialNumToRender={5}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        renderItem={({ item, index }) => {
-          const uniqueKey = `${item.zaal_ID}-${item.day[0]}-${index}`;
-          const startTime = item.blocks[0].time_slots[0].split("~")[0];
-          const length = item.blocks[0].time_slots.length;
-          const endTime = item.blocks[0].time_slots[length - 1].split("~")[0];
-          const wholeDay = item.blocks[0].time_slots?.some((time_slot) =>
-            time_slot.includes("wholeDay") ? true : false
-          );
-          return (
-            <>
-              {!showList ? (
-                <>
-                  <ActivityIndicator />
-                </>
-              ) : (
-                <View key={uniqueKey} style={styles.card}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      LayoutAnimation.configureNext(
-                        LayoutAnimation.Presets.easeInEaseOut
-                      );
-                      setExpandedIndex((prevIndex) =>
-                        prevIndex === index ? null : index
-                      );
-                    }}
-                  >
-                    <View
-                      style={{ flexDirection: "row", alignItems: "center" }}
-                    >
-                      <Image
-                        source={{ uri: item.hallData?.imageUrls[0] }}
-                        style={styles.image}
-                        resizeMode="cover"
-                      />
-                      <View style={{ flex: 1, justifyContent: "center" }}>
-                        <Text style={styles.title}>{item.hallData?.name}</Text>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            flex: 1,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 10,
-                          }}
-                        >
-                          <Text style={[styles.title, { textAlign: "center" }]}>
-                            {format(new Date(item.day[0]), "MMMM d, yyyy")}
-                          </Text>
-                          <Text style={[styles.title, { textAlign: "center" }]}>
-                            {wholeDay ? (
-                              <Text>{PartnerLanguage.wholeDay}</Text>
-                            ) : (
-                              <Text>
-                                {startTime}-{endTime}
-                              </Text>
-                            )}
-                          </Text>
-                        </View>
-                        <Text style={[styles.title, { textAlign: "center" }]}>
-                          {wholeDay ? <></> : `₮${item.blocks[0].totalPrice}`}
-                        </Text>
-                        <CallWaveButton
-                          time_slot={item.blocks?.[0]?.time_slots}
-                          playersNeeded={item.blocks?.[0]?.num_players}
-                        />
-                      </View>
-                    </View>
-                    <View
-                      style={{
-                        justifyContent: "center",
-                      }}
-                    >
-                      {expandedIndex === index && (
-                        <View style={styles.content}>
-                          <View>
-                            <Text style={styles.subTitle}>
-                              {PartnerLanguage.feature}:
-                            </Text>
-                            <View style={styles.featuresContainer}>
-                              {Object.entries(item.hallData?.feature)
-                                .filter(([_, value]) => value === true)
-                                .map(([key], index) => (
-                                  <View key={index} style={styles.featureBadge}>
-                                    <Text style={styles.featureText}>
-                                      {formatFeatureName(key)}
-                                    </Text>
-                                  </View>
-                                ))}
-                            </View>
-
-                            <TouchableOpacity
-                              onPress={() =>
-                                openGoogleMaps(
-                                  parseFloat(
-                                    item.hallData?.location.latitude ?? "0"
-                                  ),
-                                  parseFloat(
-                                    item.hallData?.location?.longitude ?? "0"
-                                  ),
-                                  item.hallData?.address ?? ""
-                                )
-                              }
-                              style={{
-                                marginBottom: 10,
-                                marginTop: 10,
-                                padding: 10,
-                                borderWidth: 1,
-                                borderRadius: 10,
-                                backgroundColor: Colors.light,
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  color: Colors.primary,
-                                  fontSize: 16,
-                                }}
-                              >
-                                📍 {PartnerLanguage.openInMap}
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-
-                          {/* --------- Add Partners Section --------- */}
-                          <View
-                            style={{
-                              marginTop: 15,
-                            }}
-                          >
-                            <Text
-                              style={[styles.subTitle, { marginBottom: 10 }]}
-                            >
-                              {PartnerLanguage.partnerLookingForThisHall}:
-                            </Text>
-                          </View>
-
-                          <View style={styles.down}>
-                            <Text style={{ color: Colors.themeColorTextPure }}>
-                              {PartnerLanguage.doYouWantJoinThisHall}
-                            </Text>
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                gap: 10,
-                                marginTop: 10,
-                              }}
-                            >
-                              <TouchableOpacity
-                                onPress={() =>
-                                  handleJoin({
-                                    blockID: item.blocks[0]._id,
-                                    transactionID: item._id,
-                                  })
-                                }
-                                style={styles.joinButton}
-                              >
-                                <Text
-                                  style={{ color: Colors.themeColorTextPure }}
-                                >
-                                  {PartnerLanguage.join}
-                                </Text>
-                              </TouchableOpacity>
-
-                              <TouchableOpacity
-                                onPress={() => {
-                                  LayoutAnimation.configureNext(
-                                    LayoutAnimation.Presets.easeInEaseOut
-                                  );
-                                  setExpandedIndex(
-                                    expandedIndex === index ? null : index
-                                  );
-                                }}
-                                style={styles.cancelButton}
-                              >
-                                <Text style={{ color: Colors.dark }}>
-                                  {PartnerLanguage.cancel}
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                        </View>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </>
-          );
-        }}
-        onEndReached={() => fetchMore()}
-        onEndReachedThreshold={0.1}
-        removeClippedSubviews={true}
-        ListEmptyComponent={
-          <>
-            {!isLoading ? (
-              <View
-                style={{
-                  width: "100%",
-                  height: height - 210,
-                  backgroundColor: Colors.backgroundColor,
+        {/* Filters */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{
+            marginBottom: 10,
+            gap: 10,
+          }}
+        >
+          {filterSection.map((filter) => {
+            const isSelected = filter.id === modelBottomRenderType;
+            return (
+              <TouchableOpacity
+                key={filter.id}
+                onPress={() => {
+                  if (filter.id === "district") {
+                    setFilterData(ULAANBAATAR_DISTRICTS_MAP);
+                    setModelBottomRenderType("district");
+                    setModalVisible(true);
+                  } else if (filter.id === "sport_type") {
+                    setFilterData(SPORT_INDICATOR);
+                    setModelBottomRenderType("sport_type");
+                    setModalVisible(true);
+                  } else if (filter.id === "date") {
+                    setMonthCalendarVisible(true);
+                  }
                 }}
               >
-                <View
-                  style={{
-                    width: "auto",
-                    height: "100%",
-                    backgroundColor: Colors.containerColor,
-                    padding: 10,
-                    borderRadius: 10,
-                    justifyContent: "space-around",
-                    flexDirection: "column",
-                  }}
-                >
-                  <View
-                    style={{
-                      width: "100%",
-                      height: "40%",
-                      paddingTop: 10,
-                    }}
-                  >
-                    <Image
-                      source={require("@/assets/images/no_teammate.png")}
-                      style={{ width: "100%", height: "100%" }}
-                    />
-                  </View>
-                  <View
-                    style={{ justifyContent: "center", alignItems: "center" }}
-                  >
-                    <Text
-                      style={{
-                        color: Colors.themeColorTextPure,
-                        fontSize: 25,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Call All Teammates
-                    </Text>
-                    <Text
-                      style={{
-                        width: "80%",
-                        color: Colors.themeColorTextSecondary,
-                        fontSize: 18,
-                        textAlign: "center",
-                      }}
-                    >
-                      No one has created an activity here yet.{" "}
-                      <Text
-                        style={{ color: Colors.primary, fontWeight: "600" }}
-                      >
-                        Be the first to start a game!
-                      </Text>
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      width: "100%",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: 15,
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={{
-                        width: "80%",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor: Colors.primary,
-                        borderRadius: 10,
-                        padding: 10,
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.25,
-                        shadowRadius: 3.84,
-                        elevation: 5,
-                      }}
-                      onPress={() => {
-                        router.replace("/");
-                      }}
-                    >
-                      <Text style={{ color: Colors.white, fontSize: 20 }}>
-                        Create New Activity
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{
-                        width: "80%",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor: Colors.warningYellow,
-                        borderRadius: 10,
-                        padding: 10,
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.25,
-                        shadowRadius: 3.84,
-                        elevation: 5,
-                      }}
-                    >
-                      <Text style={{ color: Colors.dark, fontSize: 20 }}>
-                        Check My Filters
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <View
-                style={{
-                  justifyContent: "center",
-                  alignItems: "center",
-                  width: "100%",
-                  height: height - 250,
-                }}
-              >
-                <ActivityIndicator color={Colors.primary} size={"large"} />
-              </View>
-            )}
-          </>
-        }
+                <Chip label={filter.label} active={isSelected} />
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        <Text
+          style={{
+            fontSize: 11,
+            letterSpacing: 1,
+            color: "#555",
+            marginBottom: 12,
+          }}
+        >
+          RECENT ACTIVITY
+        </Text>
+      </View>
+      <TogetherInsideFlatList
+        data={POSTS}
+        loading={isLoading}
+        setLoading={setIsLoading}
       />
-    </SafeAreaView>
+      <Bottom_Renderer
+        visible={modalVisible}
+        setVisible={setModalVisible}
+        renderData={filterData}
+        selectedData={
+          modelBottomRenderType === "district"
+            ? selectedDistrict
+            : selectedSportType
+        }
+        onSelect={(item) => {
+          if (item.type === "district") {
+            setSelectedDistrict(item.id);
+          } else if (item.type === "sport_type") {
+            setSelectedSportType(item.id);
+          }
+        }}
+        selectingType={modelBottomRenderType}
+      />
+      <MonthCalendar
+        calendarModalVisible={monthCalendarVisible}
+        setCalendarModalVisible={setMonthCalendarVisible}
+        initDate={initDate}
+        handleMonthFilter={selectFunc}
+      />
+    </View>
+  );
+};
+
+const Chip = ({ label, active = false }: any) => {
+  const { colors } = useTheme();
+  return (
+    <View
+      style={[
+        {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 4,
+          paddingHorizontal: 10,
+          height: 32,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: colors.darkGrey,
+          backgroundColor: colors.containerColor,
+        },
+        active && { borderColor: colors.primary, backgroundColor: "#001b20" },
+      ]}
+    >
+      <Text
+        style={[
+          {
+            fontSize: 12,
+            color: "#aaa",
+          },
+          active && { color: colors.primary },
+        ]}
+      >
+        {label}
+      </Text>
+      <Ionicons
+        name="chevron-down"
+        size={14}
+        color={active ? "#00e5ff" : "#777"}
+      />
+    </View>
   );
 };
 
