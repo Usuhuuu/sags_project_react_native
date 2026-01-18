@@ -41,115 +41,131 @@ const TogetherInsideFlatList = ({
         style={[
           {
             backgroundColor: colors.containerColor,
+            shadowColor: colors.shadowColor,
+            shadowOffset: { width: 4, height: 2 },
+            shadowOpacity: theme === "dark" ? 0.7 : 0.1,
+            shadowRadius: 4,
             borderRadius: 16,
-            padding: 14,
             marginBottom: 16,
+            marginHorizontal: 6,
           },
         ]}
       >
         <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 8,
-          }}
-        >
-          <View
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 19,
-              backgroundColor: "#1c1c1c",
-              marginRight: 10,
-            }}
-          />
-          <View style={{ flex: 1 }}>
-            <AppText style={{ fontSize: 14, fontWeight: "500" }}>
-              {item.user}
-            </AppText>
-            <AppText
-              style={{ color: colors.darkGrey, fontSize: 11, marginTop: 2 }}
-            >
-              {item.badge}
-            </AppText>
-          </View>
-          <AppText style={{ color: colors.darkGrey, fontSize: 11 }}>
-            {item.time}
-          </AppText>
-        </View>
+          style={[
+            {
+              backgroundColor: colors.containerColor,
 
-        <AppText style={{ fontSize: 14, lineHeight: 20, marginVertical: 10 }}>
-          {item.text}
-        </AppText>
-
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
+              borderRadius: 16,
+              padding: 14,
+              marginBottom: 16,
+            },
+          ]}
         >
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
+              marginBottom: 8,
             }}
           >
-            <Ionicons
-              name="chatbubble-outline"
-              size={14}
-              color={colors.darkGrey}
-            />
-            <AppText
+            <View
               style={{
-                color: colors.darkGrey,
-                fontSize: 12,
-                marginLeft: 4,
+                width: 38,
+                height: 38,
+                borderRadius: 19,
+                backgroundColor: "#1c1c1c",
+                marginRight: 10,
               }}
-            >
-              {item.comments}
-            </AppText>
-
-            <Ionicons
-              name="heart-outline"
-              size={14}
-              color={colors.darkGrey}
-              style={{ marginLeft: 12 }}
             />
-            <AppText
-              style={{
-                color: colors.darkGrey,
-                fontSize: 12,
-                marginLeft: 4,
-              }}
-            >
-              {item.likes}
+            <View style={{ flex: 1 }}>
+              <AppText style={{ fontSize: 14, fontWeight: "500" }}>
+                {item.user}
+              </AppText>
+              <AppText
+                style={{ color: colors.darkGrey, fontSize: 11, marginTop: 2 }}
+              >
+                {item.badge}
+              </AppText>
+            </View>
+            <AppText style={{ color: colors.darkGrey, fontSize: 11 }}>
+              {item.time}
             </AppText>
           </View>
 
-          {item.joinable && (
-            <TouchableOpacity
+          <AppText style={{ fontSize: 14, lineHeight: 20, marginVertical: 10 }}>
+            {item.text}
+          </AppText>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View
               style={{
-                borderColor: colors.primary,
-                paddingHorizontal: 14,
-                height: 30,
-                borderRadius: 15,
-                borderWidth: 1,
-                justifyContent: "center",
+                flexDirection: "row",
                 alignItems: "center",
               }}
             >
+              <Ionicons
+                name="chatbubble-outline"
+                size={14}
+                color={colors.darkGrey}
+              />
               <AppText
                 style={{
-                  color: colors.primary,
+                  color: colors.darkGrey,
                   fontSize: 12,
-                  fontWeight: "500",
+                  marginLeft: 4,
                 }}
               >
-                Join
+                {item.comments}
               </AppText>
-            </TouchableOpacity>
-          )}
+
+              <Ionicons
+                name="heart-outline"
+                size={14}
+                color={colors.darkGrey}
+                style={{ marginLeft: 12 }}
+              />
+              <AppText
+                style={{
+                  color: colors.darkGrey,
+                  fontSize: 12,
+                  marginLeft: 4,
+                }}
+              >
+                {item.likes}
+              </AppText>
+            </View>
+
+            {item.joinable && (
+              <TouchableOpacity
+                style={{
+                  borderColor: colors.primary,
+                  paddingHorizontal: 14,
+                  height: 30,
+                  borderRadius: 15,
+                  borderWidth: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <AppText
+                  style={{
+                    color: colors.primary,
+                    fontSize: 12,
+                    fontWeight: "500",
+                  }}
+                >
+                  Join
+                </AppText>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
     ),
@@ -181,7 +197,7 @@ const TogetherInsideFlatList = ({
           elevation: 6,
         }}
       >
-        <Ionicons name="add" size={26} color="#000" />
+        <Ionicons name="add" size={26} color={colors.backgroundColor} />
       </TouchableOpacity>
     </View>
   );

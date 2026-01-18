@@ -730,7 +730,14 @@ export const MonthCalendar = ({
             </TouchableOpacity>
           </View>
           <View>
-            <AppText style={{ fontWeight: 400 }}>Select Date Range</AppText>
+            <AppText
+              style={{
+                fontWeight: 400,
+                color: colors.themeColorTextPure,
+              }}
+            >
+              Select Date Range
+            </AppText>
           </View>
           <View>
             <TouchableOpacity
@@ -772,26 +779,26 @@ export const MonthCalendar = ({
             <TouchableOpacity
               style={[
                 MonthCalendarStyle.separator,
-                { backgroundColor: colors.containerLittleGrey },
+                { backgroundColor: colors.primary },
               ]}
             >
-              <AppText>This Week</AppText>
+              <AppText style={{ color: colors.white }}>This Week</AppText>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
                 MonthCalendarStyle.separator,
-                { backgroundColor: colors.containerLittleGrey },
+                { backgroundColor: colors.primary },
               ]}
             >
-              <AppText>Last Month</AppText>
+              <AppText style={{ color: colors.white }}>Last Month</AppText>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
                 MonthCalendarStyle.separator,
-                { backgroundColor: colors.containerLittleGrey },
+                { backgroundColor: colors.primary },
               ]}
             >
-              <AppText>Last 3 Months</AppText>
+              <AppText style={{ color: colors.white }}>Last 3 Months</AppText>
             </TouchableOpacity>
           </View>
         </View>
@@ -817,7 +824,13 @@ export const MonthCalendar = ({
                 marginBottom: 12,
               }}
             >
-              <Text style={{ color: "#FFF", fontSize: 18, fontWeight: "600" }}>
+              <Text
+                style={{
+                  color: colors.themeColorTextPure,
+                  fontSize: 18,
+                  fontWeight: "600",
+                }}
+              >
                 {currentMonth.format("MMMM YYYY")}
               </Text>
 
@@ -926,7 +939,9 @@ export const MonthCalendar = ({
                     >
                       <Text
                         style={{
-                          color: selected ? "#FFF" : "#D1D5DB",
+                          color: selected
+                            ? colors.themeColorTextPure
+                            : colors.themeContainerGrey,
                           fontWeight: selected ? "600" : "400",
                         }}
                       >

@@ -68,7 +68,7 @@ export type UBDistrict = {
 const Page = () => {
   const { colors, theme } = useTheme();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [date, setDate] = useState<dayjs.Dayjs>(dayjs());
+  const [date, setDate] = useState<Date>(new Date());
   const [page, setPage] = useState<number>(1);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedDistrict, setSelectedDistrict] = useState<string>("BGD");
@@ -199,7 +199,7 @@ const Page = () => {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const encodedTimezone = encodeURIComponent(timezone);
       const response = await axiosInstanceRegular.get(
-        `/timeslots/partner/${date}/${encodedTimezone}?page=${page}`
+        `/partner/${date}/${encodedTimezone}?page=${page}`
       );
     } catch (err) {
       console.log("Error fetching data:", err);
@@ -233,7 +233,7 @@ const Page = () => {
   ];
   useEffect(() => {
     fetchData();
-  }, [page]);
+  }, [date, page]);
 
   const selectFunc = ({
     startDate,
@@ -251,7 +251,7 @@ const Page = () => {
       style={{
         flex: 1,
         backgroundColor: colors.backgroundColor,
-        paddingHorizontal: 16,
+        paddingHorizontal: 10,
       }}
     >
       <View>
@@ -260,11 +260,16 @@ const Page = () => {
           style={{
             flexDirection: "row",
             alignItems: "center",
-            backgroundColor: "#0f0f0f",
+            backgroundColor: colors.containerColor,
+            shadowColor: colors.shadowColor,
+            shadowOffset: { width: 4, height: 2 },
+            shadowOpacity: theme === "dark" ? 0.7 : 0.1,
+            shadowRadius: 4,
             borderRadius: 12,
             paddingHorizontal: 12,
             height: 42,
             marginBottom: 14,
+            marginHorizontal: 6,
           }}
         >
           <Ionicons name="search" size={16} color={colors.darkGrey} />
@@ -274,7 +279,7 @@ const Page = () => {
             style={{
               flex: 1,
               marginLeft: 8,
-              color: "#fff",
+              color: colors.darkGrey,
               fontSize: 14,
             }}
           />
@@ -287,6 +292,7 @@ const Page = () => {
           style={{
             marginBottom: 10,
             gap: 10,
+            marginHorizontal: 6,
           }}
         >
           {filterSection.map((filter) => {
@@ -320,6 +326,7 @@ const Page = () => {
             letterSpacing: 1,
             color: "#555",
             marginBottom: 12,
+            marginHorizontal: 6,
           }}
         >
           RECENT ACTIVITY
@@ -359,7 +366,7 @@ const Page = () => {
 };
 
 const Chip = ({ label, active = false }: any) => {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
   return (
     <View
       style={[
@@ -374,14 +381,17 @@ const Chip = ({ label, active = false }: any) => {
           borderColor: colors.darkGrey,
           backgroundColor: colors.containerColor,
         },
-        active && { borderColor: colors.primary, backgroundColor: "#001b20" },
+        active && {
+          borderColor: colors.primary,
+          backgroundColor: theme === "dark" ? colors.containerColor : "#e0f7fa",
+        },
       ]}
     >
       <Text
         style={[
           {
             fontSize: 12,
-            color: "#aaa",
+            color: theme === "dark" ? "#888" : "#aaa",
           },
           active && { color: colors.primary },
         ]}
@@ -391,7 +401,7 @@ const Chip = ({ label, active = false }: any) => {
       <Ionicons
         name="chevron-down"
         size={14}
-        color={active ? "#00e5ff" : "#777"}
+        color={active ? colors.primary : theme === "dark" ? "#555" : "#777"}
       />
     </View>
   );

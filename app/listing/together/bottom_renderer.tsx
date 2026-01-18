@@ -1,11 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import { RadioButton } from "react-native-paper";
 import { UBDistrict } from "@/app/(tabs)/inbox";
 import AppText from "@/constants/appTextDefault";
 import { Entypo } from "@expo/vector-icons";
-import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
+import { BlurView } from "expo-blur";
 
 type Bottom_Renderer_Props = {
   visible: boolean;
@@ -26,7 +30,7 @@ export const Bottom_Renderer = ({
 }: Bottom_Renderer_Props) => {
   const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ["40%", "90%"], []);
+  const snapPoints = useMemo(() => ["40%", "80%"], []);
   useEffect(() => {
     if (visible) {
       bottomSheetRef.current?.snapToIndex(0);
@@ -34,12 +38,21 @@ export const Bottom_Renderer = ({
       bottomSheetRef.current?.close();
     }
   }, [visible]);
-
+  const renderBackdrop = (props: any) => (
+    <BottomSheetBackdrop
+      {...props}
+      appearsOnIndex={0}
+      disappearsOnIndex={-1}
+      opacity={0.45}
+      pressBehavior="close"
+    />
+  );
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      index={-1}
+      index={visible ? 0 : -1}
       snapPoints={snapPoints}
+      backdropComponent={renderBackdrop}
       enablePanDownToClose
       onClose={() => setVisible(false)}
       backgroundStyle={{ backgroundColor: colors.backgroundColor }}
