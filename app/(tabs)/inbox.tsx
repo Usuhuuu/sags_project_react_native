@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,51 +10,43 @@ import { Ionicons } from "@expo/vector-icons";
 import TogetherInsideFlatList from "../listing/together/together_inside_flatlist";
 import { useTheme } from "../(modals)/context/themeContext";
 import dayjs from "dayjs";
-import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import Bottom_Renderer from "../listing/together/bottom_renderer";
 import { MonthCalendar } from "../(modals)/book/components/calendar_strip";
+import { SWR_simple_cache_key } from "@/hooks/useswr";
+import { useSimpleQuery } from "@/hooks/useQuery";
+import { useIsFocused } from "@react-navigation/native";
 
-const POSTS: Post[] = [
-  {
-    id: "1",
-    user: "PixelHunter",
-    badge: "DIAMOND RANK · RECRUITMENT",
-    time: "14M AGO",
-    text: "Searching for a 5-man team at the Sport Hall. Prefer Diamond rank or above for the upcoming weekend qualifiers.",
-    likes: 12,
-    comments: 4,
-    joinable: true,
-  },
-  {
-    id: "2",
-    user: "GhostProtocol",
-    badge: "PRO ELITE",
-    time: "2H AGO",
-    text: "Does anyone have recommendations for low-latency monitors available at the lounge? Thinking of upgrading my setup for the next season.",
-    likes: 104,
-    comments: 28,
-    joinable: false,
-  },
-  {
-    id: "3",
-    user: "NovaCore",
-    badge: "SCRIM SESSION",
-    time: "5H AGO",
-    text: "LFM: Mid-lane specialist for a scrim session tomorrow night. 8 PM start. DM for invite code.",
-    likes: 3,
-    comments: 1,
-    joinable: true,
-  },
-];
-type Post = {
+export type PostTypes = {
   id: string;
-  user: string;
-  badge: string;
-  time: string;
-  text: string;
-  likes: number;
-  comments: number;
-  joinable: boolean;
+  day: Date;
+  block: {
+    _id: string;
+    start_time: string;
+    end_time: string;
+    timezone: string;
+    num_players: number;
+    current_player_list: string[];
+    post: {
+      _id: string;
+      total_player_needed: number;
+      likes: number;
+      joinable: boolean;
+      post_text: string;
+      is_default_post: boolean;
+      comment: string[];
+      sport_type: string;
+    };
+    users_info: [
+      {
+        unique_user_ID: string;
+      }
+    ];
+    hall_info: {
+      hall_details: {
+        hall_name: string;
+      };
+    };
+  };
 };
 
 export type UBDistrict = {
@@ -65,10 +57,13 @@ export type UBDistrict = {
   type?: string;
 };
 
-const Page = () => {
+const TogetherScreen = () => {
   const { colors, theme } = useTheme();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [date, setDate] = useState<Date>(new Date());
+  const [formattedDate, setFormattedDate] = useState<string>(
+    dayjs(date).format("YYYY-MM-DD")
+  );
   const [page, setPage] = useState<number>(1);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedDistrict, setSelectedDistrict] = useState<string>("BGD");
@@ -85,7 +80,54 @@ const Page = () => {
     startDate: Date;
     endDate: Date;
   }>();
+  const [postData, setPostData] = useState<PostTypes[]>();
 
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const encodedTimezone = encodeURIComponent(timezone);
+
+  const swr_key = [
+    "partner_posts",
+    formattedDate,
+    encodedTimezone,
+    page,
+  ] as const satisfies SWR_simple_cache_key;
+
+  const isFocused = useIsFocused();
+
+  const { data, error, isLoading } = useSimpleQuery(
+    {
+      pathname: `/partner/${formattedDate}/${encodedTimezone}?page=${page}`,
+      cacheKey: swr_key,
+    },
+    {
+      enabled: isFocused,
+    }
+  );
+  useEffect(() => {
+    setLoading(isLoading);
+    if (!data?.success) return;
+    setPostData((prev) => {
+      if (page === 1) {
+        return data.data;
+      }
+      const map = new Map((prev ?? []).map((item) => [item.block._id, item]));
+      for (const item of data.data) {
+        map.set(item.block._id, item);
+      }
+      return Array.from(map.values());
+    });
+  }, [data, isLoading, page]);
+
+  const selectFunc = ({
+    startDate,
+    endDate,
+  }: {
+    startDate: Date;
+    endDate: Date;
+  }) => {
+    console.log("Selected dates: ", startDate, endDate);
+    setSelectedDates({ startDate, endDate });
+  };
   const ULAANBAATAR_DISTRICTS_MAP: Record<string, UBDistrict> = {
     BGD: {
       id: "BGD",
@@ -192,20 +234,6 @@ const Page = () => {
       icon: "xbox",
     },
   };
-
-  const [filterData, setFilterData] = useState<any>(ULAANBAATAR_DISTRICTS_MAP);
-  const fetchData = async () => {
-    try {
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const encodedTimezone = encodeURIComponent(timezone);
-      const response = await axiosInstanceRegular.get(
-        `/partner/${date}/${encodedTimezone}?page=${page}`
-      );
-    } catch (err) {
-      console.log("Error fetching data:", err);
-    }
-  };
-
   const filterSection = [
     {
       label: `Location: ${
@@ -231,20 +259,7 @@ const Page = () => {
       id: "sport_type",
     },
   ];
-  useEffect(() => {
-    fetchData();
-  }, [date, page]);
-
-  const selectFunc = ({
-    startDate,
-    endDate,
-  }: {
-    startDate: Date;
-    endDate: Date;
-  }) => {
-    console.log("Selected dates: ", startDate, endDate);
-    setSelectedDates({ startDate, endDate });
-  };
+  const [filterData, setFilterData] = useState<any>(ULAANBAATAR_DISTRICTS_MAP);
 
   return (
     <View
@@ -333,9 +348,9 @@ const Page = () => {
         </Text>
       </View>
       <TogetherInsideFlatList
-        data={POSTS}
-        loading={isLoading}
-        setLoading={setIsLoading}
+        data={postData}
+        loading={loading}
+        setLoading={setLoading}
       />
       <Bottom_Renderer
         visible={modalVisible}
@@ -407,4 +422,4 @@ const Chip = ({ label, active = false }: any) => {
   );
 };
 
-export default Page;
+export default TogetherScreen;

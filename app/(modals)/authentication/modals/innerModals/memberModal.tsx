@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Modal,
 } from "react-native";
-import { regular_swr } from "@/hooks/useswr";
 import { Avatar } from "react-native-paper";
 import { AntDesign } from "@expo/vector-icons";
 import axiosInstance from "@/hooks/axiosInstance";
@@ -18,6 +17,7 @@ import { GroupChat } from "@/interfaces/chatType";
 import { useTranslation } from "react-i18next";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useRegularQuery } from "@/hooks/useQuery";
 
 interface MemberModalProps {
   memberModalVisible: boolean;
@@ -104,18 +104,14 @@ const MemberModal: React.FC<MemberModalProps> = ({ memberData }) => {
 
   const snapPoints = useMemo(() => ["10%"], ["40%"]);
 
-  const { data } = regular_swr(
+  const { data } = useRegularQuery(
     {
-      item: {
-        pathname: `/auth/profile/${
-          memberData[0].group_ID
-        }?page=${1}&limit=${10}`,
-        cacheKey: `${memberData[0].group_ID}_group_members`,
-        loginStatus: LoginStatus,
-      },
+      pathname: `/auth/profile/${memberData[0].group_ID}?page=${1}&limit=${10}`,
+      cacheKey: `${memberData[0].group_ID}_group_members`,
+      loginStatus: LoginStatus,
     },
     {
-      revalidateOnMount: true,
+      enabled: LoginStatus,
     }
   );
 

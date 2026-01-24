@@ -5,7 +5,6 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   Dimensions,
   Image,
   ScrollView,
@@ -17,11 +16,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { differenceInDays } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../(modals)/context/authContext";
-import {
-  auth_swr,
-  regular_swr,
-  SWR_regular_cache_key,
-} from "../../hooks/useswr";
 import MainChatModal from "@/app/(modals)/authentication/modals/mainChatModal";
 import { useFocusEffect } from "expo-router";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
@@ -46,6 +40,11 @@ import { useChatStore } from "../(modals)/context/store/chatStore";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "../(modals)/context/themeContext";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import {
+  RQ_regular_cache_key,
+  useAuthQuery,
+  useRegularQuery,
+} from "@/hooks/useQuery";
 
 const ChatComponent: React.FC = () => {
   const { colors: Colors } = useTheme();
@@ -202,38 +201,33 @@ const ChatComponent: React.FC = () => {
     data: userData,
     error: userError,
     isLoading: userLoading,
-  } = auth_swr(
+  } = useAuthQuery(
     {
-      item: {
-        pathname: "main",
-        cacheKey: "RoleAndProfile_main",
-        loginStatus: LoginStatus,
-      },
+      pathname: "main",
+      cacheKey: ["auth_status"],
+      loginStatus: LoginStatus,
     },
     {
-      revalidateOnReconnect: true,
-      revalidateOnMount: true,
+      enabled: LoginStatus,
     }
   );
 
-  const regular_swr_key = LoginStatus
-    ? (["group_chat"] as const satisfies SWR_regular_cache_key)
-    : null;
+  const regular_query_key = [
+    "group_chat",
+  ] as const satisfies RQ_regular_cache_key;
+
   const {
     data: chatData,
     error: chatError,
     isLoading: chatLoading,
-  } = regular_swr(
+  } = useRegularQuery(
     {
-      item: {
-        pathname: "/auth/chatcheck",
-        cacheKey: regular_swr_key,
-        loginStatus: LoginStatus,
-      },
+      pathname: "/auth/chatcheck",
+      cacheKey: regular_query_key,
+      loginStatus: LoginStatus,
     },
     {
-      revalidateOnFocus: true,
-      revalidateOnMount: true,
+      enabled: LoginStatus,
     }
   );
 
@@ -243,8 +237,8 @@ const ChatComponent: React.FC = () => {
       setLoading(true);
     } else if (chatData && chatData.success) {
       const allGroups = [
-        ...(chatData.chatGroupIDs.chat || []),
-        ...(chatData.chatGroupIDs.directChat || []),
+        ...(chatData.chatGroupIDs?.chat || []),
+        ...(chatData.chatGroupIDs?.directChat || []),
       ];
       const map = {} as { [groupId: string]: GroupChat };
       allGroups.forEach((groupID: any) => {

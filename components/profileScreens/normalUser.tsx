@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ProfileHeader from "@/components/ProfileHeader";
-import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "@/app/(modals)/context/authContext";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useAuthQuery } from "@/hooks/useQuery";
 
 interface ProfileNormalUserProps {
   copyToClipboard: () => void;
@@ -20,16 +20,15 @@ const NormalUser: React.FC<ProfileNormalUserProps> = () => {
 
   const [userData, setUserData] = useState(null);
   const { LoginStatus } = useAuth();
-  const { data, error } = auth_swr(
+
+  const { data, error } = useAuthQuery(
     {
-      item: {
-        pathname: "main",
-        cacheKey: "RoleAndProfile_main",
-        loginStatus: LoginStatus,
-      },
+      pathname: "main",
+      cacheKey: ["auth_status"],
+      loginStatus: LoginStatus,
     },
     {
-      revalidateOnFocus: true,
+      enabled: LoginStatus,
     }
   );
   useEffect(() => {

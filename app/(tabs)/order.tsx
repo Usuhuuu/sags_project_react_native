@@ -6,7 +6,6 @@ import {
   View,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
-import { regular_swr, SWR_regular_cache_key } from "@/hooks/useswr";
 import { useAuth } from "../(modals)/context/authContext";
 import { HashedSportData } from "@/utils/sport_hall_hash";
 import Order_Separator from "../(modals)/book/components/order_separator";
@@ -24,9 +23,10 @@ import Animated, {
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../(modals)/context/themeContext";
-import { differenceInMinutes, set } from "date-fns";
+import { differenceInMinutes } from "date-fns";
 import { MonthCalendar } from "../(modals)/book/components/calendar_strip";
 import dayjs from "dayjs";
+import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
 
 const OrderScreen = () => {
   const { colors: Colors } = useTheme();
@@ -86,29 +86,24 @@ const OrderScreen = () => {
     : null;
 
   const normalizedEndDate = endDate ?? "none";
-  const swrKey = LoginStatus
-    ? ([
-        "booked_order",
-        screenSeparator,
-        page[screenSeparator],
-        dateString,
-        normalizedEndDate,
-      ] as const satisfies SWR_regular_cache_key)
-    : null;
+  const swrKey = [
+    "booked_order",
+    screenSeparator,
+    page[screenSeparator],
+    dateString,
+    normalizedEndDate,
+  ] as const satisfies RQ_regular_cache_key;
   const endDateParam = endDate ? `&endDate=${endDate}` : "";
-  const { data, error, isLoading } = regular_swr(
+
+  const { data, error, isLoading } = useRegularQuery(
     {
-      item: {
-        pathname: `/auth/book/${dateString}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}${endDateParam}`,
-        cacheKey: swrKey,
-        loginStatus: LoginStatus,
-      },
+      pathname: `/auth/book/${dateString}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}${endDateParam}`,
+      cacheKey: swrKey,
+      loginStatus: LoginStatus,
     },
     {
-      shouldRetryOnError: false,
-      revalidateOnMount: true,
-      refreshWhenHidden: false,
-      refreshInterval: 10000,
+      enabled: LoginStatus,
+      retry: 3,
     }
   );
 
@@ -199,7 +194,8 @@ const OrderScreen = () => {
   }, [data, error, isLoading]);
 
   const loadMore = useCallback(() => {
-    if (loading || !hasMore[screenSeparator] || !data?.length) return;
+    if (loading || !hasMore[screenSeparator] || !data?.bookingData.length)
+      return;
     setPages((prev) => ({
       ...prev,
       [screenSeparator]: prev[screenSeparator] + 1,

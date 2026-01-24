@@ -5,7 +5,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { router, Stack, useRouter } from "expo-router";
 import React, { useEffect, ReactNode, useState } from "react";
-import { TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import { LanguageProvider } from "./(modals)/context/Languages";
 export { ErrorBoundary } from "expo-router";
@@ -33,6 +33,8 @@ import {
 } from "@/hooks/permissions";
 import { ThemeProvider, useTheme } from "./(modals)/context/themeContext";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/hooks/queryClient";
 
 configureReanimatedLogger({
   strict: false,
@@ -308,24 +310,26 @@ export function RootLayoutNav() {
 
 export default Sentry.wrap(() => (
   <ThemeProvider>
-    <GestureHandlerRootView>
-      <SafeAreaProvider>
-        <NotifierRoot useRNScreensOverlay={true} />
-        <CustomErrorBoundary>
-          <AuthProvider>
-            <LanguageProvider>
-              <SavedHallsProvider>
-                <CalendarProvider>
-                  <RootLayout>
-                    <Layout />
-                    <TabsLayout />
-                  </RootLayout>
-                </CalendarProvider>
-              </SavedHallsProvider>
-            </LanguageProvider>
-          </AuthProvider>
-        </CustomErrorBoundary>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView>
+        <SafeAreaProvider>
+          <NotifierRoot useRNScreensOverlay={true} />
+          <CustomErrorBoundary>
+            <AuthProvider>
+              <LanguageProvider>
+                <SavedHallsProvider>
+                  <CalendarProvider>
+                    <RootLayout>
+                      <Layout />
+                      <TabsLayout />
+                    </RootLayout>
+                  </CalendarProvider>
+                </SavedHallsProvider>
+              </LanguageProvider>
+            </AuthProvider>
+          </CustomErrorBoundary>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   </ThemeProvider>
 ));

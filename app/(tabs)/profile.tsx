@@ -12,8 +12,9 @@ import ProfileAdmin from "@/components/profileScreens/admin";
 import NormalUser from "@/components/profileScreens/normalUser";
 import { useAuth } from "../(modals)/context/authContext";
 import Page from "../(modals)/authentication/login";
-import { auth_swr } from "../../hooks/useswr";
+
 import { useTheme } from "../(modals)/context/themeContext";
+import { useAuthQuery } from "@/hooks/useQuery";
 
 const Profile: React.FC = () => {
   const { colors: Colors } = useTheme();
@@ -24,16 +25,14 @@ const Profile: React.FC = () => {
   const [userRole, setUserRole] = useState<string>("");
   const { LoginStatus } = useAuth();
 
-  const { data, error, isLoading } = auth_swr(
+  const { data, error, isLoading } = useAuthQuery(
     {
-      item: {
-        pathname: path,
-        cacheKey: `RoleAndProfile_${path}`,
-        loginStatus: LoginStatus,
-      },
+      pathname: path,
+      cacheKey: [`auth_${path}`],
+      loginStatus: LoginStatus,
     },
     {
-      revalidateOnMount: false,
+      enabled: LoginStatus,
     }
   );
 

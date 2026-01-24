@@ -1,4 +1,4 @@
-import axiosInstance from "@/hooks/axiosInstance";
+import axiosInstance, { axiosInstanceRegular } from "@/hooks/axiosInstance";
 
 export const fetchRoleAndProfile = async (
   path: String,
@@ -66,5 +66,15 @@ export const postFetch = async ({
   } catch (err) {
     console.log(postFetch);
     if (err) throw new Error("Error on fetch");
+  }
+};
+
+export const simple_fetch = async ({ path }: { path: string }) => {
+  try {
+    const response = await axiosInstanceRegular.get(`${path}`);
+    return response.data;
+  } catch (err) {
+    console.log(err);
+    throw new Error("Error on fetch");
   }
 };

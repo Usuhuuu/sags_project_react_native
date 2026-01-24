@@ -24,12 +24,12 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Avatar } from "react-native-paper";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
-import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "../context/authContext";
 import { ChatSeparator, Message } from "@/interfaces/chatType";
 import { generatedId } from "./util/objectID";
 import { useChatStore } from "../context/store/chatStore";
 import { useTheme } from "../context/themeContext";
+import { useAuthQuery } from "@/hooks/useQuery";
 
 const DirectChatScreen: React.FC = ({}) => {
   const { item } = useLocalSearchParams();
@@ -185,17 +185,22 @@ const DirectChatScreen: React.FC = ({}) => {
   }, [messagesMapData?.cursor, cursor]);
 
   const { LoginStatus } = useAuth();
+
   const {
     data: userData,
     error: userError,
     isLoading: userLoading,
-  } = auth_swr({
-    item: {
+  } = useAuthQuery(
+    {
       pathname: "main",
-      cacheKey: "RoleAndProfile_main",
+      cacheKey: ["auth_status"],
       loginStatus: LoginStatus,
     },
-  });
+    {
+      enabled: LoginStatus,
+    }
+  );
+
   useEffect(() => {
     if (userLoading) {
       setLoading(true);

@@ -16,11 +16,11 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useTranslation } from "react-i18next";
 import { Ionicons, Fontisto, AntDesign } from "@expo/vector-icons";
 import { useAuth } from "@/app/(modals)/context/authContext";
-import { auth_swr } from "@/hooks/useswr";
 import { requestTrackingPermission } from "react-native-tracking-transparency";
 import { notificationPermission } from "@/hooks/permissions";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
+import { useAuthQuery } from "@/hooks/useQuery";
 interface UserData {
   email: string;
   firstName: string;
@@ -117,19 +117,14 @@ const CustomDrawerContent = (props: any) => {
   const { LoginStatus, logIn } = useAuth();
 
   const router = useRouter();
-  const { data, error } = auth_swr(
+  const { data, error } = useAuthQuery(
     {
-      item: {
-        pathname: "main",
-        cacheKey: "RoleAndProfile_main",
-        loginStatus: LoginStatus,
-      },
+      pathname: "main",
+      cacheKey: ["auth_status"],
+      loginStatus: LoginStatus,
     },
     {
-      revalidateOnFocus: true,
-      revalidateOnMount: true,
-      errorRetryInterval: 3000,
-      loadingTimeout: 5000,
+      enabled: LoginStatus,
     }
   );
 

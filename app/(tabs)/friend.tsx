@@ -6,7 +6,6 @@ import {
   TextInput,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { auth_swr } from "@/hooks/useswr";
 import { useAuth } from "../(modals)/context/authContext";
 import { Friend_Status, FriendSeparator } from "@/interfaces/friendType";
 import { ActivityIndicator } from "react-native-paper";
@@ -14,6 +13,7 @@ import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import Friend_Separator from "../(modals)/friend/components/friendSeparator";
 import Friend_Add_Modal from "../(modals)/friend/components/friend_add";
 import { useTheme } from "../(modals)/context/themeContext";
+import { useAuthQuery } from "@/hooks/useQuery";
 
 const FriendRequest = () => {
   const { colors: Colors } = useTheme();
@@ -66,21 +66,19 @@ const FriendRequest = () => {
   const [modalDisplay, setModalDisplay] = useState<boolean>(false);
 
   const { LoginStatus } = useAuth();
+
   const {
     data: userData,
     error: userError,
     isLoading: userLoading,
-  } = auth_swr(
+  } = useAuthQuery(
     {
-      item: {
-        pathname: "friends",
-        cacheKey: "profile_friends",
-        loginStatus: LoginStatus,
-      },
+      pathname: "friends",
+      cacheKey: ["auth_friend"],
+      loginStatus: LoginStatus,
     },
     {
-      revalidateOnMount: true,
-      revalidateOnReconnect: true,
+      enabled: LoginStatus,
     }
   );
 

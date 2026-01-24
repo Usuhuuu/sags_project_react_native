@@ -3,6 +3,7 @@ import {
   fetchRoleAndProfile,
   normalFetch,
   postFetch,
+  simple_fetch,
 } from "@/hooks/fetch_functions";
 
 interface useSWRProps {
@@ -20,6 +21,15 @@ export type SWR_regular_cache_key =
       string | null // endTime
     ]
   | readonly ["group_chat"];
+
+export type SWR_simple_cache_key =
+  | readonly [
+      "partner_posts",
+      string, // date
+      string, // timezone
+      number // page
+    ];
+
 type SWRRegularProps = {
   pathname: string;
   cacheKey: SWR_regular_cache_key | null;
@@ -56,6 +66,44 @@ export const regular_swr = (
       errorRetryCount: 3,
       loadingTimeout: 3000,
       onErrorRetry,
+      ...config,
+    }
+  );
+
+  return {
+    data,
+    error,
+    isLoading,
+  };
+};
+
+export const simple_swr = (
+  {
+    item,
+  }: {
+    item: {
+      pathname: string;
+      cacheKey: SWR_simple_cache_key;
+    };
+  },
+  config?: SWRConfiguration
+) => {
+  const { pathname, cacheKey } = item;
+
+  const { data, error, isLoading } = useSWR(
+    cacheKey,
+    () => simple_fetch({ path: pathname }),
+    {
+      revalidateOnFocus: config?.revalidateOnFocus ?? false,
+      revalidateOnMount: true,
+      dedupingInterval: config?.dedupingInterval ?? 10000,
+      shouldRetryOnError: true,
+      errorRetryInterval: 5000,
+      errorRetryCount: 3,
+      loadingTimeout: 3000,
+      onError: (err) => {
+        console.log(err);
+      },
       ...config,
     }
   );

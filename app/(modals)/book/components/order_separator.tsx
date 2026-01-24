@@ -3,13 +3,7 @@ import {
   OrderScreenSeparator,
   OrderDataTypes,
 } from "@/interfaces/order&book_type";
-import React, {
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   FlatList,

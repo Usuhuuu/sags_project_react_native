@@ -1,6 +1,5 @@
 import { useAuth } from "@/app/(modals)/context/authContext";
 import axiosInstance from "@/hooks/axiosInstance";
-import { auth_swr } from "@/hooks/useswr";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View, Text, StyleSheet, Image, Alert } from "react-native";
@@ -9,11 +8,11 @@ import { TextInput } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import { useAuthQuery } from "@/hooks/useQuery";
 
 const UserInfoScreen = () => {
   const { colors: Colors } = useTheme();
   const { t } = useTranslation();
-  const [path, setPath] = useState<string>("main");
   const [userData, setUserData] = useState<any>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isitEditable, setIsitEditable] = useState<boolean>(false);
@@ -29,13 +28,16 @@ const UserInfoScreen = () => {
 
   const userInfo: any = t("userInfo", { returnObjects: true });
 
-  const { data, error, isLoading } = auth_swr({
-    item: {
-      pathname: path,
-      cacheKey: `RoleAndProfile_${path}`,
+  const { data, error, isLoading } = useAuthQuery(
+    {
+      pathname: "main",
+      cacheKey: ["auth_status"],
       loginStatus: LoginStatus,
     },
-  });
+    {
+      enabled: LoginStatus,
+    }
+  );
 
   useEffect(() => {
     if (data) {

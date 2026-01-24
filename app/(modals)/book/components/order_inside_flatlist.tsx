@@ -11,7 +11,6 @@ import Animated, {
 } from "react-native-reanimated";
 import {
   Feather,
-  FontAwesome,
   FontAwesome6,
   Fontisto,
   MaterialIcons,

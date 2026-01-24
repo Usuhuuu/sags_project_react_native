@@ -1,29 +1,15 @@
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import { PostTypes } from "@/app/(tabs)/inbox";
 import AppText from "@/constants/appTextDefault";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { Ionicons } from "@expo/vector-icons";
+import { format } from "date-fns";
 import React, { useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-} from "react-native";
+import { View, FlatList, TouchableOpacity } from "react-native";
+import dayjs from "dayjs";
 
-type Post = {
-  id: string;
-  user: string;
-  badge: string;
-  time: string;
-  text: string;
-  likes: number;
-  comments: number;
-  joinable: boolean;
-};
 interface TogetherInsideFlatListProps {
-  data: Post[];
+  data: PostTypes[] | undefined;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -36,7 +22,7 @@ const TogetherInsideFlatList = ({
   const { colors, theme } = useTheme();
 
   const renderItem = useCallback(
-    ({ item }: { item: Post }) => (
+    ({ item }: { item: PostTypes }) => (
       <View
         style={[
           {
@@ -80,21 +66,28 @@ const TogetherInsideFlatList = ({
             />
             <View style={{ flex: 1 }}>
               <AppText style={{ fontSize: 14, fontWeight: "500" }}>
-                {item.user}
+                {item.block?.users_info[0]?.unique_user_ID}
               </AppText>
-              <AppText
+              {/* <AppText
                 style={{ color: colors.darkGrey, fontSize: 11, marginTop: 2 }}
               >
                 {item.badge}
-              </AppText>
+              </AppText> */}
             </View>
             <AppText style={{ color: colors.darkGrey, fontSize: 11 }}>
-              {item.time}
+              {format(new Date(item?.day), "MMM dd, yyyy")}
             </AppText>
           </View>
 
           <AppText style={{ fontSize: 14, lineHeight: 20, marginVertical: 10 }}>
-            {item.text}
+            {item.block?.post.is_default_post
+              ? `Looking for players to join a ${
+                  item.block?.post.sport_type
+                } session at ${item.block?.hall_info?.hall_details.hall_name}.
+Time: ${dayjs(item.block.start_time).format("HH:mm")} – ${dayjs(
+                  item.block.end_time
+                ).format("HH:mm")}. Feel free to join if available.`
+              : item.block?.post.post_text}
           </AppText>
 
           <View
@@ -122,7 +115,7 @@ const TogetherInsideFlatList = ({
                   marginLeft: 4,
                 }}
               >
-                {item.comments}
+                {item.block?.post.comment?.length ?? 0}
               </AppText>
 
               <Ionicons
@@ -138,11 +131,11 @@ const TogetherInsideFlatList = ({
                   marginLeft: 4,
                 }}
               >
-                {item.likes}
+                {item.block?.post.likes}
               </AppText>
             </View>
 
-            {item.joinable && (
+            {item.block?.post.joinable && (
               <TouchableOpacity
                 style={{
                   borderColor: colors.primary,
@@ -176,10 +169,18 @@ const TogetherInsideFlatList = ({
     <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
       <FlatList
         data={data}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
+        ListEmptyComponent={loading ? null : <View></View>}
+        ListFooterComponent={
+          loading ? (
+            <View>
+              <OwnActivaterIndicator />
+            </View>
+          ) : null
+        }
       />
 
       {/* Floating Action */}

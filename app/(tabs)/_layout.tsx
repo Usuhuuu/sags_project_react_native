@@ -26,7 +26,6 @@ import UserInfoScreen from "@/components/profileScreens/drawerScreen/userInfoScr
 import { useTranslation } from "react-i18next";
 import ProfileSettings from "../settings/profileSettings";
 import { useAuth } from "../(modals)/context/authContext";
-import { auth_swr } from "../../hooks/useswr";
 import FriendReqModal from "../(modals)/friendReqModal";
 import RegisterZaal from "@/components/profileScreens/contractorScreen/register_zaal";
 import MailComponent from "@/components/profileScreens/drawerScreen/mail";
@@ -35,6 +34,7 @@ import BookingCheck from "@/components/profileScreens/contractorScreen/booking_c
 import { useCalendar } from "@/app/(modals)/context/CalendarContext";
 import { Animated, Easing } from "react-native";
 import { useTheme } from "../(modals)/context/themeContext";
+import { useAuthQuery } from "@/hooks/useQuery";
 
 export const TabsLayout = () => {
   const { colors: Colors, theme } = useTheme();
@@ -109,7 +109,6 @@ export const TabsLayout = () => {
           headerTitle: t("together"),
           headerShadowVisible: false,
           headerTitleStyle: { color: Colors.primary, fontSize: 24 },
-
           headerRight: () => (
             <Image
               source={require("../../assets/tab-icons/teamwork.png")}
@@ -400,13 +399,17 @@ const Layout = () => {
     data: userData,
     error: userError,
     isLoading: userLoading,
-  } = auth_swr({
-    item: {
+  } = useAuthQuery(
+    {
       pathname: "main",
-      cacheKey: "RoleAndProfile_main",
+      cacheKey: ["auth_status"],
       loginStatus: LoginStatus,
     },
-  });
+    {
+      staleTime: 5_000,
+      enabled: LoginStatus,
+    }
+  );
 
   useEffect(() => {
     if (userData) {
