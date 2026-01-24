@@ -12,8 +12,7 @@ import { useTheme } from "../(modals)/context/themeContext";
 import dayjs from "dayjs";
 import Bottom_Renderer from "../listing/together/bottom_renderer";
 import { MonthCalendar } from "../(modals)/book/components/calendar_strip";
-import { SWR_simple_cache_key } from "@/hooks/useswr";
-import { useSimpleQuery } from "@/hooks/useQuery";
+import { RQ_simple_cache_key, useSimpleQuery } from "@/hooks/useQuery";
 import { useIsFocused } from "@react-navigation/native";
 
 export type PostTypes = {
@@ -85,19 +84,19 @@ const TogetherScreen = () => {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const encodedTimezone = encodeURIComponent(timezone);
 
-  const swr_key = [
+  const RQ_key = [
     "partner_posts",
     formattedDate,
     encodedTimezone,
     page,
-  ] as const satisfies SWR_simple_cache_key;
+  ] as const satisfies RQ_simple_cache_key;
 
   const isFocused = useIsFocused();
 
   const { data, error, isLoading } = useSimpleQuery(
     {
       pathname: `/partner/${formattedDate}/${encodedTimezone}?page=${page}`,
-      cacheKey: swr_key,
+      cacheKey: RQ_key,
     },
     {
       enabled: isFocused,

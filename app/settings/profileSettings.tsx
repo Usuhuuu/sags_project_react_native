@@ -17,7 +17,6 @@ import { useAuth } from "../(modals)/context/authContext";
 import { router } from "expo-router";
 import { useTheme } from "../(modals)/context/themeContext";
 import Change_Language_Modal from "./components/language_change";
-import { flush_regular_swr } from "@/hooks/useswr";
 import AppText from "@/constants/appTextDefault";
 import Animated, {
   interpolateColor,
@@ -25,6 +24,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { flushRegularQuery } from "@/hooks/useQuery";
 
 const ProfileSettings: React.FC = () => {
   const { colors: Colors, theme, changeTheme } = useTheme();
@@ -198,7 +198,7 @@ const ProfileSettings: React.FC = () => {
           await SecureStorage.deleteItemAsync("Tokens");
           logOut();
           router.replace("..");
-          flush_regular_swr();
+          flushRegularQuery();
         },
       },
     ]);

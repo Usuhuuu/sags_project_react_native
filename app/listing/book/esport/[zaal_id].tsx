@@ -19,11 +19,11 @@ import HallData from "@/assets/Data/sportHall.json";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { saveToken } from "../util/session";
-import { mutate } from "swr";
 import Confirm_Modal from "../support_components/confirmation_modal";
 import { format } from "date-fns";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { bookingNotificationSchedule } from "@/app/(modals)/context/store/notificationStore";
+import { queryClient } from "@/hooks/queryClient";
 
 const BookingEsportHall = () => {
   const { colors, theme } = useTheme();
@@ -145,16 +145,10 @@ const BookingEsportHall = () => {
           hasScheduled.current = true;
         }
 
-        const todayDayStr = new Date().toISOString().split("T")[0];
-        mutate(
-          (key) =>
-            Array.isArray(key) &&
-            key[0] === "booked_order" &&
-            key[1] === "TODAY_UPCOMING" &&
-            key[3] >= todayDayStr,
-          undefined,
-          { revalidate: true, throwOnError: true }
-        );
+        queryClient.invalidateQueries({
+          predicate: (q) =>
+            Array.isArray(q.queryKey) && q.queryKey[0] === "booked_order",
+        });
         setBookSuccess(response.data.success);
         setIsWaiting(false);
         setConfirmModal(true);

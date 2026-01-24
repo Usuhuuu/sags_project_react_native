@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { mutate } from "swr";
 import ContractorPage from "@/components/profileScreens/contractor";
 import ProfileAdmin from "@/components/profileScreens/admin";
 import NormalUser from "@/components/profileScreens/normalUser";
@@ -15,6 +14,7 @@ import Page from "../(modals)/authentication/login";
 
 import { useTheme } from "../(modals)/context/themeContext";
 import { useAuthQuery } from "@/hooks/useQuery";
+import { queryClient } from "@/hooks/queryClient";
 
 const Profile: React.FC = () => {
   const { colors: Colors } = useTheme();
@@ -49,7 +49,9 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     if (LoginStatus && path) {
-      mutate(`RoleAndProfile_${path}`);
+      queryClient.invalidateQueries({
+        queryKey: [`auth_${path}`],
+      });
     }
   }, [formData, path]);
 

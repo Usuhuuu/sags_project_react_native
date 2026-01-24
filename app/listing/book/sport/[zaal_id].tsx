@@ -12,7 +12,6 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { AxiosResponse } from "axios";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { scheduleNotificationForEvent } from "@/utils/calendarReminder";
-import { mutate } from "swr";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import Confirm_Modal from "../support_components/confirmation_modal";
 import { addHours, format } from "date-fns";
@@ -23,10 +22,8 @@ import { useNavigation } from "@react-navigation/native";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
 import { saveToken } from "../util/session";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
-import {
-  bookingNotificationSchedule,
-  useNotificationStore,
-} from "@/app/(modals)/context/store/notificationStore";
+import { bookingNotificationSchedule } from "@/app/(modals)/context/store/notificationStore";
+import { queryClient } from "@/hooks/queryClient";
 
 export type ReservationBlock = {
   start_time: string;
@@ -210,19 +207,10 @@ const TransactionPage = () => {
           });
           hasScheduled.current = true;
         }
-
-        const todayDayStr = new Date(bookingDetails.date)
-          .toISOString()
-          .split("T")[0];
-        mutate(
-          (key) =>
-            Array.isArray(key) &&
-            key[0] === "booked_order" &&
-            key[1] === "TODAY_UPCOMING" &&
-            key[3] >= todayDayStr,
-          undefined,
-          { revalidate: true, throwOnError: true }
-        );
+        queryClient.invalidateQueries({
+          predicate: (q) =>
+            Array.isArray(q.queryKey) && q.queryKey[0] === "booked_order",
+        });
         setWaiting(!waiting);
         setConfirmModal(true);
       } else if (response.status === 400 && !response.data.success) {

@@ -1,14 +1,11 @@
-import {
-  DefinedInitialDataOptions,
-  useQuery,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import {
   fetchRoleAndProfile,
   normalFetch,
   postFetch,
   simple_fetch,
 } from "../hooks/fetch_functions";
+import { queryClient } from "./queryClient";
 
 type FETCH_RETURN_TYPE<T> = {
   success: boolean;
@@ -83,7 +80,7 @@ export const useSimpleQuery = (
     queryKey: cacheKey,
     queryFn: () => simple_fetch({ path: pathname }),
     enabled: !!cacheKey && (options?.enabled ?? true),
-    staleTime: 10_000,
+    staleTime: 5_000,
     retry: 3,
   });
 };
@@ -108,4 +105,16 @@ export const useAuthQuery = (
     staleTime: 10_000,
     retry: 3,
   }) as any;
+};
+
+export const flushRegularQuery = () => {
+  queryClient.invalidateQueries({
+    predicate: (query) => {
+      const key = query.queryKey;
+      return (
+        (Array.isArray(key) && key[0] === "booked_order") ||
+        key[0] === "group_chat"
+      );
+    },
+  });
 };

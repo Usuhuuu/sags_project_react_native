@@ -9,9 +9,9 @@ import {
   TextInput,
 } from "react-native";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { mutate } from "swr";
 import { useAuth } from "../../context/authContext";
 import { useTheme } from "../../context/themeContext";
+import { queryClient } from "@/hooks/queryClient";
 
 interface FriendAddModalProp {
   modalDisplay: boolean;
@@ -59,7 +59,9 @@ const Friend_Add_Modal = ({
           });
           setTextInPutValue("");
           setModalDisplay(false);
-          mutate(["profile_friends", LoginStatus]);
+          queryClient.invalidateQueries({
+            queryKey: [`auth_friend`],
+          });
         } else {
           Notifier.showNotification({
             title: "Request failed",

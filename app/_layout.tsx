@@ -16,7 +16,6 @@ import Layout, { TabsLayout } from "./(tabs)/_layout";
 import { CustomErrorBoundary } from "./(modals)/context/errorContext";
 import * as Notifications from "expo-notifications";
 import { CalendarProvider } from "@/app/(modals)/context/CalendarContext";
-import { mutate } from "swr";
 import { useNotificationStore } from "./(modals)/context/store/notificationStore";
 import {
   Notifier,
@@ -105,7 +104,9 @@ export function RootLayout({ children }: { children: ReactNode }) {
 
         // Optional: trigger SWR revalidation if needed
         if (data?.success && data?.fetch) {
-          mutate(["User_Friend", LoginStatus], undefined, { revalidate: true });
+          queryClient.invalidateQueries({
+            queryKey: [`auth_friend`],
+          });
         }
 
         // Optionally update local state for immediate UI updates
