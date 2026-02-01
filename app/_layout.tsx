@@ -128,7 +128,7 @@ export function RootLayout({ children }: { children: ReactNode }) {
             },
           };
         });
-      }
+      },
     );
 
     const responseListener =
@@ -213,7 +213,7 @@ export function RootLayoutNav() {
           headerLeft: () => {
             return (
               <TouchableOpacity onPress={() => router.back()}>
-                <Ionicons name="arrow-back" size={28} color={Colors.primary} />
+                <Ionicons name="arrow-back" size={24} color={Colors.primary} />
               </TouchableOpacity>
             );
           },
@@ -231,11 +231,11 @@ export function RootLayoutNav() {
           headerShown: true,
           title: `${t("Notifications")}`,
           headerStyle: { backgroundColor: Colors.backgroundColor },
-          headerTitleStyle: { fontSize: 28, color: Colors.primary },
+          headerTitleStyle: { fontSize: 24, color: Colors.primary },
           headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={28} color={Colors.primary} />
+              <Ionicons name="arrow-back" size={24} color={Colors.primary} />
             </TouchableOpacity>
           ),
         }}
@@ -245,13 +245,13 @@ export function RootLayoutNav() {
         options={{
           headerTintColor: Colors.primary,
           headerStyle: { backgroundColor: Colors.backgroundColor },
-          headerTitleStyle: { fontSize: 28, color: Colors.primary },
+          headerTitleStyle: { fontSize: 24, color: Colors.primary },
           animation: "fade",
           headerShown: false,
           headerLeft: () => {
             return (
               <TouchableOpacity onPress={() => router.back()}>
-                <Ionicons name="arrow-back" size={28} color={Colors.primary} />
+                <Ionicons name="arrow-back" size={24} color={Colors.primary} />
               </TouchableOpacity>
             );
           },
@@ -288,7 +288,7 @@ export function RootLayoutNav() {
         options={{
           headerShown: true,
           headerStyle: { backgroundColor: Colors.backgroundColor },
-          headerTitleStyle: { fontSize: 28, color: Colors.primary },
+          headerTitleStyle: { fontSize: 24, color: Colors.primary },
           headerShadowVisible: false,
           headerTitle: "Zaal Review",
         }}
@@ -298,7 +298,7 @@ export function RootLayoutNav() {
         options={{
           headerShown: true,
           headerStyle: { backgroundColor: Colors.backgroundColor },
-          headerTitleStyle: { fontSize: 28, color: Colors.primary },
+          headerTitleStyle: { fontSize: 24, color: Colors.primary },
           headerShadowVisible: false,
           headerTitle: "Comment",
           headerLeft: () => (
@@ -308,6 +308,26 @@ export function RootLayoutNav() {
           ),
         }}
       />
+      <Stack.Screen
+        name="listing/together/post_create"
+        options={{
+          headerShown: true,
+          headerStyle: { backgroundColor: Colors.backgroundColor },
+          headerTitleStyle: { fontSize: 24, color: Colors.primary },
+          headerShadowVisible: false,
+          headerTitle: "New Post",
+        }}
+      />
+      <Stack.Screen
+        name="listing/together/optionRender"
+        options={{
+          headerShown: true,
+          headerStyle: { backgroundColor: Colors.backgroundColor },
+          headerTitleStyle: { fontSize: 24, color: Colors.primary },
+          headerShadowVisible: false,
+          headerTitle: "Select Option",
+        }}
+      />
 
       {/* Settings Section */}
       <Stack.Screen
@@ -315,7 +335,7 @@ export function RootLayoutNav() {
         options={{
           headerShown: true,
           headerStyle: { backgroundColor: Colors.backgroundColor },
-          headerTitleStyle: { fontSize: 28, color: Colors.primary },
+          headerTitleStyle: { fontSize: 24, color: Colors.primary },
           headerShadowVisible: false,
           headerTitle: "Notifications Settings",
         }}

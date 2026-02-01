@@ -260,6 +260,11 @@ Time: ${dayjs(item.block.start_time).format("HH:mm")} – ${dayjs(
           alignItems: "center",
           elevation: 6,
         }}
+        onPress={() => {
+          router.push({
+            pathname: "/listing/together/post_create",
+          });
+        }}
       >
         <Ionicons name="add" size={26} color={colors.backgroundColor} />
       </TouchableOpacity>
