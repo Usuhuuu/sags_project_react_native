@@ -72,7 +72,6 @@
     "react-native-tracking-transparency": "^0.1.2",
     "semver": "^7.6.3",
     "socket.io-client": "^4.8.1",
-    "swr": "^2.3.2",
     "xml2js": "^0.6.2",
     "zaalproject": "file:",
     "zustand": "^5.0.5"

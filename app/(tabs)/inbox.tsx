@@ -38,7 +38,7 @@ export type PostTypes = {
     users_info: [
       {
         unique_user_ID: string;
-      }
+      },
     ];
     hall_info: {
       hall_details: {
@@ -61,7 +61,7 @@ const TogetherScreen = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [date, setDate] = useState<Date>(new Date());
   const [formattedDate, setFormattedDate] = useState<string>(
-    dayjs(date).format("YYYY-MM-DD")
+    dayjs(date).format("YYYY-MM-DD"),
   );
   const [page, setPage] = useState<number>(1);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -100,7 +100,7 @@ const TogetherScreen = () => {
     },
     {
       enabled: isFocused,
-    }
+    },
   );
   useEffect(() => {
     setLoading(isLoading);
@@ -244,7 +244,7 @@ const TogetherScreen = () => {
       label: `Date: ${
         selectedDates
           ? `${dayjs(selectedDates.startDate).format("MMM D")} - ${dayjs(
-              selectedDates.endDate
+              selectedDates.endDate,
             ).format("MMM D")}`
           : "Select"
       }`,

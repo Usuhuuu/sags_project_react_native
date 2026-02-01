@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useEffect, useMemo, useRef } from "react";
+import { View, TouchableOpacity } from "react-native";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import { RadioButton } from "react-native-paper";
 import { UBDistrict } from "@/app/(tabs)/inbox";
@@ -9,7 +9,6 @@ import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
-import { BlurView } from "expo-blur";
 
 type Bottom_Renderer_Props = {
   visible: boolean;

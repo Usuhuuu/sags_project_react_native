@@ -1,6 +1,6 @@
 import "@/utils/i18";
 import { configureReanimatedLogger } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { router, Stack, useRouter } from "expo-router";
@@ -291,6 +291,21 @@ export function RootLayoutNav() {
           headerTitleStyle: { fontSize: 28, color: Colors.primary },
           headerShadowVisible: false,
           headerTitle: "Zaal Review",
+        }}
+      />
+      <Stack.Screen
+        name="listing/together/comment"
+        options={{
+          headerShown: true,
+          headerStyle: { backgroundColor: Colors.backgroundColor },
+          headerTitleStyle: { fontSize: 28, color: Colors.primary },
+          headerShadowVisible: false,
+          headerTitle: "Comment",
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
+              <AntDesign name="left" size={24} color={Colors.primary} />
+            </TouchableOpacity>
+          ),
         }}
       />
 

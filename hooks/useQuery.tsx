@@ -9,7 +9,16 @@ import { queryClient } from "./queryClient";
 
 type FETCH_RETURN_TYPE<T> = {
   success: boolean;
-  data: T;
+  data?: T;
+  commentsData?: {
+    _id: string;
+    author: {
+      unique_user_ID: string;
+    };
+    text: string;
+    created_at: string;
+    replies: T[];
+  };
 };
 type RQ_QUERY_RETURN_TYPE<T> = {
   success: boolean;
@@ -21,6 +30,15 @@ type RQ_QUERY_RETURN_TYPE<T> = {
   };
   userData?: {
     members: T;
+  };
+  commentsData?: {
+    _id: string;
+    author: {
+      unique_user_ID: string;
+    };
+    text: string;
+    created_at: string;
+    replies: T[];
   };
 };
 
@@ -40,7 +58,8 @@ export type RQ_simple_cache_key =
       string, // date
       string, // timezone
       number // page
-    ];
+    ]
+  | readonly ["post_comments"];
 
 interface UseRegularQueryProps {
   pathname: string;

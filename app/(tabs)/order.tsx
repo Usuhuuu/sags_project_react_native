@@ -23,13 +23,13 @@ import Animated, {
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../(modals)/context/themeContext";
-import { differenceInMinutes } from "date-fns";
+import { differenceInMinutes, set } from "date-fns";
 import { MonthCalendar } from "../(modals)/book/components/calendar_strip";
 import dayjs from "dayjs";
 import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
 
 const OrderScreen = () => {
-  const { colors: Colors } = useTheme();
+  const { colors: Colors, theme } = useTheme();
   const [bookingData, setBookingData] = useState<OrderDataTypes>({
     today_upcoming: [],
     history: [],
@@ -45,10 +45,10 @@ const OrderScreen = () => {
     {
       [OrderScreenSeparator.TODAY_UPCOMING]: true,
       [OrderScreenSeparator.HISTORY]: true,
-    }
+    },
   );
   const [screenSeparator, setScreenSeparator] = useState<OrderScreenSeparator>(
-    OrderScreenSeparator.TODAY_UPCOMING
+    OrderScreenSeparator.TODAY_UPCOMING,
   );
 
   const { LoginStatus } = useAuth();
@@ -60,7 +60,7 @@ const OrderScreen = () => {
   const [renderExtraData, setRenderExtraData] = useState<boolean>(false);
 
   const timezone = encodeURIComponent(
-    Intl.DateTimeFormat().resolvedOptions().timeZone
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
 
   useEffect(() => {
@@ -104,7 +104,7 @@ const OrderScreen = () => {
     {
       enabled: LoginStatus,
       retry: 3,
-    }
+    },
   );
 
   useEffect(() => {
@@ -162,7 +162,7 @@ const OrderScreen = () => {
 
           return acc;
         },
-        { today_upcoming: [] as Return_Type[], history: [] as Return_Type[] }
+        { today_upcoming: [] as Return_Type[], history: [] as Return_Type[] },
       );
       setBookingData((prev) => ({
         today_upcoming: [...prev.today_upcoming, ...sorted.today_upcoming],
@@ -253,10 +253,15 @@ const OrderScreen = () => {
   const handleFilterPress = useCallback(
     (value: string) => {
       if (value === active || !value) return;
-      else if (value === "all") setFilteredBookingData(bookingData);
+      else if (value === "all") {
+        setActive(value);
+        console.log("RESETTING FILTER");
+        setFilteredBookingData(bookingData);
+        return;
+      }
       setActive(value);
       const temp = bookingData.today_upcoming.filter((item) =>
-        item.blocks.some((block) => block.block_booking_status === value)
+        item.blocks.some((block) => block.block_booking_status === value),
       );
 
       setFilteredBookingData((prev) => ({
@@ -265,7 +270,7 @@ const OrderScreen = () => {
       }));
       setRenderExtraData((prev) => !prev);
     },
-    [active, bookingData]
+    [active, bookingData],
   );
 
   return (
@@ -299,7 +304,9 @@ const OrderScreen = () => {
             <View
               style={[
                 style.separatorContainer,
-                { backgroundColor: Colors.containerColor },
+                {
+                  backgroundColor: Colors.containerColor,
+                },
               ]}
             >
               <TouchableOpacity
@@ -395,8 +402,12 @@ const OrderScreen = () => {
                     alignItems: "center",
                     paddingHorizontal: 12,
                     paddingVertical: 6,
-                    borderRadius: 18,
-                    backgroundColor: "#0B1220",
+                    borderRadius: 10,
+                    backgroundColor: Colors.containerColor,
+                    shadowColor: Colors.shadowColor,
+                    shadowOffset: { width: 2, height: 2 },
+                    shadowOpacity: 0.25,
+                    elevation: 5,
                   }}
                   onPress={() => {
                     setCalendarModalVisible(true);
@@ -431,6 +442,7 @@ const OrderScreen = () => {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{
                   flexDirection: "row",
+                  gap: 10,
                 }}
               >
                 {FILTERS.map((item) => {
@@ -440,25 +452,46 @@ const OrderScreen = () => {
                     <TouchableOpacity
                       key={item.value}
                       onPress={() => handleFilterPress(item.value)}
-                      style={{
-                        paddingHorizontal: 18,
-                        paddingVertical: 8,
-                        borderRadius: 22,
-                        backgroundColor: isActive ? "#0B1220" : "#1F2933",
-                        borderWidth: isActive ? 1 : 0,
-                        borderColor: isActive ? "#4DA3FF" : "transparent",
-                        marginRight: 10,
-                      }}
                     >
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          color: isActive ? "#4DA3FF" : "#9CA3AF",
-                          fontWeight: isActive ? "600" : "500",
-                        }}
+                      <View
+                        style={[
+                          {
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 4,
+                            paddingHorizontal: 10,
+                            height: 32,
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: Colors.darkGrey,
+                            backgroundColor: Colors.containerColor,
+                          },
+                          isActive && {
+                            borderColor: Colors.primary,
+                            backgroundColor:
+                              theme === "dark"
+                                ? Colors.containerColor
+                                : "#e0f7fa",
+                          },
+                        ]}
                       >
-                        {item.label}
-                      </Text>
+                        <Text
+                          style={[
+                            {
+                              fontSize: 12,
+                              color: Colors.darkGrey,
+                            },
+                            isActive && { color: Colors.primary },
+                          ]}
+                        >
+                          {item.label}
+                        </Text>
+                        <Ionicons
+                          name="chevron-down"
+                          size={14}
+                          color={isActive ? Colors.primary : Colors.darkGrey}
+                        />
+                      </View>
                     </TouchableOpacity>
                   );
                 })}
