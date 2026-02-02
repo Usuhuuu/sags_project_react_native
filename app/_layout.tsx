@@ -318,17 +318,6 @@ export function RootLayoutNav() {
           headerTitle: "New Post",
         }}
       />
-      <Stack.Screen
-        name="listing/together/optionRender"
-        options={{
-          headerShown: true,
-          headerStyle: { backgroundColor: Colors.backgroundColor },
-          headerTitleStyle: { fontSize: 24, color: Colors.primary },
-          headerShadowVisible: false,
-          headerTitle: "Select Option",
-        }}
-      />
-
       {/* Settings Section */}
       <Stack.Screen
         name="settings/components/settings_notification"

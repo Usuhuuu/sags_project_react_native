@@ -1,5 +1,4 @@
 import {
-  Dimensions,
   KeyboardAvoidingView,
   Platform,
   Switch,
@@ -22,14 +21,25 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { AntDesign } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import axiosInstance from "@/hooks/axiosInstance";
+import PostModalOptions from "./option_modal";
 import { ULAANBAATAR_DISTRICTS_MAP } from "@/assets/Data/ub_location";
 import { SPORT_INDICATOR } from "@/assets/Data/sport_indicator";
 
 const PostCreate = () => {
-  const { colors, theme } = useTheme();
+  const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [postText, setPostText] = useState<string>("");
+  const [optionModal, setOptionModal] = useState<boolean>(false);
+  const [selectedOption, setSelectedOption] = useState<
+    "location" | "game_type" | "date"
+  >("location");
+  const [optionData, setOptionData] = useState<
+    Record<"location" | "game_type" | "date", any>
+  >({
+    location: null,
+    game_type: null,
+    date: null,
+  });
 
   const navigation = useNavigation();
   useLayoutEffect(() => {
@@ -93,13 +103,24 @@ const PostCreate = () => {
       label: "Game Type",
     },
   ];
-  const { selectedOption } = useLocalSearchParams();
 
-  const [selectOptionSDA, setSelectOption] = useState<string | null>(null);
+  const getOptionLabel = (
+    settingId: "location" | "date" | "game_type",
+    value: string | undefined,
+  ): string | undefined => {
+    if (!value) return undefined;
 
-  useEffect(() => {
-    console.log("Selected Option from params:", selectedOption);
-  }, [selectedOption]);
+    if (settingId === "location") {
+      return ULAANBAATAR_DISTRICTS_MAP[value]?.name;
+    }
+
+    if (settingId === "game_type") {
+      return SPORT_INDICATOR[value]?.name;
+    }
+
+    return undefined;
+  };
+
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: colors.backgroundColor }}
@@ -145,7 +166,7 @@ const PostCreate = () => {
             handleStyle={{
               borderTopColor: colors.primary,
               borderTopWidth: 1,
-              backgroundColor: colors.containerColor,
+              borderRadius: 10,
             }}
           >
             <BottomSheetScrollView
@@ -188,12 +209,42 @@ const PostCreate = () => {
               {/* Main Options */}
 
               {PostSettingsDetail.map((item) => {
+                const optionLabel = getOptionLabel(
+                  item.id,
+                  optionData[item.id],
+                );
                 return (
-                  <SettingsRow
-                    label={item.label}
-                    settingsId={item.id}
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 14,
+                      borderBottomWidth: 0.5,
+                      borderBottomColor: "#2a2a2a",
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                    onPress={() => {
+                      setSelectedOption(item.id);
+                      setOptionModal(true);
+                    }}
                     key={item.id}
-                  />
+                  >
+                    <AppText style={{ color: "#fff", fontSize: 16 }}>
+                      {item.id}
+                    </AppText>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <AppText>{optionLabel}</AppText>
+                      <AppText style={{ color: "#666", fontSize: 18 }}>
+                        ›
+                      </AppText>
+                    </View>
+                  </TouchableOpacity>
                 );
               })}
 
@@ -216,6 +267,13 @@ const PostCreate = () => {
           </BottomSheet>
         </View>
       </KeyboardAvoidingView>
+      <PostModalOptions
+        visible={optionModal}
+        setVisible={setOptionModal}
+        settingsId={selectedOption}
+        optionData={optionData}
+        setOptionData={setOptionData}
+      />
     </SafeAreaView>
   );
 };
@@ -223,9 +281,13 @@ const PostCreate = () => {
 function SettingsRow({
   label,
   settingsId,
+  modalVisible,
+  setModalVisible,
 }: {
   label: string;
   settingsId: "location" | "date" | "game_type";
+  modalVisible: boolean;
+  setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   return (
     <TouchableOpacity
@@ -238,17 +300,16 @@ function SettingsRow({
         alignItems: "center",
       }}
       onPress={() => {
-        console.log("Navigating to optionRender with label:", settingsId);
-        router.push({
-          pathname: "/listing/together/optionRender",
-          params: {
-            settingsId: settingsId,
-          },
-        });
+        setModalVisible(true);
       }}
     >
       <AppText style={{ color: "#fff", fontSize: 16 }}>{settingsId}</AppText>
       <AppText style={{ color: "#666", fontSize: 18 }}>›</AppText>
+      <PostModalOptions
+        visible={modalVisible}
+        setVisible={setModalVisible}
+        settingsId={settingsId}
+      />
     </TouchableOpacity>
   );
 }
