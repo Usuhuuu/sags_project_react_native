@@ -6,6 +6,7 @@ import {
   simple_fetch,
 } from "../hooks/fetch_functions";
 import { queryClient } from "./queryClient";
+import { useIsFocused } from "@react-navigation/native";
 
 type FETCH_RETURN_TYPE<T> = {
   success: boolean;
@@ -48,7 +49,7 @@ export type RQ_regular_cache_key =
       string, // screenSeparator
       number, // page
       string, // startTime
-      string | null // endTime
+      string | null, // endTime
     ]
   | readonly ["group_chat"];
 
@@ -57,7 +58,7 @@ export type RQ_simple_cache_key =
       "partner_posts",
       string, // date
       string, // timezone
-      number // page
+      number, // page
     ]
   | readonly ["post_comments"];
 
@@ -71,7 +72,7 @@ export const useRegularQuery = (
   options?: Omit<
     UseQueryOptions<RQ_QUERY_RETURN_TYPE<any>>,
     "queryKey" | "queryFn"
-  >
+  >,
 ) => {
   const { pathname, cacheKey, loginStatus } = props;
   return useQuery({
@@ -80,6 +81,9 @@ export const useRegularQuery = (
     enabled: loginStatus && !!cacheKey && (options?.enabled ?? true),
     staleTime: 10_000,
     retry: 3,
+    refetchOnReconnect: options?.refetchOnReconnect ?? true,
+    refetchOnMount: options?.refetchOnMount ?? true,
+    ...options,
   });
 };
 
@@ -92,7 +96,7 @@ export const useSimpleQuery = (
   options?: Omit<
     UseQueryOptions<FETCH_RETURN_TYPE<any>>,
     "queryKey" | "queryFn"
-  >
+  >,
 ) => {
   const { pathname, cacheKey } = props;
   return useQuery({
@@ -101,12 +105,13 @@ export const useSimpleQuery = (
     enabled: !!cacheKey && (options?.enabled ?? true),
     staleTime: 5_000,
     retry: 3,
+    ...options,
   });
 };
 
 interface UseAuthQueryProps {
   pathname: string;
-  cacheKey: readonly [`auth_${string}`];
+  cacheKey: readonly [`auth_status`] | ["auth_friend"];
   loginStatus: boolean;
 }
 export const useAuthQuery = (
@@ -114,15 +119,20 @@ export const useAuthQuery = (
   options?: Omit<
     UseQueryOptions<{ role: any; profileData: any } | undefined>,
     "queryKey" | "queryFn"
-  >
+  >,
 ) => {
   const { pathname, cacheKey, loginStatus } = props;
+  const isFocus = useIsFocused();
   return useQuery({
     queryKey: loginStatus ? cacheKey : [],
     queryFn: () => fetchRoleAndProfile(pathname, loginStatus),
+    subscribed: isFocus,
     enabled: loginStatus && (options?.enabled ?? true),
-    staleTime: 10_000,
-    retry: 3,
+    staleTime: options?.staleTime ?? 10_000,
+    retry: options?.retry ?? 3,
+    refetchOnReconnect: options?.refetchOnReconnect ?? true,
+    refetchOnMount: options?.refetchOnMount ?? true,
+    ...options,
   }) as any;
 };
 
@@ -137,3 +147,11 @@ export const flushRegularQuery = () => {
     },
   });
 };
+
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}

@@ -2,7 +2,7 @@ import axiosInstance, { axiosInstanceRegular } from "@/hooks/axiosInstance";
 
 export const fetchRoleAndProfile = async (
   path: String,
-  LoginStatus: boolean
+  LoginStatus: boolean,
 ) => {
   if (LoginStatus) {
     try {
@@ -16,27 +16,30 @@ export const fetchRoleAndProfile = async (
         profileData: response.data.formData,
       };
     } catch (err: any) {
-      console.log("PISDA", err);
-
       if (err.response) {
+        // server responded with status
         const status = err.response.status;
         switch (status) {
-          case status === 404: {
+          case 404:
             throw new Error("Profile not found");
-          }
-          case status === 429: {
-            throw new Error("Too many requests, please try again later (429)");
-          }
-          case status === 500: {
-            throw new Error("Server unavailable, please wait and retry ");
-          }
+
+          case 429:
+            throw new Error("Too many requests, please try again later");
+
+          case 500:
+            throw new Error("Server unavailable, please wait and retry");
+
+          default:
+            throw new Error(`Unexpected error (${status})`);
         }
       } else if (err.requests) {
+        // request sent but no response (offline / server down)
         throw new Error(
-          "No response from server, please check your connection"
+          "No response from server, please check your connection",
         );
       } else {
-        throw new Error("Failed to fetch role and profile data");
+        // setup error
+        throw new Error("Error setting up request");
       }
     }
   } else {

@@ -21,6 +21,7 @@ import { notificationPermission } from "@/hooks/permissions";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { useAuthQuery } from "@/hooks/useQuery";
+import ServerErrorScreen from "@/app/servererror";
 interface UserData {
   email: string;
   firstName: string;
@@ -120,12 +121,12 @@ const CustomDrawerContent = (props: any) => {
   const { data, error } = useAuthQuery(
     {
       pathname: "main",
-      cacheKey: ["auth_status"],
+      cacheKey: ["auth_status"] as const,
       loginStatus: LoginStatus,
     },
     {
       enabled: LoginStatus,
-    }
+    },
   );
 
   useEffect(() => {

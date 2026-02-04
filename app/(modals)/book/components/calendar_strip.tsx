@@ -61,7 +61,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
 }) => {
   const initialDayjs = dayjs(new Date());
   const [currentWeekStart, setCurrentWeekStart] = useState(
-    initialDayjs.startOf("isoWeek")
+    initialDayjs.startOf("isoWeek"),
   );
 
   const [headerWidth, setHeaderWidth] = useState(0);
@@ -623,12 +623,14 @@ interface MonthCalendarProps {
     startDate: Date;
     endDate: Date;
   }) => void;
+  selectDateRange?: 1 | 2;
 }
 export const MonthCalendar = ({
   calendarModalVisible,
   setCalendarModalVisible,
   initDate,
   handleMonthFilter,
+  selectDateRange = 2,
 }: MonthCalendarProps) => {
   const { colors, theme } = useTheme();
   const [currentMonth, setCurrentMonth] = useState(dayjs(initDate));
@@ -663,7 +665,7 @@ export const MonthCalendar = ({
 
   const monthMatrix = useMemo(
     () => getMonthMatrix(currentMonth),
-    [currentMonth]
+    [currentMonth],
   );
   const isSameDay = (a?: Date, b?: Date) => a && b && dayjs(a).isSame(b, "day");
 
@@ -674,12 +676,31 @@ export const MonthCalendar = ({
     dayjs(d).isBefore(end, "day");
 
   const selectDate = (date: Date) => {
+    // ✅ SINGLE DAY MODE
+    if (selectDateRange === 1) {
+      setSelectedRange({
+        start: dayjs(date).startOf("day").toDate(),
+        end: dayjs(date).endOf("day").toDate(),
+      });
+      return;
+    }
+
+    // ✅ RANGE MODE (existing behavior, refined)
     if (!selectedRange.start || selectedRange.end) {
       setSelectedRange({ start: date, end: undefined });
-    } else if (dayjs(date).isBefore(selectedRange.start)) {
-      setSelectedRange({ start: date, end: selectedRange.start });
+      return;
+    }
+
+    if (dayjs(date).isBefore(selectedRange.start)) {
+      setSelectedRange({
+        start: date,
+        end: selectedRange.start,
+      });
     } else {
-      setSelectedRange({ start: selectedRange.start, end: date });
+      setSelectedRange({
+        start: selectedRange.start,
+        end: date,
+      });
     }
   };
   const handleDone = () => {
@@ -911,7 +932,7 @@ export const MonthCalendar = ({
                   const inRange = isBetween(
                     date,
                     selectedRange.start,
-                    selectedRange.end
+                    selectedRange.end,
                   );
                   const selected = isStart || isEnd;
 
@@ -926,8 +947,8 @@ export const MonthCalendar = ({
                         backgroundColor: selected
                           ? colors.primary
                           : inRange
-                          ? colors.primary + "33"
-                          : "transparent",
+                            ? colors.primary + "33"
+                            : "transparent",
                         borderTopLeftRadius: isStart ? 10 : 0,
                         borderBottomLeftRadius: isStart ? 10 : 0,
                         borderTopRightRadius: isEnd ? 10 : 0,

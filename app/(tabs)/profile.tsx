@@ -4,6 +4,7 @@ import {
   StyleSheet,
   Text,
   ActivityIndicator,
+  View,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import ContractorPage from "@/components/profileScreens/contractor";
@@ -15,25 +16,28 @@ import Page from "../(modals)/authentication/login";
 import { useTheme } from "../(modals)/context/themeContext";
 import { useAuthQuery } from "@/hooks/useQuery";
 import { queryClient } from "@/hooks/queryClient";
+import ServerErrorScreen from "../servererror";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const Profile: React.FC = () => {
   const { colors: Colors } = useTheme();
 
   const [formData, setFormData] = useState<any>({});
-  const [path, setPath] = useState<string>("main");
   const [loading, setLoading] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<string>("");
   const { LoginStatus } = useAuth();
 
-  const { data, error, isLoading } = useAuthQuery(
+  const { data, error, isLoading, isError } = useAuthQuery(
     {
-      pathname: path,
-      cacheKey: [`auth_${path}`],
+      pathname: "main",
+      cacheKey: [`auth_status`] as const,
       loginStatus: LoginStatus,
     },
     {
       enabled: LoginStatus,
-    }
+      staleTime: 1_000,
+      retry: 0,
+    },
   );
 
   useEffect(() => {
@@ -45,32 +49,42 @@ const Profile: React.FC = () => {
     }
     // Set loading state based on isLoading
     setLoading(isLoading);
+    console.log(isLoading, loading, isError);
   }, [data, error, isLoading]);
 
-  useEffect(() => {
-    if (LoginStatus && path) {
-      queryClient.invalidateQueries({
-        queryKey: [`auth_${path}`],
-      });
-    }
-  }, [formData, path]);
-
+  if (loading && !isError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
+        <OwnActivaterIndicator />
+      </View>
+    );
+  }
+  // useEffect(() => {
+  //   if (LoginStatus) {
+  //     queryClient.invalidateQueries({
+  //       queryKey: [`auth_status`],
+  //     });
+  //   }
+  // }, [LoginStatus]);
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(formData);
   };
 
-  if (isLoading) {
-    return <Text>Loading...</Text>;
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: Colors.backgroundColor,
+        },
+      ]}
+    >
       {!LoginStatus ? (
         <Page />
       ) : (
         <>
-          {loading ? (
-            <ActivityIndicator size="large" color={Colors.primary} />
+          {error ? (
+            <ServerErrorScreen statusCode={500} />
           ) : (
             <>
               {userRole === "admin" && (

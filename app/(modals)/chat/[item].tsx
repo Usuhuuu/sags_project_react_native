@@ -174,7 +174,7 @@ const DirectChatScreen: React.FC = ({}) => {
   const { addMessageToMap, messagesMap } = useChatStore();
 
   const messagesMapData = useChatStore((state) =>
-    state.messagesMap.get(currentChatId.current)
+    state.messagesMap.get(currentChatId.current),
   );
 
   const [cursor, setCursor] = useState<Date | null>(null);
@@ -193,12 +193,12 @@ const DirectChatScreen: React.FC = ({}) => {
   } = useAuthQuery(
     {
       pathname: "main",
-      cacheKey: ["auth_status"],
+      cacheKey: ["auth_status"] as const,
       loginStatus: LoginStatus,
     },
     {
       enabled: LoginStatus,
-    }
+    },
   );
 
   useEffect(() => {
@@ -256,7 +256,7 @@ const DirectChatScreen: React.FC = ({}) => {
                 const formatMessages = prepareMessages(
                   message.messages,
                   message.nextCursor,
-                  message.no_more_message
+                  message.no_more_message,
                 );
                 addMessageToMap({
                   chatID: currentChatId.current,
@@ -267,7 +267,7 @@ const DirectChatScreen: React.FC = ({}) => {
                 });
                 setCursor(message.nextCursor);
                 setIsitReady(false);
-              }
+              },
             );
           } else {
             socketRef.current?.emit(
@@ -277,7 +277,7 @@ const DirectChatScreen: React.FC = ({}) => {
                   const formatMessages = prepareMessages(
                     callback.messages,
                     callback.nextCursor,
-                    callback.no_more_message
+                    callback.no_more_message,
                   );
 
                   addMessageToMap({
@@ -289,7 +289,7 @@ const DirectChatScreen: React.FC = ({}) => {
                   setIsitReady(false);
                   setCursor(callback.nextCursor);
                 }
-              }
+              },
             );
             console.log("Using cached messages", cacheMsj.messages.length);
           }
@@ -306,7 +306,7 @@ const DirectChatScreen: React.FC = ({}) => {
             const preparedNewMsj = newMessagePrepareFunction(
               newMsj,
               messagesMap,
-              currentChatId
+              currentChatId,
             );
 
             addMessageToMap({
@@ -318,7 +318,7 @@ const DirectChatScreen: React.FC = ({}) => {
 
             flatListRef.current?.scrollToIndex({ index: 0, animated: true });
           });
-        }
+        },
       );
     };
 
@@ -341,7 +341,7 @@ const DirectChatScreen: React.FC = ({}) => {
     ({ item }: { item: Message }) => {
       return <MemoizedChatItem item={item} userDatas={userDataParsed} />;
     },
-    [userDataParsed]
+    [userDataParsed],
   );
 
   return isitReady ? (
@@ -408,14 +408,14 @@ const DirectChatScreen: React.FC = ({}) => {
                   <Text
                     style={{
                       color: activeUserData.includes(
-                        Array.isArray(item) ? item[0] : (item as string)
+                        Array.isArray(item) ? item[0] : (item as string),
                       )
                         ? "green"
                         : Colors.darkGrey,
                     }}
                   >
                     {activeUserData.includes(
-                      Array.isArray(item) ? item[0] : (item as string)
+                      Array.isArray(item) ? item[0] : (item as string),
                     )
                       ? "Online"
                       : "Offline"}

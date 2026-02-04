@@ -164,7 +164,7 @@ const ChatComponent: React.FC = () => {
     },
   });
   const [chatGroups, setChatGroups] = useState<{ [key: string]: GroupChat }>(
-    {}
+    {},
   );
   const [newMessage, setNewMessage] = useState<string>("");
   const [mainModalShow, setmainModalShow] = useState<boolean>(false);
@@ -183,7 +183,7 @@ const ChatComponent: React.FC = () => {
 
   //setMessagesMap
   const [chatSeparator, setChatSeparator] = useState<ChatSeparator>(
-    ChatSeparator.PERSONAL
+    ChatSeparator.PERSONAL,
   );
   const [chatSearchValue, setChatSearchValue] = useState<string>("");
   const [showFilterVisible, setShowFilterVisible] = useState<boolean>(false);
@@ -204,12 +204,12 @@ const ChatComponent: React.FC = () => {
   } = useAuthQuery(
     {
       pathname: "main",
-      cacheKey: ["auth_status"],
+      cacheKey: ["auth_status"] as const,
       loginStatus: LoginStatus,
     },
     {
       enabled: LoginStatus,
-    }
+    },
   );
 
   const regular_query_key = [
@@ -228,7 +228,7 @@ const ChatComponent: React.FC = () => {
     },
     {
       enabled: LoginStatus,
-    }
+    },
   );
 
   // chat data process
@@ -270,7 +270,7 @@ const ChatComponent: React.FC = () => {
         }
         if (groupID.individualChat && Array.isArray(groupID.members)) {
           const otherMember = groupID.members.find(
-            (member: string) => member !== userDatas.unique_user_ID
+            (member: string) => member !== userDatas.unique_user_ID,
           );
           map[groupID._id] = {
             individualChat: groupID._id,
@@ -358,7 +358,7 @@ const ChatComponent: React.FC = () => {
           const formattedMessages = prepareMessages(
             message.messages,
             message.nextCursor,
-            message.no_more_message
+            message.no_more_message,
           );
           addMessageToMap({
             chatID: currentChatId.current,
@@ -373,7 +373,7 @@ const ChatComponent: React.FC = () => {
           }
           setCursor(message.nextCursor);
           setIsitReady(false);
-        }
+        },
       );
       setmainModalShow(true);
       socketRef.current?.off("receiveMessage");
@@ -388,7 +388,7 @@ const ChatComponent: React.FC = () => {
         const preparedMsj = newMessagePrepareFunction(
           newMsj,
           messagesMap,
-          currentChatId
+          currentChatId,
         );
 
         addMessageToMap({
@@ -421,7 +421,7 @@ const ChatComponent: React.FC = () => {
         socketRef.current?.off("receiveMessage");
         socketRef.current?.emit("leave_group", currentChatId.current);
       };
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
@@ -442,7 +442,7 @@ const ChatComponent: React.FC = () => {
           .map((user: ActiveUserType) => ({
             unique_user_ID: user.unique_user_ID,
             status: user.status,
-          }))
+          })),
       );
     });
     socketRef.current.on("directMessageReceived", (data) => {
@@ -487,7 +487,7 @@ const ChatComponent: React.FC = () => {
     const prevMsj = messagesMap.get(currentChatId.current)?.messages[0];
     const diff = differenceInDays(
       newMessage.timestamp,
-      prevMsj?.timestamp || new Date(0)
+      prevMsj?.timestamp || new Date(0),
     );
     if (diff > 0 || diff < 0) {
       const newMsjPrepared = {
@@ -528,7 +528,7 @@ const ChatComponent: React.FC = () => {
     ({ item }: { item: Message }) => {
       return <MemoizedChatItem item={item} userDatas={userDatas} />;
     },
-    [userDatas]
+    [userDatas],
   );
 
   const loadOlderMsj = async () => {
@@ -548,7 +548,7 @@ const ChatComponent: React.FC = () => {
         const formattedMessages = prepareMessages(
           message.messages,
           message.nextCursor,
-          message.no_more_message
+          message.no_more_message,
         );
         addMessageToMap({
           chatID: currentChatId.current,
@@ -560,14 +560,14 @@ const ChatComponent: React.FC = () => {
 
         setCursor(message.nextCursor);
         setLoading(false);
-      }
+      },
     );
   };
 
   const result = Object.values(chatGroups).reduce(
     (
       acc: { individualChat: GroupChat[]; group_chat: GroupChat[] },
-      item: GroupChat
+      item: GroupChat,
     ) => {
       if (item.individualChat !== undefined) {
         acc.individualChat.push(item);
@@ -576,7 +576,7 @@ const ChatComponent: React.FC = () => {
       }
       return acc;
     },
-    { individualChat: [], group_chat: [] }
+    { individualChat: [], group_chat: [] },
   );
 
   const chatInitLang: any = t("chatRoom", { returnObjects: true });

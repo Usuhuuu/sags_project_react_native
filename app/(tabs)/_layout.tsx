@@ -34,7 +34,10 @@ import BookingCheck from "@/components/profileScreens/contractorScreen/booking_c
 import { useCalendar } from "@/app/(modals)/context/CalendarContext";
 import { Animated, Easing } from "react-native";
 import { useTheme } from "../(modals)/context/themeContext";
-import { useAuthQuery } from "@/hooks/useQuery";
+import { ApiError, useAuthQuery } from "@/hooks/useQuery";
+import ServerErrorScreen from "@/app/servererror";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import { queryClient } from "@/hooks/queryClient";
 
 export const TabsLayout = () => {
   const { colors: Colors, theme } = useTheme();
@@ -293,6 +296,7 @@ const Layout = () => {
   const contractorDrawerLng = drawer?.contractorDrawer[0];
   const { LoginStatus, logIn, logOut } = useAuth();
   const { triggerCalendar } = useCalendar();
+
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -310,7 +314,7 @@ const Layout = () => {
           easing: Easing.out(Easing.ease),
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     bounceLoop.start();
 
@@ -399,16 +403,19 @@ const Layout = () => {
     data: userData,
     error: userError,
     isLoading: userLoading,
+    isFetching,
+    isError,
   } = useAuthQuery(
     {
       pathname: "main",
-      cacheKey: ["auth_status"],
+      cacheKey: ["auth_status"] as const,
       loginStatus: LoginStatus,
     },
     {
-      staleTime: 5_000,
+      staleTime: 1000,
       enabled: LoginStatus,
-    }
+      retry: 3,
+    },
   );
 
   useEffect(() => {
@@ -421,13 +428,14 @@ const Layout = () => {
     }
   }, [userData, userError]);
 
-  if (userLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
+  const showLoading = (userLoading || isFetching) && !isError;
+  // if (!showLoading) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <OwnActivaterIndicator />
+  //     </View>
+  //   );
+  // }
   const noHeadRender = ["Home", "Нүүр хуудас", "홈"];
 
   const renderScreens = () => {
@@ -488,21 +496,21 @@ const Layout = () => {
                     </TouchableOpacity>
                   )
                 : name === "Booking check"
-                ? () => (
-                    <TouchableOpacity onPress={() => triggerCalendar()}>
-                      <Animated.View
-                        style={{ transform: [{ scale: scaleAnim }] }}
-                      >
-                        <Image
-                          source={require("../../assets/sport-icons/calendar.png")}
-                          style={{ width: 24, height: 24, marginRight: 15 }}
-                          accessibilityLabel="Calendar Icon"
-                          accessibilityHint="Opens the calendar"
-                        />
-                      </Animated.View>
-                    </TouchableOpacity>
-                  )
-                : undefined,
+                  ? () => (
+                      <TouchableOpacity onPress={() => triggerCalendar()}>
+                        <Animated.View
+                          style={{ transform: [{ scale: scaleAnim }] }}
+                        >
+                          <Image
+                            source={require("../../assets/sport-icons/calendar.png")}
+                            style={{ width: 24, height: 24, marginRight: 15 }}
+                            accessibilityLabel="Calendar Icon"
+                            accessibilityHint="Opens the calendar"
+                          />
+                        </Animated.View>
+                      </TouchableOpacity>
+                    )
+                  : undefined,
             headerTitle: name,
             headerTitleStyle: {
               color: Colors.primary,
@@ -514,25 +522,24 @@ const Layout = () => {
             headerShadowVisible: false,
           }}
         />
-      )
+      ),
     );
   };
-
   return (
-    <Drawer.Navigator
-      drawerContent={(props) => (
-        <CustomDrawerContent {...props} LoginStatus={LoginStatus} />
-      )}
-      screenOptions={{
-        drawerLabelStyle: {
-          marginLeft: -10,
-        },
-        drawerType: "slide",
-        headerShown: false,
-      }}
-    >
-      {renderScreens()}
-    </Drawer.Navigator>
+    <>
+      <Drawer.Navigator
+        drawerContent={(props) => (
+          <CustomDrawerContent {...props} LoginStatus={LoginStatus} />
+        )}
+        screenOptions={{
+          drawerLabelStyle: { marginLeft: -10 },
+          drawerType: "slide",
+          headerShown: false,
+        }}
+      >
+        {renderScreens()}
+      </Drawer.Navigator>
+    </>
   );
 };
 

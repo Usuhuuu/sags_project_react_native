@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import Bottom_Renderer from "../listing/together/bottom_renderer";
 import { MonthCalendar } from "../(modals)/book/components/calendar_strip";
 import { RQ_simple_cache_key, useSimpleQuery } from "@/hooks/useQuery";
 import { useIsFocused } from "@react-navigation/native";
+import { ULAANBAATAR_DISTRICTS_MAP } from "@/assets/Data/ub_location";
+import { SPORT_INDICATOR } from "@/assets/Data/sport_indicator";
 
 export type PostTypes = {
   id: string;
@@ -72,7 +74,6 @@ const TogetherScreen = () => {
     "district" | "sport_type"
   >("district");
 
-  const [initDate, setInitDate] = useState<Date>(new Date());
   const [monthCalendarVisible, setMonthCalendarVisible] =
     useState<boolean>(false);
   const [selectedDates, setSelectedDates] = useState<{
@@ -115,6 +116,9 @@ const TogetherScreen = () => {
       }
       return Array.from(map.values());
     });
+    if (error) {
+      console.log(error);
+    }
   }, [data, isLoading, page]);
 
   const selectFunc = ({
@@ -127,112 +131,7 @@ const TogetherScreen = () => {
     console.log("Selected dates: ", startDate, endDate);
     setSelectedDates({ startDate, endDate });
   };
-  const ULAANBAATAR_DISTRICTS_MAP: Record<string, UBDistrict> = {
-    BGD: {
-      id: "BGD",
-      name: "Bayangol",
-      label: "Баянгол дүүрэг",
-    },
-    BZD: {
-      id: "BZD",
-      name: "Bayanzurkh",
-      label: "Баянзүрх дүүрэг",
-    },
-    SKD: {
-      id: "SKD",
-      name: "Sukhbaatar",
-      label: "Сүхбаатар дүүрэг",
-    },
-    CHD: {
-      id: "CHD",
-      name: "Chingeltei",
-      label: "Чингэлтэй дүүрэг",
-    },
-    HUD: {
-      id: "HUD",
-      name: "Khan-Uul",
-      label: "Хан-Уул дүүрэг",
-    },
-    SHD: {
-      id: "SHD",
-      name: "Songinokhairkhan",
-      label: "Сонгинохайрхан дүүрэг",
-    },
-    NBD: {
-      id: "NBD",
-      name: "Nalaikh",
-      label: "Налайх дүүрэг",
-    },
-    BCD: {
-      id: "BCD",
-      name: "Baganuur",
-      label: "Багануур дүүрэг",
-    },
-    BHD: {
-      id: "BHD",
-      name: "Bagakhangai",
-      label: "Багахангай дүүрэг",
-    },
-  };
-  const SPORT_INDICATOR: Record<string, UBDistrict> = {
-    // -------- SPORTS --------
-    basket_ball: {
-      id: "basket_ball",
-      type: "sport",
-      name: "Basketball",
-      label: "Сагсан бөмбөг",
-      icon: "basketball",
-    },
-    foot_ball: {
-      id: "foot_ball",
-      type: "sport",
-      name: "Football",
-      label: "Хөлбөмбөг",
-      icon: "soccer-ball-o",
-    },
-    volley_ball: {
-      id: "volley_ball",
-      type: "sport",
-      name: "Volleyball",
-      label: "Волейбол",
-      icon: "volleyball",
-    },
-    badminton: {
-      id: "badminton",
-      type: "sport",
-      name: "Badminton",
-      label: "Бадминтон",
-    },
-    tennis: {
-      id: "tennis",
-      type: "sport",
-      name: "Tennis",
-      label: "Талбайн теннис",
-    },
 
-    // -------- ESPORTS --------
-    computer: {
-      id: "computer",
-      type: "esport",
-      name: "PC Gaming",
-      label: "Компьютер тоглоом",
-      icon: "desktop",
-    },
-    playstation: {
-      id: "playstation",
-      type: "esport",
-      name: "PlayStation",
-      label: "PlayStation",
-      icon: "game-controller",
-    },
-    xbox: {
-      id: "xbox",
-      type: "esport",
-      name: "Xbox",
-      label: "Xbox",
-      icon: "xbox",
-    },
-  };
   const filterSection = [
     {
       label: `Location: ${
@@ -372,7 +271,7 @@ const TogetherScreen = () => {
       <MonthCalendar
         calendarModalVisible={monthCalendarVisible}
         setCalendarModalVisible={setMonthCalendarVisible}
-        initDate={initDate}
+        initDate={new Date()}
         handleMonthFilter={selectFunc}
       />
     </View>

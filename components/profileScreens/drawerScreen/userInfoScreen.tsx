@@ -31,12 +31,12 @@ const UserInfoScreen = () => {
   const { data, error, isLoading } = useAuthQuery(
     {
       pathname: "main",
-      cacheKey: ["auth_status"],
+      cacheKey: ["auth_status"] as const,
       loginStatus: LoginStatus,
     },
     {
       enabled: LoginStatus,
-    }
+    },
   );
 
   useEffect(() => {
@@ -101,7 +101,7 @@ const UserInfoScreen = () => {
     try {
       const response = await axiosInstance.post(
         "/auth/updateProfile",
-        formData
+        formData,
       );
       if (response.status === 200 && response.data.success) {
         Notifier.showNotification({

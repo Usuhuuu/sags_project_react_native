@@ -6,30 +6,27 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import { useNavigation } from "@react-navigation/native";
 import AppText from "@/constants/appTextDefault";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { AntDesign } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import PostModalOptions from "./option_modal";
 import { ULAANBAATAR_DISTRICTS_MAP } from "@/assets/Data/ub_location";
 import { SPORT_INDICATOR } from "@/assets/Data/sport_indicator";
+import { MonthCalendar } from "@/app/(modals)/book/components/calendar_strip";
+import axiosInstance from "@/hooks/axiosInstance";
 
 const PostCreate = () => {
   const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [postText, setPostText] = useState<string>("");
   const [optionModal, setOptionModal] = useState<boolean>(false);
+  const [calendarModal, setCalendarModal] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<
     "location" | "game_type" | "date"
   >("location");
@@ -57,6 +54,7 @@ const PostCreate = () => {
           }}
           onPress={() => {
             if (postText.length > 3) {
+              handleSendPost();
             } else {
               Notifier.showNotification({
                 title: "Post text is too short",
@@ -117,8 +115,54 @@ const PostCreate = () => {
     if (settingId === "game_type") {
       return SPORT_INDICATOR[value]?.name;
     }
+    if (settingId === "date") {
+      return (
+        optionData["date"]?.start.toDateString() +
+        " - " +
+        optionData["date"]?.end.toDateString()
+      );
+    }
 
     return undefined;
+  };
+  const selectCalendarDate = ({
+    startDate,
+    endDate,
+  }: {
+    startDate: Date;
+    endDate: Date;
+  }) => {
+    setOptionData((prev) => ({
+      ...prev,
+      ["date"]: {
+        start: startDate,
+        end: endDate,
+      },
+    }));
+  };
+  const handleSendPost = async () => {
+    try {
+      if (!optionData.game_type || !optionData.date || !optionData.location) {
+        Notifier.showNotification({
+          title: "Incomplete Post Settings",
+          description: "Please set all post settings before posting.",
+          duration: 1000,
+          Component: NotifierComponents.Alert,
+          componentProps: {
+            alertType: "warn",
+          },
+        });
+        return;
+      }
+      const response = await axiosInstance.post("/post/create", {
+        postText: postText,
+        sport_types: optionData.game_type,
+        date: optionData.date,
+        location: optionData.location,
+      });
+    } catch (err) {
+      console.log("Post Create Error: ", err);
+    }
   };
 
   return (
@@ -145,7 +189,7 @@ const PostCreate = () => {
             <TextInput
               placeholder="What's on your mind?"
               placeholderTextColor={colors.darkGrey}
-              style={{ flex: 1, padding: 10 }}
+              style={{ flex: 1, padding: 10, color: colors.themeColorTextPure }}
               value={postText}
               onChangeText={(text) => setPostText(text)}
             />
@@ -224,8 +268,12 @@ const PostCreate = () => {
                       alignItems: "center",
                     }}
                     onPress={() => {
+                      if (item.id === "date") {
+                        setCalendarModal(true);
+                      } else {
+                        setOptionModal(true);
+                      }
                       setSelectedOption(item.id);
-                      setOptionModal(true);
                     }}
                     key={item.id}
                   >
@@ -239,7 +287,7 @@ const PostCreate = () => {
                         gap: 10,
                       }}
                     >
-                      <AppText>{optionLabel}</AppText>
+                      <AppText>{optionLabel ?? "None"}</AppText>
                       <AppText style={{ color: "#666", fontSize: 18 }}>
                         ›
                       </AppText>
@@ -274,45 +322,16 @@ const PostCreate = () => {
         optionData={optionData}
         setOptionData={setOptionData}
       />
+      <MonthCalendar
+        calendarModalVisible={calendarModal}
+        setCalendarModalVisible={setCalendarModal}
+        initDate={new Date()}
+        handleMonthFilter={selectCalendarDate}
+        selectDateRange={1}
+      />
     </SafeAreaView>
   );
 };
-
-function SettingsRow({
-  label,
-  settingsId,
-  modalVisible,
-  setModalVisible,
-}: {
-  label: string;
-  settingsId: "location" | "date" | "game_type";
-  modalVisible: boolean;
-  setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
-  return (
-    <TouchableOpacity
-      style={{
-        paddingVertical: 14,
-        borderBottomWidth: 0.5,
-        borderBottomColor: "#2a2a2a",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-      onPress={() => {
-        setModalVisible(true);
-      }}
-    >
-      <AppText style={{ color: "#fff", fontSize: 16 }}>{settingsId}</AppText>
-      <AppText style={{ color: "#666", fontSize: 18 }}>›</AppText>
-      <PostModalOptions
-        visible={modalVisible}
-        setVisible={setModalVisible}
-        settingsId={settingsId}
-      />
-    </TouchableOpacity>
-  );
-}
 
 function ToggleRow({
   label,

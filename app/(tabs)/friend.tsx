@@ -14,6 +14,7 @@ import Friend_Separator from "../(modals)/friend/components/friendSeparator";
 import Friend_Add_Modal from "../(modals)/friend/components/friend_add";
 import { useTheme } from "../(modals)/context/themeContext";
 import { useAuthQuery } from "@/hooks/useQuery";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const FriendRequest = () => {
   const { colors: Colors } = useTheme();
@@ -59,7 +60,7 @@ const FriendRequest = () => {
     },
   });
   const [friendSeparator, setFriendSeparator] = useState<FriendSeparator>(
-    FriendSeparator.FRIENDS
+    FriendSeparator.FRIENDS,
   );
   const [friends, setFriends] = useState<Friend_Status>({} as Friend_Status);
   const [searchValue, setSearchValue] = useState<string>("");
@@ -74,12 +75,14 @@ const FriendRequest = () => {
   } = useAuthQuery(
     {
       pathname: "friends",
-      cacheKey: ["auth_friend"],
+      cacheKey: ["auth_friend"] as const,
       loginStatus: LoginStatus,
     },
     {
       enabled: LoginStatus,
-    }
+      staleTime: 1_000,
+      retry: 3,
+    },
   );
 
   useEffect(() => {
@@ -90,11 +93,15 @@ const FriendRequest = () => {
     }
   }, [userData, userError]);
 
-  return userLoading ? (
-    <View style={friend_style.container}>
-      <ActivityIndicator size={"large"} />
-    </View>
-  ) : (
+  if (userLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
+        <OwnActivaterIndicator />
+      </View>
+    );
+  }
+
+  return (
     <View style={friend_style.container}>
       {/* Separator Section */}
       <View style={{ margin: 10 }}>

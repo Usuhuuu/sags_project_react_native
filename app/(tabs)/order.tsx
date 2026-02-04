@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../(modals)/context/authContext";
 import { HashedSportData } from "@/utils/sport_hall_hash";
 import Order_Separator from "../(modals)/book/components/order_separator";
@@ -23,10 +23,11 @@ import Animated, {
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../(modals)/context/themeContext";
-import { differenceInMinutes, set } from "date-fns";
+import { differenceInMinutes } from "date-fns";
 import { MonthCalendar } from "../(modals)/book/components/calendar_strip";
 import dayjs from "dayjs";
 import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const OrderScreen = () => {
   const { colors: Colors, theme } = useTheme();
@@ -34,8 +35,6 @@ const OrderScreen = () => {
     today_upcoming: [],
     history: [],
   });
-  const [filteredBookingData, setFilteredBookingData] =
-    useState<OrderDataTypes>(bookingData);
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPages] = useState<Record<OrderScreenSeparator, number>>({
     [OrderScreenSeparator.TODAY_UPCOMING]: 1,
@@ -57,7 +56,6 @@ const OrderScreen = () => {
   const [calendarModalVisible, setCalendarModalVisible] = useState(false);
   const [initDate, setInitDate] = useState(dayjs().toDate());
   const [endDateValue, setEndDateValue] = useState<string | null>(null);
-  const [renderExtraData, setRenderExtraData] = useState<boolean>(false);
 
   const timezone = encodeURIComponent(
     Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -252,26 +250,41 @@ const OrderScreen = () => {
 
   const handleFilterPress = useCallback(
     (value: string) => {
-      if (value === active || !value) return;
-      else if (value === "all") {
-        setActive(value);
-        console.log("RESETTING FILTER");
-        setFilteredBookingData(bookingData);
-        return;
-      }
+      if (!value || value === active) return;
       setActive(value);
-      const temp = bookingData.today_upcoming.filter((item) =>
-        item.blocks.some((block) => block.block_booking_status === value),
-      );
-
-      setFilteredBookingData((prev) => ({
-        ...prev,
-        today_upcoming: temp,
-      }));
-      setRenderExtraData((prev) => !prev);
     },
-    [active, bookingData],
+    [active],
   );
+  const filteredBookingData = useMemo(() => {
+    if (active === "all") return bookingData;
+    const result =
+      screenSeparator === OrderScreenSeparator.HISTORY
+        ? {
+            ...bookingData,
+            history: bookingData.history.filter((item) =>
+              item.blocks.some(
+                (block) => block.block_booking_status === active,
+              ),
+            ),
+          }
+        : {
+            ...bookingData,
+            today_upcoming: bookingData.today_upcoming.filter((item) =>
+              item.blocks.some(
+                (block) => block.block_booking_status === active,
+              ),
+            ),
+          };
+    return result;
+  }, [active, bookingData]);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
+        <OwnActivaterIndicator />
+      </View>
+    );
+  }
 
   return (
     <Animated.View

@@ -12,7 +12,7 @@ interface ProfileNormalUserProps {
     {
       firstName: string;
       unique_user_ID: string;
-    }
+    },
   ];
 }
 const NormalUser: React.FC<ProfileNormalUserProps> = () => {
@@ -24,12 +24,12 @@ const NormalUser: React.FC<ProfileNormalUserProps> = () => {
   const { data, error } = useAuthQuery(
     {
       pathname: "main",
-      cacheKey: ["auth_status"],
+      cacheKey: ["auth_status"] as const,
       loginStatus: LoginStatus,
     },
     {
       enabled: LoginStatus,
-    }
+    },
   );
   useEffect(() => {
     if (data) {
