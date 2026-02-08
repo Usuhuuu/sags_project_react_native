@@ -186,7 +186,7 @@ Time: ${dayjs(item.block.start_time).format("HH:mm")} – ${dayjs(
       },
     });
   };
-  const { width, height } = Dimensions.get("window");
+  const { height } = Dimensions.get("window");
   return (
     <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
       <FlatList
@@ -206,22 +206,25 @@ Time: ${dayjs(item.block.start_time).format("HH:mm")} – ${dayjs(
                 marginHorizontal: 10,
                 padding: 10,
                 height: height * 0.6,
-                borderRadius: 10,
                 shadowColor: colors.shadowColor,
-                shadowOpacity: theme === "dark" ? 0.7 : 0.1,
-                shadowRadius: 4,
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.15,
+                shadowRadius: 6,
+                elevation: 4,
+                borderRadius: 12,
+                margin: 20,
               }}
             >
               <View style={{ alignItems: "center", marginBottom: 12 }}>
                 <FontAwesome5
                   name="comment-alt"
-                  size={24}
-                  color={colors.primary}
+                  size={40}
+                  color={colors.themeColorTextPure}
                 />
                 <AppText
                   style={{
                     fontSize: 24,
-                    color: colors.primary,
+                    color: colors.themeColorTextPure,
                     fontWeight: "600",
                   }}
                 >

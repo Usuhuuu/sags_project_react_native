@@ -97,7 +97,7 @@ const Order_Separator = ({
   };
 
   const getUniqueListWithSessions = async (
-    orderList: Return_Type[]
+    orderList: Return_Type[],
   ): Promise<Return_Type[]> => {
     if (!orderList || orderList.length === 0) return [];
     let updatedList = [...orderList];
@@ -122,7 +122,7 @@ const Order_Separator = ({
                 .split(" - ");
               [parsed_end_time] = new Date(
                 new Date(parsed.startTime).getTime() +
-                  (parsed.timePackage ?? 0) * 60000
+                  (parsed.timePackage ?? 0) * 60000,
               )
                 .toLocaleTimeString("en-US", {
                   timeZone: tz,
@@ -150,7 +150,7 @@ const Order_Separator = ({
                       new Date(block.start_time).getTime() ===
                         new Date(parsed_start_time).getTime() &&
                       new Date(block.end_time).getTime() ===
-                        new Date(parsed_end_time).getTime()
+                        new Date(parsed_end_time).getTime(),
                   );
 
             if (sameSportHall && sameDay && sameTimeSlots) {
@@ -209,6 +209,7 @@ const Order_Separator = ({
           return;
         }
         const list = await getUniqueListWithSessions(orderList);
+        console.log(JSON.stringify(list, null, 2));
         if (isActive) {
           setUniqueList(list);
           setListLoading(false);
@@ -218,11 +219,11 @@ const Order_Separator = ({
       return () => {
         isActive = false;
       };
-    }, [orderList])
+    }, [orderList]),
   );
   const renderItem = useCallback(
     ({ item }: { item: Return_Type }) => <OrderItem item={item} />,
-    []
+    [],
   );
   return (
     <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>

@@ -4,16 +4,26 @@ import {
   FriendsType,
 } from "@/interfaces/friendType";
 import React, { useCallback } from "react";
-import { View, FlatList } from "react-native";
+import { View, FlatList, Dimensions, SafeAreaView } from "react-native";
 import { FriendItem } from "../util/friend_functions";
+import { useTheme } from "../../context/themeContext";
+import { ScrollView } from "react-native-gesture-handler";
+import AppText from "@/constants/appTextDefault";
+import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface Friend_Separator_props {
   data: Friend_Status;
   screen_type: FriendSeparator;
+  loading: boolean;
 }
-const Friend_Separator = ({ data, screen_type }: Friend_Separator_props) => {
+const Friend_Separator = ({
+  data,
+  screen_type,
+  loading,
+}: Friend_Separator_props) => {
   let list: FriendsType[] = [];
 
+  const { colors } = useTheme();
   switch (screen_type) {
     case FriendSeparator.FRIENDS:
       list = data.friends as unknown as FriendsType[];
@@ -31,8 +41,40 @@ const Friend_Separator = ({ data, screen_type }: Friend_Separator_props) => {
     ({ item }: { item: FriendsType }) => (
       <FriendItem item={item} userStatus={screen_type} />
     ),
-    [screen_type]
+    [screen_type],
   );
+  const { height } = Dimensions.get("window");
+  const noDataMap = {
+    [FriendSeparator.FRIENDS]: {
+      title: "No Friends Yet",
+      description: "Start building your game squad",
+      icon: (
+        <MaterialCommunityIcons
+          name="account-heart-outline"
+          size={100}
+          color={colors.themeColorTextPure}
+        />
+      ),
+    },
+    [FriendSeparator.REQUESTS]: {
+      title: "No Pending Requests",
+      description: "Your gaming circle is waiting to grow",
+      icon: (
+        <MaterialCommunityIcons
+          name="account-group"
+          size={100}
+          color={colors.themeColorTextPure}
+        />
+      ),
+    },
+    [FriendSeparator.SENDED]: {
+      title: "No Sent Requests",
+      description: "You Haven't sent any invitations lately",
+      icon: (
+        <FontAwesome name="send" size={100} color={colors.themeColorTextPure} />
+      ),
+    },
+  } as const;
 
   return (
     <View style={{ height: "100%" }}>
@@ -40,6 +82,51 @@ const Friend_Separator = ({ data, screen_type }: Friend_Separator_props) => {
         data={list}
         renderItem={renderItem}
         keyExtractor={(item, index) => `${item.unique_user_ID}-${index}`}
+        ListEmptyComponent={
+          loading ? (
+            <></>
+          ) : (
+            <SafeAreaView style={{ height: height * 0.65 }}>
+              <View
+                style={{
+                  margin: 10,
+                  padding: 15,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginVertical: 7,
+                  borderRadius: 5,
+                  shadowColor: colors.containerColor,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 4,
+                  backgroundColor: colors.containerColor,
+                  flex: 1,
+                }}
+              >
+                <></>
+                <View
+                  style={{
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flex: 1,
+                  }}
+                >
+                  {noDataMap[screen_type].icon}
+                  <AppText
+                    style={{ color: colors.themeColorTextPure, fontSize: 24 }}
+                  >
+                    {noDataMap[screen_type].title}
+                  </AppText>
+                  <AppText style={{ color: colors.darkGrey }}>
+                    {noDataMap[screen_type].description}
+                  </AppText>
+                </View>
+              </View>
+            </SafeAreaView>
+          )
+        }
       />
     </View>
   );

@@ -18,7 +18,7 @@ export default {
   pendingYellow: "#FBBF24",
   greenText: "#10B981",
   yellowText: "#854D0E",
-  shadowColor: "#000",
+  shadowColor: "rgba(0,0,0,0.5)",
   shadowColor2: "#393939",
   containerColor: "#FFFFFF",
 };
@@ -43,7 +43,7 @@ export const LightTheme = {
   pendingYellow: "#FBBF24",
   greenText: "#10B981",
   yellowText: "#854D0E",
-  shadowColor: "#000",
+  shadowColor: "rgba(0,0,0,0.5)",
   shadowColor2: "#393939",
   backgroundColor: "#f6f6f6",
   containerColor: "#FFFFFF",
@@ -73,7 +73,7 @@ export const DarkTheme = {
   pendingYellow: "#FBBF24",
   greenText: "#10B981",
   yellowText: "#854D0E",
-  shadowColor: "#000",
+  shadowColor: "rgba(0,0,0,0.5)",
   shadowColor2: "#393939",
   backgroundColor: "#0e1218", //"#1C1C1E",
   containerColor: "#151a20", //"#272A33", "#1C1C1E"

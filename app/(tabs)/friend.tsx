@@ -8,7 +8,6 @@ import {
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../(modals)/context/authContext";
 import { Friend_Status, FriendSeparator } from "@/interfaces/friendType";
-import { ActivityIndicator } from "react-native-paper";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import Friend_Separator from "../(modals)/friend/components/friendSeparator";
 import Friend_Add_Modal from "../(modals)/friend/components/friend_add";
@@ -210,8 +209,12 @@ const FriendRequest = () => {
           </View>
         </View>
       </View>
-      <View>
-        <Friend_Separator data={friends} screen_type={friendSeparator} />
+      <View style={{}}>
+        <Friend_Separator
+          data={friends}
+          screen_type={friendSeparator}
+          loading={userLoading}
+        />
         <Friend_Add_Modal
           modalDisplay={modalDisplay}
           setModalDisplay={setModalDisplay}

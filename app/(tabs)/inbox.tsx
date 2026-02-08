@@ -204,7 +204,6 @@ const TogetherScreen = () => {
           showsHorizontalScrollIndicator={false}
           style={{
             marginBottom: 10,
-            gap: 10,
             marginHorizontal: 6,
           }}
         >
@@ -226,6 +225,7 @@ const TogetherScreen = () => {
                     setMonthCalendarVisible(true);
                   }
                 }}
+                style={{ paddingHorizontal: 5 }}
               >
                 <Chip label={filter.label} active={isSelected} />
               </TouchableOpacity>
@@ -239,7 +239,7 @@ const TogetherScreen = () => {
             letterSpacing: 1,
             color: "#555",
             marginBottom: 12,
-            marginHorizontal: 6,
+            marginHorizontal: 10,
           }}
         >
           RECENT ACTIVITY
@@ -289,7 +289,7 @@ const Chip = ({ label, active = false }: any) => {
           gap: 4,
           paddingHorizontal: 10,
           height: 32,
-          borderRadius: 16,
+          borderRadius: 10,
           borderWidth: 1,
           borderColor: colors.darkGrey,
           backgroundColor: colors.containerColor,

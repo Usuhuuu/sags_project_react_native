@@ -61,12 +61,12 @@ export const OrderItem = React.memo(
             expanded.value,
             [0, 1],
             [200 + notExtendedHeight, expandedHeight],
-            Extrapolate.CLAMP
+            Extrapolate.CLAMP,
           ),
           {
             duration: 100,
             easing: Easing.inOut(Easing.cubic),
-          }
+          },
         ),
       };
     });
@@ -81,7 +81,7 @@ export const OrderItem = React.memo(
 
       const translateY = withTiming(
         interpolate(expanded.value, [0, 1], [10, 0]),
-        { duration: 300, easing: Easing.inOut(Easing.cubic) }
+        { duration: 300, easing: Easing.inOut(Easing.cubic) },
       );
 
       return {
@@ -157,7 +157,7 @@ export const OrderItem = React.memo(
     };
 
     const { minutes, seconds, secondsLeft } = useCountdown(
-      data.session_obj?.expireAt
+      data.session_obj?.expireAt,
     );
 
     const dataDetails = useMemo(
@@ -235,7 +235,7 @@ export const OrderItem = React.memo(
           },
         ],
       }),
-      []
+      [],
     );
 
     const ContinuePayButton = ({ session }: any) => {
@@ -493,7 +493,12 @@ export const OrderItem = React.memo(
                           <ProgressBar
                             progress={
                               block.num_players > 0
-                                ? block.current_player / block.num_players
+                                ? Math.min(
+                                    Number(block.current_player) ||
+                                      0 / Number(block.num_players) ||
+                                      0,
+                                    1,
+                                  )
                                 : 1
                             }
                             color={Colors.primary}
@@ -523,15 +528,15 @@ export const OrderItem = React.memo(
                               {sectionKey === "paymentInfo"
                                 ? `${orderLangInit.paymentInfo.paymentInfo}`
                                 : sectionKey === "bookingInfo"
-                                ? `${orderLangInit.bookingInfo.bookingInfo}`
-                                : `${orderLangInit.playerInfo.playerInfo}`}
+                                  ? `${orderLangInit.bookingInfo.bookingInfo}`
+                                  : `${orderLangInit.playerInfo.playerInfo}`}
                             </Text>
                             {fields.map((field) => {
                               const value =
                                 "resolve" in field &&
                                 typeof field.resolve === "function"
                                   ? field.resolve(data)
-                                  : (data as any)?.[field.key] ?? "";
+                                  : ((data as any)?.[field.key] ?? "");
                               if (field.label === "Continue Pay" && value) {
                                 return (
                                   <View
@@ -571,7 +576,7 @@ export const OrderItem = React.memo(
                               );
                             })}
                           </View>
-                        )
+                        ),
                       )}
                     </View>
                     <View
@@ -731,5 +736,5 @@ export const OrderItem = React.memo(
   },
   (prevProps, nextProps) => {
     return prevProps.item._id === nextProps.item._id;
-  }
+  },
 );
