@@ -6,12 +6,12 @@ import {
   TextInput,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../(modals)/context/authContext";
+import { useAuth } from "@/app/(modals)/context/authContext";
 import { Friend_Status, FriendSeparator } from "@/interfaces/friendType";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import Friend_Separator from "../(modals)/friend/components/friendSeparator";
-import Friend_Add_Modal from "../(modals)/friend/components/friend_add";
-import { useTheme } from "../(modals)/context/themeContext";
+import Friend_Separator from "@/app/(modals)/friend/components/friendSeparator";
+import Friend_Add_Modal from "@/app/(modals)/friend/components/friend_add";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 import { useAuthQuery } from "@/hooks/useQuery";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 

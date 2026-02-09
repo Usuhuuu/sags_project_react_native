@@ -15,7 +15,7 @@ import * as Sentry from "@sentry/react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { differenceInDays } from "date-fns";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../(modals)/context/authContext";
+import { useAuth } from "@/app/(modals)/context/authContext";
 import MainChatModal from "@/app/(modals)/authentication/modals/mainChatModal";
 import { useFocusEffect } from "expo-router";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
@@ -27,18 +27,18 @@ import {
   MessageHistory,
   ActiveUserType,
 } from "@/interfaces/chatType";
-import { generatedId } from "../(modals)/chat/util/objectID";
+import { generatedId } from "@/app/(modals)/chat/util/objectID";
 import {
   MemoizedChatItem,
   newMessagePrepareFunction,
   prepareMessages,
 } from "@/app/(modals)/chat/util/message_function";
-import PersonalChat from "../(modals)/chat/components/personal_chat";
-import GroupChatComponent from "../(modals)/chat/components/group_chat";
-import FilterModal from "../(modals)/chat/components/filter_modal";
-import { useChatStore } from "../(modals)/context/store/chatStore";
+import PersonalChat from "@/app/(modals)/chat/components/personal_chat";
+import GroupChatComponent from "@/app/(modals)/chat/components/group_chat";
+import FilterModal from "@/app/(modals)/chat/components/filter_modal";
+import { useChatStore } from "@/app/(modals)/context/store/chatStore";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useTheme } from "../(modals)/context/themeContext";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import {
   RQ_regular_cache_key,

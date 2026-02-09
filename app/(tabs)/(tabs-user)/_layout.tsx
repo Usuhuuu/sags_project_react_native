@@ -1,18 +1,7 @@
-import React, { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Image,
-  View,
-  ActivityIndicator,
-  TouchableOpacity,
-} from "react-native";
-import { router, Tabs } from "expo-router";
-import { createDrawerNavigator } from "@react-navigation/drawer";
-import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "@/app/(modals)/context/authContext";
+import { useTheme } from "@/app/(modals)/context/themeContext";
+import FriendReqModal from "@/app/(modals)/friendReqModal";
 import ExploreHeader from "@/components/ExploreHeader";
-import InfoScreen from "@/components/InfoScreen";
-import Dtraining from "@/components/training";
-import CustomDrawerContent from "@/components/CostumDrawerContent";
 import {
   Entypo,
   FontAwesome,
@@ -20,24 +9,26 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, Tabs } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { useSharedValue } from "react-native-reanimated";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import InfoScreen from "@/components/InfoScreen";
+import Dtraining from "@/components/training";
+import CustomDrawerContent from "@/components/CostumDrawerContent";
 import ProfileNotification from "@/components/profileScreens/drawerScreen/notification";
 import ProfileStatistical from "@/components/profileScreens/contractorScreen/statistical";
 import UserInfoScreen from "@/components/profileScreens/drawerScreen/userInfoScreen";
-import { useTranslation } from "react-i18next";
-import ProfileSettings from "../settings/profileSettings";
-import { useAuth } from "../(modals)/context/authContext";
-import FriendReqModal from "../(modals)/friendReqModal";
 import RegisterZaal from "@/components/profileScreens/contractorScreen/register_zaal";
 import MailComponent from "@/components/profileScreens/drawerScreen/mail";
-import { useSharedValue } from "react-native-reanimated";
 import BookingCheck from "@/components/profileScreens/contractorScreen/booking_check";
 import { useCalendar } from "@/app/(modals)/context/CalendarContext";
 import { Animated, Easing } from "react-native";
-import { useTheme } from "../(modals)/context/themeContext";
-import { ApiError, useAuthQuery } from "@/hooks/useQuery";
-import ServerErrorScreen from "@/app/servererror";
-import OwnActivaterIndicator from "@/constants/loaderAnimation";
-import { queryClient } from "@/hooks/queryClient";
+import { useAuthQuery } from "@/hooks/useQuery";
+import ProfileSettings from "@/app/settings/profileSettings";
 
 export const TabsLayout = () => {
   const { colors: Colors, theme } = useTheme();
@@ -96,7 +87,7 @@ export const TabsLayout = () => {
               }}
             >
               <Image
-                source={require("../../assets/tab-icons/home.png")}
+                source={require("../../../assets/tab-icons/home.png")}
                 style={{ width: 26, height: 26 }}
               />
             </View>
@@ -114,7 +105,7 @@ export const TabsLayout = () => {
           headerTitleStyle: { color: Colors.primary, fontSize: 24 },
           headerRight: () => (
             <Image
-              source={require("../../assets/tab-icons/teamwork.png")}
+              source={require("../../../assets/tab-icons/teamwork.png")}
               style={{ width: 26, height: 26, marginRight: 10 }}
             />
           ),
@@ -128,7 +119,7 @@ export const TabsLayout = () => {
               }}
             >
               <Image
-                source={require("../../assets/tab-icons/teamwork.png")}
+                source={require("../../../assets/tab-icons/teamwork.png")}
                 style={{ width: 26, height: 26 }}
               />
             </View>
@@ -203,7 +194,7 @@ export const TabsLayout = () => {
               }}
             >
               <Image
-                source={require("../../assets/tab-icons/friends.png")}
+                source={require("../../../assets/tab-icons/friends.png")}
                 style={{ width: 28, height: 28 }}
               />
             </View>
@@ -244,7 +235,7 @@ export const TabsLayout = () => {
               }}
             >
               <Image
-                source={require("../../assets/tab-icons/chat.png")}
+                source={require("../../../assets/tab-icons/chat.png")}
                 style={{ width: 30, height: 30 }}
               />
             </View>
@@ -272,7 +263,7 @@ export const TabsLayout = () => {
               }}
             >
               <Image
-                source={require("../../assets/tab-icons/athlete.png")}
+                source={require("../../../assets/tab-icons/athlete.png")}
                 style={{ width: 28, height: 28 }}
               />
             </View>
@@ -502,7 +493,7 @@ const Layout = () => {
                           style={{ transform: [{ scale: scaleAnim }] }}
                         >
                           <Image
-                            source={require("../../assets/sport-icons/calendar.png")}
+                            source={require("@/assets/sport-icons/calendar.png")}
                             style={{ width: 24, height: 24, marginRight: 15 }}
                             accessibilityLabel="Calendar Icon"
                             accessibilityHint="Opens the calendar"

@@ -1,76 +1,67 @@
+import { useAuthQuery } from "@/hooks/useQuery";
+import { useAuth } from "../(modals)/context/authContext";
+import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import React from "react";
 import { View } from "react-native";
-import React, { useMemo, useState } from "react";
-import { Stack } from "expo-router";
-import ExploreHeader from "@/components/ExploreHeader";
-import ListingsMap from "@/components/ListingsMap";
-import ListingBottomSheet from "@/components/ListingBottomSheet";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useSharedValue } from "react-native-reanimated";
-import {
-  EsportHallDataType,
-  HallCategoryValue,
-  SportHallDataType,
-} from "@/interfaces/listing";
-import HallData from "@/assets/Data/sportHall.json";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
-const Page = () => {
-  const listingsData = HallData as unknown as (
-    | SportHallDataType
-    | EsportHallDataType
-  )[];
-  const [category, setCategory] = useState<HallCategoryValue>(
-    HallCategoryValue.BASKET_BALL
+export default function TabsIndex() {
+  const [userRole, setUserRole] = useState<
+    "user" | "admin" | "contractor" | null
+  >(null);
+  const { LoginStatus } = useAuth();
+  const router = useRouter();
+
+  const {
+    data: userData,
+    error: userError,
+    isLoading: userLoading,
+    isFetching,
+  } = useAuthQuery(
+    {
+      pathname: "main",
+      cacheKey: ["auth_status"] as const,
+      loginStatus: LoginStatus,
+    },
+    {
+      staleTime: 0,
+      enabled: LoginStatus,
+      retry: 1,
+    },
   );
-  const items = useMemo(() => listingsData as any[], []);
-  const bottomSheetY = useSharedValue(0);
-  const [selectedCategory, setSelectedCategory] = useState<HallCategoryValue>(
-    HallCategoryValue.BASKET_BALL
-  );
-  const onDataChanged = (category: HallCategoryValue) => {
-    console.log("onDataChanged called with category:", category);
-    setCategory(category);
-    setSelectedCategory(category);
-  };
 
-  // Debug: Log filtered listings before rendering ListingsMap
-  const filteredListings = listingsData
-    .map((item: any) =>
-      typeof item?.toObject === "function" ? item.toObject() : item
-    )
-    .map((item: any) => ({
-      ...item,
-      hall_details: {
-        ...(item.hall_details ?? {}),
-        base_time_slots: item.base_time_slots ?? [],
-      },
-    }))
-    .filter((item) => item.hall_types?.sub.includes(category));
+  useEffect(() => {
+    if (userData) {
+      setUserRole(userData.role);
+    } else if (userError) {
+      console.log("Error fetching user data:", userError);
+    }
+  }, [userData, userError]);
 
+  useEffect(() => {
+    if (!LoginStatus || userLoading || isFetching) return;
+    if (!userRole) return;
+
+    console.log("Redirecting as:", userRole);
+
+    switch (userRole) {
+      case "admin":
+        router.replace("/(tabs)/(tabs-admin)");
+        break;
+      case "contractor":
+        router.replace("/(tabs)/(tabs-contractor)");
+        break;
+      default:
+        router.replace("/(tabs)/(tabs-user)");
+        break;
+    }
+  }, [userRole, LoginStatus, userLoading, isFetching]);
+
+  // While loading / redirecting, show loader
   return (
-    <GestureHandlerRootView style={{ height: "100%" }}>
-      <View style={{ height: "100%" }}>
-        <Stack.Screen
-          options={{
-            header: () => (
-              <ExploreHeader
-                onCategoryChanged={onDataChanged}
-                bottomSheetY={bottomSheetY}
-              />
-            ),
-          }}
-        />
-        <ListingsMap
-          listings={filteredListings}
-          selectedCategory={selectedCategory}
-        />
-        <ListingBottomSheet
-          listing={filteredListings}
-          category={category}
-          bottomSheetY={bottomSheetY}
-        />
-      </View>
-    </GestureHandlerRootView>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <OwnActivaterIndicator />
+    </View>
   );
-};
-
-export default Page;
+}

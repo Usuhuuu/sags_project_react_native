@@ -7,11 +7,11 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import TogetherInsideFlatList from "../listing/together/together_inside_flatlist";
-import { useTheme } from "../(modals)/context/themeContext";
+import TogetherInsideFlatList from "@/app/listing/together/together_inside_flatlist";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 import dayjs from "dayjs";
-import Bottom_Renderer from "../listing/together/bottom_renderer";
-import { MonthCalendar } from "../(modals)/book/components/calendar_strip";
+import Bottom_Renderer from "@/app/listing/together/bottom_renderer";
+import { MonthCalendar } from "@/app/(modals)/book/components/calendar_strip";
 import { RQ_simple_cache_key, useSimpleQuery } from "@/hooks/useQuery";
 import { useIsFocused } from "@react-navigation/native";
 import { ULAANBAATAR_DISTRICTS_MAP } from "@/assets/Data/ub_location";

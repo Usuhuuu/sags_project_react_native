@@ -1,22 +1,15 @@
 import React, { useEffect, useState } from "react";
-import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  ActivityIndicator,
-  View,
-} from "react-native";
+import { SafeAreaView, StyleSheet, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import ContractorPage from "@/components/profileScreens/contractor";
 import ProfileAdmin from "@/components/profileScreens/admin";
 import NormalUser from "@/components/profileScreens/normalUser";
-import { useAuth } from "../(modals)/context/authContext";
-import Page from "../(modals)/authentication/login";
+import { useAuth } from "@/app/(modals)/context/authContext";
+import Page from "@/app/(modals)/authentication/login";
 
-import { useTheme } from "../(modals)/context/themeContext";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 import { useAuthQuery } from "@/hooks/useQuery";
-import { queryClient } from "@/hooks/queryClient";
-import ServerErrorScreen from "../servererror";
+import ServerErrorScreen from "@/app/servererror";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const Profile: React.FC = () => {

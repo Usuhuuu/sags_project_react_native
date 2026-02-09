@@ -3,7 +3,7 @@ import { configureReanimatedLogger } from "react-native-reanimated";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
-import { router, Stack, useRouter } from "expo-router";
+import { router, Slot, Stack, useRouter } from "expo-router";
 import React, { useEffect, ReactNode, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import * as Sentry from "@sentry/react-native";
@@ -12,7 +12,6 @@ export { ErrorBoundary } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { AuthProvider, useAuth } from "./(modals)/context/authContext";
 import { SavedHallsProvider } from "@/app/(modals)/context/savedHall";
-import Layout, { TabsLayout } from "./(tabs)/_layout";
 import { CustomErrorBoundary } from "./(modals)/context/errorContext";
 import * as Notifications from "expo-notifications";
 import { CalendarProvider } from "@/app/(modals)/context/CalendarContext";
@@ -35,14 +34,14 @@ import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/hooks/queryClient";
 
+export const unstable_settings = {
+  initialRouteName: "/(tabs)/index",
+};
+
 configureReanimatedLogger({
   strict: false,
   level: 1,
 });
-
-export const unstable_settings = {
-  initialRouteName: "/(tabs)",
-};
 
 Sentry.init({
   dsn: "https://c2284e34e20ae8c69ed3d05f8971fbb2@o4508263161856000.ingest.us.sentry.io/4508263165132800",
@@ -199,8 +198,12 @@ export function RootLayoutNav() {
   const { colors: Colors } = useTheme();
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="(tabs)/index" options={{ headerShown: false }} />
       <Stack.Screen
         name="(modals)/authentication/login"
         options={{
@@ -345,8 +348,7 @@ export default Sentry.wrap(() => (
                 <SavedHallsProvider>
                   <CalendarProvider>
                     <RootLayout>
-                      <Layout />
-                      <TabsLayout />
+                      <Slot />
                     </RootLayout>
                   </CalendarProvider>
                 </SavedHallsProvider>
