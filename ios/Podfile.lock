@@ -6,8 +6,6 @@ PODS:
   - AppAuth/ExternalUserAgent (1.7.6):
     - AppAuth/Core
   - boost (1.84.0)
-  - BVLinearGradient (2.8.3):
-    - React-Core
   - DoubleConversion (1.1.6)
   - EXApplication (5.9.1):
     - ExpoModulesCore
@@ -20,7 +18,7 @@ PODS:
     - ExpoModulesCore
   - EXNotifications (0.29.14):
     - ExpoModulesCore
-  - Expo (52.0.47):
+  - Expo (52.0.48):
     - ExpoModulesCore
   - expo-dev-client (5.0.20):
     - EXManifests
@@ -2120,6 +2118,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - Sentry/HybridSDK (= 8.53.2)
     - Yoga
+  - RNSVG (15.8.0):
+    - React-Core
   - Sentry/HybridSDK (8.53.2)
   - SocketRocket (0.7.1)
   - Yoga (0.0.0)
@@ -2131,7 +2131,6 @@ PODS:
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
-  - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXApplication (from `../node_modules/expo-application/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
@@ -2240,6 +2239,7 @@ DEPENDENCIES:
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - "RNSentry (from `../node_modules/@sentry/react-native`)"
+  - RNSVG (from `../node_modules/react-native-svg`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2262,8 +2262,6 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
-  BVLinearGradient:
-    :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXApplication:
@@ -2477,13 +2475,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSentry:
     :path: "../node_modules/@sentry/react-native"
+  RNSVG:
+    :path: "../node_modules/react-native-svg"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
-  BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXApplication: ec862905fdab3a15bf6bd8ca1a99df7fc02d7762
   EXConstants: 89d35611505a8ce02550e64e43cd05565da35f9a
@@ -2491,7 +2490,7 @@ SPEC CHECKSUMS:
   EXLocation: c52e800875ce2a5974b3b796ff2f3a8b978e0b28
   EXManifests: a19d50504b8826546a4782770317bc83fffec87d
   EXNotifications: 9d3d17e52c95f377750d4a2ae553a716313dd4aa
-  Expo: 1687edb10c76b0c0f135306d6ae245379f50ed54
+  Expo: 3889933926fade17d8607f449c57b87c4022433f
   expo-dev-client: db44302cdbe0ec55b0ef1849c9a23a76dec6dbac
   expo-dev-launcher: 82de1bf29e91f4794bcc65a697e7066d9a826bee
   expo-dev-menu: 3fda3eb2b3394dc92955f6ff60cb278f843641be
@@ -2600,6 +2599,7 @@ SPEC CHECKSUMS:
   RNReanimated: 6d22a1aec06a9787b797bc0c40fc2779be0599a5
   RNScreens: c49eeca6b219031d56e573536da4a8c2c4f46b9a
   RNSentry: bb0a78d4a173d0292514e40f33ed5576bf4283f8
+  RNSVG: 8542aa11770b27563714bbd8494a8436385fc85f
   Sentry: 59993bffde4a1ac297ba6d268dc4bbce068d7c1b
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a

@@ -7,6 +7,10 @@ import {
 } from "../hooks/fetch_functions";
 import { queryClient } from "./queryClient";
 import { useIsFocused } from "@react-navigation/native";
+import {
+  ContractorBookingType,
+  ContractorStatisticType,
+} from "@/interfaces/contractorResponseType";
 
 type FETCH_RETURN_TYPE<T> = {
   success: boolean;
@@ -41,6 +45,12 @@ type RQ_QUERY_RETURN_TYPE<T> = {
     created_at: string;
     replies: T[];
   };
+  contractorData?: {
+    // statistical data type
+    statistic: ContractorStatisticType;
+    // booking data type
+    book: ContractorBookingType[];
+  };
 };
 
 export type RQ_regular_cache_key =
@@ -51,7 +61,14 @@ export type RQ_regular_cache_key =
       string, // startTime
       string | null, // endTime
     ]
-  | readonly ["group_chat"];
+  | readonly ["group_chat"]
+  | readonly ["contractor_main"]
+  | readonly [
+      "contractor_order",
+      "UPCOMING" | "ACTIVE" | "HISTORY", // bookingType
+      number, // page
+      string, // startTime
+    ];
 
 export type RQ_simple_cache_key =
   | readonly [
@@ -76,17 +93,16 @@ export const useRegularQuery = (
 ) => {
   const { pathname, cacheKey, loginStatus } = props;
   return useQuery({
-    queryKey: loginStatus ? cacheKey : [],
+    queryKey: cacheKey,
     queryFn: () => normalFetch(pathname) as Promise<RQ_QUERY_RETURN_TYPE<any>>,
-    enabled: loginStatus && !!cacheKey && (options?.enabled ?? true),
-    staleTime: 10_000,
-    retry: 3,
+    enabled: loginStatus && (options?.enabled ?? true),
+    staleTime: 1000 * 10,
     refetchOnReconnect: options?.refetchOnReconnect ?? true,
     refetchOnMount: options?.refetchOnMount ?? true,
+    refetchInterval: 10000,
     ...options,
   });
 };
-
 interface UseSimpleQueryProps {
   pathname: string;
   cacheKey: RQ_simple_cache_key;
@@ -124,7 +140,7 @@ export const useAuthQuery = (
   const { pathname, cacheKey, loginStatus } = props;
   const isFocus = useIsFocused();
   return useQuery({
-    queryKey: loginStatus ? cacheKey : [],
+    queryKey: cacheKey,
     queryFn: () => fetchRoleAndProfile(pathname, loginStatus),
     subscribed: isFocus,
     enabled: loginStatus && (options?.enabled ?? true),

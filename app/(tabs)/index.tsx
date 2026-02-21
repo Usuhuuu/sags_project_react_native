@@ -1,67 +1,65 @@
-import { useAuthQuery } from "@/hooks/useQuery";
-import { useAuth } from "../(modals)/context/authContext";
-import { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
-import React from "react";
+import { Redirect } from "expo-router";
 import { View } from "react-native";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import { useAuthQuery } from "@/hooks/useQuery";
+import { useAuth } from "../(modals)/context/authContext";
+import React, { useEffect } from "react";
+import { queryClient } from "@/hooks/queryClient";
 
 export default function TabsIndex() {
-  const [userRole, setUserRole] = useState<
-    "user" | "admin" | "contractor" | null
-  >(null);
-  const { LoginStatus } = useAuth();
-  const router = useRouter();
+  const { LoginStatus, authInitalizing } = useAuth();
 
   const {
     data: userData,
-    error: userError,
-    isLoading: userLoading,
+    isLoading,
     isFetching,
   } = useAuthQuery(
     {
       pathname: "main",
-      cacheKey: ["auth_status"] as const,
+      cacheKey: ["auth_status"],
       loginStatus: LoginStatus,
     },
     {
-      staleTime: 0,
       enabled: LoginStatus,
-      retry: 1,
     },
   );
 
-  useEffect(() => {
-    if (userData) {
-      setUserRole(userData.role);
-    } else if (userError) {
-      console.log("Error fetching user data:", userError);
-    }
-  }, [userData, userError]);
+  //  Wait for auth bootstrap
+  if (authInitalizing) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <OwnActivaterIndicator />
+      </View>
+    );
+  }
 
-  useEffect(() => {
-    if (!LoginStatus || userLoading || isFetching) return;
-    if (!userRole) return;
+  // If not logged in
+  if (!LoginStatus) {
+    console.log("LoginStatus check and move to default");
+    return <Redirect href="/(tabs)/(tabs-user)" />;
+  }
+  // Now wait for role query
+  if (isLoading || isFetching) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <OwnActivaterIndicator />
+      </View>
+    );
+  }
+  //Safety for missing role
+  if (!userData?.role) {
+    return null;
+  }
 
-    console.log("Redirecting as:", userRole);
+  // ROLE BASED ROUTING
+  switch (userData.role) {
+    case "admin":
+      return <Redirect href="/(tabs)/(tabs-admin)" />;
 
-    switch (userRole) {
-      case "admin":
-        router.replace("/(tabs)/(tabs-admin)");
-        break;
-      case "contractor":
-        router.replace("/(tabs)/(tabs-contractor)");
-        break;
-      default:
-        router.replace("/(tabs)/(tabs-user)");
-        break;
-    }
-  }, [userRole, LoginStatus, userLoading, isFetching]);
+    case "contractor":
+      return <Redirect href="/(tabs)/(tabs-contractor)" />;
 
-  // While loading / redirecting, show loader
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <OwnActivaterIndicator />
-    </View>
-  );
+    default:
+      return <Redirect href="/(tabs)/(tabs-user)" />;
+  }
 }

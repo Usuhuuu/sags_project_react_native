@@ -148,25 +148,11 @@ const CustomDrawerContent = (props: any) => {
         typeof data.profileData == "string"
           ? JSON.parse(data.profileData)
           : data.profileData;
-      setUserData(Array.isArray(parsedData) ? parsedData[0] : parsedData);
+      const result = Array.isArray(parsedData) ? parsedData[0] : parsedData;
+      setUserData(result);
       logIn();
     } else if (error) {
       //logOut();
-      console.log("Error fetching user data: Pisda", error);
-    }
-  }, [data, error]);
-
-  useEffect(() => {
-    if (data) {
-      const parsedData =
-        typeof data.profileData == "string"
-          ? JSON.parse(data.profileData)
-          : data.profileData;
-
-      setUserData(Array.isArray(parsedData) ? parsedData[0] : parsedData);
-      logIn();
-    } else if (error) {
-      //logOut
       console.log("Error fetching user data: Pisda", error);
     }
   }, [data, error]);

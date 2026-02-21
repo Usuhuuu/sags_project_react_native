@@ -12,7 +12,7 @@ import { Platform } from "react-native";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as Sentry from "@sentry/react-native";
 import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
-import { router } from "expo-router";
+import { Redirect, router, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/authContext";
 import { loginWithFacebook, loginWithGoogle } from "./third_party_instance";
@@ -159,6 +159,8 @@ const Page = () => {
   });
 
   const { logIn } = useAuth();
+  const router = useRouter();
+
   useEffect(() => {
     if (Platform.OS == "ios") {
       setIsITApple(true);
@@ -168,9 +170,8 @@ const Page = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const notificationToken = await SecureStore.getItemAsync(
-        "notificationToken"
-      );
+      const notificationToken =
+        await SecureStore.getItemAsync("notificationToken");
       const response = await axiosInstanceRegular.post("/login", {
         email,
         userPassword: password,
@@ -183,7 +184,7 @@ const Page = () => {
             JSON.stringify({
               accessToken: response.data.accessToken,
               refreshToken: response.data.refreshToken,
-            })
+            }),
           );
           Notifier.showNotification({
             title: "Login " + response.data.success ? "Success" : "Failed",
@@ -194,6 +195,14 @@ const Page = () => {
             },
           });
           logIn();
+          switch (response.data.role) {
+            case "admin":
+              return router.replace("/(tabs)/(tabs-admin)");
+            case "contractor":
+              return router.replace("/(tabs)/(tabs-contractor)");
+            default:
+              return router.replace("/(tabs)/(tabs-user)");
+          }
         } catch (err) {
           Sentry.captureException(err);
         }

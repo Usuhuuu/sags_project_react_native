@@ -7,9 +7,11 @@ import React, {
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { queryClient } from "@/hooks/queryClient";
+import { router } from "expo-router";
 
 interface AuthContextType {
   LoginStatus: boolean;
+  authInitalizing: boolean;
   logIn: () => void;
   logOut: () => void;
 }
@@ -20,7 +22,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
+  const [authInit, setAuthInit] = useState<boolean>(true);
   // Check login status on mount
   useEffect(() => {
     const persistLoginStatus = async () => {
@@ -29,6 +31,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setIsAuthenticated(!!loginStatus); // set to true if loginStatus exists
       } catch (error) {
         console.error("Failed to load login status from AsyncStorage", error);
+      } finally {
+        setAuthInit(false);
       }
     };
 
@@ -48,8 +52,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       await AsyncStorage.removeItem("LoginStatus");
       queryClient.clear();
-      // Optionally, you can also clear other user-related data here
       setIsAuthenticated(false);
+      router.replace("/(tabs)/(tabs-user)");
     } catch (error) {
       console.error("Failed to remove login status", error);
     }
@@ -57,7 +61,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   return (
     <AuthContext.Provider
-      value={{ LoginStatus: isAuthenticated, logIn: login, logOut: logout }}
+      value={{
+        LoginStatus: isAuthenticated,
+        authInitalizing: authInit,
+        logIn: login,
+        logOut: logout,
+      }}
     >
       {children}
     </AuthContext.Provider>

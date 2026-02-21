@@ -54,13 +54,12 @@ type SimpleNotificationContent = {
   data?: any;
 };
 
-export function RootLayout({ children }: { children: ReactNode }) {
+export function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
   });
   const [fontError, setFontError] = useState<boolean>(false);
-  const { LoginStatus } = useAuth();
 
   useEffect(() => {
     if (error) {
@@ -203,7 +202,10 @@ export function RootLayoutNav() {
         headerShown: false,
       }}
     >
-      <Stack.Screen name="(tabs)/index" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="(tabs)/index"
+        options={{ headerShown: false, animation: "fade_from_bottom" }}
+      />
       <Stack.Screen
         name="(modals)/authentication/login"
         options={{
@@ -347,9 +349,7 @@ export default Sentry.wrap(() => (
               <LanguageProvider>
                 <SavedHallsProvider>
                   <CalendarProvider>
-                    <RootLayout>
-                      <Slot />
-                    </RootLayout>
+                    <RootLayout />
                   </CalendarProvider>
                 </SavedHallsProvider>
               </LanguageProvider>
