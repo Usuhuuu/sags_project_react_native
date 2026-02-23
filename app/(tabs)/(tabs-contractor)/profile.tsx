@@ -22,6 +22,7 @@ import {
   ChevronRight,
 } from "lucide-react-native";
 import { useAuth } from "@/app/(modals)/context/authContext";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 // --- Types ---
 interface StatItem {
@@ -63,62 +64,205 @@ const MENU_ITEMS: MenuItem[] = [
 
 const ContractorProfile = () => {
   const { logOut } = useAuth();
+  const { colors, theme } = useTheme();
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: colors.backgroundColor,
+      }}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* Header Section */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Profile</Text>
-          <View style={styles.searchBar}>
-            <Search size={18} color="#666" />
+        <View
+          style={{
+            padding: 20,
+            backgroundColor: colors.containerColor,
+            borderBottomLeftRadius: 30,
+            borderBottomRightRadius: 30,
+            shadowColor: colors.shadowColor,
+            shadowOpacity: 0.4,
+            shadowOffset: { height: 4, width: 0 },
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 32,
+              fontWeight: "bold",
+              color: colors.themeColorTextPure,
+              marginBottom: 20,
+            }}
+          >
+            Profile
+          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: colors.containerColor,
+              borderRadius: 12,
+              paddingHorizontal: 15,
+              height: 45,
+              borderWidth: 0.8,
+              borderColor: colors.darkGrey,
+            }}
+          >
+            <Search size={18} color={colors.darkGrey} />
             <TextInput
               placeholder="Search users or zones..."
-              placeholderTextColor="#666"
-              style={styles.input}
+              placeholderTextColor={colors.darkGrey}
+              style={{
+                flex: 1,
+                color: colors.darkGrey,
+                marginLeft: 10,
+              }}
             />
           </View>
         </View>
 
         {/* Profile Info */}
-        <View style={styles.profileInfo}>
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatarGlow} />
+        <View
+          style={{
+            alignItems: "center",
+            marginTop: 30,
+          }}
+        >
+          <View
+            style={{
+              width: 130,
+              height: 130,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                ...StyleSheet.absoluteFillObject,
+                borderRadius: 65,
+                borderWidth: 2,
+                borderColor: "#4dabff",
+                shadowColor: "#4dabff",
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.8,
+                shadowRadius: 15,
+              }}
+            />
             <Image
               source={{ uri: "https://i.imgur.com/8Km9tLL.png" }} // Placeholder for Marc Andreessen
-              style={styles.avatar}
+              style={{
+                width: 115,
+                height: 115,
+                borderRadius: 57.5,
+              }}
             />
           </View>
-          <Text style={styles.userName}>Marc Andreessen</Text>
-          <Text style={styles.userRole}>Senior Hall Manager</Text>
+          <Text
+            style={{
+              color: colors.themeColorTextPure,
+              fontSize: 24,
+              fontWeight: "bold",
+              marginTop: 15,
+            }}
+          >
+            Marc Andreessen
+          </Text>
+          <Text
+            style={{
+              color: colors.darkGrey,
+              fontSize: 16,
+              marginTop: 4,
+            }}
+          >
+            Senior Hall Manager
+          </Text>
         </View>
 
         {/* Stats Row */}
-        <View style={styles.statsCard}>
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: colors.containerColor,
+            marginHorizontal: 20,
+            marginTop: 25,
+            borderRadius: 20,
+            paddingVertical: 15,
+            shadowColor: colors.shadowColor,
+            shadowOpacity: 0.4,
+            shadowOffset: { height: 4, width: 4 },
+          }}
+        >
           {PROFILE_STATS.map((item, index) => (
-            <View key={index} style={styles.statItem}>
+            <View key={index} style={{ flex: 1, alignItems: "center" }}>
               {item.icon}
-              <Text style={styles.statLabel}>{item.label}</Text>
-              <Text style={styles.statValue}>{item.value}</Text>
+              <Text
+                style={{
+                  color: colors.themeColorTextPure,
+                  fontSize: 10,
+                  marginTop: 8,
+                }}
+              >
+                {item.label}
+              </Text>
+              <Text
+                style={{
+                  color: colors.darkGrey,
+                  fontSize: 18,
+                  fontWeight: "bold",
+                  marginTop: 2,
+                }}
+              >
+                {item.value}
+              </Text>
             </View>
           ))}
         </View>
 
         {/* Settings Menu */}
-        <View style={styles.menuCard}>
+        <View
+          style={{
+            backgroundColor: colors.containerColor,
+            marginHorizontal: 20,
+            marginTop: 20,
+            borderRadius: 20,
+            shadowColor: colors.shadowColor,
+            shadowOffset: { height: 4, width: 1 },
+            shadowOpacity: 0.4,
+          }}
+        >
           {MENU_ITEMS.map((item, index) => (
             <TouchableOpacity
               key={index}
               style={[
-                styles.menuItem,
+                {
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: 18,
+                  borderBottomWidth: 0.2,
+                  borderBottomColor: colors.darkGrey,
+                },
                 index === MENU_ITEMS.length - 1 && { borderBottomWidth: 0 },
               ]}
             >
-              <View style={styles.menuLeft}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
                 {item.icon}
-                <Text style={styles.menuText}>{item.title}</Text>
+                <Text
+                  style={{
+                    color: colors.themeColorTextPure,
+                    fontSize: 16,
+                    marginLeft: 15,
+                  }}
+                >
+                  {item.title}
+                </Text>
               </View>
               <ChevronRight size={20} color="#555" />
             </TouchableOpacity>
@@ -127,7 +271,18 @@ const ContractorProfile = () => {
 
         {/* Logout Button */}
         <TouchableOpacity
-          style={styles.logoutButton}
+          style={{
+            margin: 20,
+            height: 55,
+            borderRadius: 15,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: colors.containerColor,
+            borderColor: "rgba(255, 107, 107, 0.3)",
+            shadowColor: "rgba(255, 107, 107, 0.3)",
+            shadowOpacity: 1,
+            shadowOffset: { height: 4, width: 0 },
+          }}
           onPress={() =>
             Alert.alert(
               "Confirm Action",
@@ -147,131 +302,19 @@ const ContractorProfile = () => {
             )
           }
         >
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text
+            style={{
+              color: "#ff6b6b",
+              fontSize: 16,
+              fontWeight: "bold",
+            }}
+          >
+            Log Out
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 };
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020a17" },
-  scrollContent: { paddingBottom: 120 },
-
-  header: {
-    padding: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-  },
-  title: { fontSize: 32, fontWeight: "bold", color: "#fff", marginBottom: 20 },
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    height: 45,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  input: { flex: 1, color: "#fff", marginLeft: 10 },
-
-  profileInfo: { alignItems: "center", marginTop: 30 },
-  avatarContainer: {
-    width: 130,
-    height: 130,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarGlow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 65,
-    borderWidth: 2,
-    borderColor: "#4dabff",
-    shadowColor: "#4dabff",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
-  },
-  avatar: { width: 115, height: 115, borderRadius: 57.5 },
-  userName: { color: "#fff", fontSize: 24, fontWeight: "bold", marginTop: 15 },
-  userRole: { color: "#666", fontSize: 16, marginTop: 4 },
-
-  statsCard: {
-    flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    marginHorizontal: 20,
-    marginTop: 25,
-    borderRadius: 20,
-    paddingVertical: 15,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-  },
-  statItem: { flex: 1, alignItems: "center" },
-  statLabel: { color: "#666", fontSize: 10, marginTop: 8 },
-  statValue: { color: "#fff", fontSize: 18, fontWeight: "bold", marginTop: 2 },
-
-  menuCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    marginHorizontal: 20,
-    marginTop: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-    overflow: "hidden",
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.05)",
-  },
-  menuLeft: { flexDirection: "row", alignItems: "center" },
-  menuText: { color: "#fff", fontSize: 16, marginLeft: 15 },
-
-  logoutButton: {
-    margin: 20,
-    height: 55,
-    borderRadius: 15,
-    backgroundColor: "rgba(255, 107, 107, 0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 107, 107, 0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logoutText: { color: "#ff6b6b", fontSize: 16, fontWeight: "bold" },
-
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 10,
-    backgroundColor: "#050f1f",
-    borderTopWidth: 1,
-    borderTopColor: "#1a2536",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 90,
-  },
-  navItem: { alignItems: "center", justifyContent: "center" },
-  activeNavCircle: { marginBottom: 5 },
-  gradientCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#4dabff",
-    shadowRadius: 10,
-    shadowOpacity: 0.6,
-  },
-  navLabel: { color: "#666", fontSize: 10, marginTop: 4 },
-  navLabelActive: { color: "#4dabff" },
-});
 
 export default ContractorProfile;

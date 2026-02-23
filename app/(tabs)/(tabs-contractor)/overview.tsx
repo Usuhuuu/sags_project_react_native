@@ -9,6 +9,7 @@ import {
   Switch,
 } from "react-native";
 import { User, Settings, CalendarDays } from "lucide-react-native";
+import { useTheme } from "@/app/(modals)/context/themeContext";
 
 // --- TypeScript Types ---
 interface ActivityItem {
@@ -26,6 +27,7 @@ const LIVE_ACTIVITY_DATA: ActivityItem[] = [
 ];
 
 const ContractorOverview = () => {
+  const { colors, theme } = useTheme();
   const [activities, setActivities] = useState(LIVE_ACTIVITY_DATA);
 
   const toggleActivity = (id: string) => {
@@ -37,25 +39,69 @@ const ContractorOverview = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollPadding}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* Glassmorphism Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Business Overview</Text>
-          <TouchableOpacity style={styles.headerIcon}>
-            <User size={24} color="#aaa" />
+        <View
+          style={{
+            padding: 20,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            backgroundColor: colors.containerColor,
+            borderBottomLeftRadius: 25,
+            borderBottomRightRadius: 25,
+            shadowColor: colors.shadowColor,
+            shadowOpacity: 0.4,
+            shadowOffset: { height: 4, width: 4 },
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 28,
+              fontWeight: "bold",
+              color: colors.themeColorTextPure,
+            }}
+          >
+            Business Overview
+          </Text>
+          <TouchableOpacity
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.containerColor,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <User size={24} color={colors.darkGrey} />
           </TouchableOpacity>
         </View>
 
         {/* Primary Stats Row */}
-        <View style={styles.statsContainer}>
+        <View
+          style={{
+            padding: 25,
+            marginTop: 20,
+          }}
+        >
           <View style={styles.statBlock}>
             <Text style={styles.statLabel}>Today's Revenue</Text>
             <View style={styles.valueRow}>
-              <Text style={styles.statValue}>$1,250.00</Text>
+              <Text
+                style={[
+                  styles.statValue,
+                  {
+                    color: colors.themeColorTextPure,
+                  },
+                ]}
+              >
+                $1,250.00
+              </Text>
               <View style={styles.glowDot} />
             </View>
           </View>
@@ -63,27 +109,80 @@ const ContractorOverview = () => {
           <View style={styles.statBlock}>
             <Text style={styles.statLabel}>Current Occupancy</Text>
             <View style={styles.valueRow}>
-              <Text style={styles.statValue}>85%</Text>
+              <Text
+                style={[
+                  styles.statValue,
+                  {
+                    color: colors.themeColorTextPure,
+                  },
+                ]}
+              >
+                85%
+              </Text>
               <View style={styles.glowDot} />
             </View>
           </View>
         </View>
 
         {/* Live Activity Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Live Activity</Text>
-          <View style={styles.underline} />
+        <View
+          style={{
+            paddingHorizontal: 25,
+            marginTop: 10,
+          }}
+        >
+          <Text
+            style={{
+              color: colors.themeColorTextPure,
+              fontSize: 20,
+              fontWeight: "600",
+            }}
+          >
+            Live Activity
+          </Text>
+          <View
+            style={{
+              height: 1,
+              backgroundColor: colors.containerColor,
+              marginVertical: 12,
+            }}
+          />
 
           {activities.map((item) => (
-            <View key={item.id} style={styles.activityItem}>
-              <Text style={styles.activityMainText}>
+            <View
+              key={item.id}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingVertical: 15,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.containerColor,
+              }}
+            >
+              <Text
+                style={[
+                  {
+                    color: colors.themeColorTextPure,
+                    fontSize: 18,
+                  },
+                ]}
+              >
                 {item.name}:{" "}
-                <Text style={styles.activitySubText}>{item.timeLeft}</Text>
+                <Text
+                  style={[
+                    {
+                      color: colors.darkGrey,
+                    },
+                  ]}
+                >
+                  {item.timeLeft}
+                </Text>
               </Text>
               <Switch
                 value={item.isActive}
                 onValueChange={() => toggleActivity(item.id)}
-                trackColor={{ false: "#1a2536", true: "#4dabff" }}
+                trackColor={{ false: colors.darkGrey, true: colors.primary }}
                 thumbColor="#fff"
               />
             </View>
@@ -91,15 +190,30 @@ const ContractorOverview = () => {
         </View>
 
         {/* Bottom Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Settings size={32} color="#aaa" />
-            <Text style={styles.actionLabel}>Manage Zones</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-around",
+            marginTop: 40,
+            paddingHorizontal: 20,
+          }}
+        >
+          <TouchableOpacity style={{ alignItems: "center" }}>
+            <Settings size={32} color={colors.darkGrey} />
+            <Text
+              style={{ color: colors.darkGrey, marginTop: 10, fontSize: 14 }}
+            >
+              Manage Zones
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionBtn}>
-            <CalendarDays size={32} color="#aaa" />
-            <Text style={styles.actionLabel}>Schedule</Text>
+          <TouchableOpacity style={{ alignItems: "center" }}>
+            <CalendarDays size={32} color={colors.darkGrey} />
+            <Text
+              style={{ color: colors.darkGrey, marginTop: 10, fontSize: 14 }}
+            >
+              Schedule
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -107,30 +221,6 @@ const ContractorOverview = () => {
   );
 };
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020a17" },
-  scrollPadding: { paddingBottom: 120 },
-
-  header: {
-    padding: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-  },
-  headerTitle: { fontSize: 28, fontWeight: "bold", color: "#fff" },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
   statsContainer: { padding: 25, marginTop: 20 },
   statBlock: { marginBottom: 30 },
   statLabel: { color: "#666", fontSize: 16, marginBottom: 8 },
@@ -147,33 +237,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     elevation: 5,
   },
-
-  section: { paddingHorizontal: 25, marginTop: 10 },
-  sectionTitle: { color: "#fff", fontSize: 20, fontWeight: "600" },
-  underline: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    marginVertical: 12,
-  },
-  activityItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.05)",
-  },
-  activityMainText: { color: "#fff", fontSize: 18 },
-  activitySubText: { color: "#666" },
-
-  quickActions: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 40,
-    paddingHorizontal: 20,
-  },
-  actionBtn: { alignItems: "center" },
-  actionLabel: { color: "#aaa", marginTop: 10, fontSize: 14 },
 
   navBar: {
     flexDirection: "row",

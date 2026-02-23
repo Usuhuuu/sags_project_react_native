@@ -19,6 +19,7 @@ import { useAuth } from "@/app/(modals)/context/authContext";
 import dayjs from "dayjs";
 import { Feather } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
+import AppText from "@/constants/appTextDefault";
 
 // --- Types ---
 type TimeFilter = "today" | "7d" | "30d" | "this_month" | "custom";
@@ -39,7 +40,7 @@ const ZonesData: ZoneProps[] = [
 ];
 
 const ContractorIndex = () => {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
   const { LoginStatus } = useAuth();
   const filterDetails: Record<
     TimeFilter,
@@ -103,6 +104,7 @@ const ContractorIndex = () => {
   const [trendData, setTrendData] = useState<
     { label: string; revenue: number }[]
   >([]);
+  const [peekTime, setPeekTime] = useState<string>("");
 
   const cacheKey = ["contractor_main"] as const satisfies RQ_regular_cache_key;
   const query =
@@ -144,6 +146,8 @@ const ContractorIndex = () => {
         revenue: item.revenue,
       }));
       setTrendData(chartData ?? []);
+      const formatted = `${(returnData?.statistic.peakHour ?? 0)?.toString().padStart(2, "0")}:00 - ${(returnData?.statistic.peakHour ?? 0 + 1).toString().padStart(2, "0")}:00`;
+      setPeekTime(formatted);
       setTrendType(returnData?.statistic.trendType ?? "week");
     }
   }, [data, error, isLoading]);
@@ -184,33 +188,60 @@ const ContractorIndex = () => {
       console.log("Open Date Picker");
     }
   };
-
+  const [start, end] = peekTime.split("-");
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Business Insights</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 25,
+            zIndex: 10,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: "bold",
+              color: colors.themeColorTextPure,
+            }}
+          >
+            Business Insights
+          </Text>
 
           <TouchableOpacity
-            style={styles.dropdown}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: colors.backgroundColor,
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: colors.primary,
+            }}
             onPress={() => setIsMenuVisible(true)}
           >
-            <Text style={styles.dropdownText}>
+            <Text
+              style={{ color: colors.primary, marginRight: 5, fontSize: 12 }}
+            >
               {filter === "30d"
                 ? "Last 30 Days"
                 : filter === "7d"
                   ? "Last 7 Days"
                   : filter}
             </Text>
-            <ChevronDown size={16} color="#4dabff" />
+            <ChevronDown size={16} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
-        {/* Filter Selection Modal */}
+        {/* Modal */}
         <Modal
           visible={isMenuVisible}
           transparent={true}
@@ -218,20 +249,58 @@ const ContractorIndex = () => {
           onRequestClose={() => setIsMenuVisible(false)}
         >
           <TouchableWithoutFeedback onPress={() => setIsMenuVisible(false)}>
-            <View style={styles.modalOverlay}>
-              <View style={styles.menuContainer}>
-                <Text style={styles.menuHeader}>Select Range</Text>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <View
+                style={{
+                  width: "80%",
+                  backgroundColor: "#0a1324",
+                  borderRadius: 20,
+                  padding: 20,
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 255, 255, 0.1)",
+                  shadowColor: "#4dabff",
+                  shadowRadius: 20,
+                  shadowOpacity: 0.2,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.themeColorTextPure,
+                    fontSize: 18,
+                    fontWeight: "bold",
+                    marginBottom: 15,
+                    textAlign: "center",
+                  }}
+                >
+                  Select Range
+                </Text>
+
                 {filterOptions.map((option) => (
                   <TouchableOpacity
                     key={option}
-                    style={styles.menuItem}
                     onPress={() => handleSelectFilter(option)}
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      paddingVertical: 15,
+                      borderBottomWidth: 1,
+                      borderBottomColor: "rgba(255, 255, 255, 0.05)",
+                    }}
                   >
                     <Text
-                      style={[
-                        styles.menuItemText,
-                        filter === option && styles.menuItemTextActive,
-                      ]}
+                      style={{
+                        color: filter === option ? "#4dabff" : "#aaa",
+                        fontSize: 16,
+                        fontWeight: filter === option ? "bold" : "normal",
+                      }}
                     >
                       {option === "30d"
                         ? "Last 30 Days"
@@ -239,6 +308,7 @@ const ContractorIndex = () => {
                           ? "Last 7 Days"
                           : option}
                     </Text>
+
                     {filter === option && <Check size={16} color="#4dabff" />}
                   </TouchableOpacity>
                 ))}
@@ -248,14 +318,44 @@ const ContractorIndex = () => {
         </Modal>
 
         {/* KPI Cards */}
-        <View style={styles.kpiContainer}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginBottom: 25,
+          }}
+        >
           {kpiRenderDetail.map((item, index) => {
             const data = kpiData[item.key];
             return (
-              <View key={index} style={styles.statCard}>
-                <Text style={styles.statTitle}>{item.titleLabel}</Text>
-                <Text style={styles.statValue}>{data.value}</Text>
-                <View style={styles.changeRow}>
+              <View
+                key={index}
+                style={{
+                  width: "31%",
+                  backgroundColor: colors.containerColor,
+                  padding: 12,
+                  borderRadius: 16,
+                  shadowColor: colors.shadowColor,
+                  shadowOpacity: 0.4,
+                  shadowOffset: { height: 1, width: 0.4 },
+                }}
+              >
+                <Text style={{ color: "#aaa", fontSize: 10, marginBottom: 8 }}>
+                  {item.titleLabel}
+                </Text>
+
+                <Text
+                  style={{
+                    color: colors.themeColorTextPure,
+                    fontSize: 18,
+                    fontWeight: "bold",
+                    marginBottom: 5,
+                  }}
+                >
+                  {data.value}
+                </Text>
+
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <Feather
                     name={
                       Number(data.change) > 0 ? "trending-up" : "trending-down"
@@ -263,9 +363,15 @@ const ContractorIndex = () => {
                     size={screenWidth * 0.04}
                     color={colors.primary}
                   />
-                  <Text style={styles.statChange}>
+                  <Text
+                    style={{
+                      color: colors.primary,
+                      fontSize: 10,
+                      marginLeft: 3,
+                    }}
+                  >
                     {data.change}
-                    <Text style={styles.subtext}>this period</Text>
+                    <Text style={{ color: "#666" }}> this period</Text>
                   </Text>
                 </View>
               </View>
@@ -273,9 +379,29 @@ const ContractorIndex = () => {
           })}
         </View>
 
-        {/* Booking Trends Chart */}
-        <View style={styles.chartSection}>
-          <Text style={styles.sectionTitle}>Booking Trends</Text>
+        {/* Chart Section */}
+        <View
+          style={{
+            backgroundColor: colors.containerColor,
+            borderRadius: 20,
+            padding: 15,
+            marginBottom: 25,
+            shadowColor: colors.shadowColor,
+            shadowOpacity: 0.4,
+            shadowOffset: { height: 1, width: 0.4 },
+          }}
+        >
+          <Text
+            style={{
+              color: colors.themeColorTextPure,
+              fontSize: 18,
+              fontWeight: "600",
+              marginBottom: 15,
+            }}
+          >
+            Booking Trends
+          </Text>
+
           <LineChart
             data={{
               labels:
@@ -297,41 +423,246 @@ const ContractorIndex = () => {
             }}
             width={screenWidth - 70}
             height={220}
-            chartConfig={chartConfig}
+            chartConfig={{
+              backgroundGradientFrom: colors.containerColor,
+              backgroundGradientTo: colors.containerColor,
+              color: (opacity = 1) => `rgba(77, 171, 255, ${opacity})`,
+              labelColor: (opacity = 1) =>
+                theme === "dark"
+                  ? `rgba(255, 255, 255, ${opacity * 0.5})`
+                  : colors.themeColorTextPure,
+              strokeWidth: 3,
+              propsForDots: { r: "4", strokeWidth: "2", stroke: "#4dabff" },
+            }}
             bezier
-            style={styles.chart}
+            formatYLabel={(value) => `${Number(value) / 1000}k`}
+            style={{
+              marginVertical: 8,
+              borderRadius: 16,
+              alignSelf: "center",
+            }}
             withDots={true}
             withInnerLines={false}
             withOuterLines={false}
           />
         </View>
 
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            justifyContent: "space-around",
+            marginBottom: 25,
+          }}
+        >
+          <View
+            style={{
+              height: 180,
+              width: "50%",
+              padding: 3,
+              shadowOffset: { height: 1, width: 0.4 },
+              shadowColor: colors.shadowColor,
+              shadowOpacity: 0.4,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: colors.containerColor,
+                flex: 1,
+                padding: 12,
+                borderRadius: 10,
+              }}
+            >
+              <View
+                style={{ flexDirection: "row", gap: 5, alignItems: "center" }}
+              >
+                <Feather
+                  name="clock"
+                  size={18}
+                  color={colors.themeColorTextPure}
+                />
+                <Text
+                  style={{
+                    color: colors.themeColorTextPure,
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                >
+                  Peak Hours
+                </Text>
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                  marginVertical: 5,
+                  shadowOffset: { height: 1, width: 0.4 },
+                  shadowColor: colors.shadowColor,
+                  shadowOpacity: 0.4,
+                }}
+              >
+                <AppText
+                  style={{
+                    fontSize: 25,
+                    fontWeight: "700",
+                    marginLeft: 10,
+                    marginTop: 10,
+                    width: screenWidth * 0.25,
+                  }}
+                >
+                  {start}
+                  {"\n"}
+                  <AppText style={{ fontSize: 18, color: colors.darkGrey }}>
+                    to {end}
+                  </AppText>
+                </AppText>
+              </View>
+              <View
+                style={{
+                  marginBottom: 10,
+                  marginLeft: 10,
+                  width: screenWidth * 0.25,
+                }}
+              >
+                <View
+                  style={{
+                    padding: 10,
+                    borderColor: colors.primary,
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    alignItems: "center",
+                  }}
+                >
+                  <AppText
+                    style={{
+                      fontSize: screenWidth * 0.25 * 0.1,
+                      color: colors.primary,
+                      fontWeight: "900",
+                    }}
+                  >
+                    High Demand
+                  </AppText>
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={{
+              height: 180,
+              width: "50%",
+              padding: 3,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: colors.containerColor,
+                flex: 1,
+                padding: 12,
+                borderRadius: 10,
+                shadowOffset: { height: 1, width: 0.4 },
+                shadowColor: colors.shadowColor,
+                shadowOpacity: 0.4,
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.themeColorTextPure,
+                  fontSize: 18,
+                  fontWeight: "600",
+                  marginBottom: 15,
+                }}
+              >
+                RETENTION
+              </Text>
+            </View>
+          </View>
+        </View>
         {/* Top Performing Zones */}
-        <View style={styles.zonesSection}>
-          <View style={styles.sectionHeader}>
-            <LayoutGrid size={18} color="#4dabff" />
-            <Text style={styles.sectionTitle}> Top Performing Zones</Text>
+        <View
+          style={{
+            backgroundColor: colors.containerColor,
+            borderRadius: 20,
+            padding: 20,
+            shadowColor: colors.shadowColor,
+            shadowOpacity: 0.4,
+            shadowOffset: { height: 1, width: 0.4 },
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <LayoutGrid size={18} color={colors.primary} />
+            <Text
+              style={{
+                color: colors.themeColorTextPure,
+                fontSize: 18,
+                fontWeight: "600",
+                marginBottom: 0,
+              }}
+            >
+              {" "}
+              Top Performing Zones
+            </Text>
           </View>
 
-          {/* ... existing Zones mapping ... */}
           {ZonesData.map((zone, index) => (
-            <View key={index} style={styles.zoneItem}>
-              <View style={styles.zoneTextRow}>
-                <Text style={styles.zoneName}>{zone.name}</Text>
-                <Text style={styles.zonePercentage}>{zone.percentage}%</Text>
+            <View key={index} style={{ marginBottom: 18 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <Text
+                  style={{ color: colors.themeColorTextPure, fontSize: 14 }}
+                >
+                  {zone.name}
+                </Text>
+                <Text
+                  style={{
+                    color: colors.themeColorTextPure,
+                    fontSize: 14,
+                    fontWeight: "bold",
+                  }}
+                >
+                  {zone.percentage}%
+                </Text>
               </View>
-              <View style={styles.progressBg}>
+
+              <View
+                style={{
+                  height: 6,
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  borderRadius: 3,
+                  overflow: "hidden",
+                }}
+              >
                 <LinearGradient
                   colors={["#007aff", "#00d4ff"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  style={[
-                    styles.progressFill,
-                    { width: `${zone.percentage}%` },
-                  ]}
+                  style={{
+                    height: "100%",
+                    borderRadius: 3,
+                    width: `${zone.percentage}%`,
+                  }}
                 />
               </View>
-              <Text style={styles.zoneSubtext}>{zone.bookings} Bookings</Text>
+
+              <Text
+                style={{
+                  color: "#666",
+                  fontSize: 11,
+                  textAlign: "right",
+                  marginTop: 4,
+                }}
+              >
+                {zone.bookings} Bookings
+              </Text>
             </View>
           ))}
         </View>
@@ -339,148 +670,5 @@ const ContractorIndex = () => {
     </SafeAreaView>
   );
 };
-
-const chartConfig = {
-  backgroundGradientFrom: "#0a1324",
-  backgroundGradientTo: "#0a1324",
-  color: (opacity = 1) => `rgba(77, 171, 255, ${opacity})`,
-  labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity * 0.5})`,
-  strokeWidth: 3,
-  propsForDots: { r: "4", strokeWidth: "2", stroke: "#4dabff" },
-};
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020a17" },
-  scrollContent: { padding: 20, paddingBottom: 100 },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 25,
-    zIndex: 10,
-  },
-  headerTitle: { fontSize: 24, fontWeight: "bold", color: "#fff" },
-  dropdown: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(77, 171, 255, 0.1)",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(77, 171, 255, 0.3)",
-  },
-  dropdownText: { color: "#4dabff", marginRight: 5, fontSize: 12 },
-
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  menuContainer: {
-    width: "80%",
-    backgroundColor: "#0a1324",
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    shadowColor: "#4dabff",
-    shadowRadius: 20,
-    shadowOpacity: 0.2,
-  },
-  menuHeader: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  menuItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.05)",
-  },
-  menuItemText: { color: "#aaa", fontSize: 16 },
-  menuItemTextActive: { color: "#4dabff", fontWeight: "bold" },
-
-  kpiContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 25,
-  },
-  statCard: {
-    width: "31%",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  statTitle: { color: "#aaa", fontSize: 10, marginBottom: 8 },
-  statValue: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  changeRow: { flexDirection: "row", alignItems: "center" },
-  statChange: { color: "#4dabff", fontSize: 10, marginLeft: 3 },
-  subtext: { color: "#666" },
-
-  chartSection: {
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderRadius: 20,
-    padding: 15,
-    marginBottom: 25,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-  },
-  sectionTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 15,
-  },
-  chart: { marginVertical: 8, borderRadius: 16, alignSelf: "center" },
-
-  zonesSection: {
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  zoneItem: { marginBottom: 18 },
-  zoneTextRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  zoneName: { color: "#fff", fontSize: 14 },
-  zonePercentage: { color: "#fff", fontSize: 14, fontWeight: "bold" },
-  progressBg: {
-    height: 6,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  progressFill: { height: "100%", borderRadius: 3 },
-  zoneSubtext: {
-    color: "#666",
-    fontSize: 11,
-    textAlign: "right",
-    marginTop: 4,
-  },
-});
 
 export default ContractorIndex;

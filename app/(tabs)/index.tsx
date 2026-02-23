@@ -3,8 +3,7 @@ import { View } from "react-native";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { useAuthQuery } from "@/hooks/useQuery";
 import { useAuth } from "../(modals)/context/authContext";
-import React, { useEffect } from "react";
-import { queryClient } from "@/hooks/queryClient";
+import React from "react";
 
 export default function TabsIndex() {
   const { LoginStatus, authInitalizing } = useAuth();
@@ -48,7 +47,8 @@ export default function TabsIndex() {
   }
   //Safety for missing role
   if (!userData?.role) {
-    return null;
+    console.log("default path");
+    return <Redirect href="/(tabs)/(tabs-user)" />;
   }
 
   // ROLE BASED ROUTING

@@ -54,7 +54,7 @@ const Page = () => {
     // Check if the password matches the regex
     if (!regex.test(password)) {
       setErrorMessage(
-        "Password must be 8-16 characters, include at least one letter, one number, and one special character."
+        "Password must be 8-16 characters, include at least one letter, one number, and one special character.",
       );
     } else {
       setErrorMessage("");
@@ -82,7 +82,7 @@ const Page = () => {
     try {
       const response = await axiosInstanceRegular.post(
         "/auth/signup",
-        formData
+        formData,
       );
       if (response.status === 200) {
         Alert.alert("Success", response.data.message);
@@ -116,7 +116,7 @@ const Page = () => {
     } catch (err) {
       Alert.alert(
         "Error",
-        "An error occurred while sending verification code."
+        "An error occurred while sending verification code.",
       );
     } finally {
       setLoading(false);

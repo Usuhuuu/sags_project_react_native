@@ -1,219 +1,499 @@
-import React, { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import {
-  StyleSheet,
   View,
   Text,
+  StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
-  Switch,
+  Alert,
+  Pressable,
 } from "react-native";
-import {
-  ArrowLeft,
-  Sliders,
-  Bell,
-  Globe,
-  FileText,
-  Shield,
-  Moon,
-  MessageSquare,
-  ChevronRight,
-  Settings as SettingsIcon,
-} from "lucide-react-native";
+import { useTranslation } from "react-i18next";
+import i18n from "@/utils/i18";
+import * as SecureStorage from "expo-secure-store";
+import { router } from "expo-router";
+import AppText from "@/constants/appTextDefault";
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { flushRegularQuery } from "@/hooks/useQuery";
+import { useLanguage } from "@/app/(modals)/context/Languages";
+import { useAuth } from "@/app/(modals)/context/authContext";
+import { useTheme } from "@/app/(modals)/context/themeContext";
+import Change_Language_Modal from "@/app/settings/components/language_change";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-// --- Types ---
-interface SettingItemProps {
-  icon: React.ReactNode;
-  label: string;
-  type: "navigation" | "switch";
-  value?: boolean;
-  onValueChange?: (val: boolean) => void;
-  isLast?: boolean;
-}
+const ProfileSettings: React.FC = () => {
+  const { colors: Colors, theme, changeTheme } = useTheme();
+  const { logOut } = useAuth();
+  const { changeLanguage } = useLanguage();
+  const { t } = useTranslation();
 
-const ContractorSettings = () => {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isPushEnabled, setIsPushEnabled] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [themeModelVisible, setThemeModelVisible] = useState(false);
+
+  const settingsDet: any = t("settings", { returnObjects: true });
+  const settings = Array.isArray(settingsDet) ? settingsDet[0] : [];
+
+  const preferences = settings?.preferences[0] || {};
+  const helpSupport = settings?.helpSupport[0] || {};
+  const accountSupport = settings?.accountDetails[0] || {};
+  const socialMedia = settings?.socialMedia[0] || {};
+
+  interface SettingsItem {
+    id: string;
+    icon: any;
+    label: any;
+    value?: string;
+    iconBg: string;
+    iconColor: string;
+    onPress?: () => void;
+    danger?: boolean;
+    component?: React.ReactNode;
+  }
+  const Sections: Array<{ header: string; items: SettingsItem[] }> = [
+    {
+      header: preferences.headerPreferences,
+      items: [
+        {
+          id: "language",
+          icon: preferences.iconLocationSettings,
+          label: preferences.language,
+          value: i18n.language === "en" ? "English" : i18n.language,
+          iconBg: "#E0F2FE",
+          iconColor: "#0284C7",
+        },
+        {
+          id: "theme",
+          icon: preferences.iconLocationTheme,
+          label: preferences.theme,
+          component: (
+            <Theme_Changer_Toggle value={theme} onToggle={changeTheme} />
+          ),
+          iconBg: "#F3E8FF",
+          iconColor: "#7C3AED",
+        },
+        {
+          id: "notifications",
+          icon: "notifications",
+          label: preferences.notification,
+          iconBg: "#FEE2E2",
+          iconColor: "#DC2626",
+          onPress: () =>
+            router.push("/settings/components/settings_notification"),
+        },
+        {
+          id: "about",
+          icon: preferences.iconLocationAbout,
+          label: preferences.about,
+          iconBg: "#E5E7EB",
+          iconColor: "#374151",
+        },
+      ],
+    },
+    {
+      header: helpSupport.helpSupport,
+      items: [
+        {
+          id: "contact",
+          icon: helpSupport.iconLocationContractUs,
+          label: helpSupport.contractUs,
+          iconBg: "#DCFCE7",
+          iconColor: "#16A34A",
+        },
+        {
+          id: "faq",
+          icon: helpSupport.iconLocationFAQ,
+          label: helpSupport.FAQ,
+          iconBg: "#FEF9C3",
+          iconColor: "#CA8A04",
+        },
+        {
+          id: "terms",
+          icon: "document",
+          label: helpSupport.termsConditions,
+          iconBg: "#E0E7FF",
+          iconColor: "#4F46E5",
+        },
+        {
+          id: "privacy",
+          icon: helpSupport.iconLocationPrivacyPolicy,
+          label: helpSupport.privacyPolicy,
+          iconBg: "#ECFEFF",
+          iconColor: "#0891B2",
+        },
+      ],
+    },
+    {
+      header: accountSupport.account,
+      items: [
+        {
+          id: "profile",
+          icon: accountSupport.iconLocationProfile,
+          label: accountSupport.profile,
+          iconBg: "#EEF2FF",
+          iconColor: "#4338CA",
+        },
+        {
+          id: "password",
+          icon: accountSupport.iconLocationChangePassword,
+          label: accountSupport.changePassword,
+          iconBg: "#FFF7ED",
+          iconColor: "#EA580C",
+        },
+        {
+          id: "delete",
+          icon: accountSupport.iconLocationdeleteAccount,
+          label: accountSupport.deleteAccount,
+          danger: true,
+          iconBg: "#FEE2E2",
+          iconColor: "#DC2626",
+        },
+        {
+          id: "logout",
+          icon: accountSupport.iconLocationLogout,
+          label: accountSupport.logout,
+          iconBg: "#E5E7EB",
+          iconColor: "#374151",
+        },
+      ],
+    },
+    {
+      header: socialMedia.socialMedia,
+      items: [
+        {
+          id: "facebook",
+          icon: socialMedia.iconLocationFacebook,
+          label: socialMedia.facebook,
+          iconBg: "#DBEAFE",
+          iconColor: "#1877F2",
+        },
+        {
+          id: "twitter",
+          icon: socialMedia.iconLocationTwitter,
+          label: socialMedia.twitter,
+          iconBg: "#E0F2FE",
+          iconColor: "#1DA1F2",
+        },
+        {
+          id: "instagram",
+          icon: socialMedia.iconLocationInstagram,
+          label: socialMedia.instagram,
+          iconBg: "#FCE7F3",
+          iconColor: "#E1306C",
+        },
+      ],
+    },
+  ];
+
+  const logoutHandle = async () => {
+    Alert.alert(t("userLogout.logoutAlert"), t("userLogout.logoutMessage"), [
+      { text: t("userLogout.cancel"), style: "cancel" },
+      {
+        text: t("userLogout.yes"),
+        onPress: async () => {
+          await SecureStorage.deleteItemAsync("Tokens");
+          logOut();
+          router.replace("..");
+          flushRegularQuery();
+        },
+      },
+    ]);
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <ArrowLeft size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
-      </View>
-
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={{ flex: 1, backgroundColor: Colors.backgroundColor }}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        style={{ flex: 1, backgroundColor: Colors.backgroundColor }}
       >
-        {/* Group 1: General Preferences */}
-        <View style={styles.groupCard}>
-          <SettingItem
-            icon={<Sliders size={20} color="#aaa" />}
-            label="App Preferences"
-            type="navigation"
-          />
-          <SettingItem
-            icon={<Bell size={20} color="#aaa" />}
-            label="Notification Settings"
-            type="navigation"
-          />
-          <SettingItem
-            icon={<Globe size={20} color="#aaa" />}
-            label="Language"
-            type="navigation"
-            isLast
-          />
+        {/* HEADER */}
+        <View style={styles.header}>
+          <AppText style={[styles.title, { color: Colors.themeColorTextPure }]}>
+            {settings?.settingsDetails}
+          </AppText>
+          <Text
+            style={[styles.subtitle, { color: Colors.themeColorTextSecondary }]}
+          >
+            {settings?.settingSubtitle}
+          </Text>
         </View>
 
-        {/* Group 2: Legal */}
-        <View style={styles.groupCard}>
-          <SettingItem
-            icon={<FileText size={20} color="#aaa" />}
-            label="Terms & Conditions"
-            type="navigation"
-          />
-          <SettingItem
-            icon={<Shield size={20} color="#aaa" />}
-            label="Privacy Policy"
-            type="navigation"
-            isLast
-          />
-        </View>
+        {/* SECTIONS */}
+        {Sections.map((section) => (
+          <View key={section.header} style={{ marginBottom: 24 }}>
+            <Text style={styles.sectionTitle}>{section.header}</Text>
 
-        {/* Group 3: Toggles */}
-        <View style={styles.groupCard}>
-          <SettingItem
-            icon={<Moon size={20} color="#aaa" />}
-            label="Dark Mode"
-            type="switch"
-            value={isDarkMode}
-            onValueChange={setIsDarkMode}
-          />
-          <SettingItem
-            icon={<MessageSquare size={20} color="#aaa" />}
-            label="Push Notifications"
-            type="switch"
-            value={isPushEnabled}
-            onValueChange={setIsPushEnabled}
-            isLast
-          />
-        </View>
+            <View
+              style={[styles.card, { backgroundColor: Colors.containerColor }]}
+            >
+              {section.items.map((item, index) => {
+                const isLast = index === section.items.length - 1;
+                const RowWrapper =
+                  item.id === "theme" ? View : TouchableOpacity;
+                return (
+                  <React.Fragment key={item.id}>
+                    <RowWrapper
+                      {...(item.id !== "theme"
+                        ? {
+                            activeOpacity: 0.7,
+                            onPress: () => {
+                              if (item.id === "language") setModalVisible(true);
+                              else if (item.id === "logout") logoutHandle();
+                              else if (item.onPress) item.onPress();
+                            },
+                          }
+                        : {})}
+                    >
+                      <View style={styles.row}>
+                        {/* ICON */}
+                        <View
+                          style={[
+                            styles.iconBox,
+                            { backgroundColor: item.iconBg ?? "#f1f5f9" },
+                          ]}
+                        >
+                          <Ionicons
+                            name={item.icon as any}
+                            size={18}
+                            color={item.iconColor}
+                          />
+                        </View>
+
+                        {/* LABEL */}
+                        {item.label && (
+                          <AppText
+                            style={[
+                              styles.label,
+                              item.danger && { color: "#dc2626" },
+                            ]}
+                          >
+                            {item.label}
+                          </AppText>
+                        )}
+
+                        {/* RIGHT CONTENT */}
+                        <View style={{ marginLeft: "auto" }}>
+                          {item.value && (
+                            <AppText style={styles.value}>{item.value}</AppText>
+                          )}
+                          {item.component}
+                        </View>
+
+                        {/* CHEVRON */}
+                        {item.id !== "theme" && (
+                          <Ionicons
+                            name="chevron-forward"
+                            size={18}
+                            color="#9ca3af"
+                          />
+                        )}
+                      </View>
+                    </RowWrapper>
+
+                    {!isLast && <View style={styles.divider} />}
+                  </React.Fragment>
+                );
+              })}
+            </View>
+          </View>
+        ))}
       </ScrollView>
+
+      {/* MODALS */}
+      <Change_Language_Modal
+        languageModal={modalVisible}
+        setLanguageModals={setModalVisible}
+        changeLanguage={changeLanguage}
+        handleLng={(lng) => {
+          changeLanguage(lng);
+          i18n.changeLanguage(lng);
+          setModalVisible(false);
+        }}
+      />
     </SafeAreaView>
   );
 };
 
-// --- Sub-Components ---
+export default ProfileSettings;
 
-const SettingItem = ({
-  icon,
-  label,
-  type,
+interface ThemeToggleProps {
+  value: "light" | "dark";
+  onToggle: (theme: "light" | "dark") => void;
+}
+const WIDTH = 72;
+const HEIGHT = 36;
+const KNOB_SIZE = 30;
+const PADDING = 3;
+
+const Theme_Changer_Toggle: React.FC<ThemeToggleProps> = ({
   value,
-  onValueChange,
-  isLast,
-}: SettingItemProps) => (
-  <TouchableOpacity
-    activeOpacity={0.7}
-    style={[styles.itemRow, isLast && { borderBottomWidth: 0 }]}
-    disabled={type === "switch"}
-  >
-    <View style={styles.itemLeft}>
-      {icon}
-      <Text style={styles.itemLabel}>{label}</Text>
-    </View>
+  onToggle,
+}) => {
+  const progress = useSharedValue(value === "dark" ? 1 : 0);
 
-    {type === "navigation" ? (
-      <ChevronRight size={20} color="#555" />
-    ) : (
-      <View style={value ? styles.switchGlowContainer : null}>
-        <Switch
-          value={value}
-          onValueChange={onValueChange}
-          trackColor={{ false: "#1a2536", true: "#4dabff" }}
-          thumbColor="#fff"
-          ios_backgroundColor="#1a2536"
+  useEffect(() => {
+    progress.value = withTiming(value === "dark" ? 1 : 0, {
+      duration: 280,
+    });
+  }, [value]);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      progress.value,
+      [1, 0],
+      ["#62c1e5", "#3b4a5a"],
+    ),
+  }));
+
+  const knobStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: withTiming(
+          progress.value === 1 ? WIDTH - KNOB_SIZE - PADDING * 2 : 0,
+          { duration: 280 },
+        ),
+      },
+    ],
+  }));
+
+  const sunStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ scale: 1 - progress.value * 0.2 }],
+  }));
+
+  const moonStyle = useAnimatedStyle(() => ({
+    opacity: 1 - progress.value,
+    transform: [{ scale: 0.8 + progress.value * 0.2 }],
+  }));
+
+  return (
+    <Pressable onPressIn={() => onToggle(value === "dark" ? "light" : "dark")}>
+      <Animated.View
+        style={[
+          {
+            width: WIDTH,
+            height: HEIGHT,
+            borderRadius: HEIGHT / 2,
+            padding: PADDING,
+            justifyContent: "center",
+          },
+          containerStyle,
+        ]}
+      >
+        {/* SUN */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              left: 5,
+            },
+            sunStyle,
+          ]}
+        >
+          <Ionicons name="sunny" size={25} color="#facc15" />
+        </Animated.View>
+
+        {/* MOON */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              right: 5,
+            },
+            moonStyle,
+          ]}
+        >
+          <Ionicons name="moon" size={25} color="#fde68a" />
+        </Animated.View>
+
+        {/* KNOB */}
+        <Animated.View
+          style={[
+            {
+              width: KNOB_SIZE,
+              height: KNOB_SIZE,
+              borderRadius: KNOB_SIZE / 2,
+              backgroundColor: "#ffffff",
+              shadowColor: "#000",
+              shadowOpacity: 0.2,
+              shadowOffset: { width: 0, height: 2 },
+              shadowRadius: 4,
+            },
+            knobStyle,
+          ]}
         />
-      </View>
-    )}
-  </TouchableOpacity>
-);
+      </Animated.View>
+    </Pressable>
+  );
+};
 
-// --- Styles ---
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020a17" },
   header: {
-    padding: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
+    paddingHorizontal: 24,
+    paddingBottom: 16,
   },
-  backButton: { marginBottom: 15 },
-  headerTitle: { fontSize: 32, fontWeight: "bold", color: "#fff" },
+  title: {
+    fontSize: 28,
+    fontWeight: "700",
+  },
+  subtitle: {
+    fontSize: 14,
+    marginTop: 4,
+  },
 
-  scrollContent: { padding: 20, paddingBottom: 120 },
+  sectionTitle: {
+    marginLeft: 24,
+    marginBottom: 8,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#9ca3af",
+    letterSpacing: 1,
+  },
 
-  groupCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-    marginBottom: 20,
+  card: {
+    marginHorizontal: 16,
+    borderRadius: 16,
     overflow: "hidden",
   },
-  itemRow: {
+
+  row: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.05)",
-  },
-  itemLeft: { flexDirection: "row", alignItems: "center" },
-  itemLabel: { color: "#fff", fontSize: 16, marginLeft: 15 },
-
-  // Switch Glow Effect
-  switchGlowContainer: {
-    shadowColor: "#4dabff",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 5, // For Android glow
+    height: 52,
+    paddingHorizontal: 16,
   },
 
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 10,
-    backgroundColor: "#050f1f",
-    borderTopWidth: 1,
-    borderTopColor: "#1a2536",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 90,
-  },
-  navItem: { alignItems: "center", justifyContent: "center" },
-  activeNavCircle: { marginBottom: 5 },
-  gradientCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  iconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#4dabff",
-    shadowRadius: 10,
-    shadowOpacity: 0.6,
+    marginRight: 12,
   },
-  navLabel: { color: "#666", fontSize: 10, marginTop: 4 },
-  navLabelActive: { color: "#4dabff" },
-});
 
-export default ContractorSettings;
+  label: {
+    flex: 1,
+    fontSize: 15,
+  },
+
+  value: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginRight: 6,
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#e5e7eb",
+    marginLeft: 56,
+  },
+});

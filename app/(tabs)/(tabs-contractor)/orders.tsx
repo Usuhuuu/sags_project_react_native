@@ -18,7 +18,6 @@ import { useTheme } from "@/app/(modals)/context/themeContext";
 import { useIsFocused } from "@react-navigation/native";
 
 // --- Types ---
-type BookingStatus = "Checked In" | "Confirmed";
 type BookingType = "UPCOMING" | "ACTIVE" | "HISTORY";
 
 interface TabItem {
@@ -27,6 +26,7 @@ interface TabItem {
 }
 
 const ContractorBooking = () => {
+  const { colors, theme } = useTheme();
   const [activeTab, setActiveTab] = useState<"UPCOMING" | "ACTIVE" | "HISTORY">(
     "UPCOMING",
   );
@@ -120,18 +120,63 @@ const ContractorBooking = () => {
     [],
   );
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: colors.backgroundColor,
+      }}
+    >
       {/* Header Container with Glass Effect */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>Bookings</Text>
+      <View
+        style={{
+          padding: 20,
+          backgroundColor: colors.containerColor,
+          borderBottomLeftRadius: 30,
+          borderBottomRightRadius: 30,
+          shadowColor: colors.shadowColor,
+          shadowOpacity: 0.4,
+          shadowOffset: { height: 4, width: 0 },
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 32,
+            fontWeight: "bold",
+            marginBottom: 20,
+            color: colors.themeColorTextPure,
+          }}
+        >
+          Bookings
+        </Text>
 
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Search size={18} color="#666" style={styles.searchIcon} />
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: colors.containerColor,
+            borderRadius: 12,
+            paddingHorizontal: 15,
+            height: 45,
+            borderWidth: 1,
+            borderColor: colors.darkGrey,
+          }}
+        >
+          <Search
+            size={18}
+            color="#666"
+            style={{
+              marginRight: 10,
+            }}
+          />
           <TextInput
             placeholder="Search users or zones..."
-            placeholderTextColor="#666"
-            style={styles.input}
+            placeholderTextColor={colors.darkGrey}
+            style={{
+              flex: 1,
+              color: colors.darkGrey,
+              fontSize: 14,
+            }}
             value={search}
             onChangeText={setSearch}
           />
@@ -139,8 +184,24 @@ const ContractorBooking = () => {
       </View>
 
       {/* Tabs */}
-      <View style={styles.tabWrapper}>
-        <View style={styles.tabContainer}>
+      <View
+        style={{
+          paddingHorizontal: 20,
+          marginVertical: 20,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: colors.containerColor,
+            borderRadius: 25,
+            padding: 4,
+            justifyContent: "space-between",
+            shadowColor: colors.shadowColor,
+            shadowOpacity: 0.4,
+            shadowOffset: { height: 2, width: 2 },
+          }}
+        >
           {bookingStatusDetail.map((tab) => (
             <TouchableOpacity
               key={tab.id}
@@ -148,17 +209,45 @@ const ContractorBooking = () => {
                 setActiveTab(tab.id);
                 setBookingType(tab.id);
               }}
-              style={[styles.tab, activeTab === tab.id && styles.activeTab]}
+              style={[
+                {
+                  flex: 1,
+                  alignItems: "center",
+                  paddingVertical: 10,
+                  borderRadius: 20,
+                },
+                activeTab === tab.id && {
+                  backgroundColor: "rgba(77, 171, 255, 0.1)",
+                },
+              ]}
             >
               <Text
                 style={[
-                  styles.tabText,
-                  activeTab === tab.id && styles.activeTabText,
+                  {
+                    color:
+                      activeTab === tab.id ? colors.primary : colors.darkGrey,
+                    fontSize: 14,
+                    fontWeight: "500",
+                  },
                 ]}
               >
                 {tab.label}
               </Text>
-              {activeTab === tab.id && <View style={styles.activeIndicator} />}
+              {activeTab === tab.id && (
+                <View
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: "#4dabff",
+                    position: "absolute",
+                    bottom: -10,
+                    shadowColor: "#4dabff",
+                    shadowRadius: 10,
+                    shadowOpacity: 1,
+                  }}
+                />
+              )}
             </TouchableOpacity>
           ))}
         </View>
@@ -172,7 +261,7 @@ const ContractorBooking = () => {
           return <></>;
         }}
         renderItem={renderBookingItem}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ padding: 20 }}
       />
     </SafeAreaView>
   );
@@ -182,16 +271,44 @@ const BookingCard = React.memo(({ item }: { item: ContractorBookingType }) => {
   const { colors } = useTheme();
   const width = Dimensions.get("window").width;
   return (
-    <View style={styles.card}>
+    <View
+      style={{
+        backgroundColor: colors.containerColor,
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 15,
+        shadowColor: colors.shadowColor,
+        shadowOffset: { height: 4, width: 2 },
+        shadowOpacity: 0.4,
+      }}
+    >
       {item.blocks?.map((block, blockIndex) => (
-        <View key={blockIndex} style={styles.cardHeader}>
+        <View
+          key={blockIndex}
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
+        >
           <View style={{ width: width * 0.55 }}>
-            <Text style={styles.userName}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                marginBottom: 4,
+                color: colors.themeColorTextPure,
+              }}
+            >
               {block.current_player_list?.[0]?.unique_user_ID ?? "No User"}
             </Text>
 
             <Text
-              style={{ color: "#666", fontSize: 13, width: width * 0.5 }}
+              style={{
+                color: colors.darkGrey,
+                fontSize: 13,
+                width: width * 0.5,
+              }}
               numberOfLines={2}
             >
               {format(block.start_time, "PPP HH:mm")} {" -\n"}
@@ -201,23 +318,31 @@ const BookingCard = React.memo(({ item }: { item: ContractorBookingType }) => {
 
           <View
             style={[
-              styles.badge,
-              block.block_booking_status === "confirmte"
-                ? styles.badgeActive
-                : styles.badgeInactive,
+              block.block_booking_status === "confirmed"
+                ? {
+                    borderColor: colors.primary,
+                  }
+                : {
+                    borderColor: colors.darkGrey,
+                    backgroundColor: "transparent",
+                  },
               {
                 width: width * 0.25,
                 alignItems: "center",
                 justifyContent: "center",
+                paddingVertical: 6,
+                paddingHorizontal: 12,
+                borderRadius: 20,
+                borderWidth: 1,
               },
             ]}
           >
             <Text
               style={[
-                styles.badgeText,
-                block.block_booking_status === "confirmte"
-                  ? styles.badgeTextActive
-                  : styles.badgeTextInactive,
+                { fontSize: 12, fontWeight: "600" },
+                block.block_booking_status === "confirmed"
+                  ? { color: colors.primary }
+                  : { color: colors.darkGrey },
               ]}
             >
               {block.block_booking_status}
@@ -227,131 +352,6 @@ const BookingCard = React.memo(({ item }: { item: ContractorBookingType }) => {
       ))}
     </View>
   );
-});
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020a17" },
-  headerContainer: {
-    padding: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-  },
-  title: { fontSize: 32, fontWeight: "bold", color: "#fff", marginBottom: 20 },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    height: 45,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  searchIcon: { marginRight: 10 },
-  input: { flex: 1, color: "#fff", fontSize: 14 },
-
-  tabWrapper: { paddingHorizontal: 20, marginVertical: 20 },
-  tabContainer: {
-    flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderRadius: 25,
-    padding: 4,
-    justifyContent: "space-between",
-  },
-  tab: { flex: 1, alignItems: "center", paddingVertical: 10, borderRadius: 20 },
-  activeTab: { backgroundColor: "rgba(77, 171, 255, 0.1)" },
-  tabText: { color: "#666", fontSize: 14, fontWeight: "500" },
-  activeTabText: { color: "#4dabff" },
-  activeIndicator: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#4dabff",
-    position: "absolute",
-    bottom: -10,
-    shadowColor: "#4dabff",
-    shadowRadius: 10,
-    shadowOpacity: 1,
-  },
-
-  listContent: { padding: 20 },
-  card: {
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  userName: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  zoneText: { color: "#aaa", fontSize: 14, marginBottom: 4 },
-  timeText: { color: "#666", fontSize: 13 },
-
-  badge: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  badgeInactive: {
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    backgroundColor: "transparent",
-  },
-  badgeActive: {
-    borderColor: "#4dabff",
-    backgroundColor: "rgba(77, 171, 255, 0.1)",
-  },
-  badgeText: { fontSize: 12, fontWeight: "600" },
-  badgeTextInactive: { color: "#666" },
-  badgeTextActive: { color: "#4dabff" },
-  glowOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 20,
-    shadowColor: "#4dabff",
-    shadowRadius: 15,
-    shadowOpacity: 0.5,
-  },
-
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 10,
-    backgroundColor: "#050f1f",
-    borderTopWidth: 1,
-    borderTopColor: "#1a2536",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 85,
-  },
-  navItem: { alignItems: "center", justifyContent: "center" },
-  activeIconWrapper: { marginBottom: 4 },
-  activeIconCircle: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#4dabff",
-    shadowRadius: 10,
-    shadowOpacity: 0.6,
-  },
-  navLabel: { color: "#666", fontSize: 10, marginTop: 4 },
-  navLabelActive: { color: "#4dabff" },
 });
 
 export default ContractorBooking;

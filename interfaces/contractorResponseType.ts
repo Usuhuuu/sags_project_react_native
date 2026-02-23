@@ -20,6 +20,8 @@ export type ContractorStatisticType = {
     revenue: number;
   }[];
   trendType?: "week" | "day";
+  peakHour: number;
+  peakHourBookings: number;
 };
 
 export type ContractorBookingType = {
@@ -29,7 +31,7 @@ export type ContractorBookingType = {
     start_time: string;
     end_time: string;
     timeslots: string[];
-    block_booking_status: "waiting" | "confirmte" | "canceled";
+    block_booking_status: "waiting" | "confirmed" | "canceled";
     current_player_list: [
       {
         _id: string;

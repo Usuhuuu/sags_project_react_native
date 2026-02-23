@@ -26,6 +26,7 @@ import StepIndicator from "react-native-step-indicator";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "../context/themeContext";
 import AppText from "@/constants/appTextDefault";
+import SignupThree from "./signup_steps/step_three";
 
 export type LoginInput = {
   userName: string;
@@ -224,7 +225,7 @@ const SignupModal = ({
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${String(minutes).padStart(2, "0")}:${String(
-      remainingSeconds
+      remainingSeconds,
     ).padStart(2, "0")}`;
   };
 
@@ -258,7 +259,7 @@ const SignupModal = ({
           },
           {
             timeout: 5000,
-          }
+          },
         );
       }
 
@@ -268,7 +269,7 @@ const SignupModal = ({
           JSON.stringify({
             accessToken: response?.data.accessToken,
             refreshToken: response?.data.refreshToken,
-          })
+          }),
         );
         setModalVisible(false);
         Notifier.showNotification({
@@ -303,9 +304,8 @@ const SignupModal = ({
     });
   };
   const getNotificationToken = async () => {
-    const notificationtoken = await SecureStore.getItemAsync(
-      "notificationToken"
-    );
+    const notificationtoken =
+      await SecureStore.getItemAsync("notificationToken");
     setNotificationToken(notificationtoken || "");
   };
   useEffect(() => {
@@ -565,69 +565,7 @@ const SignupModal = ({
             </Animated.View>
           </Animated.View>
         )}
-        {steps === 3 && (
-          <Animated.View
-            style={[styles.modalInputContainer, { opacity: fadeAnim }]}
-          >
-            <View style={{ justifyContent: "center", alignItems: "center" }}>
-              <View style={{}}>
-                <TouchableOpacity
-                  onPress={() => {
-                    launchImageLibrary(
-                      { mediaType: "photo", includeBase64: true },
-                      (response) => {
-                        if (response.assets && response.assets[0].uri) {
-                          setImageUrl(response.assets[0].uri);
-                        } else {
-                          console.warn("No image selected or invalid response");
-                        }
-                      }
-                    );
-                  }}
-                  style={{}}
-                >
-                  <Avatar.Image
-                    source={
-                      imageUrl
-                        ? { uri: imageUrl }
-                        : require("@/assets/images/profileIcons/profile.png")
-                    }
-                    size={100}
-                  />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.modalButtonContainer}>
-                <TouchableOpacity
-                  style={styles.modalNextButton}
-                  onPress={() => {
-                    setSteps(steps - 1);
-                    fadeInStep();
-                  }}
-                >
-                  <AppText style={styles.modalButtonText}>Preview</AppText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.modalNextButton}
-                  onPress={() => {
-                    if (!disableButton) {
-                      setSteps(steps + 1);
-                      fadeInStep();
-                    } else {
-                      Notifier.showNotification({
-                        title: "Oops",
-                        description: "Please check your username",
-                        Component: NotifierComponents.Alert,
-                        componentProps: { alertType: "warn" },
-                      });
-                    }
-                  }}
-                >
-                  <AppText style={styles.modalButtonText}>Next</AppText>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
-        )}
+        {steps === 3 && <SignupThree />}
         {steps === 4 && (
           <Animated.View
             style={[styles.modalInputContainer, { opacity: fadeAnim, flex: 1 }]}
