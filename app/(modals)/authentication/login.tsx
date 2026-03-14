@@ -12,7 +12,7 @@ import { Platform } from "react-native";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as Sentry from "@sentry/react-native";
 import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
-import { Redirect, router, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/authContext";
 import { loginWithFacebook, loginWithGoogle } from "./third_party_instance";
@@ -442,15 +442,17 @@ const Page = () => {
           </View>
         </ScrollView>
 
-        <SignupModal
-          isModalVisible={isModalVisible}
-          setModalVisible={setIsModalVisible}
-          formData={formData}
-          setFormData={setFormData}
-          steps={steps}
-          setSteps={setSteps}
-          path={path}
-        />
+        {isModalVisible ? (
+          <SignupModal
+            isModalVisible={isModalVisible}
+            setModalVisible={setIsModalVisible}
+            formData={formData}
+            setFormData={setFormData}
+            steps={steps}
+            setSteps={setSteps}
+            path={path}
+          />
+        ) : null}
       </View>
     </KeyboardAvoidingView>
   );

@@ -11,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import {
   Feather,
+  FontAwesome,
   FontAwesome6,
   Fontisto,
   MaterialIcons,
@@ -336,17 +337,40 @@ export const OrderItem = React.memo(
                     </Text>
                   </View>
 
-                  <Text
-                    style={{
-                      color: "#FF4D4F",
-                      fontSize: 14,
-                      fontWeight: "600",
-                    }}
-                  >
-                    {data.session_obj && secondsLeft > 0
-                      ? `⏱ ${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`
-                      : Number(data.total_amount)}
-                  </Text>
+                  <View>
+                    {data.session_obj && secondsLeft > 0 ? (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 5,
+                        }}
+                      >
+                        <FontAwesome
+                          name="clock-o"
+                          size={24}
+                          color={"#FF4D4F"}
+                        />
+                        <Text
+                          style={{
+                            color: "#FF4D4F",
+                            fontSize: 14,
+                            fontWeight: "600",
+                          }}
+                        >{`${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`}</Text>
+                      </View>
+                    ) : (
+                      <Text
+                        style={{
+                          color: "#FF4D4F",
+                          fontSize: 14,
+                          fontWeight: "600",
+                        }}
+                      >
+                        {Number(data.total_amount)}
+                      </Text>
+                    )}
+                  </View>
                 </View>
 
                 <View style={{ gap: 10 }}>

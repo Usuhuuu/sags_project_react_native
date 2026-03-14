@@ -28,6 +28,7 @@ import { MonthCalendar } from "@/app/(modals)/book/components/calendar_strip";
 import dayjs from "dayjs";
 import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import { useIsFocused } from "@react-navigation/native";
 
 const OrderScreen = () => {
   const { colors: Colors, theme } = useTheme();
@@ -93,6 +94,7 @@ const OrderScreen = () => {
   ] as const satisfies RQ_regular_cache_key;
   const endDateParam = endDate ? `&endDate=${endDate}` : "";
 
+  const isFocused = useIsFocused();
   const { data, error, isLoading } = useRegularQuery(
     {
       pathname: `/auth/book/${dateString}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}${endDateParam}`,
@@ -100,7 +102,8 @@ const OrderScreen = () => {
       loginStatus: LoginStatus,
     },
     {
-      enabled: LoginStatus,
+      enabled: LoginStatus && isFocused,
+      refetchOnMount: true,
       retry: 3,
     },
   );

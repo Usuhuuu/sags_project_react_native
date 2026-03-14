@@ -25,33 +25,41 @@ type FETCH_RETURN_TYPE<T> = {
     replies: T[];
   };
 };
-type RQ_QUERY_RETURN_TYPE<T> = {
-  success: boolean;
-  bookingData: T;
-  noBookingData: T;
-  chatGroupIDs?: {
-    chat: string[];
-    directChat: string[];
-  };
-  userData?: {
-    members: T;
-  };
-  commentsData?: {
-    _id: string;
-    author: {
-      unique_user_ID: string;
-    };
-    text: string;
-    created_at: string;
-    replies: T[];
-  };
-  contractorData?: {
-    // statistical data type
-    statistic: ContractorStatisticType;
-    // booking data type
-    book: ContractorBookingType[];
-  };
-};
+type RQ_QUERY_RETURN_TYPE<T> =
+  | {
+      success: boolean;
+      bookingData: T;
+      noBookingData: T;
+      chatGroupIDs?: {
+        chat: string[];
+        directChat: string[];
+      };
+      userData?: {
+        members: T;
+      };
+      commentsData?: {
+        _id: string;
+        author: {
+          unique_user_ID: string;
+        };
+        text: string;
+        created_at: string;
+        replies: T[];
+      };
+      contractorData?: {
+        // statistical data type
+        statistic: ContractorStatisticType;
+        // booking data type
+        book: ContractorBookingType[];
+      };
+      userStatData?: any;
+      friendData?: {
+        friends: any;
+        recieved_requests: any;
+        sended_requests: any;
+      };
+    }
+  | any;
 
 export type RQ_regular_cache_key =
   | readonly [
@@ -68,6 +76,12 @@ export type RQ_regular_cache_key =
       "UPCOMING" | "ACTIVE" | "HISTORY", // bookingType
       number, // page
       string, // startTime
+    ]
+  | readonly ["esport_stat"]
+  | [
+      "auth_friend",
+      string, // SCREEN TYPE (SEPARATOR)
+      number, // PAGE
     ];
 
 export type RQ_simple_cache_key =
@@ -127,7 +141,8 @@ export const useSimpleQuery = (
 
 interface UseAuthQueryProps {
   pathname: string;
-  cacheKey: readonly [`auth_status`] | ["auth_friend"];
+  cacheKey: readonly [`auth_status`];
+
   loginStatus: boolean;
 }
 export const useAuthQuery = (

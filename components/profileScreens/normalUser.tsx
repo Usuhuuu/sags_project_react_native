@@ -1,158 +1,325 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import React, { useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import ProfileHeader from "@/components/ProfileHeader";
-import { useAuth } from "@/app/(modals)/context/authContext";
 import { useTheme } from "@/app/(modals)/context/themeContext";
-import { useAuthQuery } from "@/hooks/useQuery";
+import { useAuthQuery, useRegularQuery } from "@/hooks/useQuery";
+import { useAuth } from "@/app/(modals)/context/authContext";
 
-interface ProfileNormalUserProps {
+interface NormalUserProps {
+  formData: any;
   copyToClipboard: () => void;
-  formData: [
-    {
-      firstName: string;
-      unique_user_ID: string;
-    },
-  ];
 }
-const NormalUser: React.FC<ProfileNormalUserProps> = () => {
-  const { colors: Colors } = useTheme();
 
-  const [userData, setUserData] = useState(null);
+const NormalUser: React.FC<NormalUserProps> = ({ formData }) => {
+  const { colors, theme } = useTheme();
   const { LoginStatus } = useAuth();
 
-  const { data, error } = useAuthQuery(
+  const { data, error, isLoading, isError } = useAuthQuery(
     {
       pathname: "main",
-      cacheKey: ["auth_status"] as const,
+      cacheKey: [`auth_status`] as const,
       loginStatus: LoginStatus,
     },
     {
       enabled: LoginStatus,
+      staleTime: 1_000,
+      retry: 0,
     },
   );
+  const {
+    data: statData,
+    error: statErr,
+    isLoading: statLoading,
+  } = useRegularQuery(
+    {
+      pathname: "/auth/esport/stat",
+      cacheKey: ["esport_stat"],
+      loginStatus: LoginStatus,
+    },
+    {},
+  );
   useEffect(() => {
-    if (data) {
-      const parsedData =
-        typeof data.profileData == "string"
-          ? JSON.parse(data.profileData)
-          : data.profileData;
-      setUserData(Array.isArray(parsedData) ? parsedData[0] : parsedData);
-    } else if (error) {
-      console.log("Error fetching user data: Pisda", error);
-    }
-  }, [data, error]);
+    console.log(statData);
+  }, [statData, statErr]);
+
+  const stats = [
+    { label: "WINS", value: "1,284" },
+    { label: "HOURS", value: "4.2k" },
+    { label: "K/D", value: "2.41" },
+  ];
 
   return (
-    <View style={{ flex: 1 }}>
-      <LinearGradient
-        colors={[Colors.primary, Colors.backgroundColor]}
-        style={styles.background}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
-      <ProfileHeader userData={userData as any} />
+    <View style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+      >
+        {/* Profile Section */}
+        <View style={{ alignItems: "center", marginVertical: 20 }}>
+          <View
+            style={{
+              width: 140,
+              height: 140,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <LinearGradient
+              colors={["transparent", colors.primary]}
+              style={{
+                position: "absolute",
+                width: 150,
+                height: 150,
+                borderRadius: 75,
+                borderWidth: 2,
+                borderColor: colors.primary,
+                opacity: 0.6,
+              }}
+            />
+            <Image
+              source={{ uri: "https://i.pravatar.cc/300" }}
+              style={{ width: 130, height: 130, borderRadius: 65 }}
+            />
+            <View
+              style={{
+                position: "absolute",
+                bottom: 0,
+                backgroundColor: colors.primary,
+                paddingHorizontal: 8,
+                borderRadius: 10,
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.white,
+                  fontSize: 10,
+                  fontWeight: "bold",
+                }}
+              >
+                LVL 99
+              </Text>
+            </View>
+          </View>
+
+          <Text
+            style={{
+              color: colors.themeColorTextPure,
+              fontSize: 28,
+              fontWeight: "bold",
+              marginTop: 15,
+            }}
+          >
+            Alex 'Cipher' Reed
+          </Text>
+          <Text
+            style={{
+              color: colors.primary,
+              fontSize: 13,
+              fontWeight: "800",
+              letterSpacing: 1,
+              marginTop: 4,
+            }}
+          >
+            PRO LEAGUE VANGUARD
+          </Text>
+
+          {/* Stats Bar */}
+          <View
+            style={{
+              flexDirection: "row",
+              marginTop: 20,
+              alignItems: "center",
+            }}
+          >
+            {stats.map((stat, index) => (
+              <React.Fragment key={stat.label}>
+                <View style={{ alignItems: "center", paddingHorizontal: 15 }}>
+                  <Text
+                    style={{ color: "#666", fontSize: 11, fontWeight: "bold" }}
+                  >
+                    {stat.label}
+                  </Text>
+                  <Text
+                    style={{ color: "white", fontSize: 20, fontWeight: "bold" }}
+                  >
+                    {stat.value}
+                  </Text>
+                </View>
+                {index < stats.length - 1 && <View style={styles.divider} />}
+              </React.Fragment>
+            ))}
+          </View>
+        </View>
+
+        {/* Esports Status */}
+        <Text style={styles.sectionTitle}>ESPORTS STATUS</Text>
+        <View style={styles.row}>
+          <StatusCard
+            icon={
+              <MaterialCommunityIcons
+                name="star-four-points"
+                size={32}
+                color="#a855f7"
+              />
+            }
+            game="DOTA 2"
+            rank="Immortal"
+          />
+          <StatusCard
+            icon={
+              <MaterialCommunityIcons
+                name="star-four-points"
+                size={32}
+                color="#a855f7"
+              />
+            }
+            game="DOTA 2"
+            rank="Immortal"
+          />
+        </View>
+
+        {/* Sports Status */}
+        <Text style={styles.sectionTitle}>SPORTS STATUS</Text>
+        <View style={styles.row}>
+          <StatusCard
+            icon={
+              <MaterialCommunityIcons
+                name="basketball"
+                size={32}
+                color="#00e5ff"
+              />
+            }
+            game="BASKETBALL"
+            rank="All-Star"
+          />
+          <StatusCard
+            icon={
+              <MaterialCommunityIcons
+                name="volleyball"
+                size={32}
+                color="#a855f7"
+              />
+            }
+            game="VOLLEYBALL"
+            rank="Pro League"
+          />
+        </View>
+
+        {/* Action Button */}
+        <TouchableOpacity style={styles.historyButton}>
+          <Text style={styles.historyButtonText}>VIEW PLAY HISTORY</Text>
+          <MaterialCommunityIcons
+            name="history"
+            size={18}
+            color="#00e5ff"
+            style={{ marginLeft: 8 }}
+          />
+        </TouchableOpacity>
+
+        {/* Live Sessions */}
+        <View style={styles.liveHeader}>
+          <Text style={styles.sectionTitle}>LIVE SESSIONS</Text>
+          <View style={styles.activeDot} />
+        </View>
+        <View style={styles.liveCard}>
+          <View style={styles.accentBorder} />
+          <View style={styles.liveCardContent}>
+            <View style={styles.liveRow}>
+              <Text style={styles.stationName}>Station 14 - VIP Hall</Text>
+              <Text style={styles.timerText}>00:42:15</Text>
+            </View>
+            <Text style={styles.sessionSubtext}>
+              Valorant • 42 mins remaining
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
     </View>
   );
 };
 
+// Sub-component for rank cards
+const StatusCard = ({ icon, game, rank }: any) => (
+  <View style={styles.card}>
+    <View style={styles.iconContainer}>{icon}</View>
+    <Text style={styles.cardGame}>{game}</Text>
+    <Text style={styles.cardRank}>{rank}</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  divider: { width: 1, height: 30, backgroundColor: "#222" },
+  sectionTitle: {
+    color: "#666",
+    fontSize: 12,
+    fontWeight: "bold",
+    marginTop: 30,
+    marginBottom: 15,
+    letterSpacing: 1,
   },
-  scrollContainer: {
-    paddingVertical: 20,
+  row: { flexDirection: "row", justifyContent: "space-between" },
+  card: {
+    backgroundColor: "#0a0a0a",
+    width: "48%",
+    borderRadius: 15,
+    padding: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#111",
   },
-  background: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    height: "100%",
-    zIndex: -10, // Ensure the background is behind other components",
+  iconContainer: {
+    backgroundColor: "#151515",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
   },
-  titleBar: {
+  cardGame: {
+    color: "#666",
+    fontSize: 10,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  cardRank: { color: "white", fontSize: 16, fontWeight: "bold" },
+  historyButton: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 40, // Adjust for safe area / image space
-    marginHorizontal: 15,
-    backgroundColor: "transparent", // ✅ make background transparent
-    position: "absolute", // ✅ position it on top of the content
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10, // ✅ ensure it's above the profile image
-  },
-  saved: {
     justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
-    margin: 10,
-    height: 200, // Fixed height, adjust as needed
-    borderRadius: 20,
-    position: "relative", // Ensures that children are positioned correctly
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: "rgba(0, 229, 255, 0.3)",
+    borderRadius: 30,
+    paddingVertical: 14,
+    marginTop: 30,
   },
-  savedText: {
-    color: "#333",
-    fontSize: 18,
-    fontWeight: "bold",
-    zIndex: 1,
-    position: "absolute", // Ensures that the text is positioned correctly
-    bottom: 10, // Adjust as needed
-    left: 15, // Adjust as needed
+  historyButtonText: { color: "#00e5ff", fontWeight: "bold", fontSize: 14 },
+  liveHeader: { flexDirection: "row", alignItems: "center" },
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#00e5ff",
+    marginLeft: 8,
+    marginTop: 15,
   },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark background overlay
+  liveCard: {
+    backgroundColor: "#0a0a0a",
+    borderRadius: 12,
+    flexDirection: "row",
+    overflow: "hidden",
   },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    width: "100%",
-    height: "90%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  closeButtonText: {
-    color: "white",
-    fontSize: 16,
-  },
-  savedBackground: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    height: "80%",
-    flex: 1, // Ensures the background image fills the parent container
-    borderRadius: 20,
-    backgroundColor: "#e5f0ff", // Dark background overlay
-  },
-  savedicon: {
-    zIndex: 1,
-    position: "relative", // Ensures that the icon is positioned correctly
-    justifyContent: "center", // Adjust as needed
-    alignItems: "center", // Adjust as needed
-    width: 80,
-    height: 80,
-  },
-  adminText: {
-    color: "black",
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginTop: 20,
-  },
-  contractorText: {
-    color: "black",
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginTop: 20,
-  },
+  accentBorder: { width: 3, backgroundColor: "#00e5ff" },
+  liveCardContent: { flex: 1, padding: 16 },
+  liveRow: { flexDirection: "row", justifyContent: "space-between" },
+  stationName: { color: "white", fontWeight: "bold", fontSize: 15 },
+  timerText: { color: "#00e5ff", fontWeight: "bold" },
+  sessionSubtext: { color: "#666", fontSize: 12, marginTop: 4 },
 });
 
 export default NormalUser;

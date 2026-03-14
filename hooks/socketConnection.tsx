@@ -24,9 +24,8 @@ export const connectSocket = async (): Promise<Socket | null> => {
 
   connectPromise = new Promise(async (resolve) => {
     const token = await SecureStore.getItemAsync("Tokens");
-    const notificationToken = await SecureStore.getItemAsync(
-      "notificationToken"
-    );
+    const notificationToken =
+      await SecureStore.getItemAsync("notificationToken");
     console.log(notificationToken);
 
     if (!token) {
@@ -53,12 +52,14 @@ export const connectSocket = async (): Promise<Socket | null> => {
       query: { notificationToken },
       extraHeaders: { "x-app-source": "MobileApp" },
       transports: ["websocket"],
-      autoConnect: true,
-      reconnection: true,
+      autoConnect: false,
+      reconnection: false,
       reconnectionAttempts: 3,
       reconnectionDelay: 1000,
       path: "/socket.io",
+      forceNew: false,
     });
+    socket.connect();
 
     socket.on("connect", () => {
       console.log("✅ Socket connected");
@@ -91,7 +92,7 @@ export const connectSocket = async (): Promise<Socket | null> => {
               Authorization: `Bearer ${refreshToken}`,
               "x-app-source": "MobileApp",
             },
-          }
+          },
         );
 
         if (res.status === 200 && res.data.success) {
@@ -99,7 +100,7 @@ export const connectSocket = async (): Promise<Socket | null> => {
 
           await SecureStore.setItemAsync(
             "Tokens",
-            JSON.stringify({ accessToken: newAccessToken, refreshToken })
+            JSON.stringify({ accessToken: newAccessToken, refreshToken }),
           );
 
           if (socket) {

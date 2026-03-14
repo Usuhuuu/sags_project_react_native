@@ -20,13 +20,14 @@ import { useNavigation } from "@react-navigation/native";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 
 // Define NotificationItem type
-type NotificationItem = {
+export type NotificationItem = {
   id: string;
   message: {
     title: string;
     body: string;
   };
   time: string;
+  seen: boolean;
 };
 
 const NotificationScreen = () => {
@@ -89,13 +90,14 @@ const NotificationScreen = () => {
         body: n.body ?? "",
       },
       time: n.timestamp,
+      seen: n.seen ?? false,
     }));
+    transformed.map((s: any) => console.log(s.seen));
     setSavedNotifications(transformed);
   };
 
   useEffect(() => {
     getSavedNotifications();
-
     const subscription = Notifications.addNotificationReceivedListener(
       async (notification) => {
         const { title, body } = notification.request.content;
@@ -105,6 +107,7 @@ const NotificationScreen = () => {
           title,
           body,
           timestamp,
+          seen: false,
         };
 
         // Save to AsyncStorage
@@ -113,7 +116,7 @@ const NotificationScreen = () => {
         const updated = [newNotification, ...parsed];
         await AsyncStorage.setItem(
           "saved_notifications",
-          JSON.stringify(updated)
+          JSON.stringify(updated),
         );
 
         // Update UI state
@@ -125,10 +128,11 @@ const NotificationScreen = () => {
               body: body ?? "",
             },
             time: new Date(timestamp).toLocaleString(),
+            seen: false,
           },
           ...prev,
         ]);
-      }
+      },
     );
 
     return () => {
@@ -192,11 +196,11 @@ const NotificationScreen = () => {
     const parsed = saved ? JSON.parse(saved) : [];
     if (parsed.length === 0) return;
     const updated = parsed.filter(
-      (item: any) => !selectedList.includes(String(item.timestamp))
+      (item: any) => !selectedList.includes(String(item.timestamp)),
     );
     await AsyncStorage.setItem("saved_notifications", JSON.stringify(updated));
     setSavedNotifications((prev) =>
-      prev.filter((item) => !selectedList.includes(String(item.id)))
+      prev.filter((item) => !selectedList.includes(String(item.id))),
     );
     setSelectedList([]);
     setSelectReady(false);

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   View,
   Text,
@@ -216,114 +216,121 @@ const DirectChatScreen: React.FC = ({}) => {
 
   const width = Dimensions.get("window").width;
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
+  const initIndividualChat = async () => {
+    if (!socketRef.current?.connected) {
+      const socket = await connectSocket();
+      socket?.connect();
+      if (socket) socketRef.current = socket;
+    }
+    //setIsitReady(true);
+    socketRef.current?.emit(
+      "directChatJoin",
+      { initFriend: item },
+      (callBackData: any) => {
+        currentChatId.current = callBackData.callBackData;
+        if (!callBackData.success) {
+          setIsitReady(false);
+          return;
+        }
 
-  useEffect(() => {
-    const initIndividualChat = async () => {
-      if (!socketRef.current?.connected) {
-        const socket = await connectSocket();
-        if (socket) socketRef.current = socket;
-      }
-      //setIsitReady(true);
-      socketRef.current?.emit(
-        "directChatJoin",
-        { initFriend: item },
-        (callBackData: any) => {
-          currentChatId.current = callBackData.callBackData;
-          if (!callBackData.success) {
-            setIsitReady(false);
-            return;
-          }
+        socketRef.current?.emit("direct-active-user");
+        const cacheMsj = messagesMapData;
 
-          socketRef.current?.emit("direct-active-user");
-          const cacheMsj = messagesMapData;
-
-          if (
-            !cacheMsj ||
-            (cacheMsj.messages.length === 0 && !cacheMsj.no_more_message)
-          ) {
-            socketRef.current?.emit(
-              "directChatHistory",
-              { timer: new Date(), initFriend: item },
-              (message: any) => {
-                if (
-                  message.messages.length === 0 &&
-                  message.nextCursor === null
-                ) {
-                  setLoading(false);
-                  setIsitReady(false);
-                  return;
-                }
+        if (
+          !cacheMsj ||
+          (cacheMsj.messages.length === 0 && !cacheMsj.no_more_message)
+        ) {
+          socketRef.current?.emit(
+            "directChatHistory",
+            { timer: new Date(), initFriend: item },
+            (message: any) => {
+              if (
+                message.messages.length === 0 &&
+                message.nextCursor === null
+              ) {
+                setLoading(false);
+                setIsitReady(false);
+                return;
+              }
+              const formatMessages = prepareMessages(
+                message.messages,
+                message.nextCursor,
+                message.no_more_message,
+              );
+              addMessageToMap({
+                chatID: currentChatId.current,
+                messages: formatMessages,
+                newSendedMsj: false,
+                no_more_message: message.no_more_message,
+                cursor: cursor,
+              });
+              setCursor(message.nextCursor);
+              setIsitReady(false);
+            },
+          );
+        } else {
+          socketRef.current?.emit(
+            "direct_message_recovery",
+            (callback: any) => {
+              if (callback.length > 0) {
                 const formatMessages = prepareMessages(
-                  message.messages,
-                  message.nextCursor,
-                  message.no_more_message,
+                  callback.messages,
+                  callback.nextCursor,
+                  callback.no_more_message,
                 );
+
                 addMessageToMap({
                   chatID: currentChatId.current,
                   messages: formatMessages,
                   newSendedMsj: false,
-                  no_more_message: message.no_more_message,
                   cursor: cursor,
                 });
-                setCursor(message.nextCursor);
                 setIsitReady(false);
-              },
-            );
-          } else {
-            socketRef.current?.emit(
-              "direct_message_recovery",
-              (callback: any) => {
-                if (callback.length > 0) {
-                  const formatMessages = prepareMessages(
-                    callback.messages,
-                    callback.nextCursor,
-                    callback.no_more_message,
-                  );
+                setCursor(callback.nextCursor);
+              }
+            },
+          );
+          console.log("Using cached messages", cacheMsj.messages.length);
+        }
+        setIsitReady(false);
 
-                  addMessageToMap({
-                    chatID: currentChatId.current,
-                    messages: formatMessages,
-                    newSendedMsj: false,
-                    cursor: cursor,
-                  });
-                  setIsitReady(false);
-                  setCursor(callback.nextCursor);
-                }
-              },
-            );
-            console.log("Using cached messages", cacheMsj.messages.length);
-          }
-          setIsitReady(false);
+        socketRef.current?.on("directMessageReceived", (data) => {
+          const newMsj: Message = {
+            _id: generatedId(),
+            sender_unique_name: data.sender_unique_name,
+            message: data.message,
+            timestamp: new Date(data.timestamp),
+          };
 
-          socketRef.current?.on("directMessageReceived", (data) => {
-            const newMsj: Message = {
-              _id: generatedId(),
-              sender_unique_name: data.sender_unique_name,
-              message: data.message,
-              timestamp: new Date(data.timestamp),
-            };
+          const preparedNewMsj = newMessagePrepareFunction(
+            newMsj,
+            messagesMap,
+            currentChatId,
+          );
 
-            const preparedNewMsj = newMessagePrepareFunction(
-              newMsj,
-              messagesMap,
-              currentChatId,
-            );
-
-            addMessageToMap({
-              chatID: currentChatId.current,
-              messages: preparedNewMsj,
-              newSendedMsj: true,
-              cursor: cursor,
-            });
-
-            flatListRef.current?.scrollToIndex({ index: 0, animated: true });
+          addMessageToMap({
+            chatID: currentChatId.current,
+            messages: preparedNewMsj,
+            newSendedMsj: true,
+            cursor: cursor,
           });
-        },
-      );
-    };
 
-    initIndividualChat();
-  }, [item]);
+          flatListRef.current?.scrollToIndex({ index: 0, animated: true });
+        });
+      },
+    );
+  };
+  useFocusEffect(
+    useCallback(() => {
+      initIndividualChat();
+      return () => {
+        if (socketRef.current) {
+          socketRef.current.off("direct-activity-change");
+          socketRef.current.disconnect();
+        }
+      };
+    }, [item]),
+  );
 
   useEffect(() => {
     const socket = getSocket();

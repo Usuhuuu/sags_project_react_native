@@ -11,16 +11,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Checkbox } from "react-native-paper";
+import { NotificationItem } from "../notification";
 
 type SwipeableRowProps = {
-  item: {
-    id: string | number;
-    message: {
-      title: string;
-      body: string;
-    };
-    time: string;
-  };
+  item: NotificationItem;
   onDelete: (id: string | number) => void;
   setSelectReady: React.Dispatch<React.SetStateAction<boolean>>;
   selectReady: boolean;
@@ -164,7 +158,9 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
           </View>
         )}
         <TouchableOpacity
-          onPress={() => (expanded.value = !expanded.value)}
+          onPress={(clicked) => {
+            return (expanded.value = !expanded.value);
+          }}
           style={{ flex: 1, width: selectReady ? width * 0.85 : width }}
         >
           <View

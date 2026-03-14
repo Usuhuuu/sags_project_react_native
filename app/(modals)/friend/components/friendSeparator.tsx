@@ -7,7 +7,6 @@ import React, { useCallback } from "react";
 import { View, FlatList, Dimensions, SafeAreaView } from "react-native";
 import { FriendItem } from "../util/friend_functions";
 import { useTheme } from "../../context/themeContext";
-import { ScrollView } from "react-native-gesture-handler";
 import AppText from "@/constants/appTextDefault";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -15,24 +14,26 @@ interface Friend_Separator_props {
   data: Friend_Status;
   screen_type: FriendSeparator;
   loading: boolean;
+  fetchMore: () => void;
 }
 const Friend_Separator = ({
   data,
   screen_type,
   loading,
+  fetchMore,
 }: Friend_Separator_props) => {
   let list: FriendsType[] = [];
 
   const { colors } = useTheme();
   switch (screen_type) {
     case FriendSeparator.FRIENDS:
-      list = data.friends as unknown as FriendsType[];
+      list = data?.friends as unknown as FriendsType[];
       break;
     case FriendSeparator.REQUESTS:
-      list = data.recieved_requests as unknown as FriendsType[];
+      list = data?.recieved_requests as unknown as FriendsType[];
       break;
     case FriendSeparator.SENDED:
-      list = data.sended_requests as unknown as FriendsType[];
+      list = data?.sended_requests as unknown as FriendsType[];
       break;
     default:
       list = [];
@@ -127,6 +128,8 @@ const Friend_Separator = ({
             </SafeAreaView>
           )
         }
+        onEndReached={fetchMore}
+        onEndReachedThreshold={0.2}
       />
     </View>
   );

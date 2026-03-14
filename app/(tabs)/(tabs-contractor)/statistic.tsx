@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  StyleSheet,
   View,
   Text,
   ScrollView,
@@ -141,7 +140,7 @@ const ContractorIndex = () => {
           change: returnData?.statistic.averageBookingValue?.change ?? "",
         },
       });
-      const chartData = returnData?.statistic.trend?.map((item) => ({
+      const chartData = returnData?.statistic.trend?.map((item: any) => ({
         label: new Date(item._id).toLocaleDateString(),
         revenue: item.revenue,
       }));

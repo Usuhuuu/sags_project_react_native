@@ -12,15 +12,18 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useAuth } from "../../context/authContext";
 import { useTheme } from "../../context/themeContext";
 import { queryClient } from "@/hooks/queryClient";
+import { Socket } from "socket.io-client";
 
 interface FriendAddModalProp {
   modalDisplay: boolean;
   setModalDisplay: React.Dispatch<SetStateAction<boolean>>;
+  socket: React.MutableRefObject<Socket | null>;
 }
 
 const Friend_Add_Modal = ({
   modalDisplay,
   setModalDisplay,
+  socket,
 }: FriendAddModalProp) => {
   const { colors: Colors } = useTheme();
   const styles = StyleSheet.create({
@@ -47,9 +50,11 @@ const Friend_Add_Modal = ({
   const sendRequest = async () => {
     try {
       if (textInPutValue.length > 5) {
+        const other_user = textInPutValue.toLocaleLowerCase().trim();
         const response = await axiosInstance.post("/auth/friend_request", {
-          friend_unique_ID: textInPutValue.trim(),
+          friend_unique_ID: textInPutValue.toLocaleLowerCase().trim(),
         });
+
         if (response.status === 200 && response.data.success) {
           Notifier.showNotification({
             title: "Friend request sent",
@@ -61,6 +66,9 @@ const Friend_Add_Modal = ({
           setModalDisplay(false);
           queryClient.invalidateQueries({
             queryKey: [`auth_friend`],
+          });
+          socket.current?.emit("friend_request_send", {
+            other_user,
           });
         } else {
           Notifier.showNotification({

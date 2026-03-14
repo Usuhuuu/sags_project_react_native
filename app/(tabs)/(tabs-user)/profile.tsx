@@ -8,7 +8,7 @@ import { useAuth } from "@/app/(modals)/context/authContext";
 import Page from "@/app/(modals)/authentication/login";
 
 import { useTheme } from "@/app/(modals)/context/themeContext";
-import { useAuthQuery } from "@/hooks/useQuery";
+import { useAuthQuery, useRegularQuery } from "@/hooks/useQuery";
 import ServerErrorScreen from "@/app/servererror";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 

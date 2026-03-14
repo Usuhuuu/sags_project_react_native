@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -23,8 +23,20 @@ import {
 } from "lucide-react-native";
 import { useAuth } from "@/app/(modals)/context/authContext";
 import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useAuthQuery } from "@/hooks/useQuery";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 // --- Types ---
+interface UserData {
+  unique_user_ID: string;
+  userNames: {
+    firstName: string;
+    lastName: string;
+  };
+  email: string;
+  phoneNumber: string;
+  userImage: string;
+}
 interface StatItem {
   label: string;
   value: string;
@@ -63,8 +75,32 @@ const MENU_ITEMS: MenuItem[] = [
 ];
 
 const ContractorProfile = () => {
-  const { logOut } = useAuth();
+  const { logOut, LoginStatus } = useAuth();
   const { colors, theme } = useTheme();
+  const [userData, setUserData] = useState<UserData>();
+  const { data, error, isLoading, isFetching } = useAuthQuery(
+    {
+      pathname: "main",
+      cacheKey: ["auth_status"],
+      loginStatus: LoginStatus,
+    },
+    {
+      enabled: LoginStatus,
+    },
+  );
+  useEffect(() => {
+    if (!data?.profileData) return;
+
+    const tempData: UserData = data.profileData;
+    console.log(tempData);
+    setUserData(tempData);
+
+    console.log(tempData.userNames?.firstName);
+  }, [data]);
+  if (isLoading) {
+    return <OwnActivaterIndicator />;
+  }
+
   return (
     <SafeAreaView
       style={{
@@ -167,7 +203,7 @@ const ContractorProfile = () => {
               marginTop: 15,
             }}
           >
-            Marc Andreessen
+            {userData?.userNames?.firstName} {userData?.userNames?.lastName}
           </Text>
           <Text
             style={{

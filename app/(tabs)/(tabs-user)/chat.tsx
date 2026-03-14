@@ -39,130 +39,15 @@ import FilterModal from "@/app/(modals)/chat/components/filter_modal";
 import { useChatStore } from "@/app/(modals)/context/store/chatStore";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "@/app/(modals)/context/themeContext";
-import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import {
   RQ_regular_cache_key,
   useAuthQuery,
   useRegularQuery,
 } from "@/hooks/useQuery";
+import { useIsFocused } from "@react-navigation/native";
 
 const ChatComponent: React.FC = () => {
   const { colors: Colors } = useTheme();
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: Colors.backgroundColor,
-    },
-    title: {
-      fontSize: 28,
-      marginVertical: 16,
-      textAlign: "center",
-      fontWeight: "bold",
-      color: "#333",
-    },
-    subtitle: {
-      fontSize: 20,
-      marginVertical: 12,
-      fontWeight: "600",
-      color: "#555",
-      textAlign: "center",
-    },
-    groupItemContainer: {
-      marginVertical: 20,
-      marginHorizontal: 20,
-    },
-    groupItem: {
-      padding: 10,
-      marginVertical: 7,
-      borderRadius: 5,
-      backgroundColor: Colors.white,
-      shadowColor: Colors.dark,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.4,
-      shadowRadius: 4,
-      elevation: 4,
-      width: "90%",
-    },
-    textContainer: {
-      flexDirection: "row",
-      gap: 1,
-    },
-    showHiderContainer: {
-      padding: 10,
-      marginVertical: 7,
-      borderRadius: 5,
-      width: "90%",
-      flexDirection: "row",
-      justifyContent: "space-between",
-    },
-    groupText: {
-      fontSize: 18,
-      color: "black",
-      fontWeight: "bold",
-      textAlign: "center",
-    },
-    messageContainer: {
-      width: "100%",
-    },
-    userNameText: {
-      fontSize: 13,
-      color: Colors.primary,
-      textShadowColor: Colors.primary,
-      textShadowRadius: 0.5,
-    },
-    messageText: {
-      padding: 5,
-      fontSize: 18,
-      justifyContent: "center",
-      alignItems: "center",
-      textAlign: "center",
-    },
-    messagesList: {
-      //height: Dimensions.get("window").height,
-    },
-    inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderTopWidth: 1,
-      borderColor: "#ddd",
-      gap: 10,
-    },
-
-    msjContainer: {
-      marginHorizontal: 10,
-    },
-    msjInside: {
-      borderWidth: 1,
-      paddingHorizontal: 5,
-    },
-    TimerContainer: {
-      alignItems: "center",
-      justifyContent: "center",
-      width: "100%",
-    },
-
-    dateSeparator: {
-      flexDirection: "row",
-      alignItems: "center",
-      width: "100%",
-      paddingHorizontal: 10,
-    },
-    line: {
-      flex: 1,
-      height: 1,
-      backgroundColor: Colors.primary,
-      marginHorizontal: 5,
-    },
-    dateText: {
-      paddingVertical: 5,
-      paddingHorizontal: 10,
-      color: Colors.primary,
-      fontWeight: "400",
-    },
-  });
   const [chatGroups, setChatGroups] = useState<{ [key: string]: GroupChat }>(
     {},
   );
@@ -196,6 +81,7 @@ const ChatComponent: React.FC = () => {
   const messagesMap = useChatStore((state) => {
     return state.messagesMap;
   });
+  const isFocused = useIsFocused();
 
   const {
     data: userData,
@@ -227,7 +113,7 @@ const ChatComponent: React.FC = () => {
       loginStatus: LoginStatus,
     },
     {
-      enabled: LoginStatus,
+      enabled: LoginStatus && isFocused,
     },
   );
 
@@ -418,8 +304,13 @@ const ChatComponent: React.FC = () => {
       };
       initSocket();
       return () => {
-        socketRef.current?.off("receiveMessage");
-        socketRef.current?.emit("leave_group", currentChatId.current);
+        if (socketRef.current) {
+          socketRef.current.off("receiveMessage");
+          if (currentChatId.current) {
+            socketRef.current?.emit("leave_group", currentChatId.current);
+          }
+          socketRef.current.disconnect();
+        }
       };
     }, []),
   );
@@ -585,6 +476,174 @@ const ChatComponent: React.FC = () => {
     <View
       style={{ width: width, backgroundColor: Colors.backgroundColor, flex: 1 }}
     >
+      <View
+        style={{
+          width: width,
+          height: height - bottom,
+          backgroundColor: Colors.backgroundColor,
+        }}
+      >
+        <ScrollView
+          contentContainerStyle={{
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "column",
+              width: "95%",
+              margin: 10,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                backgroundColor: Colors.containerColor,
+                borderRadius: 10,
+                shadowColor: Colors.shadowColor,
+                shadowOffset: { width: 4, height: 2 },
+                shadowOpacity: 0.4,
+                opacity: 4,
+                marginVertical: 5,
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  setChatSeparator(ChatSeparator.GROUP);
+                }}
+                style={{
+                  backgroundColor:
+                    chatSeparator === ChatSeparator.GROUP
+                      ? Colors.primary
+                      : Colors.containerColor,
+                  borderRadius: 10,
+                  width: "50%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color:
+                      chatSeparator === ChatSeparator.GROUP
+                        ? Colors.white
+                        : Colors.darkGrey,
+                  }}
+                >
+                  {chatInitLang.groupChats}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setChatSeparator(ChatSeparator.PERSONAL)}
+                style={{
+                  backgroundColor:
+                    chatSeparator === ChatSeparator.PERSONAL
+                      ? Colors.primary
+                      : Colors.containerColor,
+                  borderRadius: 10,
+                  width: "50%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: 7,
+                }}
+              >
+                <Text
+                  style={{
+                    color:
+                      chatSeparator === ChatSeparator.PERSONAL
+                        ? Colors.white
+                        : Colors.darkGrey,
+                  }}
+                >
+                  {chatInitLang.individualChat}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{
+                borderRadius: 10,
+                flexDirection: "row",
+                alignItems: "center",
+                marginVertical: 5,
+                width: "100%",
+                gap: "4%",
+                shadowColor: Colors.shadowColor,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.4,
+                opacity: 4,
+              }}
+            >
+              <TouchableOpacity
+                style={{
+                  flexDirection: "row",
+                  gap: 5,
+                  alignItems: "center",
+                  justifyContent: "space-around",
+                  backgroundColor: Colors.containerColor,
+                  width: "83%",
+                  borderRadius: 10,
+                  padding: 5,
+                }}
+              >
+                <FontAwesome name="search" size={18} color={Colors.darkGrey} />
+                <TextInput
+                  placeholder={
+                    chatInitLang.search ? chatInitLang.search : "Search"
+                  }
+                  placeholderTextColor={Colors.darkGrey}
+                  value={chatSearchValue}
+                  onChangeText={(text) => setChatSearchValue(text)}
+                  style={{
+                    width: "90%",
+                    padding: 5,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                />
+              </TouchableOpacity>
+              <View
+                style={{
+                  backgroundColor: Colors.containerColor,
+                  width: "15%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: 10,
+                  height: 40,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowFilterVisible(!showFilterVisible);
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: Colors.darkGrey,
+                      fontWeight: "600",
+                      fontSize: width > 400 ? 16 : 14,
+                    }}
+                  >
+                    Filter
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          {chatSeparator === ChatSeparator.GROUP && (
+            <GroupChatComponent
+              chats={result.group_chat}
+              join_function={joinSpecificChat}
+            />
+          )}
+          {chatSeparator === ChatSeparator.PERSONAL && (
+            <PersonalChat
+              chats={result.individualChat}
+              join_function={joinSpecificChat}
+            />
+          )}
+        </ScrollView>
+      </View>
       {noChatExist ? (
         <View
           style={{
@@ -624,230 +683,36 @@ const ChatComponent: React.FC = () => {
           </View>
         </View>
       ) : (
-        <>
-          {!fullScreenShow ? (
-            <View
-              style={{
-                justifyContent: "center",
-                alignItems: "center",
-                flex: 1,
-                backgroundColor: Colors.backgroundColor,
-              }}
-            >
-              <OwnActivaterIndicator />
-            </View>
-          ) : (
-            <View style={[styles.container]}>
-              {userLoading ? (
-                <View>
-                  <OwnActivaterIndicator />
-                </View>
-              ) : (
-                <View
-                  style={{
-                    width: width,
-                    height: height - bottom,
-                    backgroundColor: Colors.backgroundColor,
-                  }}
-                >
-                  <ScrollView
-                    contentContainerStyle={{
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "column",
-                        width: "95%",
-                        margin: 10,
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          backgroundColor: Colors.containerColor,
-                          borderRadius: 10,
-                          shadowColor: Colors.shadowColor,
-                          shadowOffset: { width: 4, height: 2 },
-                          shadowOpacity: 0.4,
-                          opacity: 4,
-                          marginVertical: 5,
-                        }}
-                      >
-                        <TouchableOpacity
-                          onPress={() => {
-                            setChatSeparator(ChatSeparator.GROUP);
-                          }}
-                          style={{
-                            backgroundColor:
-                              chatSeparator === ChatSeparator.GROUP
-                                ? Colors.primary
-                                : Colors.containerColor,
-                            borderRadius: 10,
-                            width: "50%",
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color:
-                                chatSeparator === ChatSeparator.GROUP
-                                  ? Colors.white
-                                  : Colors.darkGrey,
-                            }}
-                          >
-                            {chatInitLang.groupChats}
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() =>
-                            setChatSeparator(ChatSeparator.PERSONAL)
-                          }
-                          style={{
-                            backgroundColor:
-                              chatSeparator === ChatSeparator.PERSONAL
-                                ? Colors.primary
-                                : Colors.containerColor,
-                            borderRadius: 10,
-                            width: "50%",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            padding: 7,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color:
-                                chatSeparator === ChatSeparator.PERSONAL
-                                  ? Colors.white
-                                  : Colors.darkGrey,
-                            }}
-                          >
-                            {chatInitLang.individualChat}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View
-                        style={{
-                          borderRadius: 10,
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginVertical: 5,
-                          width: "100%",
-                          gap: "4%",
-                          shadowColor: Colors.shadowColor,
-                          shadowOffset: { width: 0, height: 0 },
-                          shadowOpacity: 0.4,
-                          opacity: 4,
-                        }}
-                      >
-                        <TouchableOpacity
-                          style={{
-                            flexDirection: "row",
-                            gap: 5,
-                            alignItems: "center",
-                            justifyContent: "space-around",
-                            backgroundColor: Colors.containerColor,
-                            width: "83%",
-                            borderRadius: 10,
-                            padding: 5,
-                          }}
-                        >
-                          <FontAwesome
-                            name="search"
-                            size={18}
-                            color={Colors.darkGrey}
-                          />
-                          <TextInput
-                            placeholder={
-                              chatInitLang.search
-                                ? chatInitLang.search
-                                : "Search"
-                            }
-                            placeholderTextColor={Colors.darkGrey}
-                            value={chatSearchValue}
-                            onChangeText={(text) => setChatSearchValue(text)}
-                            style={{
-                              width: "90%",
-                              padding: 5,
-                              justifyContent: "center",
-                              alignItems: "center",
-                            }}
-                          />
-                        </TouchableOpacity>
-                        <View
-                          style={{
-                            backgroundColor: Colors.containerColor,
-                            width: "15%",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            borderRadius: 10,
-                            height: 40,
-                          }}
-                        >
-                          <TouchableOpacity
-                            onPress={() => {
-                              setShowFilterVisible(!showFilterVisible);
-                            }}
-                          >
-                            <Text
-                              style={{
-                                color: Colors.darkGrey,
-                                fontWeight: "600",
-                                fontSize: width > 400 ? 16 : 14,
-                              }}
-                            >
-                              Filter
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </View>
-                    {chatSeparator === ChatSeparator.GROUP && (
-                      <GroupChatComponent
-                        chats={result.group_chat}
-                        join_function={joinSpecificChat}
-                      />
-                    )}
-                    {chatSeparator === ChatSeparator.PERSONAL && (
-                      <PersonalChat
-                        chats={result.individualChat}
-                        join_function={joinSpecificChat}
-                      />
-                    )}
-                  </ScrollView>
-                </View>
-              )}
-
-              <MainChatModal
-                mainModalShow={mainModalShow}
-                setmainModalShow={setmainModalShow}
-                isitReady={isitReady}
-                setChildModalVisible={setChildModalVisible}
-                childModalVisible={childModalVisible}
-                message={messagesMap}
-                loadOlderMsj={loadOlderMsj}
-                loading={loading}
-                flatListRef={flatListRef}
-                newMessage={newMessage}
-                setNewMessage={setNewMessage}
-                sendMessage={sendMessage}
-                renderChatItem={renderChatItem}
-                groupMap={chatGroups}
-                activeUserData={activeUserData}
-                socketRef={socketRef}
-                groupID={currentChatId.current}
-                currentChatId={currentChatId}
-              />
-              <FilterModal
-                showFilterVisible={showFilterVisible}
-                setShowFilterVisible={setShowFilterVisible}
-              />
-            </View>
+        <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
+          {mainModalShow && (
+            <MainChatModal
+              mainModalShow={mainModalShow}
+              setmainModalShow={setmainModalShow}
+              isitReady={isitReady}
+              setChildModalVisible={setChildModalVisible}
+              childModalVisible={childModalVisible}
+              message={messagesMap}
+              loadOlderMsj={loadOlderMsj}
+              loading={loading}
+              flatListRef={flatListRef}
+              newMessage={newMessage}
+              setNewMessage={setNewMessage}
+              sendMessage={sendMessage}
+              renderChatItem={renderChatItem}
+              groupMap={chatGroups}
+              activeUserData={activeUserData}
+              socketRef={socketRef}
+              groupID={currentChatId.current}
+              currentChatId={currentChatId}
+            />
           )}
-        </>
+          {showFilterVisible && (
+            <FilterModal
+              showFilterVisible={showFilterVisible}
+              setShowFilterVisible={setShowFilterVisible}
+            />
+          )}
+        </View>
       )}
     </View>
   );
