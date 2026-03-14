@@ -22,96 +22,19 @@ import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { useAuthQuery } from "@/hooks/useQuery";
 import ServerErrorScreen from "@/app/servererror";
+import { SvgUri } from "react-native-svg";
+import ProfileAvatar from "./profile_avatar";
 interface UserData {
   email: string;
   firstName: string;
   lastName: string;
   phoneNumber: string;
   unique_user_ID: string;
+  userImage: string | null;
 }
 const CustomDrawerContent = (props: any) => {
   const { colors: Colors, theme } = useTheme();
-  const styles = StyleSheet.create({
-    container: {},
-    header: {
-      padding: 10,
-      borderBottomWidth: 1,
-      borderBottomColor: Colors.primary,
-      alignItems: "center",
-      flexDirection: "row",
-      backgroundColor: Colors.backgroundColor,
-      maxWidth: "100%",
-    },
 
-    headerTouchable: {
-      padding: 4,
-    },
-    headerText: {
-      fontSize: 20,
-      fontWeight: "400",
-      color: Colors.primary,
-      fontFamily: "cursive",
-    },
-    profileImage: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      marginBottom: 10,
-      borderWidth: 1,
-      borderColor: Colors.primary,
-    },
-    userDataContainer: {
-      fontSize: 14,
-      fontWeight: "bold",
-      color: "#9acffd",
-    },
-    profileName: {
-      fontSize: 18,
-      fontWeight: "bold",
-    },
-    footer: {
-      paddingBottom: 20,
-      padding: 20,
-      alignItems: "center",
-      flexDirection: "row",
-      gap: 10,
-    },
-    log: {
-      justifyContent: "center",
-      backgroundColor:
-        theme === "dark" ? Colors.containerLittleGrey : Colors.grey,
-    },
-    logInside: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 15,
-    },
-    logInsideTouchable: {
-      paddingHorizontal: 20,
-      flexDirection: "row",
-    },
-    logText: {
-      paddingHorizontal: 20,
-      color: Colors.darkGrey,
-    },
-    footerButton: {
-      marginVertical: 10,
-      borderRadius: 8,
-    },
-    drawerItemLabel: {
-      fontWeight: "bold",
-      color: "#78909C",
-    },
-    drawerItemLabel1: {
-      fontWeight: "bold",
-      color: Colors.primary,
-    },
-    rightsText: {
-      fontSize: 14,
-      color: "#888",
-      marginLeft: 5,
-    },
-  });
   const [userData, setUserData] = useState<UserData | null>(null);
   const { bottom } = useSafeAreaInsets();
   const { t } = useTranslation();
@@ -140,8 +63,6 @@ const CustomDrawerContent = (props: any) => {
     requestTracking();
   });
 
-  const width = Dimensions.get("window").width;
-
   useEffect(() => {
     if (data) {
       const parsedData =
@@ -156,6 +77,7 @@ const CustomDrawerContent = (props: any) => {
       console.log("Error fetching user data: Pisda", error);
     }
   }, [data, error]);
+  const { width, height } = Dimensions.get("screen");
 
   return (
     <View
@@ -170,34 +92,80 @@ const CustomDrawerContent = (props: any) => {
         contentContainerStyle={styles.container}
       >
         {!LoginStatus ? (
-          <View style={styles.header}>
+          <View
+            style={{
+              padding: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: Colors.primary,
+              alignItems: "center",
+              flexDirection: "row",
+              backgroundColor: Colors.backgroundColor,
+              maxWidth: "100%",
+            }}
+          >
             <TouchableOpacity style={styles.headerTouchable}>
               <Image
                 source={{
                   uri: "https://via.placeholder.com/150",
                 }}
-                style={styles.profileImage}
+                style={{}}
               />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerTouchable}
               onPress={() => router.push("/(modals)/authentication/login")}
             >
-              <AppText style={styles.headerText}>{t("aboutUs.login")}</AppText>
+              <AppText
+                style={[
+                  styles.headerText,
+                  {
+                    color: Colors.primary,
+                  },
+                ]}
+              >
+                {t("aboutUs.login")}
+              </AppText>
             </TouchableOpacity>
-            <AppText style={styles.headerText}>&</AppText>
+            <AppText
+              style={[
+                styles.headerText,
+                {
+                  color: Colors.primary,
+                },
+              ]}
+            >
+              &
+            </AppText>
             <TouchableOpacity style={styles.headerTouchable}>
-              <AppText style={styles.headerText}>
+              <AppText
+                style={[
+                  styles.headerText,
+                  {
+                    color: Colors.primary,
+                  },
+                ]}
+              >
                 {t("aboutUs.register")}
               </AppText>
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.header}>
+          <View
+            style={{
+              padding: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: Colors.primary,
+              alignItems: "center",
+              flexDirection: "row",
+              backgroundColor: Colors.backgroundColor,
+              maxWidth: "100%",
+            }}
+          >
             <TouchableOpacity style={styles.headerTouchable}>
-              <Image
-                source={{ uri: "https://via.placeholder.com/150" }}
-                style={styles.profileImage}
+              <ProfileAvatar
+                imageUrl={userData?.userImage}
+                width={width}
+                userName={userData?.unique_user_ID}
               />
             </TouchableOpacity>
             <View style={{ width: width / 2.2 }}>
@@ -219,17 +187,43 @@ const CustomDrawerContent = (props: any) => {
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
       <View>
-        <View style={styles.log}>
+        <View
+          style={[
+            styles.log,
+            {
+              backgroundColor:
+                theme === "dark" ? Colors.containerLittleGrey : Colors.grey,
+            },
+          ]}
+        >
           <View style={styles.logInside}>
             <TouchableOpacity style={styles.logInsideTouchable}>
               <Ionicons name="people" size={24} color={Colors.darkGrey} />
-              <AppText style={styles.logText}>{t("aboutUs.aboutUs")}</AppText>
+              <AppText
+                style={[
+                  styles.logText,
+                  {
+                    color: Colors.darkGrey,
+                  },
+                ]}
+              >
+                {t("aboutUs.aboutUs")}
+              </AppText>
             </TouchableOpacity>
           </View>
           <View style={styles.logInside}>
             <TouchableOpacity style={styles.logInsideTouchable}>
               <Ionicons name="help" size={24} color={Colors.darkGrey} />
-              <AppText style={styles.logText}>{t("aboutUs.helps")}</AppText>
+              <AppText
+                style={[
+                  styles.logText,
+                  {
+                    color: Colors.darkGrey,
+                  },
+                ]}
+              >
+                {t("aboutUs.helps")}
+              </AppText>
             </TouchableOpacity>
           </View>
 
@@ -240,7 +234,16 @@ const CustomDrawerContent = (props: any) => {
                 size={24}
                 color={Colors.darkGrey}
               />
-              <AppText style={styles.logText}>{t("aboutUs.contactUs")}</AppText>
+              <AppText
+                style={[
+                  styles.logText,
+                  {
+                    color: Colors.darkGrey,
+                  },
+                ]}
+              >
+                {t("aboutUs.contactUs")}
+              </AppText>
             </TouchableOpacity>
           </View>
         </View>
@@ -285,5 +288,68 @@ const CustomDrawerContent = (props: any) => {
     </View>
   );
 };
+const styles = StyleSheet.create({
+  container: {},
+
+  headerTouchable: {
+    padding: 4,
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: "400",
+    fontFamily: "cursive",
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 10,
+    borderWidth: 1,
+  },
+  userDataContainer: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#9acffd",
+  },
+  profileName: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  footer: {
+    paddingBottom: 20,
+    padding: 20,
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+  },
+  log: {
+    justifyContent: "center",
+  },
+  logInside: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 15,
+  },
+  logInsideTouchable: {
+    paddingHorizontal: 20,
+    flexDirection: "row",
+  },
+  logText: {
+    paddingHorizontal: 20,
+  },
+  footerButton: {
+    marginVertical: 10,
+    borderRadius: 8,
+  },
+  drawerItemLabel: {
+    fontWeight: "bold",
+    color: "#78909C",
+  },
+  rightsText: {
+    fontSize: 14,
+    color: "#888",
+    marginLeft: 5,
+  },
+});
 
 export default CustomDrawerContent;

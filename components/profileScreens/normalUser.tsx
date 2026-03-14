@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,15 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import { useAuthQuery, useRegularQuery } from "@/hooks/useQuery";
 import { useAuth } from "@/app/(modals)/context/authContext";
+import ProfileAvatar from "../profile_avatar";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 interface NormalUserProps {
   formData: any;
@@ -21,6 +24,17 @@ interface NormalUserProps {
 const NormalUser: React.FC<NormalUserProps> = ({ formData }) => {
   const { colors, theme } = useTheme();
   const { LoginStatus } = useAuth();
+  const { width } = Dimensions.get("screen");
+  const [userData, setUserData] = useState<{
+    email: string;
+    phoneNumber: string;
+    unique_user_ID: string;
+    userImage: string | null;
+    userNames: {
+      firstName: string;
+      lastName: string;
+    };
+  }>();
 
   const { data, error, isLoading, isError } = useAuthQuery(
     {
@@ -34,6 +48,7 @@ const NormalUser: React.FC<NormalUserProps> = ({ formData }) => {
       retry: 0,
     },
   );
+
   const {
     data: statData,
     error: statErr,
@@ -47,14 +62,19 @@ const NormalUser: React.FC<NormalUserProps> = ({ formData }) => {
     {},
   );
   useEffect(() => {
-    console.log(statData);
-  }, [statData, statErr]);
+    if (data) {
+      setUserData(data.profileData);
+    }
+  }, [data, error]);
 
   const stats = [
     { label: "WINS", value: "1,284" },
     { label: "HOURS", value: "4.2k" },
     { label: "K/D", value: "2.41" },
   ];
+  if (isLoading) {
+    return <OwnActivaterIndicator />;
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
@@ -84,9 +104,10 @@ const NormalUser: React.FC<NormalUserProps> = ({ formData }) => {
                 opacity: 0.6,
               }}
             />
-            <Image
-              source={{ uri: "https://i.pravatar.cc/300" }}
-              style={{ width: 130, height: 130, borderRadius: 65 }}
+            <ProfileAvatar
+              width={width}
+              userName={userData?.unique_user_ID}
+              imageUrl={userData?.userImage}
             />
             <View
               style={{
@@ -117,7 +138,7 @@ const NormalUser: React.FC<NormalUserProps> = ({ formData }) => {
               marginTop: 15,
             }}
           >
-            Alex 'Cipher' Reed
+            {userData?.unique_user_ID ?? "UNKNOWN"}
           </Text>
           <Text
             style={{

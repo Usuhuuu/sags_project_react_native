@@ -2,7 +2,7 @@ import { FriendSeparator, FriendsType } from "@/interfaces/friendType";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions } from "react-native";
 import { Image } from "react-native";
 import { useFriendStore } from "@/app/(modals)/context/store/friendStore";
 import { useTheme } from "../../context/themeContext";
@@ -10,11 +10,13 @@ import AppText from "@/constants/appTextDefault";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { queryClient } from "@/hooks/queryClient";
+import ProfileAvatar from "@/components/profile_avatar";
 
 export const FriendItem = React.memo(
   ({ item, userStatus }: { item: FriendsType; userStatus: string }) => {
     const { setFriendDetails } = useFriendStore();
     const { colors: Colors, theme } = useTheme();
+    const width = Dimensions.get("screen").width;
 
     const handleAccept = async (user: FriendsType) => {
       try {
@@ -70,15 +72,15 @@ export const FriendItem = React.memo(
         >
           <View
             style={{
-              width: 40,
               height: 40,
               borderRadius: 20,
-              borderWidth: 2,
-              borderColor:
-                theme === "dark" ? Colors.primary : Colors.themeColorTextPure,
             }}
           >
-            <Image source={{ uri: item.userImage }} />
+            <ProfileAvatar
+              width={width / 2}
+              imageUrl={item.userImage}
+              userName={item.unique_user_ID}
+            />
           </View>
           <AppText
             style={{
@@ -89,7 +91,7 @@ export const FriendItem = React.memo(
             }}
           >
             {item.unique_user_ID.charAt(0).toUpperCase() +
-              item.unique_user_ID.slice(1) || "PISDA"}
+              item.unique_user_ID.slice(1) || "UNKNOWN"}
           </AppText>
         </View>
         <View

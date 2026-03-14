@@ -23,9 +23,9 @@ const FriendRequest = () => {
   const { colors: Colors } = useTheme();
 
   const [page, setPage] = useState<Record<FriendSeparator, number>>({
-    [FriendSeparator.FRIENDS]: 1,
-    [FriendSeparator.REQUESTS]: 1,
-    [FriendSeparator.SENDED]: 1,
+    [FriendSeparator.FRIENDS]: 0,
+    [FriendSeparator.REQUESTS]: 0,
+    [FriendSeparator.SENDED]: 0,
   });
   const [friendSeparator, setFriendSeparator] = useState<FriendSeparator>(
     FriendSeparator.FRIENDS,
