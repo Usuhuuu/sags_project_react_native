@@ -18,6 +18,21 @@ import { useFocusEffect } from "expo-router";
 import { connectSocket } from "@/hooks/socketConnection";
 import { Socket } from "socket.io-client";
 import { useIsFocused } from "@react-navigation/native";
+import { Notifier, NotifierComponents } from "react-native-notifier";
+
+interface FriendEventProps {
+  data: {
+    sendMessage: string;
+    sender: string;
+    title: string;
+    description: string;
+  };
+  type: "ACCEPT" | "REQUEST";
+}
+interface onRemoveProps {
+  id: string;
+  type: FriendSeparator;
+}
 
 const FriendRequest = () => {
   const { colors: Colors } = useTheme();
@@ -44,6 +59,11 @@ const FriendRequest = () => {
 
   const { LoginStatus } = useAuth();
   const isFocused = useIsFocused();
+  const dataMap: Record<FriendSeparator, keyof Friend_Status> = {
+    [FriendSeparator.FRIENDS]: "friends",
+    [FriendSeparator.REQUESTS]: "recieved_requests",
+    [FriendSeparator.SENDED]: "sended_requests",
+  };
 
   const {
     data: userData,
@@ -71,20 +91,11 @@ const FriendRequest = () => {
       console.log("error on Friends");
     } else if (userData) {
       const data = userData?.result;
-      const dataMap: Record<FriendSeparator, keyof Friend_Status> = {
-        [FriendSeparator.FRIENDS]: "friends",
-        [FriendSeparator.REQUESTS]: "recieved_requests",
-        [FriendSeparator.SENDED]: "sended_requests",
-      };
+
       setFriends((prev) => {
         const key = dataMap[friendSeparator];
-        console.log(key);
-
         const currentList = prev[key] ?? [];
-        console.log(currentList);
-
         const seen = new Set(currentList.map((f: any) => f.unique_user_ID));
-
         const unique = (data[key] ?? []).filter((item: any) => {
           if (seen.has(item.unique_user_ID)) return false;
           seen.add(item.unique_user_ID);
@@ -99,7 +110,6 @@ const FriendRequest = () => {
       if (data.length > 9) {
         setHasMore((prev) => ({ ...prev, [friendSeparator]: false }));
       }
-      console.log(data.length);
     }
   }, [userData, userError]);
 
@@ -107,18 +117,15 @@ const FriendRequest = () => {
     useCallback(() => {
       let active = true;
 
-      const handleFriendRequest = (data: any) => {
-        console.log(data);
-      };
-
       const initSocket = async () => {
         const socket = await connectSocket();
 
         if (!socket || !active) return;
 
         socketRef.current = socket;
-
-        socket.on("friend_request_recieved", handleFriendRequest);
+        socket.on("friend_request_recieved", (data) =>
+          handleFriendEvent({ data, type: data.type }),
+        );
       };
 
       initSocket();
@@ -127,7 +134,7 @@ const FriendRequest = () => {
         active = false;
 
         if (socketRef.current) {
-          socketRef.current.off("friend_request_recieved", handleFriendRequest);
+          socketRef.current.off("friend_request_recieved", handleFriendEvent);
           socketRef.current.disconnect();
           socketRef.current = null;
         }
@@ -144,6 +151,41 @@ const FriendRequest = () => {
       [friendSeparator]: prev[friendSeparator] + 1,
     }));
   }, [hasMore]);
+  const onRemove = ({ id, type }: onRemoveProps) => {
+    setFriends((prev) => {
+      const key = dataMap[type];
+      const data = prev[key];
+      const result = data.filter((d: any) => d.unique_user_ID !== id);
+
+      return {
+        ...prev,
+        [key]: result,
+      };
+    });
+  };
+  const handleFriendEvent = ({ data, type }: FriendEventProps) => {
+    console.log("FRIEND EVENT:", type);
+    Notifier.showNotification({
+      Component: NotifierComponents.Alert,
+      componentProps: { alertType: "success" },
+      title: data.title,
+      description: data.description,
+    });
+    if (type === "ACCEPT") {
+      setFriends((prev) => {
+        const key = dataMap[FriendSeparator.SENDED];
+        const temp = prev[key];
+        const result = temp.filter(
+          (d: any) => d.unique_user_ID !== data.sender,
+        );
+
+        return {
+          ...prev,
+          [key]: result,
+        };
+      });
+    }
+  };
 
   if (userLoading) {
     return (
@@ -303,6 +345,8 @@ const FriendRequest = () => {
           screen_type={friendSeparator}
           loading={userLoading}
           fetchMore={fetchMore}
+          onRemove={onRemove}
+          page={page}
         />
         {modalDisplay && (
           <Friend_Add_Modal

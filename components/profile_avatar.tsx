@@ -15,8 +15,8 @@ const ProfileAvatar = ({ imageUrl, width, userName }: ProfileAvatarProp) => {
     <View
       style={{
         backgroundColor: colors.dark,
-        width: width * 0.23,
-        height: width * 0.23,
+        width: width,
+        height: width,
         borderRadius: 40,
         marginBottom: 10,
         borderWidth: 1,
@@ -34,7 +34,7 @@ const ProfileAvatar = ({ imageUrl, width, userName }: ProfileAvatarProp) => {
         />
       ) : (
         <SvgUri
-          uri={`https://api.dicebear.com/9.x/pixel-art/svg?seed=${userName}&size=128`}
+          uri={`https://api.dicebear.com/9.x/micah/svg?seed=${userName}&size=128`}
           width="100%"
           height="100%"
         />

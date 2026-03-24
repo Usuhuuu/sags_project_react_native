@@ -6,18 +6,21 @@ interface RawNotification {
   title: string;
   body: string;
   timestamp: number;
+  seen: boolean;
 }
 
 interface Notification {
   id: string;
   message: string;
   time: string;
+  seen: boolean;
 }
 
 interface NotificationStore {
   notifications: Notification[];
   loadNotifications: () => Promise<void>;
   addNotification: (notif: RawNotification) => Promise<void>;
+  seenNotification: (id: string) => Promise<void>;
   clearNotifications: () => Promise<void>;
 }
 
@@ -31,6 +34,7 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
       id: String(n.timestamp ?? index),
       message: `${n.title ?? "Notification"}: ${n.body ?? ""}`,
       time: new Date(n.timestamp).toLocaleString(),
+      seen: n.seen ?? false,
     }));
     set({ notifications: transformed });
   },
@@ -46,9 +50,26 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
           id: String(notif.timestamp),
           message: `${notif.title ?? "Notification"}: ${notif.body ?? ""}`,
           time: new Date(notif.timestamp).toLocaleString(),
+          seen: notif.seen ?? false,
         },
         ...state.notifications,
       ],
+    }));
+  },
+  seenNotification: async (id: string) => {
+    const saved = await AsyncStorage.getItem("saved_notifications");
+    const parsed: RawNotification[] = saved ? JSON.parse(saved) : [];
+
+    const updated = parsed.map((n) =>
+      String(n.timestamp) === id ? { ...n, seen: true } : n,
+    );
+
+    await AsyncStorage.setItem("saved_notifications", JSON.stringify(updated));
+
+    set((state) => ({
+      notifications: state.notifications.map((n) =>
+        n.id === id ? { ...n, seen: true } : n,
+      ),
     }));
   },
 

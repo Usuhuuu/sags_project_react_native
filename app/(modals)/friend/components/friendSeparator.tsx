@@ -3,7 +3,7 @@ import {
   FriendSeparator,
   FriendsType,
 } from "@/interfaces/friendType";
-import React, { useCallback } from "react";
+import React, { SetStateAction, useCallback } from "react";
 import { View, FlatList, Dimensions, SafeAreaView } from "react-native";
 import { FriendItem } from "../util/friend_functions";
 import { useTheme } from "../../context/themeContext";
@@ -15,12 +15,16 @@ interface Friend_Separator_props {
   screen_type: FriendSeparator;
   loading: boolean;
   fetchMore: () => void;
+  onRemove: ({ id, type }: { id: string; type: FriendSeparator }) => void;
+  page: Record<FriendSeparator, number>;
 }
 const Friend_Separator = ({
   data,
   screen_type,
   loading,
   fetchMore,
+  onRemove,
+  page,
 }: Friend_Separator_props) => {
   let list: FriendsType[] = [];
 
@@ -38,9 +42,15 @@ const Friend_Separator = ({
     default:
       list = [];
   }
+
   const renderItem = useCallback(
     ({ item }: { item: FriendsType }) => (
-      <FriendItem item={item} userStatus={screen_type} />
+      <FriendItem
+        item={item}
+        userStatus={screen_type}
+        onRemove={onRemove}
+        page={page}
+      />
     ),
     [screen_type],
   );
@@ -82,7 +92,7 @@ const Friend_Separator = ({
       <FlatList
         data={list}
         renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.unique_user_ID}-${index}`}
+        keyExtractor={(item) => item.unique_user_ID}
         ListEmptyComponent={
           loading ? (
             <></>

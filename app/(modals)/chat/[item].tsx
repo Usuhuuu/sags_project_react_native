@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   View,
@@ -11,6 +17,7 @@ import {
   TextInput,
   StyleSheet,
   Modal,
+  Animated,
 } from "react-native";
 import {
   prepareMessages,
@@ -30,167 +37,59 @@ import { generatedId } from "./util/objectID";
 import { useChatStore } from "../context/store/chatStore";
 import { useTheme } from "../context/themeContext";
 import { useAuthQuery } from "@/hooks/useQuery";
+import ProfileAvatar from "@/components/profile_avatar";
 
 const DirectChatScreen: React.FC = ({}) => {
   const { item } = useLocalSearchParams();
   const { colors: Colors, theme } = useTheme();
-  const styles = StyleSheet.create({
-    input: {
-      flex: 1,
-      borderRadius: 20,
-      padding: 7,
-      paddingHorizontal: 16,
-      backgroundColor: Colors.lightGrey,
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 10,
-      gap: 10,
-    },
-    sendButton: {
-      padding: 12,
-      borderRadius: 25,
-      marginLeft: 8,
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    sendButtonText: {
-      fontSize: 16,
-      color: "#fff",
-      fontWeight: "bold",
-    },
-
-    msjContainer: {},
-    msjInside: {
-      flexDirection: "column",
-      borderWidth: 1,
-      padding: 5,
-    },
-    container: {
-      flex: 1,
-      backgroundColor: "#F9FAFB",
-    },
-    title: {
-      fontSize: 28,
-      marginVertical: 16,
-      textAlign: "center",
-      fontWeight: "bold",
-      color: "#333",
-    },
-    subtitle: {
-      fontSize: 20,
-      marginVertical: 12,
-      fontWeight: "600",
-      color: "#555",
-      textAlign: "center",
-    },
-    groupItemContainer: {
-      marginVertical: 20,
-      marginHorizontal: 20,
-    },
-    groupItem: {
-      padding: 10,
-      marginVertical: 7,
-      borderRadius: 5,
-      backgroundColor: Colors.white,
-      shadowColor: Colors.dark,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 4,
-    },
-    groupText: {
-      fontSize: 18,
-      color: "black",
-      fontWeight: "bold",
-      textAlign: "center",
-    },
-    messageContainer: {
-      marginVertical: 3,
-      width: "100%",
-    },
-    userNameText: {
-      fontSize: 12,
-      color: Colors.primary,
-      textShadowColor: Colors.primary,
-      textShadowRadius: 0.5,
-    },
-    messageText: {
-      padding: 5,
-      fontSize: 18,
-      marginRight: 0,
-      justifyContent: "center",
-      alignItems: "center",
-      textAlign: "center",
-    },
-    messagesList: {
-      //height: Dimensions.get("window").height,
-    },
-
-    TimerContainer: {
-      alignItems: "center",
-      justifyContent: "center",
-      width: "100%",
-    },
-    userImage: {},
-
-    dateSeparator: {
-      flexDirection: "row",
-      alignItems: "center",
-      width: "100%",
-      paddingHorizontal: 10,
-    },
-    line: {
-      flex: 1,
-      height: 1,
-      backgroundColor: Colors.primary,
-      marginHorizontal: 5,
-    },
-    dateText: {
-      paddingVertical: 5,
-      paddingHorizontal: 10,
-      color: Colors.primary,
-      fontWeight: "400",
-    },
-  });
+  const { width } = Dimensions.get("window");
+  const { LoginStatus } = useAuth();
 
   const [newMessage, setNewMessage] = useState<string>("");
   const [userDataParsed, setuserDataParsed] = useState<any>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isitReady, setIsitReady] = useState<boolean>(true);
   const [childModalVisible, setChildModalVisible] = useState<boolean>(false);
-  const [activeUserData, setActiveUserData] = useState<string[]>([]);
+  const [activeUserData, setActiveUserData] = useState<string[] | null>(null);
+  const [cursor, setCursor] = useState<Date | null>(null);
+  const [menuVisible, setMenuVisible] = useState<boolean>(false);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const [showTyping, setShowTyping] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList | null>(null);
-  const currentChatId = useRef<string>("");
+  const cursorRef = useRef(cursor);
+  const typingRef = useRef(false);
+  const timeoutRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const selfTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingOpacity = useRef(new Animated.Value(0)).current;
+  const dot1 = useRef(new Animated.Value(0.3)).current;
+  const dot2 = useRef(new Animated.Value(0.3)).current;
+  const dot3 = useRef(new Animated.Value(0.3)).current;
 
-  // Message fetched from Zustang State
-  const { addMessageToMap, messagesMap } = useChatStore();
+  const { addMessageToMap } = useChatStore();
 
-  const messagesMapData = useChatStore((state) =>
-    state.messagesMap.get(currentChatId.current),
-  );
+  const hashKey = useMemo(() => {
+    return typeof item === "string" ? item : item.join(":");
+  }, [item]);
+  const chatInfoMap = useChatStore((state) => state.chatInfo);
+  const chatInfos = useMemo(() => {
+    return chatInfoMap.get(hashKey);
+  }, [chatInfoMap, hashKey]);
+  const currentChatId = useChatStore((state) => state.currentChatId);
+  const setCurrentChatId = useChatStore((state) => state.setCurrentChatId);
+  const messagesMap = useChatStore((state) => state.messagesMap);
+  const messagesMapData = useMemo(() => {
+    if (!currentChatId) return undefined;
+    return messagesMap.get(currentChatId);
+  }, [messagesMap, currentChatId]);
 
-  const [cursor, setCursor] = useState<Date | null>(null);
+  const currentChatIdRef = useRef(currentChatId);
   useEffect(() => {
-    if (messagesMapData?.cursor) {
-      setCursor(messagesMapData.cursor);
-    }
-  }, [messagesMapData?.cursor, cursor]);
+    currentChatIdRef.current = currentChatId;
+  }, [currentChatId]);
 
-  const { LoginStatus } = useAuth();
-
-  const {
-    data: userData,
-    error: userError,
-    isLoading: userLoading,
-  } = useAuthQuery(
+  const { data: userData, isLoading: userLoading } = useAuthQuery(
     {
       pathname: "main",
       cacheKey: ["auth_status"] as const,
@@ -204,152 +103,336 @@ const DirectChatScreen: React.FC = ({}) => {
   useEffect(() => {
     if (userLoading) {
       setLoading(true);
+      return;
     } else if (userData) {
       const parsedData =
         typeof userData.profileData == "string"
           ? JSON.parse(userData.profileData)
           : userData.profileData;
-
       setuserDataParsed(Array.isArray(parsedData) ? parsedData[0] : parsedData);
     }
-  }, [userData, userError, userLoading]);
+  }, [userData, userLoading]);
 
-  const width = Dimensions.get("window").width;
-  const [menuVisible, setMenuVisible] = useState<boolean>(false);
-  const initIndividualChat = async () => {
-    if (!socketRef.current?.connected) {
-      const socket = await connectSocket();
-      socket?.connect();
-      if (socket) socketRef.current = socket;
+  const initIndividualChat = async ({ initFriend, chatId }: any) => {
+    let socket = socketRef.current;
+
+    if (!socket || !socket.connected) {
+      socket = await connectSocket();
+
+      if (!socket) return;
+
+      socketRef.current = socket;
+
+      await new Promise<void>((resolve) => {
+        if (socket?.connected) return resolve();
+
+        socket?.once("connect", () => {
+          resolve();
+        });
+
+        socket?.connect();
+      });
     }
-    //setIsitReady(true);
-    socketRef.current?.emit(
-      "directChatJoin",
-      { initFriend: item },
+
+    socket?.emit(
+      "chat-join",
+      { initFriend: initFriend, chatId: chatId },
       (callBackData: any) => {
-        currentChatId.current = callBackData.callBackData;
-        if (!callBackData.success) {
-          setIsitReady(false);
-          return;
-        }
+        callBackData.activeUser
+          ? setActiveUserData((prev) => {
+              if (prev?.includes(callBackData.activeUser)) return prev;
+              return [...(prev || []), callBackData.activeUser];
+            })
+          : null;
 
-        socketRef.current?.emit("direct-active-user");
-        const cacheMsj = messagesMapData;
-
-        if (
-          !cacheMsj ||
-          (cacheMsj.messages.length === 0 && !cacheMsj.no_more_message)
-        ) {
+        setCurrentChatId(callBackData.chatId);
+        const serverChatId = callBackData.chatId;
+        const cacheMsj = useChatStore.getState().messagesMap.get(serverChatId);
+        const latestTimestamp = cacheMsj?.messages?.[0]?.timestamp ?? null;
+        if (!cacheMsj) {
           socketRef.current?.emit(
-            "directChatHistory",
-            { timer: new Date(), initFriend: item },
-            (message: any) => {
-              if (
-                message.messages.length === 0 &&
-                message.nextCursor === null
-              ) {
-                setLoading(false);
-                setIsitReady(false);
-                return;
-              }
-              const formatMessages = prepareMessages(
-                message.messages,
-                message.nextCursor,
-                message.no_more_message,
-              );
-              addMessageToMap({
-                chatID: currentChatId.current,
-                messages: formatMessages,
-                newSendedMsj: false,
-                no_more_message: message.no_more_message,
-                cursor: cursor,
-              });
-              setCursor(message.nextCursor);
-              setIsitReady(false);
+            "chat-history",
+            {
+              timer: new Date(),
+              initFriend: item,
             },
+            handleHistory,
           );
         } else {
           socketRef.current?.emit(
-            "direct_message_recovery",
-            (callback: any) => {
-              if (callback.length > 0) {
-                const formatMessages = prepareMessages(
-                  callback.messages,
-                  callback.nextCursor,
-                  callback.no_more_message,
-                );
-
-                addMessageToMap({
-                  chatID: currentChatId.current,
-                  messages: formatMessages,
-                  newSendedMsj: false,
-                  cursor: cursor,
-                });
-                setIsitReady(false);
-                setCursor(callback.nextCursor);
-              }
+            "chat-history",
+            {
+              timer: latestTimestamp,
+              initFriend: item,
             },
+            handleHistory,
           );
-          console.log("Using cached messages", cacheMsj.messages.length);
         }
-        setIsitReady(false);
-
-        socketRef.current?.on("directMessageReceived", (data) => {
-          const newMsj: Message = {
-            _id: generatedId(),
-            sender_unique_name: data.sender_unique_name,
-            message: data.message,
-            timestamp: new Date(data.timestamp),
-          };
-
-          const preparedNewMsj = newMessagePrepareFunction(
-            newMsj,
-            messagesMap,
-            currentChatId,
+        function handleHistory(message: any) {
+          if (!message?.messages?.length) {
+            console.log("No messages received from server");
+            setLoading(false);
+            setIsitReady(false);
+            return;
+          }
+          const formatted = prepareMessages(
+            message.messages,
+            message.nextCursor,
+            message.no_more_message,
           );
 
           addMessageToMap({
-            chatID: currentChatId.current,
-            messages: preparedNewMsj,
-            newSendedMsj: true,
-            cursor: cursor,
+            chatID: message.chatId,
+            messages: formatted,
+            newSendedMsj: false,
+            no_more_message: message.no_more_message,
+            cursor: message.nextCursor,
           });
 
-          flatListRef.current?.scrollToIndex({ index: 0, animated: true });
-        });
+          setCursor(message.nextCursor);
+          setIsitReady(false);
+        }
+        setIsitReady(false);
       },
     );
   };
   useFocusEffect(
     useCallback(() => {
-      initIndividualChat();
+      if (!chatInfos?.userInfo?.[0] || !chatInfos?.chatId) return;
+      const socket = socketRef.current || getSocket();
+      socketRef.current = socket;
+      initIndividualChat({
+        initFriend: chatInfos?.userInfo[0],
+        chatId: chatInfos?.chatId,
+      });
       return () => {
-        if (socketRef.current) {
-          socketRef.current.off("direct-activity-change");
-          socketRef.current.disconnect();
+        if (socketRef.current?.connected) {
+          socketRef.current.emit("chat-deactive");
+          socketRef.current.emit("leaving-chat", {
+            chatId: currentChatId,
+            userId: userDataParsed?.userId,
+          });
         }
       };
-    }, [item]),
+    }, [chatInfos]),
   );
-
   useEffect(() => {
-    const socket = getSocket();
+    const socket = socketRef.current || getSocket();
     socketRef.current = socket;
-    socketRef.current?.on("direct-activity-change", (data) => {
+    const handle = (data: any) => {
       setActiveUserData(data);
-    });
+    };
+    const hanleTypingChanges = (data: {
+      userId: string;
+      isTyping: boolean;
+    }) => {
+      console.log("Typing change received:", data);
+      const { userId, isTyping } = data;
+      setTypingUsers((prev) => {
+        const newSet = new Set(prev);
+        if (data.isTyping) newSet.add(userId);
+        else newSet.delete(userId);
+        return newSet;
+      });
+      const existingTimout = timeoutRef.current.get(userId);
+      if (existingTimout) {
+        clearTimeout(existingTimout);
+      }
+      if (isTyping) {
+        const timeout = setTimeout(() => {
+          setTypingUsers((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(userId);
+            return newSet;
+          });
+          timeoutRef.current.delete(userId);
+        }, 3000);
+        timeoutRef.current.set(userId, timeout);
+      } else {
+        timeoutRef.current.delete(userId);
+      }
+    };
+    socket?.off("chat-activity-change", handle);
+    socket?.off("chat-typing-change", hanleTypingChanges);
+    socket?.on("chat-activity-change", handle);
+    socket?.on("chat-typing-change", hanleTypingChanges);
 
     return () => {
-      socketRef.current?.off("direct-activity-change");
+      socketRef.current?.off("chat-activity-change", handle);
+      socketRef.current?.off("chat-typing-change", hanleTypingChanges);
+    };
+  }, []);
+  useEffect(() => {
+    cursorRef.current = cursor;
+  }, [cursor]);
+  useEffect(() => {
+    const createAnim = (dot: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(dot, {
+            toValue: 1,
+            duration: 300,
+            delay,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot, {
+            toValue: 0.3,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+
+    const anim1 = createAnim(dot1, 0);
+    const anim2 = createAnim(dot2, 150);
+    const anim3 = createAnim(dot3, 300);
+
+    anim1.start();
+    anim2.start();
+    anim3.start();
+
+    return () => {
+      anim1.stop();
+      anim2.stop();
+      anim3.stop();
     };
   }, []);
 
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket) return;
+
+    const handler = (data: any) => {
+      console.log("Received message:", data);
+      if (!currentChatId) return;
+      if (data.chatID !== currentChatId) return;
+      const newMsj: Message = {
+        _id: data._id || generatedId(),
+        sender_unique_name: data.sender_unique_name,
+        message: data.message,
+        timestamp: new Date(data.timestamp),
+      };
+      const preparedNewMsj = newMessagePrepareFunction(
+        newMsj,
+        useChatStore.getState().messagesMap,
+        currentChatId,
+      );
+      addMessageToMap({
+        chatID: currentChatId,
+        messages: preparedNewMsj,
+        newSendedMsj: true,
+        cursor: cursorRef.current,
+      });
+
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    };
+
+    socket.on("chat-msj-recieve", handler);
+
+    return () => {
+      socket.off("chat-msj-recieve", handler);
+    };
+  }, [currentChatId]);
+
+  const handleTyping = () => {
+    if (newMessage.length === 0) {
+      if (typingRef.current) {
+        typingRef.current = false;
+        socketRef.current?.emit("chat-stop-typing", {
+          chatId: currentChatId,
+        });
+      }
+
+      if (selfTimeoutRef.current) {
+        clearTimeout(selfTimeoutRef.current);
+        selfTimeoutRef.current = null;
+      }
+
+      return;
+    }
+    if (!typingRef.current) {
+      typingRef.current = true;
+      socketRef.current?.emit("chat-typing", {
+        chatId: currentChatId,
+      });
+    }
+    if (selfTimeoutRef.current) {
+      clearTimeout(selfTimeoutRef.current);
+    }
+
+    selfTimeoutRef.current = setTimeout(() => {
+      if (typingRef.current) {
+        typingRef.current = false;
+        socketRef.current?.emit("chat-stop-typing", {
+          chatId: currentChatId,
+        });
+      }
+    }, 1500);
+  };
+
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
+
+  const messages = useMemo(
+    () => messagesMapData?.messages ?? [],
+    [messagesMapData?.messages],
+  );
+  const formatted = useMemo(() => {
+    const name = chatInfos?.userInfo?.[0]?.unique_user_ID;
+    if (!name || typeof name !== "string") return "";
+    return name ? name[0].toUpperCase() + name.slice(1) : "";
+  }, [chatInfos]);
+
+  const otherUser = useMemo(() => {
+    const user = chatInfos?.userInfo?.[0];
+    if (!user) return null;
+    return {
+      _id: user._id.toString(),
+      unique_user_ID: user.unique_user_ID,
+    };
+  }, [chatInfos?.userInfo]);
+  const isOtherTyping = !!otherUser?._id && typingUsers.has(otherUser._id);
+
   const flatRenderFunction = useCallback(
     ({ item }: { item: Message }) => {
-      return <MemoizedChatItem item={item} userDatas={userDataParsed} />;
+      return (
+        <MemoizedChatItem
+          item={item}
+          userDatas={userDataParsed}
+          otherUser={otherUser?.unique_user_ID ?? "UNKNOWN"}
+        />
+      );
     },
     [userDataParsed],
   );
+
+  useEffect(() => {
+    if (isOtherTyping) {
+      setShowTyping(true);
+      Animated.timing(typingOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(typingOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setShowTyping(false);
+      });
+    }
+  }, [isOtherTyping]);
+  useEffect(() => {
+    return () => {
+      timeoutRef.current.forEach((t) => clearTimeout(t));
+      timeoutRef.current.clear();
+
+      if (selfTimeoutRef.current) {
+        clearTimeout(selfTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return isitReady ? (
     <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
@@ -383,7 +466,6 @@ const DirectChatScreen: React.FC = ({}) => {
             >
               <TouchableOpacity
                 onPress={() => {
-                  socketRef.current?.emit("direct-inactive-user");
                   router.back();
                 }}
               >
@@ -399,7 +481,11 @@ const DirectChatScreen: React.FC = ({}) => {
                   paddingLeft: 10,
                 }}
               >
-                <Avatar.Image source={{ uri: userDataParsed.userImage }} />
+                <ProfileAvatar
+                  imageUrl={userDataParsed.userImage ?? null}
+                  width={width * 0.15}
+                  userName={otherUser?.unique_user_ID}
+                />
                 <View style={{ gap: 5, alignSelf: "center" }}>
                   <Text
                     style={{
@@ -408,22 +494,18 @@ const DirectChatScreen: React.FC = ({}) => {
                       color: Colors.themeColorTextPure,
                     }}
                   >
-                    {typeof item === "string"
-                      ? item.toUpperCase()[0] + item.slice(1)
-                      : ""}
+                    {formatted}
                   </Text>
                   <Text
                     style={{
-                      color: activeUserData.includes(
-                        Array.isArray(item) ? item[0] : (item as string),
-                      )
-                        ? "green"
-                        : Colors.darkGrey,
+                      color:
+                        otherUser?._id &&
+                        activeUserData?.includes(otherUser._id)
+                          ? Colors.green
+                          : Colors.darkGrey,
                     }}
                   >
-                    {activeUserData.includes(
-                      Array.isArray(item) ? item[0] : (item as string),
-                    )
+                    {otherUser?._id && activeUserData?.includes(otherUser._id)
                       ? "Online"
                       : "Offline"}
                   </Text>
@@ -440,9 +522,11 @@ const DirectChatScreen: React.FC = ({}) => {
           </View>
           <FlatList
             ref={flatListRef}
-            data={messagesMapData?.messages}
+            data={messages}
             renderItem={flatRenderFunction}
-            keyExtractor={(item) => `${item.timestamp.toString()}`}
+            keyExtractor={(item) => {
+              return item._id;
+            }}
             inverted
             style={[
               {
@@ -453,21 +537,62 @@ const DirectChatScreen: React.FC = ({}) => {
             ]}
             onEndReachedThreshold={0.2}
             onEndReached={() => {
-              if (!loading) {
-                setLoading(true);
-                loadOlderMsj({
-                  socketRef,
-                  cursor,
-                  setCursor,
-                  loading,
-                  setLoading,
-                  addMessageToMap,
-                  currentChatId,
-                  chatSeparator: ChatSeparator.PERSONAL,
-                });
-              }
+              if (loading || !cursor) return;
+              setLoading(true);
+              loadOlderMsj({
+                socketRef,
+                cursor,
+                setCursor,
+                loading,
+                setLoading,
+                addMessageToMap,
+                currentChatId,
+                chatSeparator: ChatSeparator.PERSONAL,
+              });
             }}
           />
+          <View
+            style={{
+              width: width,
+              backgroundColor: Colors.containerColor,
+              paddingVertical: 10,
+            }}
+          >
+            {showTyping && (
+              <Animated.View
+                style={{
+                  opacity: typingOpacity,
+                  transform: [
+                    {
+                      translateY: typingOpacity.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 0],
+                      }),
+                    },
+                  ],
+                  backgroundColor:
+                    theme === "dark" ? Colors.littleDarkGrey : Colors.white,
+                  borderColor:
+                    theme === "dark" ? Colors.littleDarkGrey : Colors.lightGrey,
+                  borderRadius: 10,
+                  marginLeft: 50,
+                  maxWidth: width * 0.7,
+                  alignSelf: "flex-start",
+                  flexDirection: "row",
+                  padding: 5,
+                  gap: 2,
+                }}
+              >
+                <Animated.Text style={{ opacity: dot1 }}>•</Animated.Text>
+                <Animated.Text style={{ opacity: dot2 }}>•</Animated.Text>
+                <Animated.Text style={{ opacity: dot3 }}>•</Animated.Text>
+
+                <Text numberOfLines={1} ellipsizeMode="tail" style={{}}>
+                  {`${otherUser?.unique_user_ID} is typing...`}
+                </Text>
+              </Animated.View>
+            )}
+          </View>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             keyboardVerticalOffset={100 / 2 + 10}
@@ -525,10 +650,28 @@ const DirectChatScreen: React.FC = ({}) => {
                 )}
               </View>
 
-              <View style={styles.input}>
+              <View
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: Colors.lightGrey,
+                  },
+                ]}
+              >
                 <TextInput
                   value={newMessage}
-                  onChangeText={(newMsj) => setNewMessage(newMsj)}
+                  onChangeText={(newMsj) => {
+                    setNewMessage(newMsj);
+                    handleTyping();
+                  }}
+                  onBlur={() => {
+                    if (typingRef.current) {
+                      typingRef.current = false;
+                      socketRef.current?.emit("chat-stop-typing", {
+                        chatId: currentChatId,
+                      });
+                    }
+                  }}
                   maxLength={2000}
                   style={{ flex: 1 }}
                   placeholderTextColor={Colors.darkGrey}
@@ -540,7 +683,7 @@ const DirectChatScreen: React.FC = ({}) => {
 
               <TouchableOpacity
                 style={styles.sendButton}
-                onPress={() =>
+                onPress={() => {
                   sendMessage({
                     messageText: newMessage,
                     socketRef: socketRef,
@@ -550,54 +693,92 @@ const DirectChatScreen: React.FC = ({}) => {
                     setNewMessage: setNewMessage,
                     flatListRef: flatListRef,
                     addMessageToMap: addMessageToMap,
-                    cursor: cursor,
-                  })
-                }
+                    cursor: cursorRef.current,
+                  });
+                  if (typingRef.current) {
+                    typingRef.current = false;
+                    socketRef.current?.emit("chat-stop-typing", {
+                      chatId: currentChatId,
+                    });
+                  }
+                }}
               >
                 <Ionicons name="send" size={32} color={Colors.primary} />
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
         </View>
-        <Modal
-          animationType="fade"
-          visible={childModalVisible}
-          style={{ zIndex: 2 }}
-        >
-          <SafeAreaProvider style={{ backgroundColor: Colors.white }}>
-            <SafeAreaView style={{ width: width, height: "100%" }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingHorizontal: 16,
-                  borderBottomColor: "#ddd",
-                  borderBottomWidth: 1,
-                  height: "10%",
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => {
-                    setChildModalVisible(false);
+        {childModalVisible && (
+          <Modal
+            animationType="fade"
+            visible={childModalVisible}
+            style={{ zIndex: 2 }}
+          >
+            <SafeAreaProvider style={{ backgroundColor: Colors.white }}>
+              <SafeAreaView style={{ width: width, height: "100%" }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingHorizontal: 16,
+                    borderBottomColor: "#ddd",
+                    borderBottomWidth: 1,
+                    height: "10%",
                   }}
                 >
-                  <Ionicons
-                    name="arrow-back-sharp"
-                    size={24}
-                    color={Colors.primary}
-                  />
-                </TouchableOpacity>
-                <Text style={{ fontSize: 24, color: Colors.primary }}>
-                  Group Chat Settings
-                </Text>
-              </View>
-            </SafeAreaView>
-          </SafeAreaProvider>
-        </Modal>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setChildModalVisible(false);
+                    }}
+                  >
+                    <Ionicons
+                      name="arrow-back-sharp"
+                      size={24}
+                      color={Colors.primary}
+                    />
+                  </TouchableOpacity>
+                  <Text style={{ fontSize: 24, color: Colors.primary }}>
+                    Group Chat Settings
+                  </Text>
+                </View>
+              </SafeAreaView>
+            </SafeAreaProvider>
+          </Modal>
+        )}
       </SafeAreaView>
     </SafeAreaProvider>
   );
 };
-
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    input: {
+      flex: 1,
+      borderRadius: 20,
+      padding: 7,
+      paddingHorizontal: 16,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 10,
+      gap: 10,
+    },
+    sendButton: {
+      padding: 12,
+      borderRadius: 25,
+      marginLeft: 8,
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    sendButtonText: {
+      fontSize: 16,
+      color: "#fff",
+      fontWeight: "bold",
+    },
+  });
 export default DirectChatScreen;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { SetStateAction } from "react";
 import { View, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -12,9 +12,11 @@ import Animated, {
 } from "react-native-reanimated";
 import { Checkbox } from "react-native-paper";
 import { NotificationItem } from "../notification";
+import { FontAwesome } from "@expo/vector-icons";
 
 type SwipeableRowProps = {
   item: NotificationItem;
+  itemSave: (id: string) => Promise<void>;
   onDelete: (id: string | number) => void;
   setSelectReady: React.Dispatch<React.SetStateAction<boolean>>;
   selectReady: boolean;
@@ -24,6 +26,7 @@ type SwipeableRowProps = {
 
 const SwipeableRow: React.FC<SwipeableRowProps> = ({
   item,
+  itemSave,
   onDelete,
   selectReady,
   selectedList,
@@ -32,15 +35,8 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
   const { colors: Colors } = useTheme();
   const styles = StyleSheet.create({
     notificationItem: {
-      backgroundColor: Colors.containerColor,
       borderRadius: 8,
-      marginHorizontal: 20,
-      marginVertical: 8,
       padding: 16,
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.15,
-      shadowRadius: 2,
-      elevation: 3,
     },
 
     notificationContent: {
@@ -158,90 +154,147 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
           </View>
         )}
         <TouchableOpacity
-          onPress={(clicked) => {
+          onPress={() => {
+            item.seen = true;
+            itemSave(item.id);
             return (expanded.value = !expanded.value);
           }}
-          style={{ flex: 1, width: selectReady ? width * 0.85 : width }}
+          style={{
+            flex: 1,
+            width: selectReady ? width * 0.85 : width,
+          }}
         >
           <View
-            style={[
-              styles.notificationItem,
-              {
-                borderWidth: 1,
-                borderColor:
-                  diffMinut < 5 ? Colors.primary : Colors.containerColor,
-              },
-            ]}
+            style={{
+              marginHorizontal: 20,
+              marginVertical: 8,
+              borderRadius: 8,
+              backgroundColor: Colors.containerColor,
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.15,
+              shadowRadius: 2,
+              elevation: 3,
+            }}
           >
-            <View style={styles.notificationContent}>
-              <View style={styles.notificationText}>
-                {/* BADGE */}
-                {diffMinut < 5 && (
-                  <View style={styles.badgeRow}>
-                    <AppText style={styles.badge}>NEW</AppText>
-                    <AppText style={styles.notificationTime}>
-                      {diffMinut < 60
-                        ? `${diffMinut} minutes ago`
-                        : format(new Date(item.time), "HH:mm")}
-                    </AppText>
-                  </View>
-                )}
-
-                {/* TITLE */}
-                <AppText style={styles.notificationMessage}>
-                  {item.message.title}
-                </AppText>
-
-                {/* INVISIBLE MEASUREMENT (NOT CLIPPED) */}
-                <View
-                  style={{ position: "absolute", opacity: 0, zIndex: -1 }}
-                  onLayout={(e) => {
-                    if (bodyHeight.value === 0) {
-                      bodyHeight.value = e.nativeEvent.layout.height;
-                    }
-                  }}
-                >
-                  <AppText style={styles.notificationMessage}>
-                    {item.message.body}
-                  </AppText>
-
-                  {diffMinut >= 5 && (
-                    <AppText style={styles.notificationTime}>
-                      {format(new Date(item.time), "PPp")}
-                    </AppText>
+            <View
+              style={[
+                styles.notificationItem,
+                {
+                  borderWidth: 1,
+                  borderColor:
+                    diffMinut < 5 ? Colors.primary : Colors.containerColor,
+                  backgroundColor: item.seen
+                    ? "#151a2060"
+                    : Colors.containerColor,
+                },
+              ]}
+            >
+              <View style={styles.notificationContent}>
+                <View style={styles.notificationText}>
+                  {/* BADGE */}
+                  {diffMinut < 5 && (
+                    <View style={styles.badgeRow}>
+                      <AppText style={styles.badge}>NEW</AppText>
+                      <AppText style={styles.notificationTime}>
+                        {diffMinut < 60
+                          ? `${diffMinut} minutes ago`
+                          : format(new Date(item.time), "HH:mm")}
+                      </AppText>
+                    </View>
                   )}
-                </View>
 
-                {/* ANIMATED BODY (CLIPPED) */}
-                <Animated.View
-                  style={[
-                    { overflow: "hidden", paddingTop: 8 },
-                    animatedBodyStyle,
-                  ]}
-                >
+                  {/* TITLE */}
                   <AppText
                     style={[
                       styles.notificationMessage,
                       {
-                        color: Colors.darkGrey,
+                        opacity: item.seen ? 0.4 : 1,
                       },
                     ]}
                   >
-                    {item.message.body}
+                    {item.message?.title}
                   </AppText>
-                </Animated.View>
-                {diffMinut >= 5 && (
-                  <AppText style={styles.notificationTime}>
-                    {format(new Date(item.time), "PPp")}
-                  </AppText>
-                )}
-              </View>
 
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={Colors.primary}
-              />
+                  {/* INVISIBLE MEASUREMENT (NOT CLIPPED) */}
+                  <View
+                    style={{ position: "absolute", opacity: 0, zIndex: -1 }}
+                    onLayout={(e) => {
+                      if (bodyHeight.value === 0) {
+                        bodyHeight.value = e.nativeEvent.layout.height;
+                      }
+                    }}
+                  >
+                    <AppText
+                      style={[
+                        styles.notificationMessage,
+                        {
+                          opacity: item.seen ? 0.4 : 1,
+                        },
+                      ]}
+                    >
+                      {item.message.body}
+                    </AppText>
+
+                    {diffMinut >= 5 && (
+                      <AppText style={styles.notificationTime}>
+                        {format(new Date(item.time), "PPp")}
+                      </AppText>
+                    )}
+                  </View>
+
+                  {/* ANIMATED BODY (CLIPPED) */}
+                  <Animated.View
+                    style={[
+                      { overflow: "hidden", paddingTop: 8 },
+                      animatedBodyStyle,
+                    ]}
+                  >
+                    <AppText
+                      style={[
+                        styles.notificationMessage,
+                        {
+                          color: Colors.darkGrey,
+                          opacity: item.seen ? 0.4 : 1,
+                        },
+                      ]}
+                    >
+                      {item.message.body}
+                    </AppText>
+                  </Animated.View>
+                  {diffMinut >= 5 && (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 5,
+                        alignItems: "center",
+                        marginTop: 10,
+                      }}
+                    >
+                      <FontAwesome
+                        name="check-circle"
+                        size={16}
+                        color={Colors.darkGrey}
+                      />
+                      <AppText
+                        style={[
+                          styles.notificationTime,
+                          {
+                            marginTop: 0,
+                          },
+                        ]}
+                      >
+                        {format(new Date(item.time), "PPp")}
+                      </AppText>
+                    </View>
+                  )}
+                </View>
+
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={Colors.primary}
+                />
+              </View>
             </View>
           </View>
         </TouchableOpacity>

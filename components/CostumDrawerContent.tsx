@@ -21,8 +21,6 @@ import { notificationPermission } from "@/hooks/permissions";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { useAuthQuery } from "@/hooks/useQuery";
-import ServerErrorScreen from "@/app/servererror";
-import { SvgUri } from "react-native-svg";
 import ProfileAvatar from "./profile_avatar";
 interface UserData {
   email: string;
@@ -164,7 +162,7 @@ const CustomDrawerContent = (props: any) => {
             <TouchableOpacity style={styles.headerTouchable}>
               <ProfileAvatar
                 imageUrl={userData?.userImage}
-                width={width}
+                width={width * 0.23}
                 userName={userData?.unique_user_ID}
               />
             </TouchableOpacity>

@@ -18,6 +18,7 @@ import AppText from "@/constants/appTextDefault";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useNotificationStore } from "@/app/(modals)/context/store/notificationStore";
 
 // Define NotificationItem type
 export type NotificationItem = {
@@ -62,6 +63,7 @@ const NotificationScreen = () => {
       color: "red",
     },
   });
+  const { seenNotification } = useNotificationStore();
   const [savedNotifications, setSavedNotifications] = useState<
     NotificationItem[]
   >([]);
@@ -92,7 +94,6 @@ const NotificationScreen = () => {
       time: n.timestamp,
       seen: n.seen ?? false,
     }));
-    transformed.map((s: any) => console.log(s.seen));
     setSavedNotifications(transformed);
   };
 
@@ -217,6 +218,7 @@ const NotificationScreen = () => {
             renderItem={({ item }) => (
               <SwipeableRow
                 item={item}
+                itemSave={seenNotification}
                 onDelete={() => deleteNotification(item.id)}
                 selectReady={selectReady}
                 setSelectReady={setSelectReady}

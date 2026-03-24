@@ -1,7 +1,11 @@
-import { FriendSeparator, FriendsType } from "@/interfaces/friendType";
+import {
+  Friend_Status,
+  FriendSeparator,
+  FriendsType,
+} from "@/interfaces/friendType";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
+import React, { SetStateAction } from "react";
 import { View, Text, TouchableOpacity, Dimensions } from "react-native";
 import { Image } from "react-native";
 import { useFriendStore } from "@/app/(modals)/context/store/friendStore";
@@ -12,8 +16,14 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import { queryClient } from "@/hooks/queryClient";
 import ProfileAvatar from "@/components/profile_avatar";
 
+interface FriendItemProps {
+  item: FriendsType;
+  userStatus: string;
+  onRemove: ({ id, type }: { id: string; type: FriendSeparator }) => void;
+  page: Record<FriendSeparator, number>;
+}
 export const FriendItem = React.memo(
-  ({ item, userStatus }: { item: FriendsType; userStatus: string }) => {
+  ({ item, userStatus, onRemove, page }: FriendItemProps) => {
     const { setFriendDetails } = useFriendStore();
     const { colors: Colors, theme } = useTheme();
     const width = Dimensions.get("screen").width;
@@ -23,7 +33,6 @@ export const FriendItem = React.memo(
         const response = await axiosInstance.post("/auth/friend_accept", {
           friend_unique_ID: user.unique_user_ID,
         });
-        console.log(response.data);
         if (response.data.success && response.status === 200) {
           Notifier.showNotification({
             title: "Friend Request Accepted",
@@ -32,7 +41,15 @@ export const FriendItem = React.memo(
             componentProps: { alertType: "success" },
           });
           queryClient.invalidateQueries({
-            queryKey: ["auth_friend"],
+            queryKey: [
+              "auth_friend",
+              FriendSeparator.REQUESTS,
+              page[FriendSeparator.REQUESTS],
+            ],
+          });
+          onRemove({
+            id: item.unique_user_ID,
+            type: FriendSeparator.REQUESTS,
           });
         } else {
           Notifier.showNotification({
@@ -77,7 +94,7 @@ export const FriendItem = React.memo(
             }}
           >
             <ProfileAvatar
-              width={width / 2}
+              width={(width / 2) * 0.23}
               imageUrl={item.userImage}
               userName={item.unique_user_ID}
             />

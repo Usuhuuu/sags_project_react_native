@@ -40,6 +40,7 @@ export type PostTypes = {
     users_info: [
       {
         unique_user_ID: string;
+        userImage: string | null;
       },
     ];
     hall_info: {
@@ -250,30 +251,34 @@ const TogetherScreen = () => {
         loading={loading}
         setLoading={setLoading}
       />
-      <Bottom_Renderer
-        visible={modalVisible}
-        setVisible={setModalVisible}
-        renderData={filterData}
-        selectedData={
-          modelBottomRenderType === "district"
-            ? selectedDistrict
-            : selectedSportType
-        }
-        onSelect={(item) => {
-          if (item.type === "district") {
-            setSelectedDistrict(item.id);
-          } else if (item.type === "sport_type") {
-            setSelectedSportType(item.id);
+      {modalVisible && (
+        <Bottom_Renderer
+          visible={modalVisible}
+          setVisible={setModalVisible}
+          renderData={filterData}
+          selectedData={
+            modelBottomRenderType === "district"
+              ? selectedDistrict
+              : selectedSportType
           }
-        }}
-        selectingType={modelBottomRenderType}
-      />
-      <MonthCalendar
-        calendarModalVisible={monthCalendarVisible}
-        setCalendarModalVisible={setMonthCalendarVisible}
-        initDate={new Date()}
-        handleMonthFilter={selectFunc}
-      />
+          onSelect={(item) => {
+            if (item.type === "district") {
+              setSelectedDistrict(item.id);
+            } else if (item.type === "sport_type") {
+              setSelectedSportType(item.id);
+            }
+          }}
+          selectingType={modelBottomRenderType}
+        />
+      )}
+      {monthCalendarVisible && (
+        <MonthCalendar
+          calendarModalVisible={monthCalendarVisible}
+          setCalendarModalVisible={setMonthCalendarVisible}
+          initDate={new Date()}
+          handleMonthFilter={selectFunc}
+        />
+      )}
     </View>
   );
 };

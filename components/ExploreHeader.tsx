@@ -149,7 +149,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   const windowHeight = Dimensions.get("window").height;
 
   const loadNotifications = useNotificationStore(
-    (state) => state.loadNotifications
+    (state) => state.loadNotifications,
   );
   const notifications = useNotificationStore((state) => state.notifications);
   const notificationAnimationRef = useRef<LottieView>(null);
@@ -166,7 +166,8 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
 
   // If you want to track count:
   useEffect(() => {
-    setNotificationCount(notifications.length);
+    const tempCount = notifications.filter((n) => n.seen !== true);
+    setNotificationCount(tempCount.length);
     if (notifications.length > 0) {
       notificationAnimationRef.current?.reset();
       notificationAnimationRef.current?.play();
@@ -179,7 +180,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       bottomSheetY.value,
       [0, windowHeight * 0.5],
       [-80, 0],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
     return {
       transform: [{ translateY: translateYValue }],
@@ -191,7 +192,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     const backgroundColor = interpolateColor(
       bottomSheetY.value,
       [windowHeight * 0.00001, 0],
-      ["transparent", Colors.backgroundColor]
+      ["transparent", Colors.backgroundColor],
     );
     return { backgroundColor: backgroundColor };
   });
@@ -222,7 +223,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       (selected as unknown as View).measure(
         (_fx, fy, width, height, px, py) => {
           scrollRef.current?.scrollTo({ x: px - 16, animated: true });
-        }
+        },
       );
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

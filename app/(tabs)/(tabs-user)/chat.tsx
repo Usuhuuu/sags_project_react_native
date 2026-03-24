@@ -2,8 +2,6 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
-  FlatList,
-  StyleSheet,
   TouchableOpacity,
   Dimensions,
   Image,
@@ -13,31 +11,14 @@ import {
 import { Socket } from "socket.io-client";
 import * as Sentry from "@sentry/react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { differenceInDays } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/app/(modals)/context/authContext";
-import MainChatModal from "@/app/(modals)/authentication/modals/mainChatModal";
 import { useFocusEffect } from "expo-router";
-import { connectSocket, getSocket } from "@/hooks/socketConnection";
+import { connectSocket } from "@/hooks/socketConnection";
 import { FontAwesome } from "@expo/vector-icons";
-import {
-  ChatSeparator,
-  Message,
-  GroupChat,
-  MessageHistory,
-  ActiveUserType,
-} from "@/interfaces/chatType";
-import { generatedId } from "@/app/(modals)/chat/util/objectID";
-import {
-  MemoizedChatItem,
-  newMessagePrepareFunction,
-  prepareMessages,
-} from "@/app/(modals)/chat/util/message_function";
+import { ActiveUserType, ChatTypes } from "@/interfaces/chatType";
 import PersonalChat from "@/app/(modals)/chat/components/personal_chat";
-import GroupChatComponent from "@/app/(modals)/chat/components/group_chat";
 import FilterModal from "@/app/(modals)/chat/components/filter_modal";
-import { useChatStore } from "@/app/(modals)/context/store/chatStore";
-import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "@/app/(modals)/context/themeContext";
 import {
   RQ_regular_cache_key,
@@ -48,39 +29,23 @@ import { useIsFocused } from "@react-navigation/native";
 
 const ChatComponent: React.FC = () => {
   const { colors: Colors } = useTheme();
-  const [chatGroups, setChatGroups] = useState<{ [key: string]: GroupChat }>(
-    {},
-  );
-  const [newMessage, setNewMessage] = useState<string>("");
-  const [mainModalShow, setmainModalShow] = useState<boolean>(false);
+  const [chat, setChat] = useState<Record<string, ChatTypes>>({});
   const [userDatas, setUserDatas] = useState<any>([]);
-  const [cursor, setCursor] = useState<Date | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [isitReady, setIsitReady] = useState<boolean>(false);
-  const [childModalVisible, setChildModalVisible] = useState<boolean>(false);
   const [activeUserData, setActiveUserData] = useState<ActiveUserType[]>([]);
   const [fullScreenShow, setFullScreenShow] = useState<boolean>(false);
   const [noChatExist, setNoChatExist] = useState<boolean>(false);
 
   const socketRef = useRef<Socket | null>(null);
-  const flatListRef = useRef<FlatList | null>(null);
   const currentChatId = useRef<string>("");
 
   //setMessagesMap
-  const [chatSeparator, setChatSeparator] = useState<ChatSeparator>(
-    ChatSeparator.PERSONAL,
-  );
+
   const [chatSearchValue, setChatSearchValue] = useState<string>("");
   const [showFilterVisible, setShowFilterVisible] = useState<boolean>(false);
 
   const { t } = useTranslation();
   const { LoginStatus } = useAuth();
-
-  const { addMessageToMap } = useChatStore();
-
-  const messagesMap = useChatStore((state) => {
-    return state.messagesMap;
-  });
   const isFocused = useIsFocused();
 
   const {
@@ -122,62 +87,19 @@ const ChatComponent: React.FC = () => {
     if (chatLoading) {
       setLoading(true);
     } else if (chatData && chatData.success) {
-      const allGroups = [
-        ...(chatData.chatGroupIDs?.chat || []),
-        ...(chatData.chatGroupIDs?.directChat || []),
-      ];
-      const map = {} as { [groupId: string]: GroupChat };
-      allGroups.forEach((groupID: any) => {
-        const groupChatName = groupID.group_chat_name;
-        const regex =
-          /(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\s+[–-]\s+(\d{2}:\d{2})/;
-        if (typeof groupChatName === "string") {
-          const match = groupChatName.match(regex);
-          if (match) {
-            const [_, date, startTime, endTime] = match;
-            const indexOfDate = groupChatName.indexOf(date);
-            const sportHallName = groupChatName
-              .substring(0, indexOfDate)
-              .replace(/-\s*$/, "")
-              .trim();
-
-            map[groupID._id] = {
-              group_ID: groupID._id,
-              members: groupID.members,
-              group_chat_name: `${sportHallName} - ${date} ${startTime} – ${endTime}`,
-              chat_image: groupID.chat_image,
-              sportHallName,
-              date,
-              startTime,
-              endTime,
-            };
-            return;
-          }
-        }
-        if (groupID.individualChat && Array.isArray(groupID.members)) {
-          const otherMember = groupID.members.find(
-            (member: string) => member !== userDatas.unique_user_ID,
-          );
-          map[groupID._id] = {
-            individualChat: groupID._id,
-            members: groupID.members,
-            group_chat_name: otherMember || "Direct Chat",
-            chat_image: groupID.chat_image,
-            notUser: groupID.notUser || [],
-            latestMessage: groupID.latestMessage || undefined,
-            unseenCount: groupID.unseenCount || 0,
-          };
-          return;
-        }
-        map[groupID._id] = {
-          group_ID: groupID._id,
-          members: groupID.members,
-          group_chat_name: groupChatName,
-          chat_image: groupID.chat_image,
+      const map: Record<string, ChatTypes> = {};
+      chatData.chat.forEach((chat: any) => {
+        map[chat._id] = {
+          chatId: chat._id,
+          members: chat.members,
+          group_chat_name: "Direct Chat",
+          chat_image: chat.latestMessage || undefined,
+          unseenCount: chat.unseenCount || 0,
+          userInfo: chat.userInfo,
         };
       });
 
-      setChatGroups(map);
+      setChat(map);
       setFullScreenShow(true);
     } else if (chatData && !chatData.success) {
       console.log("no chat ");
@@ -204,94 +126,6 @@ const ChatComponent: React.FC = () => {
     }
   }, [userData, userError, userLoading]);
 
-  const joinSpecificChat = async (groupId: string) => {
-    socketRef.current = getSocket();
-    if (!socketRef || !socketRef.current?.connected) {
-      console.warn("Socket not ready");
-      await connectSocket();
-    }
-
-    if ((socketRef as any).currentGroupId === groupId) {
-      setmainModalShow(true);
-      return;
-    }
-
-    if (currentChatId.current) {
-      socketRef.current?.emit("leave_group", currentChatId.current);
-    }
-    socketRef.current?.emit("joinGroup", { item: groupId }, (data: any) => {
-      if (!data.success) {
-        Notifier.showNotification({
-          title: "Oops",
-          description: "You are not allow to join this chat",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
-        });
-        return;
-      }
-      currentChatId.current = groupId;
-
-      socketRef.current?.emit(
-        "chatHistory",
-        { timer: Date.now() },
-        (message: MessageHistory) => {
-          setIsitReady(true);
-          if (message.nextCursor === null && message.messages.length === 0) {
-            setLoading(false);
-            setIsitReady(false);
-            return;
-          }
-          const formattedMessages = prepareMessages(
-            message.messages,
-            message.nextCursor,
-            message.no_more_message,
-          );
-          addMessageToMap({
-            chatID: currentChatId.current,
-            messages: formattedMessages,
-            newSendedMsj: false,
-            no_more_message: message.no_more_message,
-            cursor: cursor,
-          });
-          if (message.no_more_message) {
-            setLoading(false);
-            setIsitReady(false);
-          }
-          setCursor(message.nextCursor);
-          setIsitReady(false);
-        },
-      );
-      setmainModalShow(true);
-      socketRef.current?.off("receiveMessage");
-      socketRef.current?.on("receiveMessage", (data: Message) => {
-        const newMsj: Message = {
-          _id: data._id,
-          sender_unique_name: data.sender_unique_name,
-          groupId: data.groupId,
-          message: data.message,
-          timestamp: new Date(data.timestamp),
-        };
-        const preparedMsj = newMessagePrepareFunction(
-          newMsj,
-          messagesMap,
-          currentChatId,
-        );
-
-        addMessageToMap({
-          chatID: currentChatId.current,
-          messages: preparedMsj,
-          newSendedMsj: true,
-          cursor: cursor,
-        });
-
-        flatListRef.current?.scrollToIndex({
-          index: 0,
-          animated: true,
-        });
-      });
-    });
-  };
-
   useFocusEffect(
     useCallback(() => {
       const initSocket = async () => {
@@ -305,23 +139,13 @@ const ChatComponent: React.FC = () => {
       initSocket();
       return () => {
         if (socketRef.current) {
-          socketRef.current.off("receiveMessage");
-          if (currentChatId.current) {
-            socketRef.current?.emit("leave_group", currentChatId.current);
+          if (!currentChatId.current) {
+            socketRef.current.disconnect();
           }
-          socketRef.current.disconnect();
         }
       };
     }, []),
   );
-
-  useEffect(() => {
-    if (mainModalShow) {
-      socketRef.current?.emit("chat-active");
-    } else {
-      socketRef.current?.emit("chat-inactive");
-    }
-  }, [mainModalShow]);
 
   //User Active and recieve msj with connect to socket
   useEffect(() => {
@@ -337,9 +161,7 @@ const ChatComponent: React.FC = () => {
       );
     });
     socketRef.current.on("directMessageReceived", (data) => {
-      console.log("Pisdas", data);
-
-      setChatGroups((prev) => {
+      setChat((prev) => {
         return {
           ...prev,
           [data.chatID]: {
@@ -365,111 +187,9 @@ const ChatComponent: React.FC = () => {
     };
   }, [socketRef.current]);
 
-  const sendMessage = async (messageText: string) => {
-    if (!messageText.trim()) return;
-    if (!socketRef.current?.connected) return;
-    const newMessage = {
-      _id: generatedId(),
-      sender_unique_name: userDatas.unique_user_ID,
-      groupId: currentChatId.current,
-      message: messageText,
-      timestamp: new Date(),
-    };
-    const prevMsj = messagesMap.get(currentChatId.current)?.messages[0];
-    const diff = differenceInDays(
-      newMessage.timestamp,
-      prevMsj?.timestamp || new Date(0),
-    );
-    if (diff > 0 || diff < 0) {
-      const newMsjPrepared = {
-        ...newMessage,
-        showDateSeparator: true,
-      };
-      addMessageToMap({
-        chatID: currentChatId.current,
-        messages: [newMsjPrepared],
-        newSendedMsj: true,
-        cursor: cursor,
-      });
-    } else {
-      const newMsjPrepared = {
-        ...newMessage,
-        showDateSeparator: false,
-      };
-      addMessageToMap({
-        chatID: currentChatId.current,
-        messages: [newMsjPrepared],
-        newSendedMsj: true,
-        cursor: cursor,
-      });
-    }
-    setNewMessage("");
-    socketRef.current.emit("sendMessage", newMessage);
-    flatListRef.current?.scrollToIndex({
-      index: 0,
-      animated: true,
-    });
-  };
-
   const height = Dimensions.get("window").height;
   const width = Dimensions.get("window").width;
   const { bottom } = useSafeAreaInsets();
-
-  const renderChatItem = useCallback(
-    ({ item }: { item: Message }) => {
-      return <MemoizedChatItem item={item} userDatas={userDatas} />;
-    },
-    [userDatas],
-  );
-
-  const loadOlderMsj = async () => {
-    if (!socketRef.current?.connected || !cursor) return;
-    socketRef.current?.emit(
-      "chatHistory",
-      { timer: cursor },
-      (message: MessageHistory) => {
-        if (
-          !message.messages ||
-          message.messages.length === 0 ||
-          message.nextCursor == null
-        ) {
-          setLoading(false);
-          return;
-        }
-        const formattedMessages = prepareMessages(
-          message.messages,
-          message.nextCursor,
-          message.no_more_message,
-        );
-        addMessageToMap({
-          chatID: currentChatId.current,
-          messages: formattedMessages,
-          newSendedMsj: false,
-          no_more_message: message.no_more_message,
-          cursor: cursor,
-        });
-
-        setCursor(message.nextCursor);
-        setLoading(false);
-      },
-    );
-  };
-
-  const result = Object.values(chatGroups).reduce(
-    (
-      acc: { individualChat: GroupChat[]; group_chat: GroupChat[] },
-      item: GroupChat,
-    ) => {
-      if (item.individualChat !== undefined) {
-        acc.individualChat.push(item);
-      } else if (item.group_ID !== undefined) {
-        acc.group_chat.push(item);
-      }
-      return acc;
-    },
-    { individualChat: [], group_chat: [] },
-  );
-
   const chatInitLang: any = t("chatRoom", { returnObjects: true });
 
   return (
@@ -496,70 +216,6 @@ const ChatComponent: React.FC = () => {
               margin: 10,
             }}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                backgroundColor: Colors.containerColor,
-                borderRadius: 10,
-                shadowColor: Colors.shadowColor,
-                shadowOffset: { width: 4, height: 2 },
-                shadowOpacity: 0.4,
-                opacity: 4,
-                marginVertical: 5,
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => {
-                  setChatSeparator(ChatSeparator.GROUP);
-                }}
-                style={{
-                  backgroundColor:
-                    chatSeparator === ChatSeparator.GROUP
-                      ? Colors.primary
-                      : Colors.containerColor,
-                  borderRadius: 10,
-                  width: "50%",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      chatSeparator === ChatSeparator.GROUP
-                        ? Colors.white
-                        : Colors.darkGrey,
-                  }}
-                >
-                  {chatInitLang.groupChats}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setChatSeparator(ChatSeparator.PERSONAL)}
-                style={{
-                  backgroundColor:
-                    chatSeparator === ChatSeparator.PERSONAL
-                      ? Colors.primary
-                      : Colors.containerColor,
-                  borderRadius: 10,
-                  width: "50%",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  padding: 7,
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      chatSeparator === ChatSeparator.PERSONAL
-                        ? Colors.white
-                        : Colors.darkGrey,
-                  }}
-                >
-                  {chatInitLang.individualChat}
-                </Text>
-              </TouchableOpacity>
-            </View>
             <View
               style={{
                 borderRadius: 10,
@@ -630,18 +286,8 @@ const ChatComponent: React.FC = () => {
               </View>
             </View>
           </View>
-          {chatSeparator === ChatSeparator.GROUP && (
-            <GroupChatComponent
-              chats={result.group_chat}
-              join_function={joinSpecificChat}
-            />
-          )}
-          {chatSeparator === ChatSeparator.PERSONAL && (
-            <PersonalChat
-              chats={result.individualChat}
-              join_function={joinSpecificChat}
-            />
-          )}
+
+          <PersonalChat chats={chat} currentChatId={currentChatId} />
         </ScrollView>
       </View>
       {noChatExist ? (
@@ -684,28 +330,6 @@ const ChatComponent: React.FC = () => {
         </View>
       ) : (
         <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
-          {mainModalShow && (
-            <MainChatModal
-              mainModalShow={mainModalShow}
-              setmainModalShow={setmainModalShow}
-              isitReady={isitReady}
-              setChildModalVisible={setChildModalVisible}
-              childModalVisible={childModalVisible}
-              message={messagesMap}
-              loadOlderMsj={loadOlderMsj}
-              loading={loading}
-              flatListRef={flatListRef}
-              newMessage={newMessage}
-              setNewMessage={setNewMessage}
-              sendMessage={sendMessage}
-              renderChatItem={renderChatItem}
-              groupMap={chatGroups}
-              activeUserData={activeUserData}
-              socketRef={socketRef}
-              groupID={currentChatId.current}
-              currentChatId={currentChatId}
-            />
-          )}
           {showFilterVisible && (
             <FilterModal
               showFilterVisible={showFilterVisible}

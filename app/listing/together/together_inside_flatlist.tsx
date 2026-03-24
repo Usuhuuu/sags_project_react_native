@@ -1,5 +1,5 @@
 import { useTheme } from "@/app/(modals)/context/themeContext";
-import { PostTypes } from "@/app/(tabs)/inbox";
+import { PostTypes } from "@/app/(tabs)/(tabs-user)/inbox";
 import AppText from "@/constants/appTextDefault";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
@@ -9,6 +9,7 @@ import { View, FlatList, TouchableOpacity, Dimensions } from "react-native";
 import dayjs from "dayjs";
 import { router } from "expo-router";
 import { usePostStore } from "@/app/(modals)/context/store/postStore";
+import ProfileAvatar from "@/components/profile_avatar";
 
 interface TogetherInsideFlatListProps {
   data: PostTypes[] | undefined;
@@ -24,6 +25,7 @@ const TogetherInsideFlatList = ({
   const { colors, theme } = useTheme();
   const { setPostDetails, postDetails } = usePostStore();
 
+  const width = Dimensions.get("screen").width;
   const renderItem = useCallback(
     ({ item }: { item: PostTypes }) => (
       <View
@@ -57,14 +59,10 @@ const TogetherInsideFlatList = ({
               marginBottom: 8,
             }}
           >
-            <View
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 19,
-                backgroundColor: "#1c1c1c",
-                marginRight: 10,
-              }}
+            <ProfileAvatar
+              width={(width / 2) * 0.23}
+              imageUrl={item.block.users_info[0]?.userImage}
+              userName={item.block?.users_info[0].unique_user_ID}
             />
             <View style={{ flex: 1 }}>
               <AppText style={{ fontSize: 14, fontWeight: "500" }}>

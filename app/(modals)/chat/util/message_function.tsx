@@ -12,16 +12,17 @@ import {
   format,
   parseISO,
 } from "date-fns";
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useMemo } from "react";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { Avatar } from "react-native-paper";
 import { generatedId } from "./objectID";
 import { useTheme } from "../../context/themeContext";
+import ProfileAvatar from "@/components/profile_avatar";
 
 export const prepareMessages = (
   messages: Message[],
   cursorValue: Date | null,
-  no_more_message: boolean
+  no_more_message: boolean,
 ) => {
   if (messages.length < 20 || cursorValue === null) {
   }
@@ -57,7 +58,7 @@ export const prepareMessages = (
 
       const diff = differenceInMinutes(
         parseISO(currentMsj.timestamp.toString()),
-        parseISO(nextMsg.timestamp.toString())
+        parseISO(nextMsg.timestamp.toString()),
       );
 
       const isDifferentUser =
@@ -94,20 +95,28 @@ export const prepareMessages = (
   return result;
 };
 
+const formatDate = (date: Date | number | string) => {
+  if (!date) return new Date();
+  if (date instanceof Date) return date;
+  if (typeof date === "number") return new Date(date);
+  return parseISO(date);
+};
+
 export const newMessagePrepareFunction = (
   messages: Message,
   messagesMap: Map<string, MessageMapState>,
-  currentChatId: React.RefObject<string>
+  currentChatId: string,
 ) => {
-  const existingMessages = currentChatId.current
-    ? messagesMap.get(currentChatId.current)
+  const existingMessages = currentChatId
+    ? messagesMap.get(currentChatId)
     : undefined;
   const prevMsj = existingMessages?.messages[0];
-  const diff = differenceInDays(
-    parseISO(messages.timestamp.toString()),
-    prevMsj ? parseISO(prevMsj.timestamp.toString()) : new Date()
-  );
-  console.log(diff);
+
+  const prevDate = prevMsj ? formatDate(prevMsj.timestamp) : new Date(0);
+  const currDate = formatDate(messages.timestamp);
+
+  const diff = differenceInDays(currDate, prevDate);
+  console.log("TIME DIFF", diff);
   if (diff > 0 || diff < 0) {
     return [
       {
@@ -125,126 +134,20 @@ export const newMessagePrepareFunction = (
 };
 
 export const MemoizedChatItem = React.memo(
-  ({ item, userDatas }: { item: Message; userDatas: any }) => {
+  ({
+    item,
+    userDatas,
+    otherUser,
+  }: {
+    item: Message;
+    userDatas: any;
+    otherUser: string;
+  }) => {
     const { colors: Colors, theme } = useTheme();
-    const styles = StyleSheet.create({
-      container: {
-        flex: 1,
-        backgroundColor: "#F9FAFB",
-      },
-      title: {
-        fontSize: 28,
-        marginVertical: 16,
-        textAlign: "center",
-        fontWeight: "bold",
-        color: "#333",
-      },
-      subtitle: {
-        fontSize: 20,
-        marginVertical: 12,
-        fontWeight: "600",
-        color: "#555",
-        textAlign: "center",
-      },
-      groupItemContainer: {
-        marginVertical: 20,
-        marginHorizontal: 20,
-      },
-      groupItem: {
-        padding: 10,
-        marginVertical: 7,
-        borderRadius: 5,
-        backgroundColor: Colors.white,
-        shadowColor: Colors.dark,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 4,
-        width: "90%",
-      },
-      textContainer: {
-        flexDirection: "row",
-        gap: 1,
-      },
-      showHiderContainer: {
-        padding: 10,
-        marginVertical: 7,
-        borderRadius: 5,
-        width: "90%",
-        flexDirection: "row",
-        justifyContent: "space-between",
-      },
-      groupText: {
-        fontSize: 18,
-        color: "black",
-        fontWeight: "bold",
-        textAlign: "center",
-      },
-      messageContainer: {
-        width: "100%",
-      },
-      userNameText: {
-        fontSize: 13,
-        color: Colors.primary,
-        textShadowColor: Colors.primary,
-        textShadowRadius: 0.5,
-      },
-      messageText: {
-        padding: 5,
-        fontSize: 18,
-        justifyContent: "center",
-        alignItems: "center",
-        textAlign: "center",
-      },
-      messagesList: {
-        //height: Dimensions.get("window").height,
-      },
-      inputContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderTopWidth: 1,
-        borderColor: "#ddd",
-        gap: 10,
-      },
-
-      msjContainer: {
-        marginHorizontal: 10,
-      },
-      msjInside: {
-        borderWidth: 1,
-        paddingHorizontal: 5,
-      },
-      TimerContainer: {
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
-      },
-
-      dateSeparator: {
-        flexDirection: "row",
-        alignItems: "center",
-        width: "100%",
-        paddingHorizontal: 10,
-      },
-      line: {
-        flex: 1,
-        height: 1,
-        backgroundColor: Colors.primary,
-        marginHorizontal: 5,
-      },
-      dateText: {
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        color: Colors.primary,
-        fontWeight: "400",
-      },
-    });
-
-    const userSelf: boolean =
-      item.sender_unique_name === userDatas.unique_user_ID;
+    const styles = useMemo(() => createStyle(Colors, theme), [Colors, theme]);
+    const userSelf: boolean = item.sender_unique_name === userDatas.userId;
+    const width = Dimensions.get("window").width;
+    const w = (width / 2.7) * 0.23;
     return (
       <View>
         {item.showDateSeparator && (
@@ -270,7 +173,11 @@ export const MemoizedChatItem = React.memo(
             {/* Show avatar only if NOT userSelf and there's a time gap */}
             <View style={{ width: 30, marginRight: 6 }}>
               {!userSelf && item.showAvatar && (
-                <Avatar.Icon size={30} icon={"account"} />
+                <ProfileAvatar
+                  imageUrl={null}
+                  width={w}
+                  userName={userDatas.unique_user_ID}
+                />
               )}
             </View>
 
@@ -360,14 +267,129 @@ export const MemoizedChatItem = React.memo(
     );
   },
   (prev, next) =>
+    prev.item._id === next.item._id &&
     prev.item.message === next.item.message &&
     prev.item.timestamp === next.item.timestamp &&
-    prev.item.showDateSeparator === next.item.showDateSeparator &&
     prev.item.showAvatar === next.item.showAvatar &&
     prev.item.showTimeGap === next.item.showTimeGap &&
-    prev.item.sender_unique_name === next.item.sender_unique_name &&
-    prev.userDatas.unique_user_ID === next.userDatas.unique_user_ID
+    prev.userDatas.userId === next.userDatas.userId,
 );
+const createStyle = (Colors: any, theme: "dark" | "light") =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#F9FAFB",
+    },
+    title: {
+      fontSize: 28,
+      marginVertical: 16,
+      textAlign: "center",
+      fontWeight: "bold",
+      color: "#333",
+    },
+    subtitle: {
+      fontSize: 20,
+      marginVertical: 12,
+      fontWeight: "600",
+      color: "#555",
+      textAlign: "center",
+    },
+    groupItemContainer: {
+      marginVertical: 20,
+      marginHorizontal: 20,
+    },
+    groupItem: {
+      padding: 10,
+      marginVertical: 7,
+      borderRadius: 5,
+      backgroundColor: Colors.white,
+      shadowColor: Colors.dark,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 4,
+      width: "90%",
+    },
+    textContainer: {
+      flexDirection: "row",
+      gap: 1,
+    },
+    showHiderContainer: {
+      padding: 10,
+      marginVertical: 7,
+      borderRadius: 5,
+      width: "90%",
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    groupText: {
+      fontSize: 18,
+      color: "black",
+      fontWeight: "bold",
+      textAlign: "center",
+    },
+    messageContainer: {
+      width: "100%",
+    },
+    userNameText: {
+      fontSize: 13,
+      color: Colors.primary,
+      textShadowColor: Colors.primary,
+      textShadowRadius: 0.5,
+    },
+    messageText: {
+      padding: 5,
+      fontSize: 18,
+      justifyContent: "center",
+      alignItems: "center",
+      textAlign: "center",
+    },
+    messagesList: {
+      //height: Dimensions.get("window").height,
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderColor: "#ddd",
+      gap: 10,
+    },
+
+    msjContainer: {
+      marginHorizontal: 10,
+    },
+    msjInside: {
+      borderWidth: 1,
+      paddingHorizontal: 5,
+    },
+    TimerContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+    },
+
+    dateSeparator: {
+      flexDirection: "row",
+      alignItems: "center",
+      width: "100%",
+      paddingHorizontal: 10,
+    },
+    line: {
+      flex: 1,
+      height: 1,
+      backgroundColor: Colors.primary,
+      marginHorizontal: 5,
+    },
+    dateText: {
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+      color: Colors.primary,
+      fontWeight: "400",
+    },
+  });
 
 export const loadOlderMsj = async ({
   socketRef,
@@ -397,10 +419,10 @@ export const loadOlderMsj = async ({
       const formattedMessages = prepareMessages(
         response.messages,
         response.nextCursor,
-        response.no_more_message
+        response.no_more_message,
       );
       addMessageToMap({
-        chatID: currentChatId.current ?? "",
+        chatID: currentChatId ?? "",
         messages: formattedMessages,
         newSendedMsj: false,
         no_more_message: response.no_more_message,
@@ -408,7 +430,7 @@ export const loadOlderMsj = async ({
       });
       setCursor(response.nextCursor);
       setLoading(false);
-    }
+    },
   );
 };
 
@@ -427,16 +449,16 @@ export const sendMessage = async ({
   if (!socketRef.current?.connected) return;
   const newMessage = {
     _id: generatedId(),
-    sender_unique_name: userDataParsed.unique_user_ID,
+    sender_unique_name: userDataParsed.userId,
     message: messageText,
     timestamp: new Date(),
   };
 
-  const prevMsj = messagesMap.get(currentChatId.current)?.messages[0];
+  const prevMsj = messagesMap.get(currentChatId)?.messages[0];
 
   const diff = differenceInDays(
     newMessage.timestamp,
-    prevMsj?.timestamp || new Date(0)
+    prevMsj?.timestamp || new Date(0),
   );
   if (diff > 0 || diff < 0) {
     const newMsjPrepared = {
@@ -444,7 +466,7 @@ export const sendMessage = async ({
       showDateSeparator: true,
     };
     addMessageToMap({
-      chatID: currentChatId.current,
+      chatID: currentChatId,
       messages: [newMsjPrepared],
       newSendedMsj: true,
       cursor: cursor,
@@ -455,13 +477,13 @@ export const sendMessage = async ({
       showDateSeparator: false,
     };
     addMessageToMap({
-      chatID: currentChatId.current,
+      chatID: currentChatId,
       messages: [newMsjPrepared],
       newSendedMsj: true,
       cursor: cursor,
     });
   }
-  socketRef.current.emit("directChatSend", newMessage);
+  socketRef.current.emit("chat-send", newMessage);
   setNewMessage("");
   flatListRef.current?.scrollToIndex({
     index: 0,

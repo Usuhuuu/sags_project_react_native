@@ -3,9 +3,7 @@ import { FlatList } from "react-native";
 import { Socket } from "socket.io-client";
 
 export enum ChatSeparator {
-    PERSONAL = "personal",
-    GROUP = "group",
-    CHANNEL = "channel",
+  PERSONAL = "personal",
 }
 
 export type ChatSeparatorValue = `${ChatSeparator}`;
@@ -24,10 +22,9 @@ export interface LoadOlderMsjProp {
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   addMessageToMap: (params: MessageAddType) => void;
-  currentChatId: React.RefObject<string>;
+  currentChatId: string;
   chatSeparator: ChatSeparatorValue;
 }
-
 
 export interface Message {
   _id: string;
@@ -42,29 +39,17 @@ export interface Message {
   showAvatar?: boolean;
   seenBy?: string[];
 }
-
-export interface GroupChat {
-  group_ID?: string | undefined;
-  group_chat_name: string;
-  members: string[];
-  chat_image: string;
-  sportHallName?: string;
-  date?: string;
-  startTime?: string;
-  endTime?: string;
-  individualChat?: string | undefined;
-  notUser?: string[] | undefined;
-  latestMessage?: {
-    _id?: string;
-    sender_unique_name?: string;
-    message?: string;
-    timestamp?: Date;
-    seenBy?: string[];
-  };
-  unseenCount?: number;
-  isGroup?: boolean;
+export interface ChatTypes {
+  chatId: string;
+  members: string;
+  group_chat_name: "Direct Chat";
+  chat_image: string | undefined;
+  unseenCount: number;
+  userInfo: {
+    _id: string;
+    unique_user_ID: string;
+  }[];
 }
-
 export type MessageHistory = {
   nextCursor: Date | null;
   messages: Message[];
@@ -79,18 +64,17 @@ export interface ActiveUserType {
 export type MessageMapState = {
   messages: Message[];
   no_more_message?: boolean;
-  cursor: Date|null
+  cursor: Date | null;
 };
-
 
 export interface SendMessageProp {
   socketRef: React.MutableRefObject<Socket | null>;
   messageText: string;
   userDataParsed: any;
   messagesMap: Map<string, MessageMapState>;
-  currentChatId: React.MutableRefObject<string>;
+  currentChatId: string;
   setNewMessage: React.Dispatch<React.SetStateAction<string>>;
   flatListRef: React.MutableRefObject<FlatList | null>;
   addMessageToMap: (params: MessageAddType) => void;
-  cursor: Date | null
+  cursor: Date | null;
 }
