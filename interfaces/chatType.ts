@@ -42,7 +42,6 @@ export interface Message {
 export interface ChatTypes {
   chatId: string;
   members: string;
-  group_chat_name: "Direct Chat";
   chat_image: string | undefined;
   unseenCount: number;
   userInfo: {
@@ -77,4 +76,5 @@ export interface SendMessageProp {
   flatListRef: React.MutableRefObject<FlatList | null>;
   addMessageToMap: (params: MessageAddType) => void;
   cursor: Date | null;
+  friendInfo: ChatTypes["userInfo"] | undefined;
 }

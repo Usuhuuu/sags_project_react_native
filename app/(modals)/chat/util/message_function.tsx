@@ -14,7 +14,6 @@ import {
 } from "date-fns";
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
-import { Avatar } from "react-native-paper";
 import { generatedId } from "./objectID";
 import { useTheme } from "../../context/themeContext";
 import ProfileAvatar from "@/components/profile_avatar";
@@ -444,6 +443,7 @@ export const sendMessage = async ({
   flatListRef,
   addMessageToMap,
   cursor,
+  friendInfo,
 }: SendMessageProp) => {
   if (!messageText.trim()) return;
   if (!socketRef.current?.connected) return;
@@ -483,7 +483,10 @@ export const sendMessage = async ({
       cursor: cursor,
     });
   }
-  socketRef.current.emit("chat-send", newMessage);
+  socketRef.current.emit("chat-send", {
+    msgData: newMessage,
+    friendInfo: friendInfo,
+  });
   setNewMessage("");
   flatListRef.current?.scrollToIndex({
     index: 0,

@@ -1,13 +1,8 @@
-import {
-  Friend_Status,
-  FriendSeparator,
-  FriendsType,
-} from "@/interfaces/friendType";
+import { FriendSeparator, FriendsType } from "@/interfaces/friendType";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { SetStateAction } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, Dimensions } from "react-native";
-import { Image } from "react-native";
 import { useFriendStore } from "@/app/(modals)/context/store/friendStore";
 import { useTheme } from "../../context/themeContext";
 import AppText from "@/constants/appTextDefault";
@@ -15,19 +10,41 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { queryClient } from "@/hooks/queryClient";
 import ProfileAvatar from "@/components/profile_avatar";
+import { Socket } from "socket.io-client";
+import { useChatStore } from "../../context/store/chatStore";
+import { ChatTypes } from "@/interfaces/chatType";
 
 interface FriendItemProps {
   item: FriendsType;
   userStatus: string;
   onRemove: ({ id, type }: { id: string; type: FriendSeparator }) => void;
   page: Record<FriendSeparator, number>;
+  socketRef: React.MutableRefObject<Socket | null>;
 }
 export const FriendItem = React.memo(
-  ({ item, userStatus, onRemove, page }: FriendItemProps) => {
+  ({ item, userStatus, onRemove, page, socketRef }: FriendItemProps) => {
     const { setFriendDetails } = useFriendStore();
     const { colors: Colors, theme } = useTheme();
+    const { addChatInfo } = useChatStore();
     const width = Dimensions.get("screen").width;
-
+    const handleChat = () => {
+      console.log("CHECK", item);
+      const chatInfo: ChatTypes = {
+        chatId: item.chatId,
+        members: item._id,
+        userInfo: [
+          {
+            _id: item._id,
+            unique_user_ID: item.unique_user_ID,
+          },
+        ],
+        chat_image: undefined,
+        unseenCount: 0,
+      };
+      console.log(chatInfo);
+      addChatInfo(`${item._id}`, chatInfo);
+      router.push(`/(modals)/chat/${item._id}`);
+    };
     const handleAccept = async (user: FriendsType) => {
       try {
         const response = await axiosInstance.post("/auth/friend_accept", {
@@ -126,10 +143,13 @@ export const FriendItem = React.memo(
               <TouchableOpacity
                 onPress={() => {
                   const data = {
+                    _id: item._id,
                     unique_user_ID: item.unique_user_ID,
                     userImage: item.userImage,
                     email: item.email,
                     userNames: item.userNames,
+                    chatId: item.chatId,
+                    chatKey: item.chatKey,
                   };
                   setFriendDetails(data);
                   router.push(`/(modals)/user/${item.unique_user_ID}`);
@@ -143,7 +163,7 @@ export const FriendItem = React.memo(
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
-                  router.push(`/(modals)/chat/${item.unique_user_ID}`);
+                  handleChat();
                 }}
               >
                 <Ionicons name="chatbox" size={30} color={Colors.primary} />

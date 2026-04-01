@@ -8,7 +8,13 @@ interface OwnActivaterIndicatorProps {
 
 const OwnActivaterIndicator = ({ style }: OwnActivaterIndicatorProps) => {
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
       <LottieView
         source={require("@/assets/images/book/basket.json")}
         autoPlay={true}

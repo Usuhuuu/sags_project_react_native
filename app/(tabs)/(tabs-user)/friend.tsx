@@ -36,7 +36,6 @@ interface onRemoveProps {
 
 const FriendRequest = () => {
   const { colors: Colors } = useTheme();
-
   const [page, setPage] = useState<Record<FriendSeparator, number>>({
     [FriendSeparator.FRIENDS]: 0,
     [FriendSeparator.REQUESTS]: 0,
@@ -85,7 +84,6 @@ const FriendRequest = () => {
       retry: 3,
     },
   );
-
   useEffect(() => {
     if (userError) {
       console.log("error on Friends");
@@ -347,6 +345,7 @@ const FriendRequest = () => {
           fetchMore={fetchMore}
           onRemove={onRemove}
           page={page}
+          socketRef={socketRef}
         />
         {modalDisplay && (
           <Friend_Add_Modal

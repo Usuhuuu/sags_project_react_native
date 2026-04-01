@@ -3,12 +3,13 @@ import {
   FriendSeparator,
   FriendsType,
 } from "@/interfaces/friendType";
-import React, { SetStateAction, useCallback } from "react";
+import React, { useCallback } from "react";
 import { View, FlatList, Dimensions, SafeAreaView } from "react-native";
 import { FriendItem } from "../util/friend_functions";
 import { useTheme } from "../../context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Socket } from "socket.io-client";
 
 interface Friend_Separator_props {
   data: Friend_Status;
@@ -17,6 +18,7 @@ interface Friend_Separator_props {
   fetchMore: () => void;
   onRemove: ({ id, type }: { id: string; type: FriendSeparator }) => void;
   page: Record<FriendSeparator, number>;
+  socketRef: React.MutableRefObject<Socket | null>;
 }
 const Friend_Separator = ({
   data,
@@ -25,6 +27,7 @@ const Friend_Separator = ({
   fetchMore,
   onRemove,
   page,
+  socketRef,
 }: Friend_Separator_props) => {
   let list: FriendsType[] = [];
 
@@ -50,6 +53,7 @@ const Friend_Separator = ({
         userStatus={screen_type}
         onRemove={onRemove}
         page={page}
+        socketRef={socketRef}
       />
     ),
     [screen_type],
@@ -116,7 +120,6 @@ const Friend_Separator = ({
                   flex: 1,
                 }}
               >
-                <></>
                 <View
                   style={{
                     justifyContent: "center",

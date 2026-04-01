@@ -1,9 +1,6 @@
-import { format } from "date-fns";
 import { router } from "expo-router";
 import React from "react";
 import { TouchableOpacity, View, StyleSheet, Dimensions } from "react-native";
-import { Avatar, Badge } from "react-native-paper";
-import { useHybridTime } from "../util/time_changing";
 import { useTheme } from "../../context/themeContext";
 import { useChatStore } from "../../context/store/chatStore";
 import { ChatTypes } from "@/interfaces/chatType";
@@ -19,26 +16,22 @@ function PersonalChat({
 }) {
   const { colors: Colors } = useTheme();
   const { addChatInfo } = useChatStore();
-  const styles = StyleSheet.create({
-    groupItem: {
-      padding: 10,
-      marginVertical: 7,
-      borderRadius: 5,
-      backgroundColor: Colors.containerColor,
-      shadowColor: Colors.dark,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      elevation: 4,
-      width: "95%",
-    },
-  });
+
   const { width } = Dimensions.get("window");
   return (
     <>
       {Object.entries(chats).map(([key, item]: [string, ChatTypes]) => {
         return (
-          <View key={item.chatId} style={styles.groupItem}>
+          <View
+            key={item.chatId}
+            style={[
+              styles.groupItem,
+              {
+                backgroundColor: Colors.containerColor,
+                shadowColor: Colors.dark,
+              },
+            ]}
+          >
             <TouchableOpacity
               onPress={() => {
                 addChatInfo(key, item);
@@ -63,9 +56,7 @@ function PersonalChat({
                   flexDirection: "row",
                   gap: 5,
                 }}
-              >
-                <AppText>{item.group_chat_name}</AppText>
-              </View>
+              ></View>
             </TouchableOpacity>
           </View>
         );
@@ -73,5 +64,18 @@ function PersonalChat({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  groupItem: {
+    padding: 10,
+    marginVertical: 7,
+    borderRadius: 5,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+    width: "95%",
+  },
+});
 
 export default PersonalChat;

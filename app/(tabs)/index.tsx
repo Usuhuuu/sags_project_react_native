@@ -4,9 +4,11 @@ import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { useAuthQuery } from "@/hooks/useQuery";
 import { useAuth } from "../(modals)/context/authContext";
 import React from "react";
+import { useTheme } from "../(modals)/context/themeContext";
 
 export default function TabsIndex() {
   const { LoginStatus, authInitalizing } = useAuth();
+  const { colors } = useTheme();
 
   const {
     data: userData,
@@ -26,7 +28,14 @@ export default function TabsIndex() {
   //  Wait for auth bootstrap
   if (authInitalizing) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.backgroundColor,
+        }}
+      >
         <OwnActivaterIndicator />
       </View>
     );

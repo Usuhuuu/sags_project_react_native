@@ -29,7 +29,7 @@ import {
 import { Socket } from "socket.io-client";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
-import { ActivityIndicator, Avatar } from "react-native-paper";
+import { ActivityIndicator } from "react-native-paper";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
 import { useAuth } from "../context/authContext";
 import { ChatSeparator, Message } from "@/interfaces/chatType";
@@ -38,6 +38,7 @@ import { useChatStore } from "../context/store/chatStore";
 import { useTheme } from "../context/themeContext";
 import { useAuthQuery } from "@/hooks/useQuery";
 import ProfileAvatar from "@/components/profile_avatar";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const DirectChatScreen: React.FC = ({}) => {
   const { item } = useLocalSearchParams();
@@ -89,7 +90,11 @@ const DirectChatScreen: React.FC = ({}) => {
     currentChatIdRef.current = currentChatId;
   }, [currentChatId]);
 
-  const { data: userData, isLoading: userLoading } = useAuthQuery(
+  const {
+    data: userData,
+    error,
+    isLoading: userLoading,
+  } = useAuthQuery(
     {
       pathname: "main",
       cacheKey: ["auth_status"] as const,
@@ -101,17 +106,19 @@ const DirectChatScreen: React.FC = ({}) => {
   );
 
   useEffect(() => {
-    if (userLoading) {
-      setLoading(true);
-      return;
-    } else if (userData) {
+    if (userData) {
       const parsedData =
         typeof userData.profileData == "string"
           ? JSON.parse(userData.profileData)
           : userData.profileData;
       setuserDataParsed(Array.isArray(parsedData) ? parsedData[0] : parsedData);
+    } else if (error) {
+      console.log("Error fetching user data:", error);
     }
-  }, [userData, userLoading]);
+  }, [userData, error]);
+  if (userLoading) {
+    return <OwnActivaterIndicator />;
+  }
 
   const initIndividualChat = async ({ initFriend, chatId }: any) => {
     let socket = socketRef.current;
@@ -133,11 +140,13 @@ const DirectChatScreen: React.FC = ({}) => {
         socket?.connect();
       });
     }
-
+    console.log("SOCKET");
+    console.log("SDa Checking", initFriend, chatId);
     socket?.emit(
       "chat-join",
       { initFriend: initFriend, chatId: chatId },
       (callBackData: any) => {
+        console.log("CALLBACKDATA", callBackData);
         callBackData.activeUser
           ? setActiveUserData((prev) => {
               if (prev?.includes(callBackData.activeUser)) return prev;
@@ -198,7 +207,8 @@ const DirectChatScreen: React.FC = ({}) => {
   };
   useFocusEffect(
     useCallback(() => {
-      if (!chatInfos?.userInfo?.[0] || !chatInfos?.chatId) return;
+      console.log(chatInfos);
+      if (!chatInfos?.userInfo?.[0]) return;
       const socket = socketRef.current || getSocket();
       socketRef.current = socket;
       initIndividualChat({
@@ -694,6 +704,7 @@ const DirectChatScreen: React.FC = ({}) => {
                     flatListRef: flatListRef,
                     addMessageToMap: addMessageToMap,
                     cursor: cursorRef.current,
+                    friendInfo: chatInfos?.userInfo,
                   });
                   if (typingRef.current) {
                     typingRef.current = false;

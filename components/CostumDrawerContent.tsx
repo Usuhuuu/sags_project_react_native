@@ -22,6 +22,7 @@ import { useTheme } from "@/app/(modals)/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { useAuthQuery } from "@/hooks/useQuery";
 import ProfileAvatar from "./profile_avatar";
+
 interface UserData {
   email: string;
   firstName: string;

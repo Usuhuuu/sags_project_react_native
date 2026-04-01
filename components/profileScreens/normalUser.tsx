@@ -105,7 +105,7 @@ const NormalUser: React.FC<NormalUserProps> = ({ formData }) => {
               }}
             />
             <ProfileAvatar
-              width={width}
+              width={width * 0.2}
               userName={userData?.unique_user_ID}
               imageUrl={userData?.userImage}
             />

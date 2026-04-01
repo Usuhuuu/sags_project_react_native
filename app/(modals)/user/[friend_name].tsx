@@ -1,5 +1,4 @@
 import React from "react";
-import { StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ProfileHeader from "@/components/ProfileHeader";
 
@@ -13,7 +12,7 @@ interface ProfileNormalUserProps {
     {
       firstName: string;
       unique_user_ID: string;
-    }
+    },
   ];
 }
 const NormalUser: React.FC<ProfileNormalUserProps> = () => {

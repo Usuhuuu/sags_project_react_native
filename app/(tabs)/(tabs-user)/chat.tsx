@@ -16,7 +16,7 @@ import { useAuth } from "@/app/(modals)/context/authContext";
 import { useFocusEffect } from "expo-router";
 import { connectSocket } from "@/hooks/socketConnection";
 import { FontAwesome } from "@expo/vector-icons";
-import { ActiveUserType, ChatTypes } from "@/interfaces/chatType";
+import { ChatTypes } from "@/interfaces/chatType";
 import PersonalChat from "@/app/(modals)/chat/components/personal_chat";
 import FilterModal from "@/app/(modals)/chat/components/filter_modal";
 import { useTheme } from "@/app/(modals)/context/themeContext";
@@ -26,15 +26,12 @@ import {
   useRegularQuery,
 } from "@/hooks/useQuery";
 import { useIsFocused } from "@react-navigation/native";
+import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const ChatComponent: React.FC = () => {
   const { colors: Colors } = useTheme();
   const [chat, setChat] = useState<Record<string, ChatTypes>>({});
-  const [userDatas, setUserDatas] = useState<any>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [activeUserData, setActiveUserData] = useState<ActiveUserType[]>([]);
-  const [fullScreenShow, setFullScreenShow] = useState<boolean>(false);
-  const [noChatExist, setNoChatExist] = useState<boolean>(false);
+  const [isChatExist, setIsChatExist] = useState<boolean>(false);
 
   const socketRef = useRef<Socket | null>(null);
   const currentChatId = useRef<string>("");
@@ -73,26 +70,25 @@ const ChatComponent: React.FC = () => {
     isLoading: chatLoading,
   } = useRegularQuery(
     {
-      pathname: "/auth/chatcheck",
+      pathname: "/auth/chat",
       cacheKey: regular_query_key,
       loginStatus: LoginStatus,
     },
     {
       enabled: LoginStatus && isFocused,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
   );
 
   // chat data process
   useEffect(() => {
-    if (chatLoading) {
-      setLoading(true);
-    } else if (chatData && chatData.success) {
+    if (chatData && chatData.success) {
       const map: Record<string, ChatTypes> = {};
       chatData.chat.forEach((chat: any) => {
         map[chat._id] = {
           chatId: chat._id,
           members: chat.members,
-          group_chat_name: "Direct Chat",
           chat_image: chat.latestMessage || undefined,
           unseenCount: chat.unseenCount || 0,
           userInfo: chat.userInfo,
@@ -100,38 +96,21 @@ const ChatComponent: React.FC = () => {
       });
 
       setChat(map);
-      setFullScreenShow(true);
     } else if (chatData && !chatData.success) {
       console.log("no chat ");
-      setNoChatExist(true);
-      setFullScreenShow(true);
+      setIsChatExist(true);
     } else if (chatError) {
-      setFullScreenShow(true);
       console.log("Chat Error:", chatError);
       Sentry.captureException(chatError);
     }
-  }, [chatData, chatError, userLoading]);
-
-  useEffect(() => {
-    if (userLoading) {
-      setLoading(true);
-    } else if (userData) {
-      const parsedData =
-        typeof userData.profileData == "string"
-          ? JSON.parse(userData.profileData)
-          : userData.profileData;
-      setUserDatas(Array.isArray(parsedData) ? parsedData[0] : parsedData);
-    } else if (userError) {
-      Sentry.captureException(chatError);
-    }
-  }, [userData, userError, userLoading]);
+  }, [chatData, chatError]);
 
   useFocusEffect(
     useCallback(() => {
       const initSocket = async () => {
         const socket = await connectSocket();
         if (!socket) {
-          setNoChatExist(!noChatExist);
+          setIsChatExist(!isChatExist);
           return;
         }
         socketRef.current = socket;
@@ -147,51 +126,25 @@ const ChatComponent: React.FC = () => {
     }, []),
   );
 
-  //User Active and recieve msj with connect to socket
-  useEffect(() => {
-    if (!socketRef.current) return;
-    socketRef.current?.on("user-active-change", (data) => {
-      setActiveUserData(
-        data
-          .filter((user: ActiveUserType) => user.status === "active")
-          .map((user: ActiveUserType) => ({
-            unique_user_ID: user.unique_user_ID,
-            status: user.status,
-          })),
-      );
-    });
-    socketRef.current.on("directMessageReceived", (data) => {
-      setChat((prev) => {
-        return {
-          ...prev,
-          [data.chatID]: {
-            ...prev[data.chatID],
-            latestMessage: {
-              sender_unique_name: data.sender_unique_name,
-              message: data.message,
-              timestamp: data.timestamp,
-            },
-            unseenCount: (prev[data.chatID].unseenCount || 0) + 1,
-          },
-        };
-      });
-    });
-
-    (async () => {
-      socketRef.current = await connectSocket();
-    })();
-
-    return () => {
-      socketRef.current?.off("user-active-change");
-      socketRef.current?.off("directMessageReceived");
-    };
-  }, [socketRef.current]);
-
   const height = Dimensions.get("window").height;
   const width = Dimensions.get("window").width;
   const { bottom } = useSafeAreaInsets();
   const chatInitLang: any = t("chatRoom", { returnObjects: true });
 
+  if (userLoading || chatLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: Colors.backgroundColor,
+        }}
+      >
+        <OwnActivaterIndicator />
+      </View>
+    );
+  }
   return (
     <View
       style={{ width: width, backgroundColor: Colors.backgroundColor, flex: 1 }}
@@ -290,7 +243,7 @@ const ChatComponent: React.FC = () => {
           <PersonalChat chats={chat} currentChatId={currentChatId} />
         </ScrollView>
       </View>
-      {noChatExist ? (
+      {!isChatExist ? (
         <View
           style={{
             width: "100%",
