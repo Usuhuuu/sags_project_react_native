@@ -1,5 +1,5 @@
 import "@/utils/i18";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { TouchableOpacity } from "react-native";
 import { Stack, router } from "expo-router";
 import * as Sentry from "@sentry/react-native";
@@ -21,7 +21,6 @@ import { queryClient } from "@/hooks/queryClient";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NotifierRoot } from "react-native-notifier";
-
 import {
   calendarPermission,
   cameraPermission,
@@ -30,7 +29,6 @@ import {
 } from "@/hooks/permissions";
 
 import { useNotificationStore } from "@/src/context/store/notificationStore";
-
 export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
@@ -51,51 +49,31 @@ Sentry.init({
 /* ROOT LAYOUT (DO NOT WRAP)     */
 /* ----------------------------- */
 
-function RootLayout() {
-  const [notificationData, setNotificationData] = useState<any>(null);
-
-  useEffect(() => {
-    const addNotification = useNotificationStore.getState().addNotification;
-
-    const listener = Notifications.addNotificationReceivedListener(
-      async (notification) => {
-        const { title, body, data } = notification.request.content;
-
-        const newNotification = {
-          title: title ?? "New Notification",
-          body: body ?? "You have a new message",
-          timestamp: Date.now(),
-        };
-
-        await addNotification(newNotification);
-
-        setNotificationData({
-          title: newNotification.title,
-          body: newNotification.body,
-          data: { ...data, isLocal: true },
-        });
-      },
-    );
-
-    return () => listener.remove();
-  }, []);
+function Navigation() {
+  const { colors } = useTheme();
 
   useEffect(() => {
     calendarPermission();
     cameraPermission();
     requestLocationPermission();
     reminderPermission();
+
+    const addNotification = useNotificationStore.getState().addNotification;
+
+    const listener = Notifications.addNotificationReceivedListener(
+      async (notification) => {
+        const { title, body, data } = notification.request.content;
+
+        await addNotification({
+          title: title ?? "New Notification",
+          body: body ?? "Message",
+          timestamp: Date.now(),
+        });
+      },
+    );
+
+    return () => listener.remove();
   }, []);
-
-  return <RootLayoutNav />;
-}
-
-/* ----------------------------- */
-/* NAVIGATION                    */
-/* ----------------------------- */
-
-function RootLayoutNav() {
-  const { colors } = useTheme();
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -114,24 +92,16 @@ function RootLayoutNav() {
         }}
       />
 
-      <Stack.Screen
-        name="listing/[sportHallID]"
-        options={{ headerShown: false }}
-      />
-
-      <Stack.Screen
-        name="(modals)/chat/[item]"
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name="listing/[sportHallID]" />
+      <Stack.Screen name="(modals)/chat/[item]" />
     </Stack>
   );
 }
 
-/* ----------------------------- */
-/* PROVIDERS (WRAP THIS ONLY)    */
-/* ----------------------------- */
+/* ✅ wrap ONLY navigation component */
+const WrappedNavigation = Sentry.wrap(Navigation);
 
-function AppProviders() {
+export default function Layout() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
@@ -143,7 +113,8 @@ function AppProviders() {
                 <LanguageProvider>
                   <SavedHallsProvider>
                     <CalendarProvider>
-                      <RootLayout />
+                      {/* ✅ CRITICAL: Stack is directly here */}
+                      <WrappedNavigation />
                     </CalendarProvider>
                   </SavedHallsProvider>
                 </LanguageProvider>
@@ -155,10 +126,4 @@ function AppProviders() {
       </QueryClientProvider>
     </ThemeProvider>
   );
-}
-
-const App = Sentry.wrap(AppProviders);
-
-export default function Layout() {
-  return <App />;
 }

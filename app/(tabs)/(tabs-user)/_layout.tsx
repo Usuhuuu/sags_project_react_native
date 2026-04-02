@@ -1,6 +1,6 @@
 import { useAuth } from "@/src/context/authContext";
 import { useTheme } from "@/src/context/themeContext";
-import FriendReqModal from "@/app/(modals)/friendReqModal";
+import FriendReqModal from "@/src/utils/friend/components/friend_add";
 import ExploreHeader from "@/components/ExploreHeader";
 import {
   Entypo,
@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { View, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { createDrawerNavigator } from "@react-navigation/drawer";
+
 import InfoScreen from "@/components/InfoScreen";
 import Dtraining from "@/components/training";
 import CustomDrawerContent from "@/components/CostumDrawerContent";
@@ -251,9 +252,6 @@ export const TabsLayout = () => {
           headerShown: !LoginStatus,
           headerTitle: !LoginStatus ? t("aboutUs.login") : t("profile"),
           headerTitleStyle: { color: Colors.primary, fontSize: 24 },
-
-          unmountOnBlur: true,
-
           tabBarIcon: ({ focused }) => (
             <View
               style={{
@@ -519,7 +517,7 @@ const Layout = () => {
   return (
     <>
       <Drawer.Navigator
-        drawerContent={(props) => (
+        drawerContent={(props: any) => (
           <CustomDrawerContent {...props} LoginStatus={LoginStatus} />
         )}
         screenOptions={{

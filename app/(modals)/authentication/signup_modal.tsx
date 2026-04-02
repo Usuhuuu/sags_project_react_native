@@ -6,9 +6,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
 import * as SecureStore from "expo-secure-store";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useTheme } from "../../../src/context/themeContext";
-import SignupThree from "./signup_steps/step_three";
-import SignupOne from "./signup_steps/step_one";
+import { useTheme } from "@/src/context/themeContext";
+import SignupOne from "@/src/utils/auth/signup_steps/step_one";
 
 export type LoginInput = {
   userName: string;

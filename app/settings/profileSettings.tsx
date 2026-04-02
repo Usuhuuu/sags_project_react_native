@@ -15,8 +15,8 @@ import i18n from "@/utils/i18";
 import * as SecureStorage from "expo-secure-store";
 import { useAuth } from "../../src/context/authContext";
 import { router } from "expo-router";
-import { useTheme } from "../../src/context/themeContext";
-import Change_Language_Modal from "./components/language_change";
+import { useTheme } from "@/src/context/themeContext";
+import Change_Language_Modal from "../../src/utils/settings/components/language_change";
 import AppText from "@/constants/appTextDefault";
 import Animated, {
   interpolateColor,

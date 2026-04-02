@@ -17,8 +17,8 @@ import { useFocusEffect } from "expo-router";
 import { connectSocket } from "@/hooks/socketConnection";
 import { FontAwesome } from "@expo/vector-icons";
 import { ChatTypes } from "@/interfaces/chatType";
-import PersonalChat from "@/app/(modals)/chat/components/personal_chat";
-import FilterModal from "@/app/(modals)/chat/components/filter_modal";
+import PersonalChat from "@/src/utils/chat/components/personal_chat";
+import FilterModal from "@/src/utils/chat/components/filter_modal";
 import { useTheme } from "@/src/context/themeContext";
 import {
   RQ_regular_cache_key,

@@ -5,13 +5,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StepIndicator from "react-native-step-indicator";
-import Step_two_pc from "./support_components/step_2_pc";
+import Step_two_pc from "../../../../src/utils/book/esport/support_components/step_2_pc";
 import { EsportHallDataType } from "@/interfaces/listing";
 import {
   EsportBookingData,
   useBookingStore,
 } from "@/src/context/store/bookStore";
-import Step_one_pc from "@/app/listing/book/esport/support_components/step_1_pc";
+import Step_one_pc from "@/src/utils/book/esport/support_components/step_1_pc";
 import { useNavigation } from "@react-navigation/native";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
 import AppText from "@/constants/appTextDefault";
@@ -19,7 +19,7 @@ import HallData from "@/assets/Data/sportHall.json";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { saveToken } from "../../../../src/utils/book/session";
-import Confirm_Modal from "../sport/support_components/confirmation_modal";
+import Confirm_Modal from "../../../../src/utils/book/sport/support_components/confirmation_modal";
 import { format } from "date-fns";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { bookingNotificationSchedule } from "@/src/context/store/notificationStore";

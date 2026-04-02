@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { StyleSheet, Alert, Linking } from "react-native";
 import { useCameraPermissions, CameraView } from "expo-camera";
-import { useTheme } from "../../src/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 
 const CameraModal = () => {
   const { colors } = useTheme();

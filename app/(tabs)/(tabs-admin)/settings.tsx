@@ -24,7 +24,7 @@ import { flushRegularQuery } from "@/hooks/useQuery";
 import { useLanguage } from "@/src/context/Languages";
 import { useAuth } from "@/src/context/authContext";
 import { useTheme } from "@/src/context/themeContext";
-import Change_Language_Modal from "@/app/settings/components/language_change";
+import Change_Language_Modal from "@/src/utils/settings/components/language_change";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ProfileSettings: React.FC = () => {

@@ -25,17 +25,17 @@ import {
   newMessagePrepareFunction,
   loadOlderMsj,
   sendMessage,
-} from "@/src/utils/chat/message_function";
+} from "@/src/utils/chat/util/message_function";
 import { Socket } from "socket.io-client";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator } from "react-native-paper";
 import { connectSocket, getSocket } from "@/hooks/socketConnection";
-import { useAuth } from "../../../src/context/authContext";
+import { useAuth } from "@/src/context/authContext";
 import { ChatSeparator, Message } from "@/interfaces/chatType";
-import { generatedId } from "../../../src/utils/chat/objectID";
-import { useChatStore } from "../../../src/context/store/chatStore";
-import { useTheme } from "../../../src/context/themeContext";
+import { generatedId } from "@/src/utils/chat/util/objectID";
+import { useChatStore } from "@/src/context/store/chatStore";
+import { useTheme } from "@/src/context/themeContext";
 import { useAuthQuery } from "@/hooks/useQuery";
 import ProfileAvatar from "@/components/profile_avatar";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";

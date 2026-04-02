@@ -7,10 +7,10 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import TogetherInsideFlatList from "@/app/listing/together/together_inside_flatlist";
+import TogetherInsideFlatList from "@/src/utils/together/util/together_inside_flatlist";
 import { useTheme } from "@/src/context/themeContext";
 import dayjs from "dayjs";
-import Bottom_Renderer from "@/app/listing/together/bottom_renderer";
+import Bottom_Renderer from "@/src/utils/together/util/bottom_renderer";
 import { MonthCalendar } from "@/src/utils/book/calendar_strip";
 import { RQ_simple_cache_key, useSimpleQuery } from "@/hooks/useQuery";
 import { useIsFocused } from "@react-navigation/native";
