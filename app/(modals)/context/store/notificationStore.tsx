@@ -6,7 +6,7 @@ interface RawNotification {
   title: string;
   body: string;
   timestamp: number;
-  seen: boolean;
+  seen?: boolean;
 }
 
 interface Notification {

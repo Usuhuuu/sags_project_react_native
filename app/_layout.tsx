@@ -1,26 +1,20 @@
 import "@/utils/i18";
 import { configureReanimatedLogger } from "react-native-reanimated";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useFonts } from "expo-font";
-import { router, Slot, Stack, useRouter } from "expo-router";
-import React, { useEffect, ReactNode, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { router, Stack, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { TouchableOpacity } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import { LanguageProvider } from "./(modals)/context/Languages";
 export { ErrorBoundary } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { AuthProvider, useAuth } from "./(modals)/context/authContext";
+import { AuthProvider } from "./(modals)/context/authContext";
 import { SavedHallsProvider } from "@/app/(modals)/context/savedHall";
 import { CustomErrorBoundary } from "./(modals)/context/errorContext";
 import * as Notifications from "expo-notifications";
 import { CalendarProvider } from "@/app/(modals)/context/CalendarContext";
 import { useNotificationStore } from "./(modals)/context/store/notificationStore";
-import {
-  Notifier,
-  NotifierComponents,
-  NotifierRoot,
-} from "react-native-notifier";
+import { NotifierRoot } from "react-native-notifier";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
@@ -55,26 +49,6 @@ type SimpleNotificationContent = {
 };
 
 export function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-    ...FontAwesome.font,
-  });
-  const [fontError, setFontError] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (error) {
-      Sentry.captureException(error);
-      console.error("Error loading fonts:", error);
-      setFontError(true);
-      Notifier.showNotification({
-        title: "Error loading fonts",
-        description: "Please try again later",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "error" },
-      });
-    }
-  }, [error, loaded]);
-
   const [notificationData, setNotificationData] =
     useState<SimpleNotificationContent | null>(null);
 
@@ -178,15 +152,6 @@ export function RootLayout() {
     requestLocationPermission();
     reminderPermission();
   }, []);
-
-  if (!loaded || fontError) {
-    // Show a loading/fallback UI if fonts are still loading or if there's an error
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <OwnActivaterIndicator />
-      </View>
-    );
-  }
 
   return <RootLayoutNav />;
 }
