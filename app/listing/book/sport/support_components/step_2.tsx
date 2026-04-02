@@ -1,5 +1,5 @@
-import { SportBookingData } from "@/app/(modals)/context/store/bookStore";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { SportBookingData } from "@/src/context/store/bookStore";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import React, { SetStateAction } from "react";

@@ -1,4 +1,4 @@
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import {
   differenceInDays,
@@ -21,7 +21,7 @@ import {
 } from "react-native";
 import dayjs from "dayjs";
 import { EvilIcons, Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
-import { usePostStore } from "@/app/(modals)/context/store/postStore";
+import { usePostStore } from "@/src/context/store/postStore";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RQ_simple_cache_key, useSimpleQuery } from "@/hooks/useQuery";

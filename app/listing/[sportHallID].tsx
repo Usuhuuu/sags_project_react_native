@@ -7,7 +7,7 @@ import { HallTypesSeparator } from "@/interfaces/hallTypes";
 import SportHall from "./hall_screens/sportHall";
 import Pc_Halls from "./hall_screens/pcHall";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
-import { useTheme } from "../(modals)/context/themeContext";
+import { useTheme } from "../../src/context/themeContext";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const DetailsPage = () => {
@@ -16,10 +16,10 @@ const DetailsPage = () => {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [hallSeparator, setHallSeparotor] = useState<HallTypesSeparator | null>(
-    null
+    null,
   );
   const listing = SportHallData.find(
-    (item) => item.sportHallID === sportHallID
+    (item) => item.sportHallID === sportHallID,
   ) as unknown as SportHallDataType | EsportHallDataType;
   const hallSeparatorFunc = () => {
     const sportSet = new Set(listing?.hall_types.sub);

@@ -23,7 +23,7 @@ import {
 } from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
 import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
@@ -123,11 +123,11 @@ const ListingComponent = ({ listings: items, category }: Props) => {
     (sportHallID: string) => {
       router.push(`/listing/${sportHallID}`);
     },
-    [router]
+    [router],
   );
 
   const isSportHall = (
-    it: SportHallDataType | EsportHallDataType
+    it: SportHallDataType | EsportHallDataType,
   ): it is SportHallDataType => {
     return !!(it as SportHallDataType).hall_details?.hall_price?.oneHour;
   };
@@ -193,7 +193,7 @@ const ListingComponent = ({ listings: items, category }: Props) => {
         </TouchableOpacity>
       );
     },
-    (prevProps, nextProps) => prevProps.item === nextProps.item
+    (prevProps, nextProps) => prevProps.item === nextProps.item,
   );
 
   const renderRow: ListRenderItem<SportHallDataType | EsportHallDataType> =
@@ -201,7 +201,7 @@ const ListingComponent = ({ listings: items, category }: Props) => {
       ({ item }) => {
         return <ListingItem item={item} onPress={handlePress} />;
       },
-      [handlePress]
+      [handlePress],
     );
 
   const CategoryButton = ({

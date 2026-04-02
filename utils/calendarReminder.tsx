@@ -1,7 +1,7 @@
 import * as Notifications from "expo-notifications";
 import * as Calendar from "expo-calendar";
 import { Platform } from "react-native";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 
 const getDefaultCalendarSource = async () => {

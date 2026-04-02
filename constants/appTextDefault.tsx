@@ -1,4 +1,4 @@
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import React from "react";
 import { Text, TextProps } from "react-native";
 

@@ -1,4 +1,4 @@
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import React from "react";
 import { View, Image } from "react-native";
 import { SvgUri } from "react-native-svg";

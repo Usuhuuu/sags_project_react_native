@@ -6,9 +6,9 @@ import {
   View,
 } from "react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/app/(modals)/context/authContext";
+import { useAuth } from "@/src/context/authContext";
 import { HashedSportData } from "@/utils/sport_hall_hash";
-import Order_Separator from "@/app/(modals)/book/components/order_separator";
+import Order_Separator from "@/src/utils/book/order_separator";
 import {
   Booking_Block_Type,
   OrderDataTypes,
@@ -22,9 +22,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { differenceInMinutes } from "date-fns";
-import { MonthCalendar } from "@/app/(modals)/book/components/calendar_strip";
+import { MonthCalendar } from "@/src/utils/book/calendar_strip";
 import dayjs from "dayjs";
 import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";

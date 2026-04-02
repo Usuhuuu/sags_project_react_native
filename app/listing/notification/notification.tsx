@@ -13,12 +13,12 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import SwipeableRow from "./components/swipe_remove";
-import { useTheme } from "../../(modals)/context/themeContext";
+import { useTheme } from "../../../src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useNotificationStore } from "@/app/(modals)/context/store/notificationStore";
+import { useNotificationStore } from "@/src/context/store/notificationStore";
 
 // Define NotificationItem type
 export type NotificationItem = {

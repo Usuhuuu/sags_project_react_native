@@ -1,21 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  View,
-  ActivityIndicator,
-  TouchableOpacity,
-  StyleSheet,
-  Text,
-  SafeAreaView,
-  Alert,
-} from "react-native";
+import { View, TouchableOpacity, StyleSheet, Text, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { axiosInstanceRegular } from "../../hooks/axiosInstance";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useBookingStore } from "../(modals)/context/store/bookStore";
+import { useBookingStore } from "../../src/context/store/bookStore";
 import Calendar from "./book/modal_calendar";
-import WeekCalendar from "@/app/(modals)/book/components/calendar_strip";
-import { useTheme } from "../(modals)/context/themeContext";
+import WeekCalendar from "@/src/utils/book/calendar_strip";
+import { useTheme } from "../../src/context/themeContext";
 import { HallTypesSeparator } from "@/interfaces/hallTypes";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
@@ -95,7 +88,7 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
           onPress={() => {
             const now = new Date();
             const newSelected = selectedTimeSlots.filter(
-              (t) => t !== "WHOLE_DAY"
+              (t) => t !== "WHOLE_DAY",
             );
             if (selectedTimeSlots.includes(timeString)) {
               onSelect(newSelected.filter((t) => t !== timeString));
@@ -109,30 +102,30 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
               borderColor: isSelected
                 ? Colors.primary
                 : isDisabled
-                ? theme === "dark"
-                  ? Colors.littleDark
-                  : Colors.littleDarkGrey
-                : isJoinable
-                ? Colors.green
-                : Colors.themeColorTextSecondary,
+                  ? theme === "dark"
+                    ? Colors.littleDark
+                    : Colors.littleDarkGrey
+                  : isJoinable
+                    ? Colors.green
+                    : Colors.themeColorTextSecondary,
               shadowColor: isJoinable ? Colors.green : Colors.primary,
               shadowOpacity:
                 theme === "dark" && isSelected
                   ? 0.8
                   : isJoinable && theme === "dark"
-                  ? 0.3
-                  : 0,
+                    ? 0.3
+                    : 0,
               shadowRadius: 10,
               shadowOffset: { width: 0, height: 0 },
               backgroundColor: isJoinable
                 ? Colors.lightGreen
                 : wholeDayBooked.joinableWholeDay
-                ? Colors.lightGreen
-                : isDisabled
-                ? theme === "light"
-                  ? Colors.white
-                  : Colors.themeContainerGrey
-                : Colors.containerColor,
+                  ? Colors.lightGreen
+                  : isDisabled
+                    ? theme === "light"
+                      ? Colors.white
+                      : Colors.themeContainerGrey
+                    : Colors.containerColor,
 
               borderWidth: 2,
             },
@@ -144,8 +137,8 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
               color: isJoinable
                 ? Colors.darkGrey
                 : isDisabled
-                ? Colors.darkGrey
-                : Colors.themeColorTextPure,
+                  ? Colors.darkGrey
+                  : Colors.themeColorTextPure,
 
               textDecorationLine: isDisabled ? "line-through" : "none",
               textDecorationStyle: "solid",
@@ -161,7 +154,7 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
   (prevProps, nextProps) =>
     prevProps.selectedTimeSlots === nextProps.selectedTimeSlots &&
     prevProps.unavailableTimes === nextProps.unavailableTimes &&
-    prevProps.wholeDayBooked === nextProps.wholeDayBooked
+    prevProps.wholeDayBooked === nextProps.wholeDayBooked,
 );
 
 interface OrderScreenProps {
@@ -235,7 +228,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           joinableWholeDay: false,
         });
         const response = await axiosInstanceRegular.get(
-          `/timeslots/${sportHallID}/${odor}/${encodeURIComponent(timezone)}`
+          `/timeslots/${sportHallID}/${odor}/${encodeURIComponent(timezone)}`,
         );
 
         if (response.status === 200 && response.data.success) {
@@ -263,7 +256,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
             results = flat.reduce(
               (
                 acc: any,
-                item: { num_players: number; time_slots: string[] }
+                item: { num_players: number; time_slots: string[] },
               ) => {
                 if (item.num_players === 0) {
                   acc.unavailable.push(...item.time_slots);
@@ -272,7 +265,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                 }
                 return acc;
               },
-              { joinable: [], unavailable: [] }
+              { joinable: [], unavailable: [] },
             );
             setUnavailableTimes(results);
           }
@@ -299,7 +292,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
         setIsLoading(false);
       }
     },
-    [sportHallID]
+    [sportHallID],
   );
 
   useEffect(() => {
@@ -479,7 +472,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                               onPress: () => setWholeDayModal(!wholeDayModal),
                             },
                           ],
-                          { cancelable: true }
+                          { cancelable: true },
                         );
                       } else {
                         setSelectedTimeSlots(["WHOLE_DAY"]);

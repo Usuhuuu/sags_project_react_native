@@ -4,7 +4,7 @@ import { AntDesign, Entypo } from "@expo/vector-icons";
 import { router, useNavigation } from "expo-router";
 import StarRating from "@/app/listing/review/util/star_rating";
 import * as Progress from "react-native-progress";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 

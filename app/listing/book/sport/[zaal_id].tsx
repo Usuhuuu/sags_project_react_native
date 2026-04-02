@@ -1,7 +1,7 @@
 import {
   SportBookingData,
   useBookingStore,
-} from "@/app/(modals)/context/store/bookStore";
+} from "@/src/context/store/bookStore";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { View, TouchableOpacity, ScrollView } from "react-native";
@@ -12,17 +12,17 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { AxiosResponse } from "axios";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { scheduleNotificationForEvent } from "@/utils/calendarReminder";
-import { useTheme } from "@/app/(modals)/context/themeContext";
-import Confirm_Modal from "../support_components/confirmation_modal";
+import { useTheme } from "@/src/context/themeContext";
+import Confirm_Modal from "./support_components/confirmation_modal";
 import { addHours, format } from "date-fns";
-import Step_One from "../support_components/step_1";
-import Step_Two from "../support_components/step_2";
-import Step_Three from "../support_components/step_3";
+import Step_One from "./support_components/step_1";
+import Step_Two from "./support_components/step_2";
+import Step_Three from "./support_components/step_3";
 import { useNavigation } from "@react-navigation/native";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
-import { saveToken } from "../util/session";
+import { saveToken } from "../../../../src/utils/book/session";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
-import { bookingNotificationSchedule } from "@/app/(modals)/context/store/notificationStore";
+import { bookingNotificationSchedule } from "@/src/context/store/notificationStore";
 import { queryClient } from "@/hooks/queryClient";
 
 export type ReservationBlock = {
@@ -100,7 +100,7 @@ const TransactionPage = () => {
   const [steps, setSteps] = useState<number>(0);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[][]>([]);
   const [playersNeeded, setPlayersNeeded] = useState<{ [key: number]: number }>(
-    {}
+    {},
   );
   const [wholeDayPeople, setWholeDayPeople] = useState<number>(0);
   const [wholeDay, setWholeDay] = useState<boolean>(false);
@@ -113,14 +113,14 @@ const TransactionPage = () => {
   >(undefined);
 
   const bookingDetails = useBookingStore(
-    (state) => state.sportBookingDetails
+    (state) => state.sportBookingDetails,
   ) as SportBookingData;
 
   useEffect(() => {
     bookingDetails?.selectedTimeSlots?.includes("WHOLE_DAY")
       ? setWholeDay(true)
       : setSelectedTimeSlots(() =>
-          groupConnectedTimeSlots(bookingDetails?.selectedTimeSlots ?? [])
+          groupConnectedTimeSlots(bookingDetails?.selectedTimeSlots ?? []),
         );
   }, []);
   const [isOrdering, setIsOrdering] = useState<boolean>(false);
@@ -143,7 +143,7 @@ const TransactionPage = () => {
       }
       const dateOnly = bookingDetails.date;
       const timezone = encodeURIComponent(
-        Intl.DateTimeFormat().resolvedOptions().timeZone
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
       );
       let response: AxiosResponse;
 
@@ -171,7 +171,7 @@ const TransactionPage = () => {
           },
           {
             timeout: 10000,
-          }
+          },
         );
       } else {
         console.log(bookingDetails.workTime);
@@ -191,7 +191,7 @@ const TransactionPage = () => {
               },
             ],
           },
-          { timeout: 10000 }
+          { timeout: 10000 },
         );
       }
       setReserved_times(reservationBlocks);
@@ -293,10 +293,10 @@ const TransactionPage = () => {
       if (!reserved_times) return;
       for (const blocks of reserved_times) {
         const endDate = new Date(
-          `${bookingDetails?.date}T${blocks.end_time}:00`
+          `${bookingDetails?.date}T${blocks.end_time}:00`,
         );
         const startDate = new Date(
-          `${bookingDetails?.date}T${blocks.start_time}:00`
+          `${bookingDetails?.date}T${blocks.start_time}:00`,
         );
         await scheduleNotificationForEvent({
           endDate: endDate,
@@ -309,11 +309,11 @@ const TransactionPage = () => {
       const end = reserved_times?.[0]?.end_time ?? "24:00";
       const endDate = addHours(
         new Date(`${bookingDetails?.date}T${end}`),
-        offsetHour
+        offsetHour,
       );
       const startDate = addHours(
         new Date(`${bookingDetails?.date}T${start}`),
-        offsetHour
+        offsetHour,
       );
       await scheduleNotificationForEvent({
         endDate: endDate,

@@ -2,9 +2,9 @@ import { Redirect } from "expo-router";
 import { View } from "react-native";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { useAuthQuery } from "@/hooks/useQuery";
-import { useAuth } from "../(modals)/context/authContext";
+import { useAuth } from "../../src/context/authContext";
 import React from "react";
-import { useTheme } from "../(modals)/context/themeContext";
+import { useTheme } from "../../src/context/themeContext";
 
 export default function TabsIndex() {
   const { LoginStatus, authInitalizing } = useAuth();
@@ -24,6 +24,7 @@ export default function TabsIndex() {
       enabled: LoginStatus,
     },
   );
+  console.log(userData);
 
   //  Wait for auth bootstrap
   if (authInitalizing) {

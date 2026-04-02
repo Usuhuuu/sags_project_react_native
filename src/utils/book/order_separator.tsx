@@ -12,9 +12,9 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import { OrderItem } from "@/app/(modals)/book/components/order_inside_flatlist";
+import { OrderItem } from "@/src/utils/book/order_inside_flatlist";
 import { router, useFocusEffect } from "expo-router";
-import { useTheme } from "../../context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import * as SecureStorage from "expo-secure-store";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 

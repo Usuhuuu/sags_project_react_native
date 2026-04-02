@@ -1,4 +1,4 @@
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -103,7 +103,7 @@ const NotificationSettingsComponent = () => {
   ];
 
   const initialState = Object.fromEntries(
-    NotificationSections.flatMap((s) => s.items.map((i) => [i.id, true]))
+    NotificationSections.flatMap((s) => s.items.map((i) => [i.id, true])),
   );
 
   const [values, setValues] = useState<Record<string, boolean>>(initialState);

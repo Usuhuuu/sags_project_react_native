@@ -1,8 +1,8 @@
 import {
   EsportBookingData,
   SportBookingData,
-} from "@/app/(modals)/context/store/bookStore";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+} from "@/src/context/store/bookStore";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import React, { SetStateAction } from "react";
 import { View, TouchableOpacity, Image } from "react-native";

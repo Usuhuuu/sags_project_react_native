@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { router } from "expo-router";
 import { AntDesign, Feather, FontAwesome5 } from "@expo/vector-icons";
 import Carousel, {
@@ -77,7 +77,7 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
   const scrollY = useSharedValue(0);
 
   const [activeTab, setActiveTab] = useState<HallDetailSeparator>(
-    HallDetailSeparator.DETAILS
+    HallDetailSeparator.DETAILS,
   );
   const tabs = [
     { key: HallDetailSeparator.DETAILS, label: "Details" },
@@ -89,7 +89,7 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
     try {
       setLoading(true);
       const response = await axiosInstanceRegular.get(
-        `/zaal-review/${listing.sportHallID}?page=${page}`
+        `/zaal-review/${listing.sportHallID}?page=${page}`,
       );
       if (response.status === 200 && response.data.success) {
         const returnData = response.data.data;
@@ -155,7 +155,7 @@ const Pc_Halls = ({ listing, hallType, hallID }: PC_HallsProps) => {
             <AppText>${value.wholeDay} tugrug</AppText>
           )}
         </View>
-      )
+      ),
     );
   };
 

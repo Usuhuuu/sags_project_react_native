@@ -6,8 +6,8 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import { useSavedHalls } from "@/app/(modals)/context/savedHall";
-import { Hall } from "@/app/(modals)/context/savedHall";
+import { useSavedHalls } from "@/src/context/savedHall";
+import { Hall } from "@/src/context/savedHall";
 import AppText from "@/constants/appTextDefault";
 
 const SavedHalls: React.FC = () => {

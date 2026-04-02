@@ -9,8 +9,8 @@ import {
   TextInput,
 } from "react-native";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useAuth } from "../../context/authContext";
-import { useTheme } from "../../context/themeContext";
+import { useAuth } from "../../../../src/context/authContext";
+import { useTheme } from "@/src/context/themeContext";
 import { queryClient } from "@/hooks/queryClient";
 import { Socket } from "socket.io-client";
 

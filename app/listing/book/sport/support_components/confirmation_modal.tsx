@@ -1,4 +1,4 @@
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
 import { FontAwesome, FontAwesome5, FontAwesome6 } from "@expo/vector-icons";

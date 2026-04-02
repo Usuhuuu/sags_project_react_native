@@ -25,7 +25,7 @@ import {
   Message,
   MessageMapState,
 } from "@/interfaces/chatType";
-import { useTheme } from "../../context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
 interface MainChatModalProps {
@@ -202,7 +202,7 @@ const MainChatModal: React.FC<MainChatModalProps> = ({
                           >
                             {format(
                               parseISO(groupData.date).toString(),
-                              "MMMM dd"
+                              "MMMM dd",
                             )}
                           </Text>
                           <Text

@@ -3,8 +3,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import ProfileHeader from "@/components/ProfileHeader";
 
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useFriendStore } from "../context/store/friendStore";
-import { useTheme } from "../context/themeContext";
+import { useFriendStore } from "../../../src/context/store/friendStore";
+import { useTheme } from "../../../src/context/themeContext";
 
 interface ProfileNormalUserProps {
   copyToClipboard: () => void;

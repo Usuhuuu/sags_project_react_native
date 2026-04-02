@@ -12,7 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { PieChart } from "react-native-chart-kit";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 
 const categories = [
   {
@@ -162,7 +162,7 @@ const ProfileData = () => {
   const categoryItemsRef = useRef<(View | null)[]>([]);
   const [activeMenuIndex, setActiveMenuIndex] = useState<number | null>(null);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState<number | null>(
-    null
+    null,
   );
   const [selectedDetails, setSelectedDetails] = useState<null | {
     timesPlayed: number;
@@ -179,7 +179,7 @@ const ProfileData = () => {
       (selected as unknown as View).measure(
         (_fx, fy, width, height, px, py) => {
           menuScrollRef.current?.scrollTo({ x: px - 16, animated: true });
-        }
+        },
       );
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -201,7 +201,7 @@ const ProfileData = () => {
       (selected as unknown as View).measure(
         (_fx, _fy, _width, _height, px, _py) => {
           categoryScrollRef.current?.scrollTo({ x: px - 16, animated: true });
-        }
+        },
       );
     }
 

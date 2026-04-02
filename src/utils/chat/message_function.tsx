@@ -15,7 +15,7 @@ import {
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { generatedId } from "./objectID";
-import { useTheme } from "../../context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import ProfileAvatar from "@/components/profile_avatar";
 
 export const prepareMessages = (

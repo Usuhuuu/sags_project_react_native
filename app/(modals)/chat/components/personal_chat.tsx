@@ -1,11 +1,10 @@
 import { router } from "expo-router";
 import React from "react";
 import { TouchableOpacity, View, StyleSheet, Dimensions } from "react-native";
-import { useTheme } from "../../context/themeContext";
-import { useChatStore } from "../../context/store/chatStore";
+import { useTheme } from "@/src/context/themeContext";
+import { useChatStore } from "../../../../src/context/store/chatStore";
 import { ChatTypes } from "@/interfaces/chatType";
 import ProfileAvatar from "@/components/profile_avatar";
-import AppText from "@/constants/appTextDefault";
 
 function PersonalChat({
   chats,

@@ -1,12 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
 import { Modal, View, Text, Dimensions } from "react-native";
-import { useAuth } from "../context/authContext";
+import { useAuth } from "../../../src/context/authContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
 import * as SecureStore from "expo-secure-store";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useTheme } from "../context/themeContext";
+import { useTheme } from "../../../src/context/themeContext";
 import SignupThree from "./signup_steps/step_three";
 import SignupOne from "./signup_steps/step_one";
 

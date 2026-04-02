@@ -6,10 +6,11 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import {
   Search,
   MapPin,
@@ -21,8 +22,8 @@ import {
   ShieldCheck,
   ChevronRight,
 } from "lucide-react-native";
-import { useAuth } from "@/app/(modals)/context/authContext";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useAuth } from "@/src/context/authContext";
+import { useTheme } from "@/src/context/themeContext";
 import { useAuthQuery } from "@/hooks/useQuery";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 

@@ -21,9 +21,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { flushRegularQuery } from "@/hooks/useQuery";
-import { useLanguage } from "@/app/(modals)/context/Languages";
-import { useAuth } from "@/app/(modals)/context/authContext";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useLanguage } from "@/src/context/Languages";
+import { useAuth } from "@/src/context/authContext";
+import { useTheme } from "@/src/context/themeContext";
 import Change_Language_Modal from "@/app/settings/components/language_change";
 import { SafeAreaView } from "react-native-safe-area-context";
 

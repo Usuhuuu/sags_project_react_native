@@ -3,18 +3,19 @@ import {
   View,
   Text,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   Dimensions,
   Modal,
   TouchableWithoutFeedback,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import { LinearGradient } from "expo-linear-gradient";
 import { LineChart } from "react-native-chart-kit";
 import { LayoutGrid, ChevronDown, Check } from "lucide-react-native";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
-import { useAuth } from "@/app/(modals)/context/authContext";
+import { useAuth } from "@/src/context/authContext";
 import dayjs from "dayjs";
 import { Feather } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";

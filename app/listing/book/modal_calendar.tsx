@@ -15,10 +15,10 @@ import {
 import { InferProps } from "prop-types";
 import { ContextProp } from "react-native-calendars/src/types";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
-import { useBookingStore } from "@/app/(modals)/context/store/bookStore";
+import { useBookingStore } from "@/src/context/store/bookStore";
 import { router } from "expo-router";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 type FilterType = "joinable" | "unavailable" | null;
@@ -70,7 +70,7 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
 
   const fullDateStr = `${date.year}-${String(date.month).padStart(
     2,
-    "0"
+    "0",
   )}-${String(date.day).padStart(2, "0")}`;
 
   const isSelected = fullDateStr === selectedDate;
@@ -126,7 +126,7 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
 function Calendar(
   props: React.JSX.IntrinsicAttributes &
     Pick<CalendarProps & ContextProp, any> &
-    Pick<InferProps<any>, any>
+    Pick<InferProps<any>, any>,
 ) {
   const { colors: Colors } = useTheme();
   const [filter, setFilter] = useState<FilterType>("joinable");
@@ -148,7 +148,7 @@ function Calendar(
       const [date] = dateObj.toISOString().split("T");
       try {
         const response = await axiosInstanceRegular.get(
-          `/timeslots/${props.sport_hall_id}/${date}`
+          `/timeslots/${props.sport_hall_id}/${date}`,
         );
         if (response.status === 200 && response.data.success) {
           const result = response.data.find.reduce(
@@ -156,11 +156,11 @@ function Calendar(
               const isJoinable = item.blocks.some(
                 (block: { time_slots: string[]; num_players: number }) =>
                   block.num_players > 0 &&
-                  block.time_slots.includes(WHOLE_DAY_BACKEND)
+                  block.time_slots.includes(WHOLE_DAY_BACKEND),
               );
               const isUnavailable = item.blocks.every(
                 (block: { time_slots: string[]; num_players: number }) =>
-                  block.num_players === 0 && block.time_slots.length > 0
+                  block.num_players === 0 && block.time_slots.length > 0,
               );
 
               const day = item.day[0];
@@ -172,7 +172,7 @@ function Calendar(
 
               return acc;
             },
-            { joinable: [], unavailable: [] }
+            { joinable: [], unavailable: [] },
           );
           setPassDays(result);
           setIsitReady(true);
@@ -234,7 +234,7 @@ function Calendar(
         ],
         {
           cancelable: false,
-        }
+        },
       );
     } else {
       Alert.alert(
@@ -256,7 +256,7 @@ function Calendar(
         ],
         {
           cancelable: false,
-        }
+        },
       );
     }
   };
@@ -308,8 +308,8 @@ function Calendar(
               console.log("date", month);
               setToday(
                 new Date(
-                  `${month.year}-${String(month.month).padStart(2, "0")}-01`
-                )
+                  `${month.year}-${String(month.month).padStart(2, "0")}-01`,
+                ),
               );
             }}
             dayComponent={({

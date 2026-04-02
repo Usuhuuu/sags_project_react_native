@@ -1,7 +1,7 @@
 import { AntDesign } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Modal, View, Text, TouchableOpacity } from "react-native";
-import { useTheme } from "../../context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 
 interface FilterModalProp {
   showFilterVisible: boolean;

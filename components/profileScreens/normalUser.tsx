@@ -10,9 +10,9 @@ import {
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { useAuthQuery, useRegularQuery } from "@/hooks/useQuery";
-import { useAuth } from "@/app/(modals)/context/authContext";
+import { useAuth } from "@/src/context/authContext";
 import ProfileAvatar from "../profile_avatar";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 

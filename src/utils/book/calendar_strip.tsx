@@ -20,7 +20,7 @@ import {
 import dayjs, { Dayjs } from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import AppText from "@/constants/appTextDefault";
 

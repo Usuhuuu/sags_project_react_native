@@ -16,7 +16,7 @@ import { SportHallDataType } from "@/interfaces/listing";
 import { useLocalSearchParams } from "expo-router";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 
 const Inner_Zaal_Review = () => {
   const { colors: Colors } = useTheme();
@@ -25,7 +25,7 @@ const Inner_Zaal_Review = () => {
   const [text, setText] = useState<string>("");
   const sport_hall_id = useLocalSearchParams().zaalId as string;
   const zaal_data = (SportHallData as unknown as SportHallDataType[]).find(
-    (item) => item.sportHallID === sport_hall_id
+    (item) => item.sportHallID === sport_hall_id,
   );
   const handle_submit = async () => {
     try {
@@ -35,7 +35,7 @@ const Inner_Zaal_Review = () => {
           message: text,
           user_given_stars: rating,
           image: imageUrl.length > 0 ? imageUrl : null,
-        }
+        },
       );
       if (response.status === 200 && response.data.success) {
         Notifier.showNotification({
@@ -163,7 +163,7 @@ const Inner_Zaal_Review = () => {
                     } else {
                       console.warn("invalid response", response.errorCode);
                     }
-                  }
+                  },
                 );
               }}
             >

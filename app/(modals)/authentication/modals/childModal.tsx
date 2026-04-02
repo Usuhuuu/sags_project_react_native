@@ -17,7 +17,7 @@ import MemberModal from "./innerModals/memberModal";
 import { GroupChat } from "@/interfaces/chatType";
 import * as Notification from "expo-notifications";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "../../context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
 type childModalNested = {
@@ -39,7 +39,7 @@ const ChildModal: React.FC<ChildModalProps> = ({ MemberData }) => {
   const [changeNameModalVisible, setChangeNameModalVisible] =
     useState<boolean>(false);
   const [groupName, setGroupName] = useState<string>(
-    MemberData.length > 0 ? MemberData[0].group_chat_name : ""
+    MemberData.length > 0 ? MemberData[0].group_chat_name : "",
   );
   const [baseModalVisible, setBaseModalVisible] = useState<boolean>(false);
   const { t } = useTranslation();

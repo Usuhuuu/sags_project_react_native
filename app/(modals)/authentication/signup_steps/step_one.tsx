@@ -1,12 +1,7 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  SafeAreaView,
-  TextInput,
-} from "react-native";
-import { useTheme } from "../../context/themeContext";
+import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "@/src/context/themeContext";
 import { Entypo } from "@expo/vector-icons";
 import { LoginInput } from "../signup_modal";
 

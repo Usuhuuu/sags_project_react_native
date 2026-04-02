@@ -11,11 +11,11 @@ import {
 import * as SecureStorage from "expo-secure-store";
 import SportHallTimeSlot from "@/assets/Data/sport_hall_timeslot.json";
 import { Calendar } from "react-native-calendars";
-import { useCalendar } from "@/app/(modals)/context/CalendarContext";
+import { useCalendar } from "@/src/context/CalendarContext";
 import moment from "moment";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import WeekCalendar from "@/app/(modals)/book/components/calendar_strip";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import WeekCalendar from "@/src/utils/book/calendar_strip";
+import { useTheme } from "@/src/context/themeContext";
 
 const BookingCheck = () => {
   const { colors: Colors } = useTheme();
@@ -42,14 +42,14 @@ const BookingCheck = () => {
 
       const response = await axiosInstance.get(
         `/auth/sporthall/${year}/${month}`,
-        config
+        config,
       );
 
       if (response.status === 200 && response.data.success) {
         if (response.data.session) {
           await SecureStorage.setItemAsync(
             "contractor_session",
-            response.data.session
+            response.data.session,
           );
         }
 
@@ -91,7 +91,7 @@ const BookingCheck = () => {
         const isTimeSlotBooked = (start: string, end: string) => {
           return bookedRanges.some(
             (block: { start: string; end: string }) =>
-              start < block.end && end > block.start
+              start < block.end && end > block.start,
           );
         };
 

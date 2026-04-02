@@ -33,7 +33,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Swipeable } from "react-native-gesture-handler";
 import { useTranslation } from "react-i18next";
 import { FriendsType } from "@/interfaces/friendType";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
 const IMG_HEIGHT = 200;
@@ -288,7 +288,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
       };
 
       loadSavedCourts();
-    }, [])
+    }, []),
   );
 
   const handleCourtPress = (court: SavedCourt) => {
@@ -340,7 +340,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
 
   const handleMomentumScrollEnd = (event: any): void => {
     const index = Math.round(
-      event.nativeEvent.contentOffset.x / _itemTotalSize
+      event.nativeEvent.contentOffset.x / _itemTotalSize,
     );
     setSelectedItem(menu[index]?.name);
   };
@@ -398,7 +398,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
             scrollOffset.value,
             [-IMG_HEIGHT, 0, IMG_HEIGHT],
             [-IMG_HEIGHT / 2, 0, IMG_HEIGHT * 0.75],
-            "clamp"
+            "clamp",
           ),
         },
         {
@@ -406,7 +406,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userData }) => {
             scrollOffset.value,
             [-IMG_HEIGHT, 0, IMG_HEIGHT],
             [1.5, 1, 0.75],
-            "clamp"
+            "clamp",
           ),
         },
       ],

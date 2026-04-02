@@ -1,4 +1,4 @@
-import { useAuth } from "@/app/(modals)/context/authContext";
+import { useAuth } from "@/src/context/authContext";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 

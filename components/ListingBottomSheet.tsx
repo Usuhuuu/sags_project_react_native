@@ -9,7 +9,7 @@ import {
 } from "@/interfaces/listing";
 import { Ionicons } from "@expo/vector-icons";
 import type { SharedValue } from "react-native-reanimated";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 
 interface ListingBottomSheetProps {
   listing: (SportHallDataType | EsportHallDataType)[];

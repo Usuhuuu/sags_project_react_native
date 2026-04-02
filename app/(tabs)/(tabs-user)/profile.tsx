@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { SafeAreaView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import ContractorPage from "@/components/profileScreens/contractor";
 import ProfileAdmin from "@/components/profileScreens/admin";
 import NormalUser from "@/components/profileScreens/normalUser";
-import { useAuth } from "@/app/(modals)/context/authContext";
+import { useAuth } from "@/src/context/authContext";
 import Page from "@/app/(modals)/authentication/login";
 
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { useAuthQuery, useRegularQuery } from "@/hooks/useQuery";
 import ServerErrorScreen from "@/app/servererror";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";

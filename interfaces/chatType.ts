@@ -1,4 +1,4 @@
-import { MessageAddType } from "@/app/(modals)/context/store/chatStore";
+import { MessageAddType } from "@/src/context/store/chatStore";
 import { FlatList } from "react-native";
 import { Socket } from "socket.io-client";
 

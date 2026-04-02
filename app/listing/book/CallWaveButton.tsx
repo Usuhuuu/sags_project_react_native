@@ -9,7 +9,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 
 interface CallWaveButtonProps {
   time_slot: string[];
@@ -29,8 +29,8 @@ const Wave = ({ delay = 0 }: { delay?: number }) => {
           easing: Easing.out(Easing.ease),
         }),
         -1,
-        true
-      )
+        true,
+      ),
     );
   }, [delay]);
 

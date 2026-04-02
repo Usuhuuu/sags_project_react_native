@@ -22,7 +22,7 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import { Return_Type } from "@/interfaces/order&book_type";
 import axiosInstance from "@/hooks/axiosInstance";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "../../context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
 export const OrderItem = React.memo(

@@ -12,14 +12,14 @@ import { Socket } from "socket.io-client";
 import * as Sentry from "@sentry/react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/app/(modals)/context/authContext";
+import { useAuth } from "@/src/context/authContext";
 import { useFocusEffect } from "expo-router";
 import { connectSocket } from "@/hooks/socketConnection";
 import { FontAwesome } from "@expo/vector-icons";
 import { ChatTypes } from "@/interfaces/chatType";
 import PersonalChat from "@/app/(modals)/chat/components/personal_chat";
 import FilterModal from "@/app/(modals)/chat/components/filter_modal";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import {
   RQ_regular_cache_key,
   useAuthQuery,

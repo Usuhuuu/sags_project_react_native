@@ -1,5 +1,5 @@
-import { useAuth } from "@/app/(modals)/context/authContext";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useAuth } from "@/src/context/authContext";
+import { useTheme } from "@/src/context/themeContext";
 import FriendReqModal from "@/app/(modals)/friendReqModal";
 import ExploreHeader from "@/components/ExploreHeader";
 import {
@@ -25,7 +25,7 @@ import UserInfoScreen from "@/components/profileScreens/drawerScreen/userInfoScr
 import RegisterZaal from "@/components/profileScreens/contractorScreen/register_zaal";
 import MailComponent from "@/components/profileScreens/drawerScreen/mail";
 import BookingCheck from "@/components/profileScreens/contractorScreen/booking_check";
-import { useCalendar } from "@/app/(modals)/context/CalendarContext";
+import { useCalendar } from "@/src/context/CalendarContext";
 import { Animated, Easing } from "react-native";
 import { useAuthQuery } from "@/hooks/useQuery";
 import ProfileSettings from "@/app/settings/profileSettings";

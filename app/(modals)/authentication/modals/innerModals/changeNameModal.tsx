@@ -15,7 +15,7 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
 interface ChangeNameModalProps {
@@ -55,7 +55,7 @@ const ChangeNameModal: React.FC<ChangeNameModalProps> = ({
         {
           groupId: MemberData[0]?.group_ID,
           groupName: chatName,
-        }
+        },
       );
       if (response.status === 200 && response.data.success) {
         setGroupName(chatName);

@@ -6,12 +6,12 @@ import {
   TextInput,
 } from "react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useAuth } from "@/app/(modals)/context/authContext";
+import { useAuth } from "@/src/context/authContext";
 import { Friend_Status, FriendSeparator } from "@/interfaces/friendType";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import Friend_Separator from "@/app/(modals)/friend/components/friendSeparator";
 import Friend_Add_Modal from "@/app/(modals)/friend/components/friend_add";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { useRegularQuery } from "@/hooks/useQuery";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { useFocusEffect } from "expo-router";

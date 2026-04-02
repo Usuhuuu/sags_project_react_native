@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView } from "react-native-gesture-handler";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 
 type FormDataTypes = {
   zaal_types: string[];
@@ -228,7 +228,7 @@ const RegisterZaal: React.FC = () => {
                         } else {
                           console.warn("invalid response", response.errorCode);
                         }
-                      }
+                      },
                     );
                   }}
                   style={{
@@ -278,7 +278,7 @@ const RegisterZaal: React.FC = () => {
                         key={index}
                         onPress={() => {
                           setImageUrl((prev) =>
-                            prev.filter((_, i) => i !== index)
+                            prev.filter((_, i) => i !== index),
                           );
                         }}
                       >
@@ -645,7 +645,7 @@ const RegisterZaal: React.FC = () => {
                           borderColor: formData.base_time_slots.some(
                             (slot) =>
                               slot.start_time === item.start_time &&
-                              slot.end_time === item.end_time
+                              slot.end_time === item.end_time,
                           )
                             ? Colors.darkGrey
                             : Colors.grey,
@@ -656,7 +656,7 @@ const RegisterZaal: React.FC = () => {
                             const exists = prev.base_time_slots.some(
                               (slot) =>
                                 slot.start_time === item.start_time &&
-                                slot.end_time === item.end_time
+                                slot.end_time === item.end_time,
                             );
 
                             return {
@@ -667,7 +667,7 @@ const RegisterZaal: React.FC = () => {
                                       !(
                                         slot.start_time === item.start_time &&
                                         slot.end_time === item.end_time
-                                      )
+                                      ),
                                   )
                                 : [
                                     ...prev.base_time_slots,
@@ -687,7 +687,7 @@ const RegisterZaal: React.FC = () => {
                           {formData.base_time_slots.some(
                             (slot) =>
                               slot.start_time === item.start_time &&
-                              slot.end_time === item.end_time
+                              slot.end_time === item.end_time,
                           ) && (
                             <AntDesign
                               name="check"
@@ -700,7 +700,7 @@ const RegisterZaal: React.FC = () => {
                       </TouchableOpacity>
                     </View>
                   );
-                }
+                },
               )}
             </View>
           </View>

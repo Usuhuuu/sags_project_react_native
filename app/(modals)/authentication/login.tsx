@@ -14,12 +14,15 @@ import * as Sentry from "@sentry/react-native";
 import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/authContext";
-import { loginWithFacebook, loginWithGoogle } from "./third_party_instance";
+import { useAuth } from "../../../src/context/authContext";
+import {
+  loginWithFacebook,
+  loginWithGoogle,
+} from "src/utils/auth/third_party_instance";
 import SignupModal, { LoginInput } from "./signup_modal";
 import { TextInput } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useTheme } from "../context/themeContext";
+import { useTheme } from "../../../src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 
 const Page = () => {

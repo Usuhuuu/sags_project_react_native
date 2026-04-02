@@ -1,4 +1,4 @@
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { Feather, FontAwesome, Fontisto, Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -10,7 +10,7 @@ import { EsportHallDataType } from "@/interfaces/listing";
 import {
   EsportBookingData,
   useBookingStore,
-} from "@/app/(modals)/context/store/bookStore";
+} from "@/src/context/store/bookStore";
 import Step_one_pc from "@/app/listing/book/esport/support_components/step_1_pc";
 import { useNavigation } from "@react-navigation/native";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
@@ -18,11 +18,11 @@ import AppText from "@/constants/appTextDefault";
 import HallData from "@/assets/Data/sportHall.json";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { saveToken } from "../util/session";
-import Confirm_Modal from "../support_components/confirmation_modal";
+import { saveToken } from "../../../../src/utils/book/session";
+import Confirm_Modal from "../sport/support_components/confirmation_modal";
 import { format } from "date-fns";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
-import { bookingNotificationSchedule } from "@/app/(modals)/context/store/notificationStore";
+import { bookingNotificationSchedule } from "@/src/context/store/notificationStore";
 import { queryClient } from "@/hooks/queryClient";
 
 const BookingEsportHall = () => {
@@ -78,7 +78,7 @@ const BookingEsportHall = () => {
     hours: 1,
   };
   const setBookingDetails = useBookingStore(
-    (state) => state.setEsportBookingDetails
+    (state) => state.setEsportBookingDetails,
   );
   const bookingData = useBookingStore((state) => state.esportBookingDetails);
   useEffect(() => {
@@ -110,7 +110,7 @@ const BookingEsportHall = () => {
       setIsWaiting(true);
 
       const timezone = encodeURIComponent(
-        Intl.DateTimeFormat().resolvedOptions().timeZone
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
       );
 
       const response = await axiosInstance.post(
@@ -125,7 +125,7 @@ const BookingEsportHall = () => {
         },
         {
           timeout: 10000,
-        }
+        },
       );
       if (response.status === 200 && response.data.success) {
         const token = response.data.session;

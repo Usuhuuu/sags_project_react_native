@@ -13,9 +13,9 @@ import Carousel from "react-native-reanimated-carousel";
 import {
   EsportBookingData,
   useBookingStore,
-} from "@/app/(modals)/context/store/bookStore";
+} from "@/src/context/store/bookStore";
 import { format } from "date-fns";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { View, TouchableOpacity } from "react-native";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { RadioButton } from "react-native-paper";
 import { UBDistrict } from "@/app/(tabs)/inbox";
 import AppText from "@/constants/appTextDefault";

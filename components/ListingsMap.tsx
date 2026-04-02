@@ -14,7 +14,7 @@ import MapViewClustering from "react-native-map-clustering";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as SecureStorage from "expo-secure-store";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 
 const INITIAL_REGION = {
   latitude: 47.918873,
@@ -115,7 +115,7 @@ const ListingsMap = memo(
       } else {
         const categoryKey = selectedCategory.toLowerCase();
         const filtered = listings.filter(
-          (hall) => hall.hall_types.main === categoryKey
+          (hall) => hall.hall_types.main === categoryKey,
         );
         setFilteredHalls(filtered);
       }
@@ -138,7 +138,7 @@ const ListingsMap = memo(
               };
               await SecureStorage.setItemAsync(
                 "userLocation",
-                JSON.stringify(userLocation)
+                JSON.stringify(userLocation),
               );
               setUserLocation(userLocation);
             } else {
@@ -175,7 +175,7 @@ const ListingsMap = memo(
           </Marker>
         );
       },
-      [] // Dependencies are empty since renderCluster doesn't depend on props/state
+      [], // Dependencies are empty since renderCluster doesn't depend on props/state
     );
 
     return (
@@ -234,7 +234,7 @@ const ListingsMap = memo(
         </TouchableOpacity>
       </View>
     );
-  }
+  },
 );
 
 export default ListingsMap;

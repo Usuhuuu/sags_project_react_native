@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { useNavigation } from "@react-navigation/native";
 import AppText from "@/constants/appTextDefault";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,7 +18,7 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import PostModalOptions from "./option_modal";
 import { ULAANBAATAR_DISTRICTS_MAP } from "@/assets/Data/ub_location";
 import { SPORT_INDICATOR } from "@/assets/Data/sport_indicator";
-import { MonthCalendar } from "@/app/(modals)/book/components/calendar_strip";
+import { MonthCalendar } from "@/src/utils/book/calendar_strip";
 import axiosInstance from "@/hooks/axiosInstance";
 
 const PostCreate = () => {

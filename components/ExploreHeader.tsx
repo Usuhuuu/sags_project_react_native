@@ -24,8 +24,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { router } from "expo-router";
 import type { SharedValue } from "react-native-reanimated";
-import { useNotificationStore } from "@/app/(modals)/context/store/notificationStore";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useNotificationStore } from "@/src/context/store/notificationStore";
+import { useTheme } from "@/src/context/themeContext";
 import LottieView from "lottie-react-native";
 import { HallCategoryValue } from "@/interfaces/listing";
 

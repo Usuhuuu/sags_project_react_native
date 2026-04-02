@@ -6,15 +6,15 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Search } from "lucide-react-native";
 import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
-import { useAuth } from "@/app/(modals)/context/authContext";
+import { useAuth } from "@/src/context/authContext";
 import { ContractorBookingType } from "@/interfaces/contractorResponseType";
 import { format } from "date-fns";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { useIsFocused } from "@react-navigation/native";
 
 // --- Types ---

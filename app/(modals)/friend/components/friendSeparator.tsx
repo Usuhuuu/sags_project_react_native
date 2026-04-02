@@ -4,9 +4,13 @@ import {
   FriendsType,
 } from "@/interfaces/friendType";
 import React, { useCallback } from "react";
-import { View, FlatList, Dimensions, SafeAreaView } from "react-native";
-import { FriendItem } from "../util/friend_functions";
-import { useTheme } from "../../context/themeContext";
+import { View, FlatList, Dimensions} from "react-native";
+import { 
+  SafeAreaView,
+  
+} from "react-native-safe-area-context"
+import { FriendItem } from "../../../../src/utils/friend/friend_functions";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Socket } from "socket.io-client";

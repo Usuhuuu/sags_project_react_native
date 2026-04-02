@@ -1,12 +1,12 @@
 import {
   TimePicker15Min,
   WeekCalendarWithoutMonth,
-} from "@/app/(modals)/book/components/calendar_strip";
+} from "@/src/utils/book/calendar_strip";
 import {
   EsportBookingData,
   useBookingStore,
-} from "@/app/(modals)/context/store/bookStore";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+} from "@/src/context/store/bookStore";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
@@ -77,11 +77,11 @@ const Step_one_pc = ({
   ];
 
   const bookingDetails = useBookingStore(
-    (state) => state.esportBookingDetails
+    (state) => state.esportBookingDetails,
   ) as EsportBookingData;
 
   const setBookingDetails = useBookingStore(
-    (state) => state.setEsportBookingDetails
+    (state) => state.setEsportBookingDetails,
   );
 
   const updateBookingDetails = useCallback(
@@ -95,7 +95,7 @@ const Step_one_pc = ({
       console.log(updateField, value);
       setBookingDetails({ [updateField]: value });
     },
-    [setBookingDetails]
+    [setBookingDetails],
   );
 
   if (bookingDetails === null) {
@@ -295,14 +295,14 @@ const Step_one_pc = ({
                     pkg.isSpecial && isSelected
                       ? PC_BANG_PURPLE
                       : !pkg.isSpecial && isSelected
-                      ? colors.primary
-                      : colors.containerColor,
+                        ? colors.primary
+                        : colors.containerColor,
                   shadowColor:
                     pkg.isSpecial && isSelected
                       ? PC_BANG_PURPLE
                       : !pkg.isSpecial && isSelected
-                      ? colors.primary
-                      : "#000",
+                        ? colors.primary
+                        : "#000",
                   shadowOpacity: 0.1,
                   shadowOffset: { width: 2, height: 5 },
                   shadowRadius: 5,

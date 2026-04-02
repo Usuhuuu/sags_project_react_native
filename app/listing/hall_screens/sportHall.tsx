@@ -1,4 +1,4 @@
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { SportHallDataType } from "@/interfaces/listing";
 import {
@@ -170,7 +170,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
   const reviewFetchRef = useRef<boolean>(false);
 
   const [activeTab, setActiveTab] = useState<HallDetailSeparator>(
-    HallDetailSeparator.DETAILS
+    HallDetailSeparator.DETAILS,
   );
   const tabs = [
     { key: HallDetailSeparator.DETAILS, label: "Details" },
@@ -192,7 +192,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
       latitude: string;
       longitude: string;
       smart_location?: string | undefined;
-    }
+    },
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -211,7 +211,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
       listing?.hall_details.hall_price,
       `${listing?.hall_details.hall_work_time.start_time}~${listing?.hall_details.hall_work_time.end_time}`,
       listing?.hall_details.hall_imageURLs,
-      listing?.hall_location
+      listing?.hall_location,
     );
   }, [sportHallID]);
   const detailGenerate = {
@@ -292,7 +292,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
     try {
       setLoading(true);
       const response = await axiosInstanceRegular.get(
-        `/zaal-review/${listing.sportHallID}?page=${page}`
+        `/zaal-review/${listing.sportHallID}?page=${page}`,
       );
       if (response.status === 200 && response.data.success) {
         const returnData = response.data.data;
@@ -609,7 +609,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
                       .filter(
                         (slot) =>
                           typeof slot.start_time === "string" &&
-                          typeof slot.end_time === "string"
+                          typeof slot.end_time === "string",
                       )
                       .map((slot) => ({
                         start_time: slot.start_time as string,

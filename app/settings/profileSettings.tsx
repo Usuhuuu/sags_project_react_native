@@ -10,12 +10,12 @@ import {
   Pressable,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useLanguage } from "../(modals)/context/Languages";
+import { useLanguage } from "../../src/context/Languages";
 import i18n from "@/utils/i18";
 import * as SecureStorage from "expo-secure-store";
-import { useAuth } from "../(modals)/context/authContext";
+import { useAuth } from "../../src/context/authContext";
 import { router } from "expo-router";
-import { useTheme } from "../(modals)/context/themeContext";
+import { useTheme } from "../../src/context/themeContext";
 import Change_Language_Modal from "./components/language_change";
 import AppText from "@/constants/appTextDefault";
 import Animated, {
@@ -345,7 +345,7 @@ const Theme_Changer_Toggle: React.FC<ThemeToggleProps> = ({
     backgroundColor: interpolateColor(
       progress.value,
       [1, 0],
-      ["#62c1e5", "#3b4a5a"]
+      ["#62c1e5", "#3b4a5a"],
     ),
   }));
 
@@ -354,7 +354,7 @@ const Theme_Changer_Toggle: React.FC<ThemeToggleProps> = ({
       {
         translateX: withTiming(
           progress.value === 1 ? WIDTH - KNOB_SIZE - PADDING * 2 : 0,
-          { duration: 280 }
+          { duration: 280 },
         ),
       },
     ],

@@ -12,11 +12,11 @@ import { AntDesign } from "@expo/vector-icons";
 import axiosInstance from "@/hooks/axiosInstance";
 import QRCode from "react-native-qrcode-svg";
 import * as Clipboard from "expo-clipboard";
-import { useAuth } from "@/app/(modals)/context/authContext";
+import { useAuth } from "@/src/context/authContext";
 import { GroupChat } from "@/interfaces/chatType";
 import { useTranslation } from "react-i18next";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { useRegularQuery } from "@/hooks/useQuery";
 
 interface MemberModalProps {
@@ -112,7 +112,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ memberData }) => {
     },
     {
       enabled: LoginStatus,
-    }
+    },
   );
 
   const fetched_member: Members[] = data?.userData?.members || [];
@@ -129,7 +129,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ memberData }) => {
         },
         {
           timeout: 10 * 1000,
-        }
+        },
       );
       if (generateLink.status === 200 && generateLink.data.success) {
         const { link } = generateLink.data;

@@ -1,4 +1,4 @@
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { PostTypes } from "@/app/(tabs)/(tabs-user)/inbox";
 import AppText from "@/constants/appTextDefault";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
@@ -8,7 +8,7 @@ import React, { useCallback } from "react";
 import { View, FlatList, TouchableOpacity, Dimensions } from "react-native";
 import dayjs from "dayjs";
 import { router } from "expo-router";
-import { usePostStore } from "@/app/(modals)/context/store/postStore";
+import { usePostStore } from "@/src/context/store/postStore";
 import ProfileAvatar from "@/components/profile_avatar";
 
 interface TogetherInsideFlatListProps {

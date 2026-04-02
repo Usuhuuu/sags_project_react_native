@@ -1,4 +1,4 @@
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import { SPORT_INDICATOR } from "@/assets/Data/sport_indicator";
 import { ULAANBAATAR_DISTRICTS_MAP } from "@/assets/Data/ub_location";
 import AppText from "@/constants/appTextDefault";
@@ -10,8 +10,8 @@ import {
   ScrollView,
   TouchableOpacity,
   View,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface PostModalOptionsProps {
   visible: boolean;

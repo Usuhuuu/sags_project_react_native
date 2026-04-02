@@ -2,7 +2,7 @@ import React, { SetStateAction } from "react";
 import { View, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { differenceInMinutes, format } from "date-fns";
 import Animated, {

@@ -11,7 +11,7 @@ import {
 import { MultiSelect } from "react-native-element-dropdown";
 import { TextInput } from "react-native-gesture-handler";
 import axiosInstance from "@/hooks/axiosInstance";
-import { useTheme } from "@/app/(modals)/context/themeContext";
+import { useTheme } from "@/src/context/themeContext";
 
 const ProfileNotification = ({ data = [] }) => {
   const { colors: Colors } = useTheme();
