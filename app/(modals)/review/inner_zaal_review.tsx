@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import StarRating from "./star_rating";
+import StarRating from "../../../src/utils/review/star_rating";
 import { launchImageLibrary } from "react-native-image-picker";
 import { Entypo } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";

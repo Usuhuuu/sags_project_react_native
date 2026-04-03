@@ -181,8 +181,8 @@ const ListingsMap = memo(
     return (
       <View style={styles.container}>
         <MapViewClustering
-          ref={mapRef}
-          style={StyleSheet.absoluteFillObject}
+          mapRef={() => mapRef}
+          style={StyleSheet.absoluteFill}
           provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
           showsUserLocation={hasLocationPermission}
           showsMyLocationButton={false} // Disable default button

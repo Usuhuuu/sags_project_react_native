@@ -15,7 +15,7 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Notifier, NotifierComponents } from "react-native-notifier";
-import PostModalOptions from "./option_modal";
+import PostModalOptions from "@/src/utils/together/components/option_modal";
 import { ULAANBAATAR_DISTRICTS_MAP } from "@/assets/Data/ub_location";
 import { SPORT_INDICATOR } from "@/assets/Data/sport_indicator";
 import { MonthCalendar } from "@/src/utils/book/calendar_strip";
