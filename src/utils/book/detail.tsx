@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, TouchableOpacity, StyleSheet, Text, Alert } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Text,
+  Alert,
+  Dimensions,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { axiosInstanceRegular } from "../../../hooks/axiosInstance";
@@ -49,6 +57,8 @@ type TimeSlotItemProps = {
     joinableWholeDay: boolean;
   };
   today: Date;
+  slotCount: number;
+  height: number;
 };
 
 const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
@@ -59,6 +69,8 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
     onSelect,
     wholeDayBooked,
     today,
+    slotCount,
+    height,
   }) => {
     const { colors: Colors, theme } = useTheme();
     const now = new Date();
@@ -81,12 +93,17 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
     const isPast = slotDate <= now && isSameDay;
     const isDisabled =
       wholeDayBooked.unavailableWholeDay || isUnavailable || isPast;
-
     return (
-      <View style={styles.timeSlotView}>
+      <View
+        style={[
+          styles.timeSlotView,
+          {
+            height: (height * 0.9) / slotCount,
+          },
+        ]}
+      >
         <TouchableOpacity
           onPress={() => {
-            const now = new Date();
             const newSelected = selectedTimeSlots.filter(
               (t) => t !== "WHOLE_DAY",
             );
@@ -126,7 +143,6 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
                       ? Colors.white
                       : Colors.themeContainerGrey
                     : Colors.containerColor,
-
               borderWidth: 2,
             },
           ]}
@@ -328,128 +344,101 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   };
 
   const isSelected = selectedTimeSlots.includes("WHOLE_DAY");
+  const { height } = Dimensions.get("screen");
   return (
     <View
       style={{
-        width: "100%",
-        height: "100%",
         flex: 1,
         backgroundColor: Colors.white,
       }}
     >
       {isLoading ? (
-        <View
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-        >
+        <View style={{ flex: 1 }}>
           <OwnActivaterIndicator />
         </View>
       ) : (
         <SafeAreaView
           style={{
-            width: "100%",
-            height: "100%",
             backgroundColor: Colors.containerColor,
+            flex: 1,
           }}
         >
+          {/* 🔹 HEADER (fixed height) */}
           {!wholeDayModal && (
             <View
               style={{
                 justifyContent: "space-between",
-                height: "25%",
+                height: height * 0.2,
               }}
             >
-              <TouchableOpacity
-                onPress={() => setIsOrderScreenVisible(false)}
-                style={{}}
-              >
+              <TouchableOpacity onPress={() => setIsOrderScreenVisible(false)}>
                 <Ionicons name="close" size={20} color={Colors.darkGrey} />
               </TouchableOpacity>
-              <View
-                style={{
-                  height: "100%",
-                  width: "100%",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
+
+              <WeekCalendar
+                containerStyle={{
+                  flex: 1,
+                  paddingBottom: 10,
                 }}
-              >
-                <WeekCalendar
-                  containerStyle={{
-                    flex: 1,
-                    width: "100%",
-                    height: "100%",
-                    paddingBottom: 10,
-                  }}
-                  selectedDayTextStyle={{ color: Colors.white }}
-                  selectedDayNumberStyle={{ color: Colors.white }}
-                  selectedContainerStyle={{ backgroundColor: Colors.primary }}
-                  onDateSelect={(date: Date) => {
-                    dateSlotGiver(date);
-                    setToday(date);
-                  }}
-                  selectedDay={today}
-                  setSelectedDay={setToday}
-                  textWeekStyle={{
-                    color:
-                      theme === "dark"
-                        ? Colors.themeColorTextPure
-                        : Colors.dark,
-                  }}
-                  textDayStyle={{
-                    color:
-                      theme === "dark"
-                        ? Colors.themeColorTextPure
-                        : Colors.dark,
-                  }}
-                  moveIconStyle={{
-                    color: Colors.themeColorTextPure,
-                  }}
-                  textMonthStyle={{
-                    color: Colors.themeColorTextPure,
-                  }}
-                />
-              </View>
+                selectedDayTextStyle={{ color: Colors.white }}
+                selectedDayNumberStyle={{ color: Colors.white }}
+                selectedContainerStyle={{ backgroundColor: Colors.primary }}
+                onDateSelect={(date: Date) => {
+                  dateSlotGiver(date);
+                  setToday(date);
+                }}
+                selectedDay={today}
+                setSelectedDay={setToday}
+                textWeekStyle={{
+                  color:
+                    theme === "dark" ? Colors.themeColorTextPure : Colors.dark,
+                }}
+                textDayStyle={{
+                  color:
+                    theme === "dark" ? Colors.themeColorTextPure : Colors.dark,
+                }}
+                moveIconStyle={{ color: Colors.themeColorTextPure }}
+                textMonthStyle={{ color: Colors.themeColorTextPure }}
+              />
             </View>
           )}
-          {/* Header */}
 
-          <View style={styles.LLR_style}>
-            {/* Timeslot */}
+          {/* 🔹 CONTENT AREA (IMPORTANT) */}
+          <View
+            style={{
+              flex: 1,
+              padding: 10,
+              maxHeight: height * 0.6,
+            }}
+          >
             {wholeDayModal ? (
-              <>
-                <View
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                  }}
-                >
-                  <TouchableOpacity onPress={() => setWholeDayModal(false)}>
-                    <Ionicons name="close" size={20} color={Colors.darkGrey} />
-                  </TouchableOpacity>
+              <View style={{ flex: 1 }}>
+                <TouchableOpacity onPress={() => setWholeDayModal(false)}>
+                  <Ionicons name="close" size={20} color={Colors.darkGrey} />
+                </TouchableOpacity>
+
+                <View style={{ flex: 1 }}>
                   <Calendar
                     sport_hall_id={sportHallID}
                     formData={formData}
                     setIsOrderScreenVisible={setIsOrderScreenVisible}
                   />
                 </View>
-              </>
+              </View>
             ) : (
               <>
-                <View
-                  style={{
-                    paddingVertical: 20,
-                  }}
-                >
+                {/* 🔹 WHOLE DAY BUTTON */}
+                <View style={{ paddingVertical: 10 }}>
                   <TouchableOpacity
                     style={{
                       borderColor: isSelected
                         ? Colors.primary
                         : Colors.themeColorTextSecondary,
                       borderWidth: 2,
-                      padding: 15,
                       borderRadius: 5,
+                      height: height * 0.07,
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                     onPress={() => {
                       if (
@@ -462,17 +451,12 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                           "Today Booking Whole Day is not possible",
                           "Do you want to see possible days?",
                           [
-                            {
-                              text: "No",
-                              onPress: () => {},
-                              style: "cancel",
-                            },
+                            { text: "No", style: "cancel" },
                             {
                               text: "Yes",
-                              onPress: () => setWholeDayModal(!wholeDayModal),
+                              onPress: () => setWholeDayModal(true),
                             },
                           ],
-                          { cancelable: true },
                         );
                       } else {
                         setSelectedTimeSlots(["WHOLE_DAY"]);
@@ -490,15 +474,16 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                     </Text>
                   </TouchableOpacity>
                 </View>
-                <View
-                  style={{
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    flexDirection: "row",
-                  }}
-                >
-                  {baseTimeSlot?.map((timeSlot) => {
-                    return (
+
+                <View style={{}}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    {baseTimeSlot?.map((timeSlot) => (
                       <TimeSlotItem
                         key={`${timeSlot.start_time}~${timeSlot.end_time}`}
                         timeSlot={timeSlot}
@@ -507,43 +492,44 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                         onSelect={setSelectedTimeSlots}
                         wholeDayBooked={wholeDayBooked}
                         today={today}
+                        slotCount={baseTimeSlot.length}
+                        height={height - height * 0.07}
                       />
-                    );
-                  })}
+                    ))}
+                  </View>
                 </View>
               </>
             )}
           </View>
-          {/* Order buttn */}
+
+          {/* 🔹 ORDER BUTTON (fixed bottom) */}
           <View
             style={{
-              justifyContent: "center",
-              width: "100%",
               alignItems: "center",
+              borderRadius: 5,
+              height: height * 0.1,
             }}
           >
             {selectedTimeSlots.length !== 0 && (
               <TouchableOpacity
                 style={{
-                  justifyContent: "center",
                   borderWidth: 1,
-                  padding: 15,
                   width: "50%",
                   borderRadius: 5,
+                  borderColor: Colors.primary,
+                  backgroundColor: Colors.secondary,
                   shadowColor: Colors.primary,
                   shadowOpacity: theme === "dark" ? 1.8 : 0,
                   shadowRadius: 10,
                   shadowOffset: { width: 0, height: 0 },
-                  borderColor: Colors.primary,
-                  backgroundColor: Colors.secondary,
                 }}
-                onPress={() => handleOrder()}
+                onPress={handleOrder}
               >
                 <Text
                   style={{
                     textAlign: "center",
                     fontSize: 20,
-                    fontWeight: 400,
+                    fontWeight: "400",
                     color: Colors.littleDark,
                   }}
                 >
@@ -567,24 +553,21 @@ const styles = StyleSheet.create({
 
   timeSlotView: {
     flexDirection: "row",
+
     //backgroundColor: "black",
   },
   lalarinSdaBtn: {
     borderWidth: 1,
     borderRadius: 5,
-    marginBottom: 10,
+    marginBottom: 7,
     width: "50%",
-    padding: 10,
     minWidth: "50%",
     marginHorizontal: -2,
     alignItems: "center",
+    justifyContent: "center",
   },
   calendars: {
     height: "100%",
     width: "90%",
-  },
-  LLR_style: {
-    flexDirection: "column",
-    padding: 10,
   },
 });

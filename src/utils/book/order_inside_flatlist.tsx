@@ -194,8 +194,8 @@ export const OrderItem = React.memo(
           {
             label: `${orderLangInit.bookingInfo.time}`,
             resolve: (data: any) =>
-              `${format(data.blocks[0].start_time, "HH:mm")} ~ ${
-                format(data.blocks[0].end_time, "HH:mm") ?? ""
+              `${format(new Date(data.blocks[0].start_time), "HH:mm")} ~ ${
+                format(new Date(data.blocks[0].end_time), "HH:mm") ?? ""
               }`,
           },
           {

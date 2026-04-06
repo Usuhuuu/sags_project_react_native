@@ -24,7 +24,6 @@ export default function TabsIndex() {
       enabled: LoginStatus,
     },
   );
-  console.log(userData);
 
   //  Wait for auth bootstrap
   if (authInitalizing) {
@@ -64,10 +63,10 @@ export default function TabsIndex() {
   // ROLE BASED ROUTING
   switch (userData.role) {
     case "admin":
-      return <Redirect href="/(tabs)/(tabs-admin)" />;
+      return <Redirect href="/(tabs)/(tabs-admin)/overview" />;
 
     case "contractor":
-      return <Redirect href="/(tabs)/(tabs-contractor)" />;
+      return <Redirect href="/(tabs)/(tabs-contractor)/overview" />;
 
     default:
       return <Redirect href="/(tabs)/(tabs-user)" />;

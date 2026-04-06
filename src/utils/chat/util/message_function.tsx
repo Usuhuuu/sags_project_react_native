@@ -147,13 +147,14 @@ export const MemoizedChatItem = React.memo(
     const userSelf: boolean = item.sender_unique_name === userDatas.userId;
     const width = Dimensions.get("window").width;
     const w = (width / 2.7) * 0.23;
+    const convertedTime = new Date(item.timestamp) ?? new Date();
     return (
       <View>
         {item.showDateSeparator && (
           <View style={styles.dateSeparator}>
             <View style={styles.line} />
             <Text style={styles.dateText}>
-              {format(new Date(item.timestamp), "EEEE MMMM dd")}
+              {format(convertedTime, "EEEE MMMM dd")}
             </Text>
             <View style={styles.line} />
           </View>
@@ -240,7 +241,7 @@ export const MemoizedChatItem = React.memo(
                     alignSelf: userSelf ? "flex-end" : "flex-start",
                   }}
                 >
-                  {format(item.timestamp, "hh:mm a")}
+                  {format(convertedTime, "hh:mm a")}
                 </Text>
               )}
               {userSelf && item.showAvatar && (
@@ -256,7 +257,7 @@ export const MemoizedChatItem = React.memo(
                     alignSelf: userSelf ? "flex-end" : "flex-start",
                   }}
                 >
-                  {format(item.timestamp, "hh:mm a")}
+                  {format(convertedTime, "hh:mm a")}
                 </Text>
               )}
             </View>

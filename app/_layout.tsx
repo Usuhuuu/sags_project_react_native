@@ -169,6 +169,10 @@ export function RootLayoutNav() {
         options={{ headerShown: false, animation: "fade_from_bottom" }}
       />
       <Stack.Screen
+        name="(drawer)"
+        options={{ headerShown: true, animation: "fade_from_bottom" }}
+      />
+      <Stack.Screen
         name="(modals)/authentication/login"
         options={{
           headerTitle: "Burtguuleh",

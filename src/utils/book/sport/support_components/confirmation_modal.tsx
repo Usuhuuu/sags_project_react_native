@@ -3,7 +3,7 @@ import AppText from "@/constants/appTextDefault";
 import { TabNavTypes } from "@/interfaces/tabScreenType";
 import { FontAwesome, FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import LottieView from "lottie-react-native";
 import React, { SetStateAction } from "react";
 import { Modal, TouchableOpacity, View } from "react-native";
@@ -29,8 +29,6 @@ const Confirm_Modal = ({
   hasScheduled,
 }: Confirm_Modal_Props) => {
   const { colors, theme } = useTheme();
-  const navigation = useNavigation<TabNavTypes>();
-  const router = useRouter();
   return (
     <Modal visible={confirmModal} transparent animationType="fade">
       <View
@@ -189,7 +187,7 @@ const Confirm_Modal = ({
                   gap: 10,
                 }}
                 onPress={() => {
-                  navigation.navigate("order");
+                  router.push("/(tabs)/(tabs-user)/order");
                   hasScheduled && setConfirmModal(!confirmModal);
                 }}
               >
