@@ -200,11 +200,13 @@ const Page = () => {
           logIn();
           switch (response.data.role) {
             case "admin":
-              return router.replace("/(tabs)/(tabs-admin)");
+              return router.replace("/(drawer)/(admin)");
             case "contractor":
-              return router.replace("/(tabs)/(tabs-contractor)");
+              return router.replace(
+                "/(drawer)/(contractor)/(tabs-contractor)/overview",
+              );
             default:
-              return router.replace("/(tabs)/(tabs-user)");
+              return router.replace("/(drawer)/(user)");
           }
         } catch (err) {
           Sentry.captureException(err);

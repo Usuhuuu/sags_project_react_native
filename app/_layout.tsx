@@ -1,7 +1,7 @@
 import "@/utils/i18";
 import React, { useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
-import { Stack, router } from "expo-router";
+import { Stack, router, usePathname } from "expo-router";
 import * as Sentry from "@sentry/react-native";
 import * as Notifications from "expo-notifications";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
@@ -26,10 +26,6 @@ import {
 import { useNotificationStore } from "@/src/context/store/notificationStore";
 import { useTranslation } from "react-i18next";
 export { ErrorBoundary } from "expo-router";
-
-export const unstable_settings = {
-  initialRouteName: "/(tabs)/index",
-};
 
 configureReanimatedLogger({
   strict: false,
@@ -115,15 +111,15 @@ export function RootLayout() {
     };
   }, []);
 
-  Notifications.setNotificationHandler({
-    handleNotification: async () => {
-      return {
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-      };
-    },
-  });
+  // Notifications.setNotificationHandler({
+  //   handleNotification: async () => {
+  //     return {
+  //       shouldShowAlert: true,
+  //       shouldPlaySound: true,
+  //       shouldSetBadge: true,
+  //     };
+  //   },
+  // });
   useEffect(() => {
     if (notificationData) {
       if (notificationData.data?.isLocal) return;
@@ -157,20 +153,13 @@ export function RootLayout() {
 export function RootLayoutNav() {
   const { t } = useTranslation();
   const { colors: Colors } = useTheme();
-
+  const pathname = usePathname();
+  console.log(pathname);
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
+    <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen
-        name="(tabs)/index"
-        options={{ headerShown: false, animation: "fade_from_bottom" }}
-      />
-      <Stack.Screen
-        name="(drawer)"
-        options={{ headerShown: true, animation: "fade_from_bottom" }}
+        name="(drawer)/index"
+        options={{ animation: "fade_from_bottom" }}
       />
       <Stack.Screen
         name="(modals)/authentication/login"

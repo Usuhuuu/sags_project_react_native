@@ -10,13 +10,13 @@ import {
   Pressable,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useLanguage } from "../../src/context/Languages";
+import { useLanguage } from "@/src/context/Languages";
 import i18n from "@/utils/i18";
 import * as SecureStorage from "expo-secure-store";
-import { useAuth } from "../../src/context/authContext";
-import { router } from "expo-router";
+import { useAuth } from "@/src/context/authContext";
+import { Redirect, router, usePathname } from "expo-router";
 import { useTheme } from "@/src/context/themeContext";
-import Change_Language_Modal from "../../src/utils/settings/components/language_change";
+import Change_Language_Modal from "@/src/utils/settings/components/language_change";
 import AppText from "@/constants/appTextDefault";
 import Animated, {
   interpolateColor,
@@ -31,9 +31,9 @@ const ProfileSettings: React.FC = () => {
   const { logOut } = useAuth();
   const { changeLanguage } = useLanguage();
   const { t } = useTranslation();
+  const pathname = usePathname();
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [themeModelVisible, setThemeModelVisible] = useState(false);
 
   const settingsDet: any = t("settings", { returnObjects: true });
   const settings = Array.isArray(settingsDet) ? settingsDet[0] : [];
@@ -83,7 +83,9 @@ const ProfileSettings: React.FC = () => {
           iconBg: "#FEE2E2",
           iconColor: "#DC2626",
           onPress: () =>
-            router.push("/settings/components/settings_notification"),
+            router.push(
+              "/(drawer)/(user)/(sub_settings)/settings_notification",
+            ),
         },
         {
           id: "about",
@@ -197,7 +199,6 @@ const ProfileSettings: React.FC = () => {
         onPress: async () => {
           await SecureStorage.deleteItemAsync("Tokens");
           logOut();
-          router.replace("..");
           flushRegularQuery();
         },
       },

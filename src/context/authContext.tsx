@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       await AsyncStorage.removeItem("LoginStatus");
       queryClient.clear();
       setIsAuthenticated(false);
-      router.replace("/(tabs)/(tabs-user)");
+      router.replace("/(drawer)/(user)");
     } catch (error) {
       console.error("Failed to remove login status", error);
     }

@@ -10,7 +10,6 @@ import {
   StyleSheet,
   Text,
   Image,
-  ActivityIndicator,
   TouchableOpacity,
   ListRenderItem,
   ImageBackground,
@@ -276,7 +275,7 @@ const ListingComponent = ({ listings: items, category }: Props) => {
           ref={listRef}
           data={items}
           renderItem={renderRow}
-          keyExtractor={(item) => item.sportHallID}
+          keyExtractor={(item: any) => item.sportHallID}
           contentContainerStyle={styles.flatListContent}
           onEndReached={() => console.log("end reached")}
           onEndReachedThreshold={0.1}
