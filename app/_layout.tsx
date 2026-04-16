@@ -1,7 +1,7 @@
 import "@/utils/i18";
 import React, { useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
-import { Stack, router, usePathname } from "expo-router";
+import { Stack, router } from "expo-router";
 import * as Sentry from "@sentry/react-native";
 import * as Notifications from "expo-notifications";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
@@ -153,8 +153,6 @@ export function RootLayout() {
 export function RootLayoutNav() {
   const { t } = useTranslation();
   const { colors: Colors } = useTheme();
-  const pathname = usePathname();
-  console.log(pathname);
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen
@@ -276,17 +274,6 @@ export function RootLayoutNav() {
           headerTitleStyle: { fontSize: 24, color: Colors.primary },
           headerShadowVisible: false,
           headerTitle: "New Post",
-        }}
-      />
-      {/* Settings Section */}
-      <Stack.Screen
-        name="settings/settings_notification"
-        options={{
-          headerShown: true,
-          headerStyle: { backgroundColor: Colors.backgroundColor },
-          headerTitleStyle: { fontSize: 24, color: Colors.primary },
-          headerShadowVisible: false,
-          headerTitle: "Notifications Settings",
         }}
       />
     </Stack>

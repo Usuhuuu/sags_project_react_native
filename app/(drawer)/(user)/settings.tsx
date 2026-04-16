@@ -14,7 +14,7 @@ import { useLanguage } from "@/src/context/Languages";
 import i18n from "@/utils/i18";
 import * as SecureStorage from "expo-secure-store";
 import { useAuth } from "@/src/context/authContext";
-import { Redirect, router, usePathname } from "expo-router";
+import { router } from "expo-router";
 import { useTheme } from "@/src/context/themeContext";
 import Change_Language_Modal from "@/src/utils/settings/components/language_change";
 import AppText from "@/constants/appTextDefault";
@@ -31,7 +31,6 @@ const ProfileSettings: React.FC = () => {
   const { logOut } = useAuth();
   const { changeLanguage } = useLanguage();
   const { t } = useTranslation();
-  const pathname = usePathname();
 
   const [modalVisible, setModalVisible] = useState(false);
 

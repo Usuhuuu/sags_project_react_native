@@ -28,6 +28,7 @@ import { RQ_simple_cache_key, useSimpleQuery } from "@/hooks/useQuery";
 import { useLocalSearchParams } from "expo-router";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Avatar } from "react-native-paper";
+import ProfileAvatar from "@/components/profile_avatar";
 
 interface CommentTypes {
   _id: string;
@@ -186,6 +187,7 @@ const PostComment = () => {
     },
     [replyTo, setReplyTo],
   );
+  const width = Dimensions.get("screen").width;
 
   return (
     <SafeAreaView
@@ -236,14 +238,10 @@ const PostComment = () => {
                 marginBottom: 8,
               }}
             >
-              <View
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 19,
-                  backgroundColor: "#1c1c1c",
-                  marginRight: 10,
-                }}
+              <ProfileAvatar
+                userName={item.block?.users_info[0]?.unique_user_ID}
+                imageUrl={item.block?.users_info[0]?.imageUrl ?? null}
+                width={(width / 2) * 0.23}
               />
               <View style={{ flex: 1 }}>
                 <AppText style={{ fontSize: 14, fontWeight: "500" }}>

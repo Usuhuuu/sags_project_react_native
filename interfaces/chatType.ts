@@ -48,6 +48,12 @@ export interface ChatTypes {
     _id: string;
     unique_user_ID: string;
   }[];
+  lastMessage?: {
+    msgId?: string;
+    senderId?: string;
+    message?: string;
+    timestamp?: number | string;
+  };
 }
 export type MessageHistory = {
   nextCursor: Date | null;

@@ -97,9 +97,7 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
       <View
         style={[
           styles.timeSlotView,
-          {
-            height: (height * 0.9) / slotCount,
-          },
+          { height: height / slotCount, maxHeight: height / slotCount },
         ]}
       >
         <TouchableOpacity
@@ -348,8 +346,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   return (
     <View
       style={{
-        flex: 1,
         backgroundColor: Colors.white,
+        flex: 1,
       }}
     >
       {isLoading ? (
@@ -362,13 +360,14 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
             backgroundColor: Colors.containerColor,
             flex: 1,
           }}
+          edges={["bottom", "left", "right", "top"]}
         >
           {/* 🔹 HEADER (fixed height) */}
           {!wholeDayModal && (
             <View
               style={{
                 justifyContent: "space-between",
-                height: height * 0.2,
+                height: height * 0.15,
               }}
             >
               <TouchableOpacity onPress={() => setIsOrderScreenVisible(false)}>
@@ -406,9 +405,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           {/* 🔹 CONTENT AREA (IMPORTANT) */}
           <View
             style={{
-              flex: 1,
               padding: 10,
-              maxHeight: height * 0.6,
+              height: height * 0.6,
             }}
           >
             {wholeDayModal ? (
@@ -426,9 +424,13 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                 </View>
               </View>
             ) : (
-              <>
+              <View
+                style={{
+                  flex: 1,
+                }}
+              >
                 {/* 🔹 WHOLE DAY BUTTON */}
-                <View style={{ paddingVertical: 10 }}>
+                <View style={{ height: height * 0.1 }}>
                   <TouchableOpacity
                     style={{
                       borderColor: isSelected
@@ -475,7 +477,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                   </TouchableOpacity>
                 </View>
 
-                <View style={{}}>
+                <View style={{ height: height * 0.5 }}>
                   <View
                     style={{
                       flexDirection: "row",
@@ -493,12 +495,12 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                         wholeDayBooked={wholeDayBooked}
                         today={today}
                         slotCount={baseTimeSlot.length}
-                        height={height - height * 0.07}
+                        height={height - 30}
                       />
                     ))}
                   </View>
                 </View>
-              </>
+              </View>
             )}
           </View>
 
@@ -507,7 +509,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
             style={{
               alignItems: "center",
               borderRadius: 5,
-              height: height * 0.1,
+              justifyContent: "center",
+              flex: 1,
             }}
           >
             {selectedTimeSlots.length !== 0 && (
@@ -522,6 +525,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                   shadowOpacity: theme === "dark" ? 1.8 : 0,
                   shadowRadius: 10,
                   shadowOffset: { width: 0, height: 0 },
+                  padding: height * 0.02,
                 }}
                 onPress={handleOrder}
               >
@@ -553,8 +557,6 @@ const styles = StyleSheet.create({
 
   timeSlotView: {
     flexDirection: "row",
-
-    //backgroundColor: "black",
   },
   lalarinSdaBtn: {
     borderWidth: 1,

@@ -35,7 +35,6 @@ const ChatComponent: React.FC = () => {
 
   const socketRef = useRef<Socket | null>(null);
   const currentChatId = useRef<string>("");
-
   //setMessagesMap
 
   const [chatSearchValue, setChatSearchValue] = useState<string>("");
@@ -44,21 +43,6 @@ const ChatComponent: React.FC = () => {
   const { t } = useTranslation();
   const { LoginStatus } = useAuth();
   const isFocused = useIsFocused();
-
-  const {
-    data: userData,
-    error: userError,
-    isLoading: userLoading,
-  } = useAuthQuery(
-    {
-      pathname: "main",
-      cacheKey: ["auth_status"] as const,
-      loginStatus: LoginStatus,
-    },
-    {
-      enabled: LoginStatus,
-    },
-  );
 
   const regular_query_key = [
     "group_chat",
@@ -92,6 +76,12 @@ const ChatComponent: React.FC = () => {
           chat_image: chat.latestMessage || undefined,
           unseenCount: chat.unseenCount || 0,
           userInfo: chat.userInfo,
+          lastMessage: chat.lastMessage || {
+            msgId: undefined,
+            senderId: undefined,
+            message: undefined,
+            timestamp: undefined,
+          },
         };
       });
 
@@ -131,20 +121,6 @@ const ChatComponent: React.FC = () => {
   const { bottom } = useSafeAreaInsets();
   const chatInitLang: any = t("chatRoom", { returnObjects: true });
 
-  if (userLoading || chatLoading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: Colors.backgroundColor,
-        }}
-      >
-        <OwnActivaterIndicator />
-      </View>
-    );
-  }
   return (
     <View
       style={{ width: width, backgroundColor: Colors.backgroundColor, flex: 1 }}
@@ -240,7 +216,11 @@ const ChatComponent: React.FC = () => {
             </View>
           </View>
 
-          <PersonalChat chats={chat} currentChatId={currentChatId} />
+          <PersonalChat
+            chats={chat}
+            currentChatId={currentChatId}
+            loading={chatLoading}
+          />
         </ScrollView>
       </View>
       {!isChatExist ? (

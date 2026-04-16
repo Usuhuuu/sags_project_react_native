@@ -23,7 +23,8 @@ type PostTypes = {
     users_info: [
       {
         unique_user_ID: string;
-      }
+        imageUrl?: string;
+      },
     ];
     hall_info: {
       hall_details: {

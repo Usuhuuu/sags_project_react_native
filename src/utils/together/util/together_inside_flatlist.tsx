@@ -1,5 +1,5 @@
 import { useTheme } from "@/src/context/themeContext";
-import { PostTypes } from "@/app/(tabs)/(tabs-user)/inbox";
+import { PostTypes } from "@/app/(drawer)/(user)/(tabs-user)/inbox";
 import AppText from "@/constants/appTextDefault";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 import { router } from "expo-router";
 import { usePostStore } from "@/src/context/store/postStore";
 import ProfileAvatar from "@/components/profile_avatar";
+import { Skeleton } from "moti/skeleton";
 
 interface TogetherInsideFlatListProps {
   data: PostTypes[] | undefined;
@@ -23,7 +24,7 @@ const TogetherInsideFlatList = ({
   setLoading,
 }: TogetherInsideFlatListProps) => {
   const { colors, theme } = useTheme();
-  const { setPostDetails, postDetails } = usePostStore();
+  const { setPostDetails } = usePostStore();
 
   const width = Dimensions.get("screen").width;
   const renderItem = useCallback(
@@ -69,10 +70,10 @@ const TogetherInsideFlatList = ({
                 {item.block?.users_info[0]?.unique_user_ID}
               </AppText>
               {/* <AppText
-                style={{ color: colors.darkGrey, fontSize: 11, marginTop: 2 }}
-              >
-                {item.badge}
-              </AppText> */}
+                  style={{ color: colors.darkGrey, fontSize: 11, marginTop: 2 }}
+                >
+                  {item.badge}
+                </AppText> */}
             </View>
             <AppText style={{ color: colors.darkGrey, fontSize: 11 }}>
               {format(new Date(item?.day), "MMM dd, yyyy")}
@@ -84,9 +85,9 @@ const TogetherInsideFlatList = ({
               ? `Looking for players to join a ${
                   item.block?.post.sport_type
                 } session at ${item.block?.hall_info?.hall_details.hall_name}.
-Time: ${dayjs(item.block.start_time).format("HH:mm")} – ${dayjs(
-                  item.block.end_time,
-                ).format("HH:mm")}. Feel free to join if available.`
+  Time: ${dayjs(item.block.start_time).format("HH:mm")} – ${dayjs(
+    item.block.end_time,
+  ).format("HH:mm")}. Feel free to join if available.`
               : item.block?.post.post_text}
           </AppText>
 
@@ -175,10 +176,11 @@ Time: ${dayjs(item.block.start_time).format("HH:mm")} – ${dayjs(
     ),
     [data, colors],
   );
+
   const handleCommentPress = (post: PostTypes) => {
     setPostDetails(post);
     router.push({
-      pathname: "/listing/together/comment",
+      pathname: "/(modals)/together/comment",
       params: {
         post_id: post.block?.post._id,
       },
@@ -190,60 +192,57 @@ Time: ${dayjs(item.block.start_time).format("HH:mm")} – ${dayjs(
       <FlatList
         data={data}
         keyExtractor={(item, index) => `${item.id}-${index}`}
-        renderItem={renderItem}
+        renderItem={({ item }) =>
+          loading ? (
+            <PostSkeletonItem width={width} theme={theme} color={colors} />
+          ) : (
+            renderItem({ item })
+          )
+        }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
         ListEmptyComponent={
-          loading ? null : (
-            <View
-              style={{
-                flex: 1,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: colors.containerColor,
-                marginHorizontal: 10,
-                padding: 10,
-                height: height * 0.6,
-                shadowColor: colors.shadowColor,
-                shadowOffset: { width: 0, height: 3 },
-                shadowOpacity: 0.15,
-                shadowRadius: 6,
-                elevation: 4,
-                borderRadius: 12,
-                margin: 20,
-              }}
-            >
-              <View style={{ alignItems: "center", marginBottom: 12 }}>
-                <FontAwesome5
-                  name="comment-alt"
-                  size={40}
-                  color={colors.themeColorTextPure}
-                />
-                <AppText
-                  style={{
-                    fontSize: 24,
-                    color: colors.themeColorTextPure,
-                    fontWeight: "600",
-                  }}
-                >
-                  No Posts Yet
-                </AppText>
-              </View>
-              <AppText style={{ color: colors.darkGrey, fontSize: 14 }}>
-                Be the first to find teammates or
-              </AppText>
-              <AppText style={{ color: colors.darkGrey, fontSize: 14 }}>
-                create a new post!
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: colors.containerColor,
+              marginHorizontal: 10,
+              padding: 10,
+              height: height * 0.6,
+              shadowColor: colors.shadowColor,
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.15,
+              shadowRadius: 6,
+              elevation: 4,
+              borderRadius: 12,
+              margin: 20,
+            }}
+          >
+            <View style={{ alignItems: "center", marginBottom: 12 }}>
+              <FontAwesome5
+                name="comment-alt"
+                size={40}
+                color={colors.themeColorTextPure}
+              />
+              <AppText
+                style={{
+                  fontSize: 24,
+                  color: colors.themeColorTextPure,
+                  fontWeight: "600",
+                }}
+              >
+                No Posts Yet
               </AppText>
             </View>
-          )
-        }
-        ListFooterComponent={
-          loading ? (
-            <View>
-              <OwnActivaterIndicator />
-            </View>
-          ) : null
+            <AppText style={{ color: colors.darkGrey, fontSize: 14 }}>
+              Be the first to find teammates or
+            </AppText>
+            <AppText style={{ color: colors.darkGrey, fontSize: 14 }}>
+              create a new post!
+            </AppText>
+          </View>
         }
       />
 
@@ -263,7 +262,7 @@ Time: ${dayjs(item.block.start_time).format("HH:mm")} – ${dayjs(
         }}
         onPress={() => {
           router.push({
-            pathname: "/listing/together/post_create",
+            pathname: "/(modals)/together/post_create",
           });
         }}
       >
@@ -273,4 +272,78 @@ Time: ${dayjs(item.block.start_time).format("HH:mm")} – ${dayjs(
   );
 };
 
+function PostSkeletonItem({
+  width,
+  color,
+  theme,
+}: {
+  width: number;
+  color: any;
+  theme: "light" | "dark";
+}) {
+  const AVATAR = (width / 2) * 0.23;
+  return (
+    <View
+      style={[
+        {
+          backgroundColor: color.containerColor,
+          shadowColor: color.shadowColor,
+          shadowOffset: { width: 4, height: 2 },
+          shadowOpacity: theme === "dark" ? 0.7 : 0.1,
+          shadowRadius: 4,
+          borderRadius: 16,
+          marginBottom: 16,
+          marginHorizontal: 6,
+          padding: 10,
+        },
+      ]}
+    >
+      {/* Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: 8,
+        }}
+      >
+        <Skeleton
+          width={AVATAR}
+          height={AVATAR}
+          radius="round"
+          colorMode={theme}
+        />
+
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Skeleton width={120} height={14} colorMode={theme} />
+        </View>
+
+        <Skeleton width={70} height={12} colorMode={theme} />
+      </View>
+
+      {/* Text content */}
+      <View style={{ marginVertical: 10 }}>
+        <Skeleton width={"95%"} height={14} colorMode={theme} />
+        <Skeleton width={"90%"} height={14} colorMode={theme} />
+        <Skeleton width={"80%"} height={14} colorMode={theme} />
+      </View>
+
+      {/* Footer */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <View style={{ flexDirection: "row" }}>
+          <Skeleton width={50} height={20} colorMode={theme} />
+          <View style={{ width: 12 }} />
+          <Skeleton width={50} height={20} colorMode={theme} />
+        </View>
+
+        <Skeleton width={60} height={30} radius={15} colorMode={theme} />
+      </View>
+    </View>
+  );
+}
 export default TogetherInsideFlatList;

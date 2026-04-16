@@ -50,6 +50,7 @@
     "i18next": "^24.2.2",
     "lottie-react-native": "7.1.0",
     "lucide-react-native": "^0.563.0",
+    "moti": "^0.30.0",
     "react": "^19.2.0",
     "react-dom": "18.2.0",
     "react-i18next": "^15.7.4",

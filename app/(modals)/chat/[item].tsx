@@ -140,13 +140,10 @@ const DirectChatScreen: React.FC = ({}) => {
         socket?.connect();
       });
     }
-    console.log("SOCKET");
-    console.log("SDa Checking", initFriend, chatId);
     socket?.emit(
       "chat-join",
       { initFriend: initFriend, chatId: chatId },
       (callBackData: any) => {
-        console.log("CALLBACKDATA", callBackData);
         callBackData.activeUser
           ? setActiveUserData((prev) => {
               if (prev?.includes(callBackData.activeUser)) return prev;

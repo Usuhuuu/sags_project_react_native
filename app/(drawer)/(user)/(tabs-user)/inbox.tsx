@@ -61,7 +61,7 @@ export type UBDistrict = {
 
 const TogetherScreen = () => {
   const { colors, theme } = useTheme();
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [date, setDate] = useState<Date>(new Date());
   const [formattedDate, setFormattedDate] = useState<string>(
     dayjs(date).format("YYYY-MM-DD"),

@@ -1,8 +1,6 @@
 import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
-import { TabNavTypes } from "@/interfaces/tabScreenType";
 import { FontAwesome, FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import { router } from "expo-router";
 import LottieView from "lottie-react-native";
 import React, { SetStateAction } from "react";
@@ -187,7 +185,7 @@ const Confirm_Modal = ({
                   gap: 10,
                 }}
                 onPress={() => {
-                  router.push("/(tabs)/(tabs-user)/order");
+                  router.push("/order");
                   hasScheduled && setConfirmModal(!confirmModal);
                 }}
               >

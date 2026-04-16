@@ -24,6 +24,7 @@ import axiosInstance from "@/hooks/axiosInstance";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
+import { Skeleton } from "moti/skeleton";
 
 export const OrderItem = React.memo(
   ({ item }: { item: Return_Type }) => {
@@ -762,3 +763,87 @@ export const OrderItem = React.memo(
     return prevProps.item._id === nextProps.item._id;
   },
 );
+
+export function BookingSkeleton({
+  width,
+  theme,
+  color,
+}: {
+  width: number;
+  theme: "light" | "dark";
+  color: any;
+}) {
+  const CARD_WIDTH = width - 10;
+  const INNER_WIDTH = CARD_WIDTH - 30;
+  return (
+    <View
+      style={{
+        padding: 10,
+      }}
+    >
+      <View
+        style={{
+          borderRadius: 10,
+        }}
+      >
+        {/* HEADER */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginBottom: 14,
+            width: INNER_WIDTH,
+          }}
+        >
+          <Skeleton width={100} height={24} radius={20} colorMode={theme} />
+          <Skeleton width={60} height={20} colorMode={theme} />
+        </View>
+
+        {/* TITLE */}
+        <Skeleton width={INNER_WIDTH * 0.7} height={20} colorMode={theme} />
+
+        {/* DATE */}
+        <View style={{ marginTop: 6 }}>
+          <Skeleton width={INNER_WIDTH * 0.4} height={14} colorMode={theme} />
+        </View>
+
+        {/* BLOCKS */}
+        {[1, 2].map((_, i) => (
+          <View key={i} style={{ marginTop: 14, width: INNER_WIDTH }}>
+            {/* Time */}
+            <Skeleton width={INNER_WIDTH * 0.5} height={14} colorMode={theme} />
+
+            {/* Players */}
+            <View style={{ marginTop: 6 }}>
+              <Skeleton
+                width={INNER_WIDTH * 0.4}
+                height={14}
+                colorMode={theme}
+              />
+            </View>
+
+            {/* Progress */}
+            <View style={{ marginTop: 6 }}>
+              <Skeleton
+                width={INNER_WIDTH}
+                height={8}
+                radius={4}
+                colorMode={theme}
+              />
+            </View>
+          </View>
+        ))}
+
+        {/* BUTTON */}
+        <View style={{ marginTop: 20 }}>
+          <Skeleton
+            width={INNER_WIDTH}
+            height={40}
+            radius={6}
+            colorMode={theme}
+          />
+        </View>
+      </View>
+    </View>
+  );
+}

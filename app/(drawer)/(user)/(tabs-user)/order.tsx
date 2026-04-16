@@ -76,7 +76,6 @@ const OrderScreen = () => {
         [OrderScreenSeparator.TODAY_UPCOMING]: true,
         [OrderScreenSeparator.HISTORY]: true,
       });
-      console.log(page, hasMore, bookingData);
     }
   }, [LoginStatus]);
   const dateString = dayjs(initDate).toISOString().split("T")[0];
@@ -301,238 +300,234 @@ const OrderScreen = () => {
         animatedStyle,
       ]}
     >
-      {loading ? null : (
+      <View
+        style={[
+          {
+            backgroundColor: Colors.backgroundColor,
+            height: "100%",
+            width: "100%",
+          },
+        ]}
+      >
         <View
-          style={[
-            {
-              backgroundColor: Colors.backgroundColor,
-              height: "100%",
-              width: "100%",
-            },
-          ]}
+          style={{
+            height: "100%",
+            marginHorizontal: 10,
+          }}
         >
           <View
-            style={{
-              height: "100%",
-              marginHorizontal: 10,
-            }}
+            style={[
+              style.separatorContainer,
+              {
+                backgroundColor: Colors.containerColor,
+              },
+            ]}
           >
-            <View
+            <TouchableOpacity
+              onPress={() => {
+                handleFade();
+                //setLoading(true);
+                setScreenSeparator(OrderScreenSeparator.TODAY_UPCOMING);
+              }}
               style={[
-                style.separatorContainer,
+                style.separator,
                 {
-                  backgroundColor: Colors.containerColor,
+                  backgroundColor:
+                    screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
+                      ? Colors.primary
+                      : Colors.containerColor,
                 },
               ]}
+              disabled={screenSeparator === OrderScreenSeparator.TODAY_UPCOMING}
             >
-              <TouchableOpacity
-                onPress={() => {
-                  handleFade();
-                  setLoading(true);
-                  setScreenSeparator(OrderScreenSeparator.TODAY_UPCOMING);
+              <Text
+                style={{
+                  color:
+                    screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
+                      ? Colors.white
+                      : Colors.darkGrey,
                 }}
-                style={[
-                  style.separator,
-                  {
-                    backgroundColor:
-                      screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
-                        ? Colors.primary
-                        : Colors.containerColor,
-                  },
-                ]}
-                disabled={
-                  screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
-                }
               >
-                <Text
-                  style={{
-                    color:
-                      screenSeparator === OrderScreenSeparator.TODAY_UPCOMING
-                        ? Colors.white
-                        : Colors.darkGrey,
-                  }}
-                >
-                  {orderLangInit.todayUpcoming}
-                </Text>
-              </TouchableOpacity>
+                {orderLangInit.todayUpcoming}
+              </Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[
-                  style.separator,
-                  {
-                    backgroundColor:
-                      screenSeparator === OrderScreenSeparator.HISTORY
-                        ? Colors.primary
-                        : Colors.containerColor,
-                  },
-                ]}
-                onPress={() => {
-                  handleFade();
-                  setLoading(true);
-                  setScreenSeparator(OrderScreenSeparator.HISTORY);
+            <TouchableOpacity
+              style={[
+                style.separator,
+                {
+                  backgroundColor:
+                    screenSeparator === OrderScreenSeparator.HISTORY
+                      ? Colors.primary
+                      : Colors.containerColor,
+                },
+              ]}
+              onPress={() => {
+                handleFade();
+                //setLoading(true);
+                setScreenSeparator(OrderScreenSeparator.HISTORY);
+              }}
+              disabled={screenSeparator === OrderScreenSeparator.HISTORY}
+            >
+              <Text
+                style={{
+                  color:
+                    screenSeparator === OrderScreenSeparator.HISTORY
+                      ? Colors.white
+                      : Colors.darkGrey,
                 }}
-                disabled={screenSeparator === OrderScreenSeparator.HISTORY}
               >
-                <Text
-                  style={{
-                    color:
-                      screenSeparator === OrderScreenSeparator.HISTORY
-                        ? Colors.white
-                        : Colors.darkGrey,
-                  }}
-                >
-                  {orderLangInit.history}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                {orderLangInit.history}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View
+            style={{
+              paddingHorizontal: 16,
+              paddingTop: 12,
+              backgroundColor: Colors.backgroundColor,
+            }}
+          >
+            {/* Header */}
             <View
               style={{
-                paddingHorizontal: 16,
-                paddingTop: 12,
-                backgroundColor: Colors.backgroundColor,
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 12,
               }}
             >
-              {/* Header */}
-              <View
+              <Text
                 style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 12,
+                  fontSize: 12,
+                  letterSpacing: 1,
+                  color: "#6B7280",
+                  fontWeight: "600",
                 }}
               >
+                QUICK FILTER
+              </Text>
+
+              <TouchableOpacity
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 10,
+                  backgroundColor: Colors.containerColor,
+                  shadowColor: Colors.shadowColor,
+                  shadowOffset: { width: 2, height: 2 },
+                  shadowOpacity: 0.25,
+                  elevation: 5,
+                }}
+                onPress={() => {
+                  setCalendarModalVisible(true);
+                }}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={16}
+                  color="#4DA3FF"
+                  style={{ marginRight: 6 }}
+                />
                 <Text
                   style={{
                     fontSize: 12,
-                    letterSpacing: 1,
-                    color: "#6B7280",
-                    fontWeight: "600",
+                    color: "#4DA3FF",
+                    fontWeight: "500",
                   }}
                 >
-                  QUICK FILTER
+                  {initDate
+                    ? dayjs(initDate).format("MMM DD, YYYY")
+                    : "Select Date"}
+                  {endDateValue !== null
+                    ? ` - ${dayjs(endDateValue).format("MMM DD, YYYY")}`
+                    : ""}
                 </Text>
+              </TouchableOpacity>
+            </View>
 
-                <TouchableOpacity
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 10,
-                    backgroundColor: Colors.containerColor,
-                    shadowColor: Colors.shadowColor,
-                    shadowOffset: { width: 2, height: 2 },
-                    shadowOpacity: 0.25,
-                    elevation: 5,
-                  }}
-                  onPress={() => {
-                    setCalendarModalVisible(true);
-                  }}
-                >
-                  <Ionicons
-                    name="calendar-outline"
-                    size={16}
-                    color="#4DA3FF"
-                    style={{ marginRight: 6 }}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: "#4DA3FF",
-                      fontWeight: "500",
-                    }}
+            {/* Filters */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                flexDirection: "row",
+                gap: 10,
+              }}
+            >
+              {FILTERS.map((item) => {
+                const isActive = active === item.value;
+
+                return (
+                  <TouchableOpacity
+                    key={item.value}
+                    onPress={() => handleFilterPress(item.value)}
                   >
-                    {initDate
-                      ? dayjs(initDate).format("MMM DD, YYYY")
-                      : "Select Date"}
-                    {endDateValue !== null
-                      ? ` - ${dayjs(endDateValue).format("MMM DD, YYYY")}`
-                      : ""}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Filters */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{
-                  flexDirection: "row",
-                  gap: 10,
-                }}
-              >
-                {FILTERS.map((item) => {
-                  const isActive = active === item.value;
-
-                  return (
-                    <TouchableOpacity
-                      key={item.value}
-                      onPress={() => handleFilterPress(item.value)}
+                    <View
+                      style={[
+                        {
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 4,
+                          paddingHorizontal: 10,
+                          height: 32,
+                          borderRadius: 10,
+                          borderWidth: 1,
+                          borderColor: Colors.darkGrey,
+                          backgroundColor: Colors.containerColor,
+                        },
+                        isActive && {
+                          borderColor: Colors.primary,
+                          backgroundColor:
+                            theme === "dark"
+                              ? Colors.containerColor
+                              : "#e0f7fa",
+                        },
+                      ]}
                     >
-                      <View
+                      <Text
                         style={[
                           {
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 4,
-                            paddingHorizontal: 10,
-                            height: 32,
-                            borderRadius: 10,
-                            borderWidth: 1,
-                            borderColor: Colors.darkGrey,
-                            backgroundColor: Colors.containerColor,
+                            fontSize: 12,
+                            color: Colors.darkGrey,
                           },
-                          isActive && {
-                            borderColor: Colors.primary,
-                            backgroundColor:
-                              theme === "dark"
-                                ? Colors.containerColor
-                                : "#e0f7fa",
-                          },
+                          isActive && { color: Colors.primary },
                         ]}
                       >
-                        <Text
-                          style={[
-                            {
-                              fontSize: 12,
-                              color: Colors.darkGrey,
-                            },
-                            isActive && { color: Colors.primary },
-                          ]}
-                        >
-                          {item.label}
-                        </Text>
-                        <Ionicons
-                          name="chevron-down"
-                          size={14}
-                          color={isActive ? Colors.primary : Colors.darkGrey}
-                        />
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
+                        {item.label}
+                      </Text>
+                      <Ionicons
+                        name="chevron-down"
+                        size={14}
+                        color={isActive ? Colors.primary : Colors.darkGrey}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
 
-            <MonthCalendar
-              calendarModalVisible={calendarModalVisible}
-              setCalendarModalVisible={setCalendarModalVisible}
-              initDate={initDate}
-              handleMonthFilter={handleMonthFilter}
+          <MonthCalendar
+            calendarModalVisible={calendarModalVisible}
+            setCalendarModalVisible={setCalendarModalVisible}
+            initDate={initDate}
+            handleMonthFilter={handleMonthFilter}
+          />
+
+          <View style={{ flex: 1 }}>
+            <Order_Separator
+              data={filteredBookingData}
+              screen_type={screenSeparator}
+              loading={loading}
+              loadMore={loadMore}
+              page={page}
             />
-
-            <View style={{ flex: 1 }}>
-              <Order_Separator
-                data={filteredBookingData}
-                screen_type={screenSeparator}
-                loading={loading}
-                loadMore={loadMore}
-                page={page}
-              />
-            </View>
           </View>
         </View>
-      )}
+      </View>
     </Animated.View>
   );
 };
