@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
+  Dimensions,
 } from "react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/src/context/authContext";
@@ -121,6 +122,7 @@ const FriendRequest = () => {
         if (!socket || !active) return;
 
         socketRef.current = socket;
+        socket.emit("register");
         socket.on("friend_request_recieved", (data) =>
           handleFriendEvent({ data, type: data.type }),
         );
@@ -173,7 +175,7 @@ const FriendRequest = () => {
       setFriends((prev) => {
         const key = dataMap[FriendSeparator.SENDED];
         const temp = prev[key];
-        const result = temp.filter(
+        const result = temp?.filter(
           (d: any) => d.unique_user_ID !== data.sender,
         );
 
@@ -192,6 +194,8 @@ const FriendRequest = () => {
       </View>
     );
   }
+  const { width } = Dimensions.get("screen");
+
   return (
     <View
       style={{
@@ -231,7 +235,7 @@ const FriendRequest = () => {
                   FriendSeparator.FRIENDS === friendSeparator
                     ? Colors.white
                     : Colors.darkGrey,
-                fontSize: 14,
+                fontSize: (width / 3) * 0.1,
               }}
             >
               Friends
@@ -255,7 +259,7 @@ const FriendRequest = () => {
                   FriendSeparator.REQUESTS === friendSeparator
                     ? Colors.white
                     : Colors.darkGrey,
-                fontSize: 14,
+                fontSize: (width / 3) * 0.1,
               }}
             >
               Friend Request
@@ -280,7 +284,7 @@ const FriendRequest = () => {
                     ? Colors.white
                     : Colors.darkGrey,
 
-                fontSize: 14,
+                fontSize: (width / 3) * 0.1,
               }}
             >
               Sended

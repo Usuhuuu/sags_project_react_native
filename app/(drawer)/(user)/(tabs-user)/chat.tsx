@@ -20,13 +20,8 @@ import { ChatTypes } from "@/interfaces/chatType";
 import PersonalChat from "@/src/utils/chat/components/personal_chat";
 import FilterModal from "@/src/utils/chat/components/filter_modal";
 import { useTheme } from "@/src/context/themeContext";
-import {
-  RQ_regular_cache_key,
-  useAuthQuery,
-  useRegularQuery,
-} from "@/hooks/useQuery";
+import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
 import { useIsFocused } from "@react-navigation/native";
-import OwnActivaterIndicator from "@/constants/loaderAnimation";
 
 const ChatComponent: React.FC = () => {
   const { colors: Colors } = useTheme();

@@ -115,7 +115,6 @@ export const newMessagePrepareFunction = (
   const currDate = formatDate(messages.timestamp);
 
   const diff = differenceInDays(currDate, prevDate);
-  console.log("TIME DIFF", diff);
   if (diff > 0 || diff < 0) {
     return [
       {
@@ -486,7 +485,7 @@ export const sendMessage = async ({
   }
   socketRef.current.emit("chat-send", {
     msgData: newMessage,
-    friendInfo: friendInfo,
+    friendInfo: friendInfo?.[0],
   });
   setNewMessage("");
   flatListRef.current?.scrollToIndex({

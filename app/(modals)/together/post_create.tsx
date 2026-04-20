@@ -315,20 +315,24 @@ const PostCreate = () => {
           </BottomSheet>
         </View>
       </KeyboardAvoidingView>
-      <PostModalOptions
-        visible={optionModal}
-        setVisible={setOptionModal}
-        settingsId={selectedOption}
-        optionData={optionData}
-        setOptionData={setOptionData}
-      />
-      <MonthCalendar
-        calendarModalVisible={calendarModal}
-        setCalendarModalVisible={setCalendarModal}
-        initDate={new Date()}
-        handleMonthFilter={selectCalendarDate}
-        selectDateRange={1}
-      />
+      {optionModal && (
+        <PostModalOptions
+          visible={optionModal}
+          setVisible={setOptionModal}
+          settingsId={selectedOption}
+          optionData={optionData}
+          setOptionData={setOptionData}
+        />
+      )}
+      {calendarModal && (
+        <MonthCalendar
+          calendarModalVisible={calendarModal}
+          setCalendarModalVisible={setCalendarModal}
+          initDate={new Date()}
+          handleMonthFilter={selectCalendarDate}
+          selectDateRange={1}
+        />
+      )}
     </SafeAreaView>
   );
 };

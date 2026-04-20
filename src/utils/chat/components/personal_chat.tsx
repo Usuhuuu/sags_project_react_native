@@ -33,7 +33,7 @@ function PersonalChat({
           item.userInfo[0]?.unique_user_ID[0].toUpperCase() +
           item.userInfo[0]?.unique_user_ID.slice(1);
         const otherUser =
-          item.userInfo[0]._id.toString() !==
+          item.userInfo[0]?._id.toString() !==
           item.lastMessage?.senderId?.toString() ? (
             <AppText style={{ color: Colors.primary }}>You:</AppText>
           ) : null;
@@ -73,7 +73,7 @@ function PersonalChat({
               <ProfileAvatar
                 imageUrl={null}
                 width={AVATAR_WIDTH}
-                userName={item.userInfo[0].unique_user_ID}
+                userName={item.userInfo[0]?.unique_user_ID}
               />
               <View
                 style={{

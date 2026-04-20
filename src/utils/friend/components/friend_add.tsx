@@ -52,7 +52,7 @@ const Friend_Add_Modal = ({
       if (textInPutValue.length > 5) {
         const other_user = textInPutValue.toLocaleLowerCase().trim();
         const response = await axiosInstance.post("/auth/friend_request", {
-          friend_unique_ID: textInPutValue.toLocaleLowerCase().trim(),
+          friend_unique_ID: other_user,
         });
 
         if (response.status === 200 && response.data.success) {

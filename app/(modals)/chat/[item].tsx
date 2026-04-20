@@ -204,7 +204,6 @@ const DirectChatScreen: React.FC = ({}) => {
   };
   useFocusEffect(
     useCallback(() => {
-      console.log(chatInfos);
       if (!chatInfos?.userInfo?.[0]) return;
       const socket = socketRef.current || getSocket();
       socketRef.current = socket;
@@ -233,7 +232,6 @@ const DirectChatScreen: React.FC = ({}) => {
       userId: string;
       isTyping: boolean;
     }) => {
-      console.log("Typing change received:", data);
       const { userId, isTyping } = data;
       setTypingUsers((prev) => {
         const newSet = new Set(prev);
@@ -310,7 +308,6 @@ const DirectChatScreen: React.FC = ({}) => {
     if (!socket) return;
 
     const handler = (data: any) => {
-      console.log("Received message:", data);
       if (!currentChatId) return;
       if (data.chatID !== currentChatId) return;
       const newMsj: Message = {
