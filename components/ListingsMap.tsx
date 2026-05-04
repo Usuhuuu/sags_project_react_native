@@ -5,10 +5,10 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import React, { memo, useEffect, useState, useCallback } from "react";
+import React, { memo, useEffect, useState, useCallback, useMemo } from "react";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
-import { SportHallDataType } from "@/interfaces/listing";
+import { HallCategoryType, SportHallDataType } from "@/interfaces/listing";
 import { useRouter } from "expo-router";
 import MapViewClustering from "react-native-map-clustering";
 import { Ionicons } from "@expo/vector-icons";
@@ -32,58 +32,7 @@ const ListingsMap = memo(
     selectedCategory: string;
   }) => {
     const { colors, theme } = useTheme();
-    const styles = StyleSheet.create({
-      container: {
-        flex: 1,
-      },
-      clusterMarker: {
-        borderRadius: 20,
-        backgroundColor: colors.primary,
-        justifyContent: "center",
-        alignItems: "center",
-        width: 40,
-        height: 40,
-      },
-      clusterText: {
-        color: "#fff",
-        textAlign: "center",
-        fontWeight: "bold",
-      },
-      locationButton: {
-        position: "absolute",
-        bottom: 40,
-        right: 10,
-        backgroundColor: colors.primary,
-        borderRadius: 25,
-        width: 40,
-        height: 40,
-        justifyContent: "center",
-        alignItems: "center",
-        elevation: 5,
-        shadowColor: colors.shadowColor,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-      },
-      change: {
-        position: "absolute",
-        bottom: 100,
-        right: 10,
-        backgroundColor: colors.primary,
-        borderRadius: 25,
-        borderColor: colors.primary,
-        borderWidth: 2,
-        width: 40,
-        height: 40,
-        justifyContent: "center",
-        alignItems: "center",
-        elevation: 5,
-        shadowColor: colors.shadowColor,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-      },
-    });
+    const styles = useMemo(() => createStyle(colors), [colors]);
 
     const [hasLocationPermission, setHasLocationPermission] = useState(false);
     const [filteredHalls, setFilteredHalls] = useState<SportHallDataType[]>([]);
@@ -99,10 +48,16 @@ const ListingsMap = memo(
     };
 
     const goToUserLocation = () => {
-      if (userLocation && mapRef.current) {
-        mapRef.current.animateToRegion({
-          latitude: userLocation.latitude,
-          longitude: userLocation.longitude,
+      if (userLocation) {
+        mapRef.current?.animateToRegion({
+          latitude:
+            typeof userLocation.latitude === "number"
+              ? userLocation.latitude
+              : Number(userLocation.latitude),
+          longitude:
+            typeof userLocation.longitude === "number"
+              ? userLocation.longitude
+              : Number(userLocation.longitude),
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         });
@@ -114,9 +69,10 @@ const ListingsMap = memo(
         setFilteredHalls(listings);
       } else {
         const categoryKey = selectedCategory.toLowerCase();
-        const filtered = listings.filter(
-          (hall) => hall.hall_types.main === categoryKey,
+        const filtered = listings.filter((hall) =>
+          hall.hall_types.sub.includes(categoryKey as HallCategoryType),
         );
+        console.log("MAP LENGTH", filtered.length);
         setFilteredHalls(filtered);
       }
     }, [selectedCategory, listings]);
@@ -177,11 +133,12 @@ const ListingsMap = memo(
       },
       [], // Dependencies are empty since renderCluster doesn't depend on props/state
     );
-
     return (
       <View style={styles.container}>
         <MapViewClustering
-          mapRef={() => mapRef}
+          mapRef={(ref) => {
+            mapRef.current = ref as unknown as MapView;
+          }}
           style={StyleSheet.absoluteFill}
           provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
           showsUserLocation={hasLocationPermission}
@@ -200,19 +157,22 @@ const ListingsMap = memo(
           renderCluster={renderCluster}
           mapType="standard"
           userInterfaceStyle={theme}
+          onRegionChangeComplete={(region, markers) => {}}
         >
-          {filteredHalls.map((item: SportHallDataType) => (
-            <Marker
-              key={item.sportHallID}
-              onPress={() => onMarkerSelected(item)}
-              coordinate={{
-                latitude: parseFloat(item.hall_location?.latitude),
-                longitude: parseFloat(item.hall_location?.longitude),
-              }}
-              title={item.hall_details.hall_name}
-              //description={item.properties.summary ?? undefined}
-            />
-          ))}
+          {filteredHalls.map((item: SportHallDataType) => {
+            return (
+              <Marker
+                key={item.sportHallID}
+                onPress={() => onMarkerSelected(item)}
+                coordinate={{
+                  latitude: parseFloat(item.hall_location?.latitude),
+                  longitude: parseFloat(item.hall_location?.longitude),
+                }}
+                title={item.hall_details.hall_name}
+                //description={item.properties.summary ?? undefined}
+              />
+            );
+          })}
         </MapViewClustering>
         <TouchableOpacity style={styles.change} onPress={goToUserLocation}>
           <Ionicons
@@ -237,4 +197,57 @@ const ListingsMap = memo(
   },
 );
 
+const createStyle = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    clusterMarker: {
+      borderRadius: 20,
+      backgroundColor: colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      width: 40,
+      height: 40,
+    },
+    clusterText: {
+      color: "#fff",
+      textAlign: "center",
+      fontWeight: "bold",
+    },
+    locationButton: {
+      position: "absolute",
+      bottom: 40,
+      right: 10,
+      backgroundColor: colors.primary,
+      borderRadius: 25,
+      width: 40,
+      height: 40,
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 5,
+      shadowColor: colors.shadowColor,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+    },
+    change: {
+      position: "absolute",
+      bottom: 100,
+      right: 10,
+      backgroundColor: colors.primary,
+      borderRadius: 25,
+      borderColor: colors.primary,
+      borderWidth: 2,
+      width: 40,
+      height: 40,
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 5,
+      shadowColor: colors.shadowColor,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+    },
+  });
 export default ListingsMap;

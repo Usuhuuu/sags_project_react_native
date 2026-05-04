@@ -19,12 +19,11 @@ const Page = () => {
     | EsportHallDataType
   )[];
   const [category, setCategory] = useState<HallCategoryValue>(
-    HallCategoryValue.BASKET_BALL
+    HallCategoryValue.BASKET_BALL,
   );
-  const items = useMemo(() => listingsData as any[], []);
   const bottomSheetY = useSharedValue(0);
   const [selectedCategory, setSelectedCategory] = useState<HallCategoryValue>(
-    HallCategoryValue.BASKET_BALL
+    HallCategoryValue.BASKET_BALL,
   );
   const onDataChanged = (category: HallCategoryValue) => {
     console.log("onDataChanged called with category:", category);
@@ -35,7 +34,7 @@ const Page = () => {
   // Debug: Log filtered listings before rendering ListingsMap
   const filteredListings = listingsData
     .map((item: any) =>
-      typeof item?.toObject === "function" ? item.toObject() : item
+      typeof item?.toObject === "function" ? item.toObject() : item,
     )
     .map((item: any) => ({
       ...item,

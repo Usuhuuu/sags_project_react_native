@@ -311,8 +311,8 @@ const BookingCard = React.memo(({ item }: { item: ContractorBookingType }) => {
               }}
               numberOfLines={2}
             >
-              {format(block.start_time, "PPP HH:mm")} {" -\n"}
-              {format(block.end_time, "PPP HH:mm")}
+              {format(new Date(block.start_time), "PPP HH:mm")} {" -\n"}
+              {format(new Date(block.end_time), "PPP HH:mm")}
             </Text>
           </View>
 

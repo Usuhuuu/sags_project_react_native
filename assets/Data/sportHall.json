@@ -1,6 +1,11 @@
 [
   {
     "sportHallID": "694e331391de3dc9762352cd",
+    "hall_location": {
+      "latitude": "47.918467",
+      "longitude": "106.917701",
+      "smart_location": "Sukhbaatar District, Ulaanbaatar"
+    },
     "hall_types": {
       "main": "sport_hall",
       "sub": ["basket_ball", "volley_ball", "foot_ball"]
@@ -92,6 +97,11 @@
     "hall_types": {
       "main": "esport_hall",
       "sub": ["computer", "playstation"]
+    },
+    "hall_location": {
+      "latitude": "47.922184",
+      "longitude": "106.905721",
+      "smart_location": "Chingeltei District, Ulaanbaatar"
     },
     "hall_details": {
       "hall_name": "VIP Cyber Arena",
@@ -193,6 +203,11 @@
       "main": "sport_hall",
       "sub": ["basket_ball", "volley_ball"]
     },
+    "hall_location": {
+      "latitude": "47.891245",
+      "longitude": "106.884932",
+      "smart_location": "Bayangol District, Ulaanbaatar"
+    },
     "hall_details": {
       "hall_name": "Prime Sports Arena",
       "hall_price": {
@@ -280,6 +295,11 @@
     "hall_types": {
       "main": "esport_hall",
       "sub": ["computer"]
+    },
+    "hall_location": {
+      "latitude": "47.900873",
+      "longitude": "106.934581",
+      "smart_location": "Bayanzurkh District, Ulaanbaatar"
     },
     "hall_details": {
       "hall_name": "Neon Pixel PC Arena",
