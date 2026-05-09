@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   Dimensions,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
@@ -28,6 +29,7 @@ import { useNotificationStore } from "@/src/context/store/notificationStore";
 import { useTheme } from "@/src/context/themeContext";
 import LottieView from "lottie-react-native";
 import { HallCategoryValue } from "@/interfaces/listing";
+import { Feather, Ionicons } from "@expo/vector-icons";
 
 // ICON MAP
 const iconMap: { [key: string]: any } = {
@@ -48,10 +50,224 @@ interface Props {
 
 const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   const { colors: Colors, theme } = useTheme();
-  const styles = StyleSheet.create({
+  const { width, height } = Dimensions.get("screen");
+
+  const collapsedY = height * 0.9;
+  const expandedY = height * 0.1;
+  const fadeStart = height * 0.28;
+
+  const styles = useMemo(() => createStyles(Colors, height), [Colors]);
+  const [notificationCount, setNotificationCount] = useState<number>(0);
+  const navigation = useNavigation();
+  const scrollRef = useRef<ScrollView>(null);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const { t } = useTranslation();
+  const sportDetail: any = t("sportTextIcons", { returnObjects: true });
+
+  const loadNotifications = useNotificationStore(
+    (state) => state.loadNotifications,
+  );
+  const notifications = useNotificationStore((state) => state.notifications);
+  const notificationAnimationRef = useRef<LottieView>(null);
+
+  useEffect(() => {
+    loadNotifications();
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // If you want to track count:
+  useEffect(() => {
+    const tempCount = notifications.filter((n) => n.seen !== true);
+    setNotificationCount(tempCount.length);
+    if (notifications.length > 0) {
+      notificationAnimationRef.current?.reset();
+      notificationAnimationRef.current?.play();
+    }
+  }, [notifications]);
+
+  // Animate icons wrapper up as sheet moves
+  const animatedIconAction = useAnimatedStyle(() => {
+    const translateYValue = interpolate(
+      bottomSheetY.value,
+      [0, height * 0.5],
+      [-80, 0],
+      Extrapolate.CLAMP,
+    );
+    return {
+      transform: [{ translateY: translateYValue }],
+    };
+  });
+
+  // Background fades in with sheet movement
+  const animatedIconSectionStyle = useAnimatedStyle(() => {
+    const backgroundColor = interpolateColor(
+      bottomSheetY.value,
+      [fadeStart, expandedY],
+      ["transparent", Colors.backgroundColor],
+    );
+    return {
+      backgroundColor,
+    };
+  });
+
+  const animatedContainerStyle = useAnimatedStyle(() => {
+    const backgroundColor = interpolateColor(
+      bottomSheetY.value,
+      [height, 0],
+      [Colors.backgroundColor, "transparent"],
+    );
+    return { backgroundColor };
+  });
+
+  const badgeScale = useSharedValue(0);
+  useEffect(() => {
+    if (notificationCount > 0) {
+      badgeScale.value = withSpring(1, { damping: 2, stiffness: 100 });
+    } else {
+      badgeScale.value = withTiming(0, { duration: 200 });
+    }
+  }, [notificationCount]);
+
+  const badgeAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: badgeScale.value }],
+      opacity: badgeScale.value,
+    };
+  });
+
+  const itemsRef = useRef<(View | null)[]>([]);
+
+  const selectCategory = (index: number) => {
+    const selected = itemsRef.current[index];
+    setActiveIndex(index);
+    if (selected) {
+      (selected as unknown as View).measure(
+        (_fx, fy, width, height, px, py) => {
+          scrollRef.current?.scrollTo({ x: px - 16, animated: true });
+        },
+      );
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onCategoryChanged(sportDetail[index].id);
+  };
+
+  const openDrawer = () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
+
+  return (
+    <SafeAreaView style={{ backgroundColor: Colors.backgroundColor, flex: 1 }}>
+      <Animated.View style={[styles.container, animatedContainerStyle]}>
+        {/* Action Row */}
+        <View style={[styles.actionRowWrapper]}>
+          <TouchableOpacity style={styles.search}>
+            <Feather name="search" size={24} color={Colors.darkGrey} />
+            <TextInput
+              placeholder="Search sports or facilities"
+              placeholderTextColor={Colors.darkGrey}
+            />
+          </TouchableOpacity>
+
+          {/* Notification */}
+          <TouchableOpacity
+            style={[styles.notification]}
+            onPress={() => router.push("/listing/notification/notification")}
+          >
+            <LottieView
+              ref={notificationAnimationRef}
+              loop={false}
+              source={require("../assets/sport-icons/animated/notification.json")}
+              style={{ width: 70, height: 70 }}
+            />
+            {notificationCount > 0 && (
+              <Animated.View style={[styles.badge, badgeAnimatedStyle]}>
+                <Text style={styles.badgeText}>
+                  {notificationCount > 99 ? "99+" : notificationCount}
+                </Text>
+              </Animated.View>
+            )}
+          </TouchableOpacity>
+
+          {/* Menu */}
+          <TouchableOpacity style={styles.notification} onPress={openDrawer}>
+            <Image
+              source={require("../assets/sport-icons/menu.png")}
+              style={{
+                width: 24,
+                height: 24,
+              }}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Icons Section */}
+        <Animated.View
+          style={[
+            styles.iconsWrapper,
+            animatedIconAction,
+            animatedIconSectionStyle,
+          ]}
+        >
+          <ScrollView
+            ref={scrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[styles.scrollViewContent]}
+          >
+            {sportDetail?.map((item: any, index: number) => {
+              const itemWidth = width / Object.keys(iconMap).length;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  ref={(el) => (itemsRef.current[index] = el)}
+                  style={[
+                    activeIndex === index
+                      ? styles.categoriesBtnActive
+                      : styles.categoriesBtn,
+                    {
+                      width: itemWidth,
+                      height: 50,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      backgroundColor: Colors.backgroundColor,
+                      shadowColor: Colors.shadowColor,
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.3,
+                      borderRadius: 25,
+                      borderWidth: 1,
+                      borderColor:
+                        activeIndex === index
+                          ? Colors.primary
+                          : Colors.themeContainerGrey,
+                    },
+                  ]}
+                  onPress={() => selectCategory(index)}
+                >
+                  <Image
+                    source={iconMap[item.icon]}
+                    style={{
+                      width: 25,
+                      height: 25,
+                    }}
+                  />
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </Animated.View>
+      </Animated.View>
+    </SafeAreaView>
+  );
+};
+
+const createStyles = (Colors: any, height: number) =>
+  StyleSheet.create({
     container: {
-      height: 170,
       overflow: "visible",
+      height: height * 0.15,
     },
     actionRowWrapper: {
       flexDirection: "row",
@@ -62,16 +278,18 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     },
     search: {
       justifyContent: "center",
-      alignItems: "center",
+      flexDirection: "row",
+      gap: 10,
       width: 250,
       height: 40,
-      backgroundColor: Colors.white,
-      borderColor: Colors.primary,
+      backgroundColor: Colors.themeContainerGrey,
+      borderColor: Colors.containerColor,
       borderWidth: 2,
       borderRadius: 20,
       elevation: 10,
       shadowOpacity: 0.3,
       shadowRadius: 3,
+      shadowOffset: { width: 0.3, height: 0.3 },
     },
     notification: {
       justifyContent: "center",
@@ -79,24 +297,13 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.containerColor,
+      borderColor: Colors.containerColor,
       elevation: 10,
       shadowOpacity: 0.3,
       shadowRadius: 3,
     },
-    badge: {
-      position: "absolute",
-      top: -2,
-      right: -2,
-      backgroundColor: "red",
-      borderRadius: 10,
-      paddingHorizontal: 5,
-      minWidth: 18,
-      height: 18,
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 10,
-    },
+
     badgeText: {
       color: "white",
       fontSize: 10,
@@ -139,200 +346,52 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       alignItems: "center",
       justifyContent: "center",
     },
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingTop: 12,
+    },
+
+    searchContainer: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#1E293B",
+      height: 48,
+      borderRadius: 24,
+      paddingHorizontal: 16,
+      marginRight: 12,
+    },
+
+    searchPlaceholder: {
+      color: "#94A3B8",
+      fontSize: 14,
+    },
+
+    iconButton: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: "#1E293B",
+      justifyContent: "center",
+      alignItems: "center",
+      marginLeft: 8,
+    },
+
+    badge: {
+      position: "absolute",
+      top: 2,
+      right: 2,
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: "#EF4444",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 4,
+    },
   });
-  const [notificationCount, setNotificationCount] = useState<number>(0);
-  const navigation = useNavigation();
-  const scrollRef = useRef<ScrollView>(null);
-  const [activeIndex, setActiveIndex] = useState<number>(0);
-  const { t } = useTranslation();
-  const sportDetail: any = t("sportTextIcons", { returnObjects: true });
-  const windowHeight = Dimensions.get("window").height;
-
-  const loadNotifications = useNotificationStore(
-    (state) => state.loadNotifications,
-  );
-  const notifications = useNotificationStore((state) => state.notifications);
-  const notificationAnimationRef = useRef<LottieView>(null);
-
-  useEffect(() => {
-    loadNotifications();
-
-    const interval = setInterval(() => {
-      loadNotifications();
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // If you want to track count:
-  useEffect(() => {
-    const tempCount = notifications.filter((n) => n.seen !== true);
-    setNotificationCount(tempCount.length);
-    if (notifications.length > 0) {
-      notificationAnimationRef.current?.reset();
-      notificationAnimationRef.current?.play();
-    }
-  }, [notifications]);
-
-  // Animate icons wrapper up as sheet moves
-  const animatedIconStyle = useAnimatedStyle(() => {
-    const translateYValue = interpolate(
-      bottomSheetY.value,
-      [0, windowHeight * 0.5],
-      [-80, 0],
-      Extrapolate.CLAMP,
-    );
-    return {
-      transform: [{ translateY: translateYValue }],
-    };
-  });
-
-  // Background fades in with sheet movement
-  const animatedContainerStyle = useAnimatedStyle(() => {
-    const backgroundColor = interpolateColor(
-      bottomSheetY.value,
-      [windowHeight * 0.00001, 0],
-      ["transparent", Colors.backgroundColor],
-    );
-    return { backgroundColor: backgroundColor };
-  });
-
-  // Notification badge animation
-  const badgeScale = useSharedValue(0);
-  useEffect(() => {
-    if (notificationCount > 0) {
-      badgeScale.value = withSpring(1, { damping: 2, stiffness: 100 });
-    } else {
-      badgeScale.value = withTiming(0, { duration: 200 });
-    }
-  }, [notificationCount]);
-
-  const badgeAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: badgeScale.value }],
-      opacity: badgeScale.value,
-    };
-  });
-
-  const itemsRef = useRef<(View | null)[]>([]);
-
-  const selectCategory = (index: number) => {
-    const selected = itemsRef.current[index];
-    setActiveIndex(index);
-    if (selected) {
-      (selected as unknown as View).measure(
-        (_fx, fy, width, height, px, py) => {
-          scrollRef.current?.scrollTo({ x: px - 16, animated: true });
-        },
-      );
-    }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onCategoryChanged(sportDetail[index].id);
-  };
-
-  const openDrawer = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
-  };
-  const { width } = Dimensions.get("screen");
-  return (
-    <SafeAreaView style={{ backgroundColor: Colors.backgroundColor, flex: 1 }}>
-      {/* <StatusBar barStyle="light-content" backgroundColor="#61b3fa" /> */}
-
-      <View style={styles.container}>
-        {/* Action Row */}
-        <View style={styles.actionRowWrapper}>
-          <TouchableOpacity style={styles.search}>
-            <Image
-              source={require("../assets/images/ranking.png")}
-              style={{ width: 30, height: 30, right: 100 }}
-            />
-          </TouchableOpacity>
-
-          {/* Notification */}
-          <TouchableOpacity
-            style={[styles.notification]}
-            onPress={() => router.push("/listing/notification/notification")}
-          >
-            <LottieView
-              ref={notificationAnimationRef}
-              loop={false}
-              source={require("../assets/sport-icons/animated/notification.json")}
-              style={{ width: 70, height: 70 }}
-            />
-            {notificationCount > 0 && (
-              <Animated.View style={[styles.badge, badgeAnimatedStyle]}>
-                <Text style={styles.badgeText}>
-                  {notificationCount > 99 ? "99+" : notificationCount}
-                </Text>
-              </Animated.View>
-            )}
-          </TouchableOpacity>
-
-          {/* Menu */}
-          <TouchableOpacity style={styles.notification} onPress={openDrawer}>
-            <Image
-              source={require("../assets/sport-icons/menu.png")}
-              style={{
-                width: 24,
-                height: 24,
-              }}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Icons Section */}
-        <Animated.View
-          style={[
-            styles.iconsWrapper,
-            animatedIconStyle,
-            animatedContainerStyle,
-          ]}
-        >
-          <ScrollView
-            ref={scrollRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[styles.scrollViewContent]}
-          >
-            {sportDetail?.map((item: any, index: number) => {
-              const itemWidth = width / Object.keys(iconMap).length;
-              return (
-                <TouchableOpacity
-                  key={index}
-                  ref={(el) => (itemsRef.current[index] = el)}
-                  style={[
-                    activeIndex === index
-                      ? styles.categoriesBtnActive
-                      : styles.categoriesBtn,
-                    {
-                      width: itemWidth,
-                      height: 50,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      backgroundColor: Colors.backgroundColor,
-                      shadowColor: Colors.shadowColor,
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.3,
-                      borderRadius: 25,
-                    },
-                  ]}
-                  onPress={() => selectCategory(index)}
-                >
-                  <Image
-                    source={iconMap[item.icon]}
-                    style={{
-                      width: 25,
-                      height: 25,
-                    }}
-                  />
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </Animated.View>
-      </View>
-    </SafeAreaView>
-  );
-};
 
 export default ExploreHeader;

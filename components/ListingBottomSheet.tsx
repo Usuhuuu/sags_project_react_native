@@ -1,4 +1,10 @@
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  Dimensions,
+} from "react-native";
 import React, { useMemo, useRef, useState } from "react";
 import Listings from "@/components/Listing";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -10,6 +16,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import type { SharedValue } from "react-native-reanimated";
 import { useTheme } from "@/src/context/themeContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ListingBottomSheetProps {
   listing: (SportHallDataType | EsportHallDataType)[];
@@ -23,6 +30,7 @@ const ListingBottomSheet = ({
   bottomSheetY,
 }: ListingBottomSheetProps) => {
   const { colors: Colors } = useTheme();
+  const { height } = Dimensions.get("window");
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [refresh, setrefresh] = useState<number>(0);
 
@@ -39,8 +47,12 @@ const ListingBottomSheet = ({
     bottomSheetRef.current?.collapse();
     setrefresh(refresh + 1);
   };
-
-  const snapPoints = useMemo(() => ["5%", "90%"], []);
+  const insets = useSafeAreaInsets();
+  const unabledHeight = height - insets.bottom - insets.top;
+  const snapPoints = useMemo(
+    () => [unabledHeight * 0.05, unabledHeight * 0.85],
+    [],
+  );
 
   return (
     <BottomSheet
