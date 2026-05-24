@@ -6,7 +6,7 @@ import {
   Platform,
 } from "react-native";
 import React, { memo, useEffect, useState, useCallback, useMemo } from "react";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, Callout } from "react-native-maps";
 import * as Location from "expo-location";
 import { HallCategoryType, SportHallDataType } from "@/interfaces/listing";
 import { useRouter } from "expo-router";
@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as SecureStorage from "expo-secure-store";
 import { useTheme } from "@/src/context/themeContext";
+import { LightTheme } from "@/constants/Colors";
 
 const INITIAL_REGION = {
   latitude: 47.918873,
@@ -22,6 +23,124 @@ const INITIAL_REGION = {
   latitudeDelta: 0.1,
   longitudeDelta: 0.1,
 };
+
+/**
+ * Stable no-op reference.
+ * Avoids allocating a new `() => {}` on every MapViewClustering render.
+ */
+const noop = () => {};
+
+// ─── HallMarker ───────────────────────────────────────────────────────────────
+
+/** Alias keeps prop signatures readable without repeating the long ReturnType. */
+type MarkerStyles = ReturnType<typeof createMarkerStyle>;
+
+interface HallMarkerProps {
+  item: SportHallDataType;
+  /**
+   * Pre-computed, shared StyleSheet from the parent.
+   * The parent calls createMarkerStyle(colors) exactly ONCE and passes the
+   * result to every marker – instead of each marker owning its own copy.
+   */
+  ms: MarkerStyles;
+  colors: typeof LightTheme;
+  onNavigate: (id: string) => void;
+  onFocus: (lat: number, lng: number) => void;
+}
+
+const HallMarker = memo(
+  ({ item, ms, colors, onNavigate, onFocus }: HallMarkerProps) => {
+    const subtitle =
+      item.hall_location?.smart_location ?? item.hall_details.hall_address;
+    const workTime = `${item.hall_details.hall_work_time.start_time} – ${item.hall_details.hall_work_time.end_time}`;
+    const pricePerHour = item.hall_details.hall_price?.oneHour;
+
+    // Stable handlers – recreated only when item location or callbacks change.
+    const handleMarkerPress = useCallback(() => {
+      onFocus(
+        parseFloat(item.hall_location?.latitude),
+        parseFloat(item.hall_location?.longitude),
+      );
+    }, [item.hall_location, onFocus]);
+
+    const handleCalloutPress = useCallback(
+      () => onNavigate(item.sportHallID),
+      [item.sportHallID, onNavigate],
+    );
+
+    return (
+      <Marker
+        coordinate={{
+          latitude: parseFloat(item.hall_location?.latitude),
+          longitude: parseFloat(item.hall_location?.longitude),
+        }}
+        tracksViewChanges={false}
+        tracksInfoWindowChanges={false}
+        onPress={handleMarkerPress}
+      >
+        <View style={ms.pin}>
+          <View style={ms.pinDot} />
+        </View>
+
+        <Callout tooltip onPress={handleCalloutPress}>
+          <View style={ms.calloutWrapper}>
+            <View style={ms.card}>
+              <Text style={ms.hallName} numberOfLines={1}>
+                {item.hall_details.hall_name}
+              </Text>
+
+              {item.hall_types.sub.length > 0 && (
+                <View style={ms.badgeRow}>
+                  {item.hall_types.sub.slice(0, 2).map((type) => (
+                    <View key={type} style={ms.badge}>
+                      <Text style={ms.badgeText}>
+                        {type.replace(/_/g, " ")}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              <View style={ms.infoRow}>
+                <Ionicons
+                  name="location-outline"
+                  size={12}
+                  color={colors.darkGrey}
+                />
+                <Text style={ms.infoText} numberOfLines={1}>
+                  {subtitle}
+                </Text>
+              </View>
+
+              <View style={ms.infoRow}>
+                <Ionicons
+                  name="time-outline"
+                  size={12}
+                  color={colors.darkGrey}
+                />
+                <Text style={ms.infoText}>{workTime}</Text>
+              </View>
+
+              <View style={ms.footer}>
+                {pricePerHour ? (
+                  <Text style={ms.price}>₮{pricePerHour}/цаг</Text>
+                ) : (
+                  <View />
+                )}
+                <View style={ms.ctaButton}>
+                  <Text style={ms.ctaText}>View</Text>
+                  <Ionicons name="arrow-forward" size={11} color="#fff" />
+                </View>
+              </View>
+            </View>
+          </View>
+        </Callout>
+      </Marker>
+    );
+  },
+);
+
+// ─── ListingsMap ──────────────────────────────────────────────────────────────
 
 const ListingsMap = memo(
   ({
@@ -32,148 +151,164 @@ const ListingsMap = memo(
     selectedCategory: string;
   }) => {
     const { colors, theme } = useTheme();
+
     const styles = useMemo(() => createStyle(colors), [colors]);
+    const markerStyles = useMemo(() => createMarkerStyle(colors), [colors]);
 
     const [hasLocationPermission, setHasLocationPermission] = useState(false);
-    const [filteredHalls, setFilteredHalls] = useState<SportHallDataType[]>([]);
     const [userLocation, setUserLocation] = useState<{
       latitude: number;
       longitude: number;
     } | null>(null);
+
     const router = useRouter();
     const mapRef = React.useRef<MapView | null>(null);
 
-    const onMarkerSelected = (item: SportHallDataType) => {
-      router.push(`/listing/${item.sportHallID}`);
-    };
-
-    const goToUserLocation = () => {
-      if (userLocation) {
-        mapRef.current?.animateToRegion({
-          latitude:
-            typeof userLocation.latitude === "number"
-              ? userLocation.latitude
-              : Number(userLocation.latitude),
-          longitude:
-            typeof userLocation.longitude === "number"
-              ? userLocation.longitude
-              : Number(userLocation.longitude),
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        });
-      }
-    };
-
-    useEffect(() => {
-      if (selectedCategory === "all") {
-        setFilteredHalls(listings);
-      } else {
-        const categoryKey = selectedCategory.toLowerCase();
-        const filtered = listings.filter((hall) =>
-          hall.hall_types.sub.includes(categoryKey as HallCategoryType),
-        );
-        console.log("MAP LENGTH", filtered.length);
-        setFilteredHalls(filtered);
-      }
+    /**
+     * Derived data, not state.
+     * – No extra array allocation when selectedCategory === "all" (returns the
+     *   same `listings` reference).
+     * – Eliminates the useState + useEffect pair that previously kept a
+     *   duplicate of the array in memory.
+     */
+    const filteredHalls = useMemo(() => {
+      if (selectedCategory === "all") return listings;
+      const key = selectedCategory.toLowerCase() as HallCategoryType;
+      return listings.filter((hall) => hall.hall_types.sub.includes(key));
     }, [selectedCategory, listings]);
 
-    useEffect(() => {
-      const requestLocationPermission = async () => {
-        const userLocation = await SecureStorage.getItemAsync("userLocation");
-        if (!userLocation) {
-          try {
-            const { status } =
-              await Location.requestForegroundPermissionsAsync();
-            if (status === "granted") {
-              setHasLocationPermission(true);
-              const location = await Location.getCurrentPositionAsync();
-              console.log("Location:", location);
-              const userLocation = {
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-              };
-              await SecureStorage.setItemAsync(
-                "userLocation",
-                JSON.stringify(userLocation),
-              );
-              setUserLocation(userLocation);
-            } else {
-              setHasLocationPermission(false);
-            }
-          } catch (error) {
-            console.error("Error fetching location:", error);
-          }
-        } else {
-          setUserLocation(JSON.parse(userLocation));
-        }
-      };
+    // ── Stable callbacks ────────────────────────────────────────────────────
 
-      requestLocationPermission();
+    const onNavigate = useCallback(
+      (id: string) => router.push(`/listing/${id}`),
+      [router],
+    );
+
+    /**
+     * useCallback so MapViewClustering receives the same function reference
+     * across renders and doesn't needlessly re-run its own reconciliation.
+     */
+    const setMapRef = useCallback((ref: any) => {
+      mapRef.current = ref as unknown as MapView;
     }, []);
 
+    const focusMarker = useCallback((lat: number, lng: number) => {
+      mapRef.current?.animateCamera(
+        { center: { latitude: lat, longitude: lng }, zoom: 16 },
+        { duration: 400 },
+      );
+    }, []);
+
+    const goToUserLocation = useCallback(() => {
+      if (!userLocation) return;
+      mapRef.current?.animateToRegion({
+        latitude:
+          typeof userLocation.latitude === "number"
+            ? userLocation.latitude
+            : Number(userLocation.latitude),
+        longitude:
+          typeof userLocation.longitude === "number"
+            ? userLocation.longitude
+            : Number(userLocation.longitude),
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    }, [userLocation]);
+
+    // ── Location init (runs once) ───────────────────────────────────────────
+
+    useEffect(() => {
+      const init = async () => {
+        const stored = await SecureStorage.getItemAsync("userLocation");
+        if (stored) {
+          setUserLocation(JSON.parse(stored));
+          return;
+        }
+        try {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status === "granted") {
+            setHasLocationPermission(true);
+            const loc = await Location.getCurrentPositionAsync();
+            const coords = {
+              latitude: loc.coords.latitude,
+              longitude: loc.coords.longitude,
+            };
+            await SecureStorage.setItemAsync(
+              "userLocation",
+              JSON.stringify(coords),
+            );
+            setUserLocation(coords);
+          } else {
+            setHasLocationPermission(false);
+          }
+        } catch (e) {
+          console.error("Location error:", e);
+        }
+      };
+      init();
+    }, []);
+
+    /**
+     * renderCluster deps include `styles` so cluster markers re-colour
+     * correctly on theme change. Previously [] caused stale colours.
+     */
     const renderCluster = useCallback(
       (cluster: any) => {
         const { id, geometry, onPress, properties } = cluster;
-        const points = properties.point_count || 0;
-
         return (
           <Marker
             key={`cluster-${id}`}
+            tracksViewChanges={false}
             onPress={onPress}
             coordinate={{
               longitude: geometry.coordinates[0],
               latitude: geometry.coordinates[1],
             }}
           >
-            <View style={[styles.clusterMarker, {}]}>
-              <Text style={styles.clusterText}>{points}</Text>
+            <View style={styles.clusterMarker}>
+              <Text style={styles.clusterText}>
+                {properties.point_count ?? 0}
+              </Text>
             </View>
           </Marker>
         );
       },
-      [], // Dependencies are empty since renderCluster doesn't depend on props/state
+      [styles],
     );
     return (
       <View style={styles.container}>
         <MapViewClustering
-          mapRef={(ref) => {
-            mapRef.current = ref as unknown as MapView;
-          }}
+          mapRef={setMapRef}
           style={StyleSheet.absoluteFill}
           provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
           showsUserLocation={hasLocationPermission}
-          showsMyLocationButton={false} // Disable default button
+          showsMyLocationButton={false}
           initialRegion={
             userLocation
               ? {
-                  latitude: userLocation.latitude,
-                  longitude: userLocation.longitude,
+                  ...userLocation,
                   latitudeDelta: 0.1,
                   longitudeDelta: 0.1,
                 }
               : INITIAL_REGION
           }
-          clusterColor=""
           renderCluster={renderCluster}
           mapType="standard"
           userInterfaceStyle={theme}
-          onRegionChangeComplete={(region, markers) => {}}
+          onRegionChangeComplete={noop}
         >
-          {filteredHalls.map((item: SportHallDataType) => {
-            return (
-              <Marker
-                key={item.sportHallID}
-                onPress={() => onMarkerSelected(item)}
-                coordinate={{
-                  latitude: parseFloat(item.hall_location?.latitude),
-                  longitude: parseFloat(item.hall_location?.longitude),
-                }}
-                title={item.hall_details.hall_name}
-                //description={item.properties.summary ?? undefined}
-              />
-            );
-          })}
+          {filteredHalls.map((item) => (
+            <HallMarker
+              key={item.sportHallID}
+              item={item}
+              ms={markerStyles}
+              colors={colors}
+              onNavigate={onNavigate}
+              onFocus={focusMarker}
+            />
+          ))}
         </MapViewClustering>
+
         <TouchableOpacity style={styles.change} onPress={goToUserLocation}>
           <Ionicons
             name="swap-horizontal"
@@ -181,7 +316,7 @@ const ListingsMap = memo(
             color={colors.themeColorTextPure}
           />
         </TouchableOpacity>
-        {/* Custom Location Button */}
+
         <TouchableOpacity
           style={styles.locationButton}
           onPress={goToUserLocation}
@@ -197,11 +332,125 @@ const ListingsMap = memo(
   },
 );
 
+const createMarkerStyle = (colors: any) =>
+  StyleSheet.create({
+    pin: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: colors.primary,
+      borderWidth: 3,
+      borderColor: "#fff",
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.35,
+      shadowRadius: 3,
+      elevation: 5,
+    },
+    pinDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: "#fff",
+    },
+    calloutWrapper: {
+      alignItems: "center",
+      width: 230,
+    },
+    card: {
+      backgroundColor: colors.containerColor,
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingTop: 12,
+      paddingBottom: 10,
+      width: 230,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.18,
+      shadowRadius: 10,
+      elevation: 10,
+    },
+    hallName: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.themeColorTextPure,
+      marginBottom: 6,
+    },
+    badgeRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginBottom: 6,
+    },
+    badge: {
+      backgroundColor: colors.primary + "22",
+      borderRadius: 6,
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      marginRight: 4,
+      marginBottom: 2,
+    },
+    badgeText: {
+      fontSize: 10,
+      color: colors.primary,
+      fontWeight: "600",
+      textTransform: "capitalize",
+    },
+    infoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 4,
+    },
+    infoText: {
+      fontSize: 11,
+      color: colors.darkGrey,
+      flex: 1,
+      marginLeft: 4,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: 8,
+      paddingTop: 8,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.lightGrey,
+    },
+    price: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.primary,
+    },
+    ctaButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.primary,
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+    },
+    ctaText: {
+      fontSize: 11,
+      color: "#fff",
+      fontWeight: "600",
+      marginRight: 3,
+    },
+    arrow: {
+      width: 0,
+      height: 0,
+      borderLeftWidth: 9,
+      borderRightWidth: 9,
+      borderTopWidth: 10,
+      borderLeftColor: "transparent",
+      borderRightColor: "transparent",
+      borderTopColor: colors.containerColor,
+    },
+  });
+
 const createStyle = (colors: any) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-    },
+    container: { flex: 1 },
     clusterMarker: {
       borderRadius: 20,
       backgroundColor: colors.primary,
@@ -250,4 +499,5 @@ const createStyle = (colors: any) =>
       shadowRadius: 3,
     },
   });
+
 export default ListingsMap;

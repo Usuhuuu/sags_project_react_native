@@ -49,10 +49,9 @@ interface Props {
 }
 
 const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
-  const { colors: Colors, theme } = useTheme();
+  const { colors: Colors } = useTheme();
   const { width, height } = Dimensions.get("screen");
 
-  const collapsedY = height * 0.9;
   const expandedY = height * 0.1;
   const fadeStart = height * 0.28;
 
