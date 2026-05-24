@@ -1,11 +1,16 @@
 import { FriendSeparator, FriendsType } from "@/interfaces/friendType";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
-import { View, Text, TouchableOpacity, Dimensions } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Dimensions,
+  StyleSheet,
+} from "react-native";
 import { useFriendStore } from "@/src/context/store/friendStore";
 import { useTheme } from "@/src/context/themeContext";
-import AppText from "@/constants/appTextDefault";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { queryClient } from "@/hooks/queryClient";
@@ -21,30 +26,116 @@ interface FriendItemProps {
   page: Record<FriendSeparator, number>;
   socketRef: React.MutableRefObject<Socket | null>;
 }
+
+const SCREEN_W = Dimensions.get("screen").width;
+
+// ── Online status ──────────────────────────────────────────────────────────
+type ActiveStatus = "online" | "away" | "offline";
+
+// Dot appearance per status
+const STATUS_DOT: Record<ActiveStatus, { color: string; label: string }> = {
+  online: { color: "#22C55E", label: "Online" },
+  away: { color: "#FBBF24", label: "Away" },
+  offline: { color: "#6B7280", label: "Offline" },
+};
+
+// ── FriendItem ─────────────────────────────────────────────────────────────
 export const FriendItem = React.memo(
   ({ item, userStatus, onRemove, page, socketRef }: FriendItemProps) => {
     const { setFriendDetails } = useFriendStore();
-    const { colors: Colors, theme } = useTheme();
+    const { colors: Colors } = useTheme();
     const { addChatInfo } = useChatStore();
-    const width = Dimensions.get("screen").width;
+
+    const isFriend = userStatus === FriendSeparator.FRIENDS;
+    const isRequest = userStatus === FriendSeparator.REQUESTS;
+
+    // ── Active status state ────────────────────────────────────────────────
+    // Seed from item if the server already provides it, otherwise start offline
+    const [activeStatus, setActiveStatus] = useState<ActiveStatus>(
+      (item as any).isOnline ? "online" : "offline",
+    );
+
+    useEffect(() => {
+      const socket = socketRef.current;
+      if (!socket) return;
+
+      // Ask server for this user's current status on mount
+      socket.emit("get_user_status", { userId: item._id });
+
+      // ── Socket event handlers ──
+      const onOnline = (userId: string) => {
+        if (userId === item._id) setActiveStatus("online");
+      };
+      const onAway = (userId: string) => {
+        if (userId === item._id) setActiveStatus("away");
+      };
+      const onOffline = (userId: string) => {
+        if (userId === item._id) setActiveStatus("offline");
+      };
+      // Server replies to get_user_status with { userId, status }
+      const onStatusReply = (data: {
+        userId: string;
+        status: ActiveStatus;
+      }) => {
+        if (data.userId === item._id) setActiveStatus(data.status);
+      };
+
+      socket.on("user_online", onOnline);
+      socket.on("user_away", onAway);
+      socket.on("user_offline", onOffline);
+      socket.on("user_status", onStatusReply);
+
+      return () => {
+        socket.off("user_online", onOnline);
+        socket.off("user_away", onAway);
+        socket.off("user_offline", onOffline);
+        socket.off("user_status", onStatusReply);
+      };
+    }, [item._id]); // only re-subscribe when the user changes
+
+    const dot = STATUS_DOT[activeStatus];
+
+    // ── Memos ──────────────────────────────────────────────────────────────
+    const avatarSize = useMemo(
+      () => Math.min(Math.floor((SCREEN_W / 2) * 0.24), 52),
+      [],
+    );
+
+    const displayName = useMemo(
+      () =>
+        item.unique_user_ID
+          ? item.unique_user_ID.charAt(0).toUpperCase() +
+            item.unique_user_ID.slice(1)
+          : "Unknown",
+      [item.unique_user_ID],
+    );
+
+    // ── Handlers ───────────────────────────────────────────────────────────
     const handleChat = () => {
-      console.log("CHECK", item);
       const chatInfo: ChatTypes = {
         chatId: item.chatId,
         members: item._id,
-        userInfo: [
-          {
-            _id: item._id,
-            unique_user_ID: item.unique_user_ID,
-          },
-        ],
+        userInfo: [{ _id: item._id, unique_user_ID: item.unique_user_ID }],
         chat_image: undefined,
         unseenCount: 0,
       };
-      console.log(chatInfo);
       addChatInfo(`${item._id}`, chatInfo);
       router.push(`/(modals)/chat/${item._id}`);
     };
+
+    const handleProfile = () => {
+      setFriendDetails({
+        _id: item._id,
+        unique_user_ID: item.unique_user_ID,
+        userImage: item.userImage,
+        email: item.email,
+        userNames: item.userNames,
+        chatId: item.chatId,
+        chatKey: item.chatKey,
+      });
+      router.push(`/(modals)/user/${item.unique_user_ID}`);
+    };
+
     const handleAccept = async (user: FriendsType) => {
       try {
         const response = await axiosInstance.post("/auth/friend_accept", {
@@ -53,7 +144,7 @@ export const FriendItem = React.memo(
         if (response.data.success && response.status === 200) {
           Notifier.showNotification({
             title: "Friend Request Accepted",
-            description: `Accepted`,
+            description: "Accepted",
             Component: NotifierComponents.Alert,
             componentProps: { alertType: "success" },
           });
@@ -64,10 +155,7 @@ export const FriendItem = React.memo(
               page[FriendSeparator.REQUESTS],
             ],
           });
-          onRemove({
-            id: item.unique_user_ID,
-            type: FriendSeparator.REQUESTS,
-          });
+          onRemove({ id: item.unique_user_ID, type: FriendSeparator.REQUESTS });
         } else {
           Notifier.showNotification({
             title: "Request Failed",
@@ -80,144 +168,196 @@ export const FriendItem = React.memo(
         console.log(err);
       }
     };
+
     return (
       <View
-        style={{
-          margin: 10,
-          padding: 15,
-          marginVertical: 7,
-          borderRadius: 5,
-          backgroundColor: Colors.containerColor,
-          shadowColor: Colors.dark,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 4,
-          flexDirection:
-            userStatus === FriendSeparator.FRIENDS ? "row" : "column",
-        }}
+        style={[
+          S.card,
+          {
+            backgroundColor: Colors.surface,
+            borderColor: Colors.border,
+            shadowColor: Colors.shadowColor,
+          },
+        ]}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 5,
-          }}
-        >
-          <View
-            style={{
-              height: 40,
-              borderRadius: 20,
-            }}
-          >
+        {/* ── Avatar · Name · Actions ── */}
+        <View style={S.topRow}>
+          {/* Avatar + status dot */}
+          <View style={S.avatarWrap}>
             <ProfileAvatar
-              width={(width / 2) * 0.23}
+              width={avatarSize}
               imageUrl={item.userImage}
               userName={item.unique_user_ID}
             />
-          </View>
-          <AppText
-            style={{
-              fontSize: 22,
-              fontWeight: 500,
-              color:
-                theme === "dark" ? Colors.primary : Colors.themeColorTextPure,
-            }}
-          >
-            {item.unique_user_ID.charAt(0).toUpperCase() +
-              item.unique_user_ID.slice(1) || "UNKNOWN"}
-          </AppText>
-        </View>
-        <View
-          style={{
-            gap: 5,
-            flex: 1,
-            paddingVertical: 10,
-            flexDirection:
-              userStatus === FriendSeparator.FRIENDS ? "row" : "column",
-          }}
-        >
-          {/* friend section */}
-          {userStatus === FriendSeparator.FRIENDS && (
-            <>
-              <TouchableOpacity
-                onPress={() => {
-                  const data = {
-                    _id: item._id,
-                    unique_user_ID: item.unique_user_ID,
-                    userImage: item.userImage,
-                    email: item.email,
-                    userNames: item.userNames,
-                    chatId: item.chatId,
-                    chatKey: item.chatKey,
-                  };
-                  setFriendDetails(data);
-                  router.push(`/(modals)/user/${item.unique_user_ID}`);
-                }}
-              >
-                <Ionicons
-                  name="person-circle-outline"
-                  size={30}
-                  color={Colors.primary}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  handleChat();
-                }}
-              >
-                <Ionicons name="chatbox" size={30} color={Colors.primary} />
-              </TouchableOpacity>
-            </>
-          )}
-          {userStatus === FriendSeparator.REQUESTS && (
+            {/* Dot: color + border adapt to status and card background */}
             <View
-              style={{
-                flex: 1,
-                flexDirection: "row",
-                justifyContent: "space-around",
-              }}
+              style={[
+                S.onlineDot,
+                {
+                  backgroundColor: dot.color,
+                  borderColor: Colors.surface,
+                  // Offline dot is smaller and more muted
+                  width: activeStatus === "offline" ? 9 : 11,
+                  height: activeStatus === "offline" ? 9 : 11,
+                  borderRadius: activeStatus === "offline" ? 4.5 : 5.5,
+                  opacity: activeStatus === "offline" ? 0.5 : 1,
+                },
+              ]}
+            />
+          </View>
+
+          {/* Name + status subtitle */}
+          <View style={S.nameBlock}>
+            <Text
+              style={[S.username, { color: Colors.onSurface }]}
+              numberOfLines={1}
             >
+              {displayName}
+            </Text>
+            {/* Shows status text for friends, email/handle for requests */}
+            <Text style={[S.subtitle, { color: dot.color }]} numberOfLines={1}>
+              {isFriend
+                ? dot.label // "Online" / "Away" / "Offline"
+                : (item.email ?? `@${item.unique_user_ID}`)}
+            </Text>
+          </View>
+
+          {/* Icon buttons — FRIENDS only */}
+          {isFriend && (
+            <View style={S.friendActions}>
               <TouchableOpacity
-                style={{
-                  padding: 10,
-                  backgroundColor: Colors.primary,
-                  borderRadius: 10,
-                  width: "48%",
-                  alignItems: "center",
-                }}
-                onPress={() => {
-                  handleAccept(item);
-                }}
+                style={[S.iconBtn, { backgroundColor: Colors.surfaceHigh }]}
+                onPress={handleProfile}
+                activeOpacity={0.7}
               >
-                <Text
-                  style={{
-                    color: Colors.white,
-                    fontWeight: "700",
-                  }}
-                >
-                  Accept
-                </Text>
+                <Ionicons name="person" size={15} color={Colors.primary} />
               </TouchableOpacity>
+
               <TouchableOpacity
-                style={{
-                  padding: 10,
-                  borderRadius: 10,
-                  width: "48%",
-                  alignItems: "center",
-                  borderColor: Colors.darkGrey,
-                  borderWidth: 1,
-                }}
+                style={[S.iconBtn, { backgroundColor: Colors.primary }]}
+                onPress={handleChat}
+                activeOpacity={0.7}
               >
-                <Text style={{ color: Colors.darkGrey, fontWeight: "700" }}>
-                  Decline
-                </Text>
+                <Ionicons name="chatbubble" size={15} color={Colors.white} />
               </TouchableOpacity>
             </View>
           )}
         </View>
+
+        {/* ── Accept / Decline — REQUESTS only ── */}
+        {isRequest && (
+          <View style={S.requestRow}>
+            <TouchableOpacity
+              style={[S.acceptBtn, { backgroundColor: Colors.primary }]}
+              onPress={() => handleAccept(item)}
+              activeOpacity={0.8}
+            >
+              <Feather name="check" size={15} color={Colors.white} />
+              <Text style={S.acceptText}>Accept</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[S.declineBtn, { borderColor: Colors.border }]}
+              activeOpacity={0.8}
+            >
+              <Feather name="x" size={15} color={Colors.outline} />
+              <Text style={[S.declineText, { color: Colors.outline }]}>
+                Decline
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     );
   },
-  (prev, next) => prev.item.unique_user_ID === next.item.unique_user_ID,
+  (prev, next) =>
+    prev.item.unique_user_ID === next.item.unique_user_ID &&
+    prev.userStatus === next.userStatus,
 );
+
+// ── Styles ─────────────────────────────────────────────────────────────────
+const S = StyleSheet.create({
+  card: {
+    marginHorizontal: 16,
+    marginVertical: 5,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 14,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  avatarWrap: {
+    position: "relative",
+  },
+  onlineDot: {
+    position: "absolute",
+    bottom: 1,
+    right: 1,
+    borderWidth: 2,
+  },
+  nameBlock: {
+    flex: 1,
+    gap: 3,
+  },
+  username: {
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: -0.2,
+  },
+  subtitle: {
+    fontSize: 12,
+    fontWeight: "500", // slightly bolder — status label reads as a badge
+  },
+  friendActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  requestRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 14,
+  },
+  acceptBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 11,
+    borderRadius: 12,
+  },
+  acceptText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  declineBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 11,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  declineText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+});

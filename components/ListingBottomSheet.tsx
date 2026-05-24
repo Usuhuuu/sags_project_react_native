@@ -50,7 +50,7 @@ const ListingBottomSheet = ({
   const insets = useSafeAreaInsets();
   const unabledHeight = height - insets.bottom - insets.top;
   const snapPoints = useMemo(
-    () => [unabledHeight * 0.05, unabledHeight * 0.85],
+    () => [unabledHeight * 0.04, unabledHeight * 0.85],
     [],
   );
 

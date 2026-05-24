@@ -1,11 +1,11 @@
-import { LightTheme, DarkTheme } from "@/constants/Colors";
+import { LightTheme, DarkTheme, ThemeColors } from "@/constants/Colors";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface ThemeProps {
   theme: "light" | "dark";
-  colors: typeof LightTheme;
+  colors: ThemeColors;
   changeTheme: (theme: "light" | "dark") => void;
 }
 

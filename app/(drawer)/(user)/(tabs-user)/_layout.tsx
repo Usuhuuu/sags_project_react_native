@@ -1,18 +1,12 @@
 import { useAuth } from "@/src/context/authContext";
 import { useTheme } from "@/src/context/themeContext";
 import ExploreHeader from "@/components/ExploreHeader";
-import {
-  Entypo,
-  FontAwesome,
-  Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { View, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 
 const TabsLayout = () => {
@@ -27,9 +21,11 @@ const TabsLayout = () => {
         tabBarInactiveTintColor: Colors.themeColorTextSecondary,
         tabBarActiveTintColor: Colors.themeColorTextPure,
         headerShadowVisible: false,
+
+        // 👇 Change image to icons
         tabBarStyle: {
           backgroundColor: Colors.containerColor,
-          borderTopWidth: theme === "dark" ? 0 : 1,
+          borderTopWidth: theme === "dark" ? 0 : 0,
           borderTopColor: Colors.containerColor,
           elevation: 0,
           shadowOpacity: 0,
@@ -63,20 +59,17 @@ const TabsLayout = () => {
               bottomSheetY={bottomSheetY}
             />
           ),
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                padding: 5,
-                borderRadius: 20,
-                backgroundColor: focused ? Colors.primary : "transparent",
-              }}
-            >
-              <Image
-                source={require("@/assets/tab-icons/home.png")}
-                style={{ width: 26, height: 26 }}
+          tabBarIcon: ({ focused }) => {
+            return (
+              <Ionicons
+                name="home-outline"
+                size={28}
+                color={
+                  focused ? Colors.primary : Colors.themeColorTextSecondary
+                }
               />
-            </View>
-          ),
+            );
+          },
         }}
       />
 
@@ -89,26 +82,24 @@ const TabsLayout = () => {
           headerShadowVisible: false,
           headerTitleStyle: { color: Colors.primary, fontSize: 24 },
           headerRight: () => (
-            <Image
-              source={require("@/assets/tab-icons/teamwork.png")}
-              style={{ width: 26, height: 26, marginRight: 10 }}
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={28}
+              color={Colors.primary}
             />
           ),
 
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                padding: 5,
-                borderRadius: 20,
-                backgroundColor: focused ? Colors.primary : "transparent",
-              }}
-            >
-              <Image
-                source={require("@/assets/tab-icons/teamwork.png")}
-                style={{ width: 26, height: 26 }}
+          tabBarIcon: ({ focused }) => {
+            return (
+              <Ionicons
+                name="chatbubble-ellipses-outline"
+                size={28}
+                color={
+                  focused ? Colors.primary : Colors.themeColorTextSecondary
+                }
               />
-            </View>
-          ),
+            );
+          },
         }}
       />
 
@@ -122,26 +113,20 @@ const TabsLayout = () => {
           headerTitleAlign: "left",
           headerTitleStyle: { color: Colors.primary, fontSize: 28 },
           headerRight: () => (
-            <TouchableOpacity
-              onPress={() => {
-                router.push("/friend");
-              }}
-            >
-              <Ionicons
-                name="filter-circle-outline"
-                size={28}
-                color={Colors.primary}
-              />
-            </TouchableOpacity>
+            <Ionicons name="filter-outline" size={30} color={Colors.primary} />
           ),
 
-          tabBarIcon: () => (
-            <FontAwesome
-              name="address-book-o"
-              size={24}
-              color={Colors.primary}
-            />
-          ),
+          tabBarIcon: ({ focused }) => {
+            return (
+              <Ionicons
+                name="filter-outline"
+                size={30}
+                color={
+                  focused ? Colors.primary : Colors.themeColorTextSecondary
+                }
+              />
+            );
+          },
         }}
       />
 
@@ -154,32 +139,25 @@ const TabsLayout = () => {
           headerShadowVisible: false,
           headerTitleStyle: { color: Colors.primary, fontSize: 24 },
 
-          headerRight: () => {
+          headerRight: () => (
+            <MaterialCommunityIcons
+              name="account-plus-outline"
+              size={30}
+              color={Colors.primary}
+            />
+          ),
+
+          tabBarIcon: ({ focused }) => {
             return (
-              <TouchableOpacity style={{ marginRight: 10 }}>
-                <MaterialIcons
-                  name="person-add"
-                  size={30}
-                  color={Colors.primary}
-                />
-              </TouchableOpacity>
+              <Ionicons
+                name="people-outline"
+                size={28}
+                color={
+                  focused ? Colors.primary : Colors.themeColorTextSecondary
+                }
+              />
             );
           },
-
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                padding: 5,
-                borderRadius: 20,
-                backgroundColor: focused ? Colors.primary : "transparent",
-              }}
-            >
-              <Image
-                source={require("@/assets/tab-icons/friends.png")}
-                style={{ width: 28, height: 28 }}
-              />
-            </View>
-          ),
         }}
       />
 
@@ -199,28 +177,25 @@ const TabsLayout = () => {
                 size={28}
                 color={Colors.primary}
               />
-              <TouchableOpacity
-                onPress={() => router.push("/(modals)/cameraModal")}
-              >
-                <Entypo name="new-message" size={24} color={Colors.primary} />
-              </TouchableOpacity>
-            </View>
-          ),
-
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                padding: 5,
-                borderRadius: 20,
-                backgroundColor: focused ? Colors.primary : "transparent",
-              }}
-            >
-              <Image
-                source={require("@/assets/tab-icons/chat.png")}
-                style={{ width: 30, height: 30 }}
+              <Ionicons
+                name="chatbox-ellipses-outline"
+                size={24}
+                color={Colors.primary}
               />
             </View>
           ),
+
+          tabBarIcon: ({ focused }) => {
+            return (
+              <Ionicons
+                name="chatbox-ellipses-outline"
+                size={28}
+                color={
+                  focused ? Colors.primary : Colors.themeColorTextSecondary
+                }
+              />
+            );
+          },
         }}
       />
 
@@ -232,20 +207,17 @@ const TabsLayout = () => {
           headerShown: !LoginStatus,
           headerTitle: !LoginStatus ? t("aboutUs.login") : t("profile"),
           headerTitleStyle: { color: Colors.primary, fontSize: 24 },
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                padding: 5,
-                borderRadius: 20,
-                backgroundColor: focused ? Colors.primary : "transparent",
-              }}
-            >
-              <Image
-                source={require("@/assets/tab-icons/athlete.png")}
-                style={{ width: 28, height: 28 }}
+          tabBarIcon: ({ focused }) => {
+            return (
+              <Ionicons
+                name="person-outline"
+                size={28}
+                color={
+                  focused ? Colors.primary : Colors.themeColorTextSecondary
+                }
               />
-            </View>
-          ),
+            );
+          },
         }}
       />
     </Tabs>

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Image,
   Dimensions,
   TextInput,
 } from "react-native";
@@ -29,18 +28,51 @@ import { useNotificationStore } from "@/src/context/store/notificationStore";
 import { useTheme } from "@/src/context/themeContext";
 import LottieView from "lottie-react-native";
 import { HallCategoryValue } from "@/interfaces/listing";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import {
+  Feather,
+  Ionicons,
+  MaterialCommunityIcons,
+  FontAwesome6,
+} from "@expo/vector-icons";
 
-// ICON MAP
-const iconMap: { [key: string]: any } = {
-  basketball: require("../assets/sport-icons/basketball.png"),
-  football: require("../assets/sport-icons/football.png"),
-  volleyball: require("../assets/sport-icons/volleyball.png"),
-  tennis: require("../assets/sport-icons/table-tennis.png"),
-  bowling: require("../assets/sport-icons/lanes.png"),
-  golf: require("../assets/sport-icons/golf.png"),
-  desktopComputer: require("../assets/sport-icons/pc.png"),
-  gameController: require("../assets/sport-icons/playstation.png"),
+// Render the right icon component based on the map entry
+const SportIcon = ({
+  iconKey,
+  size,
+  color,
+}: {
+  iconKey: string;
+  size: number;
+  color: string;
+}) => {
+  const icon = iconMap[iconKey];
+  if (!icon) return null;
+
+  const props = { size, color };
+
+  switch (icon.family) {
+    case "Ionicons":
+      return <Ionicons name={icon.name as any} {...props} />;
+    case "FontAwesome6":
+      return <FontAwesome6 name={icon.name as any} {...props} />;
+    case "Feather":
+      return <Feather name={icon.name as any} {...props} />;
+    default:
+      return <MaterialCommunityIcons name={icon.name as any} {...props} />;
+  }
+};
+const iconMap: { [key: string]: { family: string; name: string } } = {
+  basketball: { family: "MaterialCommunityIcons", name: "basketball" },
+  football: { family: "Ionicons", name: "football" },
+  volleyball: { family: "MaterialCommunityIcons", name: "volleyball" },
+  tennis: { family: "MaterialCommunityIcons", name: "table-tennis" },
+  bowling: { family: "MaterialCommunityIcons", name: "bowling" },
+  golf: { family: "MaterialCommunityIcons", name: "golf-tee" },
+  desktopComputer: {
+    family: "MaterialCommunityIcons",
+    name: "desktop-classic",
+  },
+  gameController: { family: "MaterialCommunityIcons", name: "gamepad-variant" },
 };
 
 interface Props {
@@ -162,44 +194,55 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       <Animated.View style={[styles.container, animatedContainerStyle]}>
         {/* Action Row */}
         <View style={[styles.actionRowWrapper]}>
-          <TouchableOpacity style={styles.search}>
-            <Feather name="search" size={24} color={Colors.darkGrey} />
+          {/* Search Bar */}
+          <TouchableOpacity style={styles.search} activeOpacity={0.8}>
+            <Feather name="search" size={18} color={Colors.outline} />
             <TextInput
               placeholder="Search sports or facilities"
-              placeholderTextColor={Colors.darkGrey}
+              placeholderTextColor={Colors.outline}
+              style={styles.searchInput}
             />
           </TouchableOpacity>
 
-          {/* Notification */}
-          <TouchableOpacity
-            style={[styles.notification]}
-            onPress={() => router.push("/listing/notification/notification")}
-          >
-            <LottieView
-              ref={notificationAnimationRef}
-              loop={false}
-              source={require("../assets/sport-icons/animated/notification.json")}
-              style={{ width: 70, height: 70 }}
-            />
-            {notificationCount > 0 && (
-              <Animated.View style={[styles.badge, badgeAnimatedStyle]}>
-                <Text style={styles.badgeText}>
-                  {notificationCount > 99 ? "99+" : notificationCount}
-                </Text>
-              </Animated.View>
-            )}
-          </TouchableOpacity>
+          {/* Action Buttons */}
+          <View style={styles.actionButtonsRow}>
+            {/* Notification */}
+            <TouchableOpacity
+              style={[
+                styles.iconButtonCircle,
+                notificationCount > 0 && styles.iconButtonCircleActive,
+              ]}
+              onPress={() => router.push("/listing/notification/notification")}
+            >
+              <View style={styles.notificationIconWrapper}>
+                <LottieView
+                  ref={notificationAnimationRef}
+                  loop={false}
+                  source={require("../assets/sport-icons/animated/notification.json")}
+                  style={styles.notificationLottie}
+                />
+              </View>
+              {notificationCount > 0 && (
+                <Animated.View style={[styles.badge, badgeAnimatedStyle]}>
+                  <Text style={styles.badgeText}>
+                    {notificationCount > 99 ? "99+" : notificationCount}
+                  </Text>
+                </Animated.View>
+              )}
+            </TouchableOpacity>
 
-          {/* Menu */}
-          <TouchableOpacity style={styles.notification} onPress={openDrawer}>
-            <Image
-              source={require("../assets/sport-icons/menu.png")}
-              style={{
-                width: 24,
-                height: 24,
-              }}
-            />
-          </TouchableOpacity>
+            {/* Menu */}
+            <TouchableOpacity
+              style={styles.iconButtonCircle}
+              onPress={openDrawer}
+            >
+              <Ionicons
+                name="menu-outline"
+                size={22}
+                color={Colors.onSurface}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Icons Section */}
@@ -221,7 +264,9 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
               return (
                 <TouchableOpacity
                   key={index}
-                  ref={(el) => (itemsRef.current[index] = el)}
+                  ref={(el) => {
+                    itemsRef.current[index] = el;
+                  }}
                   style={[
                     activeIndex === index
                       ? styles.categoriesBtnActive
@@ -245,12 +290,12 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
                   ]}
                   onPress={() => selectCategory(index)}
                 >
-                  <Image
-                    source={iconMap[item.icon]}
-                    style={{
-                      width: 25,
-                      height: 25,
-                    }}
+                  <SportIcon
+                    iconKey={item.icon}
+                    size={25}
+                    color={
+                      activeIndex === index ? Colors.primary : Colors.outline
+                    }
                   />
                 </TouchableOpacity>
               );
@@ -270,37 +315,67 @@ const createStyles = (Colors: any, height: number) =>
     },
     actionRowWrapper: {
       flexDirection: "row",
-      justifyContent: "space-around",
       alignItems: "center",
-      paddingTop: 10,
-      paddingHorizontal: 10,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      gap: 10,
     },
     search: {
-      justifyContent: "center",
+      flex: 1,
       flexDirection: "row",
+      alignItems: "center",
       gap: 10,
-      width: 250,
-      height: 40,
-      backgroundColor: Colors.themeContainerGrey,
-      borderColor: Colors.containerColor,
-      borderWidth: 2,
-      borderRadius: 20,
-      elevation: 10,
-      shadowOpacity: 0.3,
-      shadowRadius: 3,
-      shadowOffset: { width: 0.3, height: 0.3 },
+      height: 42,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: 21,
+      paddingHorizontal: 16,
+      elevation: 2,
+      shadowColor: Colors.shadowColor,
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 1 },
     },
-    notification: {
+    searchInput: {
+      flex: 1,
+      fontSize: 15,
+      color: Colors.onSurface,
+      paddingVertical: 0,
+    },
+    actionButtonsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    iconButtonCircle: {
       justifyContent: "center",
       alignItems: "center",
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: Colors.containerColor,
-      borderColor: Colors.containerColor,
-      elevation: 10,
-      shadowOpacity: 0.3,
-      shadowRadius: 3,
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      elevation: 2,
+      shadowColor: Colors.shadowColor,
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 1 },
+    },
+    iconButtonCircleActive: {
+      backgroundColor: Colors.accentPrimaryGlow,
+      borderColor: Colors.accentPrimaryBorder,
+    },
+    notificationIconWrapper: {
+      width: 24,
+      height: 24,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    notificationLottie: {
+      width: 56,
+      height: 56,
     },
 
     badgeText: {

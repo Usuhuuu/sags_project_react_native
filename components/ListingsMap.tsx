@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as SecureStorage from "expo-secure-store";
 import { useTheme } from "@/src/context/themeContext";
-import { LightTheme } from "@/constants/Colors";
+import { LightTheme, ThemeColors } from "@/constants/Colors";
 
 const INITIAL_REGION = {
   latitude: 47.918873,
@@ -24,26 +24,14 @@ const INITIAL_REGION = {
   longitudeDelta: 0.1,
 };
 
-/**
- * Stable no-op reference.
- * Avoids allocating a new `() => {}` on every MapViewClustering render.
- */
 const noop = () => {};
 
-// ─── HallMarker ───────────────────────────────────────────────────────────────
-
-/** Alias keeps prop signatures readable without repeating the long ReturnType. */
 type MarkerStyles = ReturnType<typeof createMarkerStyle>;
 
 interface HallMarkerProps {
   item: SportHallDataType;
-  /**
-   * Pre-computed, shared StyleSheet from the parent.
-   * The parent calls createMarkerStyle(colors) exactly ONCE and passes the
-   * result to every marker – instead of each marker owning its own copy.
-   */
   ms: MarkerStyles;
-  colors: typeof LightTheme;
+  colors: ThemeColors;
   onNavigate: (id: string) => void;
   onFocus: (lat: number, lng: number) => void;
 }

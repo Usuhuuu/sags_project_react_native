@@ -11,8 +11,8 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Checkbox } from "react-native-paper";
-import { NotificationItem } from "@/src/utils";
 import { FontAwesome } from "@expo/vector-icons";
+import { NotificationItem } from "@/app/listing/notification/notification";
 
 type SwipeableRowProps = {
   item: NotificationItem;
