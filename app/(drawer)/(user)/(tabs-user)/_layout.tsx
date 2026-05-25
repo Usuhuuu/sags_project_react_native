@@ -204,8 +204,9 @@ const TabsLayout = () => {
         name="profile"
         options={{
           tabBarLabel: t("profile"),
-          headerShown: !LoginStatus,
-          headerTitle: !LoginStatus ? t("aboutUs.login") : t("profile"),
+          headerShown: false,
+          // headerShown: !LoginStatus,
+          // headerTitle: !LoginStatus ? t("aboutUs.login") : t("profile"),
           headerTitleStyle: { color: Colors.primary, fontSize: 24 },
           tabBarIcon: ({ focused }) => {
             return (

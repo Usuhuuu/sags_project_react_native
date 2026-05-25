@@ -72,6 +72,7 @@ const Profile: React.FC = () => {
           backgroundColor: Colors.backgroundColor,
         },
       ]}
+      edges={!LoginStatus ? ["bottom"] : undefined}
     >
       {!LoginStatus ? (
         <Page />

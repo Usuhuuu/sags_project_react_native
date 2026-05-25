@@ -33,6 +33,7 @@ import {
   Ionicons,
   MaterialCommunityIcons,
   FontAwesome6,
+  MaterialIcons,
 } from "@expo/vector-icons";
 
 // Render the right icon component based on the map entry
@@ -69,12 +70,11 @@ const iconMap: { [key: string]: { family: string; name: string } } = {
   bowling: { family: "MaterialCommunityIcons", name: "bowling" },
   golf: { family: "MaterialCommunityIcons", name: "golf-tee" },
   desktopComputer: {
-    family: "MaterialCommunityIcons",
-    name: "desktop-classic",
+    family: "MaterialIcons",
+    name: "desktop-mac",
   },
   gameController: { family: "MaterialCommunityIcons", name: "gamepad-variant" },
 };
-
 interface Props {
   onCategoryChanged: (category: HallCategoryValue) => void;
   bottomSheetY: SharedValue<number>;
@@ -268,15 +268,12 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
                     itemsRef.current[index] = el;
                   }}
                   style={[
-                    activeIndex === index
-                      ? styles.categoriesBtnActive
-                      : styles.categoriesBtn,
                     {
                       width: itemWidth,
                       height: 50,
                       justifyContent: "center",
                       alignItems: "center",
-                      backgroundColor: Colors.backgroundColor,
+                      backgroundColor: Colors.containerColor,
                       shadowColor: Colors.shadowColor,
                       shadowOffset: { width: 0, height: 2 },
                       shadowOpacity: 0.3,
@@ -394,15 +391,7 @@ const createStyles = (Colors: any, height: number) =>
       gap: 10,
       paddingLeft: 10,
     },
-    categoriesBtn: {
-      alignItems: "center",
-      paddingBottom: 6,
-    },
-    categoriesBtnActive: {
-      alignItems: "center",
-      borderColor: Colors.primary,
-      borderWidth: 1.5,
-    },
+
     iconContainer: {
       width: 40,
       height: 40,

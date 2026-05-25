@@ -162,12 +162,15 @@ export function RootLayoutNav() {
       <Stack.Screen
         name="(modals)/authentication/login"
         options={{
-          headerTitle: "Burtguuleh",
+          headerTitle: "Login",
           headerTitleAlign: "left",
           animation: "slide_from_bottom",
           presentation: "modal",
           headerTintColor: Colors.primary,
           headerShown: true,
+          headerStyle: {
+            backgroundColor: Colors.backgroundColor,
+          },
           headerLeft: () => {
             return (
               <TouchableOpacity onPress={() => router.back()}>

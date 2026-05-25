@@ -82,6 +82,7 @@
     ],
     "login": {
       "login": "Login",
+      "loginWithEmailOrUsername": "Email or Username",
       "email": "Email",
       "password": "Password",
       "phoneNum": "Phone Number",

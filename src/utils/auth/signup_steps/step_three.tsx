@@ -1,246 +1,432 @@
-import React from "react";
+import React, { useState, useCallback, useMemo, memo } from "react";
 import {
   View,
-  Text,
-  TextInput,
+  TextInput as RNTextInput,
   TouchableOpacity,
-  StatusBar,
+  StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/src/context/themeContext";
+import { LoginInput } from "@/app/(modals)/authentication/signup_modal";
+import AppText from "@/constants/appTextDefault";
 
-const SignupThree = () => {
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#061314" }}>
-      <StatusBar barStyle="light-content" />
+// ── Props ──────────────────────────────────────────────────────────────────
+interface SignupStepThreeProps {
+  steps: number;
+  setSteps: React.Dispatch<React.SetStateAction<number>>;
+  formData: Pick<LoginInput, "password" | "userAgreeTerms">;
+  setFormData: React.Dispatch<React.SetStateAction<LoginInput>>;
+  onSubmit?: () => Promise<void>;
+}
 
-      {/* Header & Progress */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-          }}
-        >
-          <Text style={{ color: "white", fontSize: 24 }}>‹</Text>
-          <Text style={{ color: "#94a3b8", fontSize: 14, fontWeight: "600" }}>
-            Step 3 of 3
-          </Text>
-          <View style={{ width: 20 }} />
-        </View>
+// ── Password strength helper ───────────────────────────────────────────────
+function getStrength(password: string): {
+  bars: number;
+  label: string;
+  color: string;
+} {
+  const len = password.length;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasDigit = /\d/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
 
-        <View style={{ flexDirection: "row", gap: 8, marginBottom: 40 }}>
-          <View
-            style={{
-              flex: 1,
-              height: 4,
-              backgroundColor: "#00e5ff",
-              borderRadius: 2,
-            }}
-          />
-          <View
-            style={{
-              flex: 1,
-              height: 4,
-              backgroundColor: "#00e5ff",
-              borderRadius: 2,
-            }}
-          />
-          <View
-            style={{
-              flex: 1,
-              height: 4,
-              backgroundColor: "#00e5ff",
-              borderRadius: 2,
-            }}
-          />
-        </View>
+  const score =
+    [hasUpper, hasLower, hasDigit, hasSpecial].filter(Boolean).length +
+    (len >= 8 ? 1 : 0) +
+    (len >= 12 ? 1 : 0);
 
-        {/* Title Section */}
-        <Text
-          style={{
-            color: "white",
-            fontSize: 36,
-            fontWeight: "bold",
-            marginBottom: 8,
-          }}
-        >
-          Account Security
-        </Text>
-        <Text style={{ color: "#94a3b8", fontSize: 18, marginBottom: 35 }}>
-          Protect your stats and bookings.
-        </Text>
+  if (score < 2) return { bars: 1, label: "Weak", color: "#EF4444" };
+  if (score < 4) return { bars: 2, label: "Fair", color: "#F59E0B" };
+  if (score < 5) return { bars: 3, label: "Good", color: "#22C55E" };
+  return { bars: 4, label: "Strong", color: "#22C55E" };
+}
 
-        {/* Email Field */}
-        <Text
-          style={{
-            color: "white",
-            fontSize: 14,
-            fontWeight: "600",
-            marginBottom: 12,
-          }}
-        >
-          Email Address
-        </Text>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: "#131f20",
-            borderRadius: 30,
-            paddingHorizontal: 20,
-            height: 60,
-            marginBottom: 25,
-          }}
-        >
-          <Text style={{ marginRight: 10 }}>@</Text>
-          <TextInput
-            placeholder="baller@example.com"
-            placeholderTextColor="#4b5563"
-            style={{ flex: 1, color: "white", fontSize: 16 }}
-          />
-        </View>
+// ── Shared static input styles ────────────────────────────────────────────
+const sharedInputStyles = StyleSheet.create({
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    height: 52,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    padding: 0,
+    margin: 0,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+});
 
-        {/* Password Field */}
-        <Text
-          style={{
-            color: "white",
-            fontSize: 14,
-            fontWeight: "600",
-            marginBottom: 12,
-          }}
-        >
-          Create Password
-        </Text>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: "#131f20",
-            borderRadius: 30,
-            paddingHorizontal: 20,
-            height: 60,
-            marginBottom: 10,
-          }}
-        >
-          <Text style={{ marginRight: 10 }}>🔒</Text>
-          <TextInput
-            secureTextEntry
-            placeholder="••••••••"
-            placeholderTextColor="#4b5563"
-            style={{ flex: 1, color: "white", fontSize: 16 }}
-          />
-          <Text>👁️</Text>
-        </View>
+// ── Memoized password input ────────────────────────────────────────────────
+const PasswordField = memo(
+  ({
+    label,
+    value,
+    onChangeText,
+    colors,
+  }: {
+    label: string;
+    value: string;
+    onChangeText: (text: string) => void;
+    colors: any;
+  }) => {
+    const [focused, setFocused] = useState(false);
+    const [secure, setSecure] = useState(true);
 
-        {/* Strength Meter */}
-        <View style={{ alignItems: "flex-end", marginBottom: 30 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 4,
-              width: 120,
-              marginBottom: 4,
-            }}
-          >
-            <View
-              style={{
-                flex: 1,
-                height: 4,
-                backgroundColor: "#22c55e",
-                borderRadius: 2,
-              }}
-            />
-            <View
-              style={{
-                flex: 1,
-                height: 4,
-                backgroundColor: "#22c55e",
-                borderRadius: 2,
-              }}
-            />
-            <View
-              style={{
-                flex: 1,
-                height: 4,
-                backgroundColor: "#334155",
-                borderRadius: 2,
-              }}
-            />
-            <View
-              style={{
-                flex: 1,
-                height: 4,
-                backgroundColor: "#334155",
-                borderRadius: 2,
-              }}
-            />
-          </View>
-          <Text style={{ color: "#64748b", fontSize: 12 }}>
-            Medium Strength
-          </Text>
-        </View>
-
-        {/* Checkbox Row */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "flex-start",
-            paddingRight: 20,
-          }}
-        >
-          <View
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: 6,
-              borderWidth: 1,
-              borderColor: "#334155",
-              marginRight: 12,
-            }}
-          />
-          <Text style={{ color: "#94a3b8", fontSize: 14, lineHeight: 20 }}>
-            I agree to the{" "}
-            <Text style={{ color: "#00e5ff", textDecorationLine: "underline" }}>
-              Community Rules
-            </Text>{" "}
-            &{" "}
-            <Text style={{ color: "#00e5ff", textDecorationLine: "underline" }}>
-              Terms of Service
-            </Text>
-            .
-          </Text>
-        </View>
-      </View>
-
-      {/* Bottom Button */}
-      <View style={{ position: "absolute", bottom: 40, left: 20, right: 20 }}>
+    return (
+      <View
+        style={[
+          sharedInputStyles.inputWrapper,
+          {
+            backgroundColor: colors.surfaceHigh,
+            borderColor: focused ? colors.accentPrimary : colors.border,
+          },
+        ]}
+      >
+        <Ionicons
+          name="lock-closed-outline"
+          size={18}
+          color={focused ? colors.accentPrimary : colors.outline}
+          style={sharedInputStyles.inputIcon}
+        />
+        <RNTextInput
+          placeholder={label}
+          placeholderTextColor={colors.outline}
+          value={value}
+          onChangeText={onChangeText}
+          secureTextEntry={secure}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          style={[
+            sharedInputStyles.input,
+            { color: colors.themeColorTextPure },
+          ]}
+        />
         <TouchableOpacity
-          style={{
-            backgroundColor: "#00e5ff",
-            height: 60,
-            borderRadius: 30,
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
+          onPress={() => setSecure((s) => !s)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text
-            style={{
-              color: "black",
-              fontSize: 18,
-              fontWeight: "bold",
-              marginRight: 8,
-            }}
-          >
-            Start Playing
-          </Text>
-          <Text style={{ fontSize: 18 }}>🏀</Text>
+          <Ionicons
+            name={secure ? "eye-off-outline" : "eye-outline"}
+            size={18}
+            color={colors.outline}
+          />
         </TouchableOpacity>
       </View>
+    );
+  },
+);
+
+// ── Styles ─────────────────────────────────────────────────────────────────
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    flex: { flex: 1 },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 24,
+      paddingTop: 20,
+    },
+    headerSection: {
+      marginBottom: 36,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "800",
+      letterSpacing: -0.5,
+      color: Colors.onSurface,
+      marginBottom: 8,
+    },
+    subtitle: {
+      fontSize: 15,
+      color: Colors.outline,
+      lineHeight: 21,
+    },
+    formSection: {
+      gap: 14,
+    },
+
+    // ── Strength meter ──
+    strengthRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 4,
+    },
+    strengthBars: {
+      flexDirection: "row",
+      gap: 4,
+      width: 100,
+    },
+    strengthBar: {
+      flex: 1,
+      height: 4,
+      borderRadius: 2,
+    },
+    strengthLabel: {
+      fontSize: 11,
+      fontWeight: "600",
+    },
+
+    // ── Match row ──
+    matchRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 2,
+    },
+    matchText: {
+      fontSize: 12,
+      fontWeight: "600",
+      marginLeft: 4,
+    },
+
+    // ── Terms checkbox ──
+    termsRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 12,
+      marginTop: 8,
+    },
+    checkbox: {
+      width: 22,
+      height: 22,
+      borderRadius: 6,
+      borderWidth: 1.5,
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 1,
+    },
+    checkboxInner: {
+      width: 12,
+      height: 12,
+      borderRadius: 3,
+    },
+    termsText: {
+      fontSize: 13,
+      lineHeight: 20,
+      flex: 1,
+    },
+    termsLink: {
+      fontWeight: "700",
+      textDecorationLine: "underline",
+    },
+
+    // ── Bottom button ──
+    bottomSection: {
+      paddingHorizontal: 24,
+      paddingTop: 16,
+      paddingBottom: 8,
+    },
+    createBtn: {
+      height: 54,
+      borderRadius: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 8,
+      elevation: 1,
+      shadowColor: Colors.shadowColor,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    },
+    createBtnText: {
+      color: "#FFFFFF",
+      fontSize: 17,
+      fontWeight: "700",
+      letterSpacing: 0.5,
+    },
+  });
+
+// ── Component ──────────────────────────────────────────────────────────────
+const SignupStepThree = ({
+  setSteps,
+  formData,
+  setFormData,
+  onSubmit,
+}: SignupStepThreeProps) => {
+  const { colors: Colors } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
+
+  const password = formData.password ?? "";
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const strength = useMemo(() => getStrength(password), [password]);
+  const agreed = formData.userAgreeTerms?.agree_terms ?? false;
+
+  const passwordsMatch = password.length > 0 && password === confirmPassword;
+  const canSubmit =
+    password.length > 0 && passwordsMatch && agreed && strength.bars >= 2;
+
+  const toggleTerms = useCallback(() => {
+    setFormData((prev) => ({
+      ...prev,
+      userAgreeTerms: {
+        agree_terms: !prev.userAgreeTerms?.agree_terms,
+        agree_privacy: !prev.userAgreeTerms?.agree_privacy,
+      },
+    }));
+  }, [setFormData]);
+
+  return (
+    <SafeAreaView
+      style={[styles.flex, { backgroundColor: Colors.backgroundColor }]}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.flex}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* ── Header ── */}
+          <View style={styles.headerSection}>
+            <AppText style={styles.title}>Account Security</AppText>
+            <AppText style={styles.subtitle}>
+              Create a password to secure your account
+            </AppText>
+          </View>
+
+          {/* ── Form ── */}
+          <View style={styles.formSection}>
+            <PasswordField
+              label="Create password"
+              value={password}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, password: text }))
+              }
+              colors={Colors}
+            />
+
+            {/* Strength meter */}
+            {password.length > 0 && (
+              <View style={styles.strengthRow}>
+                <View style={styles.strengthBars}>
+                  {[1, 2, 3, 4].map((bar) => (
+                    <View
+                      key={bar}
+                      style={[
+                        styles.strengthBar,
+                        {
+                          backgroundColor:
+                            bar <= strength.bars
+                              ? strength.color
+                              : Colors.border,
+                        },
+                      ]}
+                    />
+                  ))}
+                </View>
+                <AppText
+                  style={[styles.strengthLabel, { color: strength.color }]}
+                >
+                  {strength.label}
+                </AppText>
+              </View>
+            )}
+
+            {/* Confirm password */}
+            <PasswordField
+              label="Confirm password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              colors={Colors}
+            />
+
+            {/* Match indicator */}
+            {confirmPassword.length > 0 && (
+              <View style={styles.matchRow}>
+                <Ionicons
+                  name={passwordsMatch ? "checkmark-circle" : "close-circle"}
+                  size={14}
+                  color={passwordsMatch ? "#22C55E" : "#EF4444"}
+                />
+                <AppText
+                  style={[
+                    styles.matchText,
+                    {
+                      color: passwordsMatch ? "#22C55E" : "#EF4444",
+                    },
+                  ]}
+                >
+                  {passwordsMatch
+                    ? "Passwords match"
+                    : "Passwords do not match"}
+                </AppText>
+              </View>
+            )}
+
+            {/* Terms checkbox */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.termsRow}
+              onPress={toggleTerms}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  {
+                    borderColor: agreed ? Colors.accentPrimary : Colors.border,
+                    backgroundColor: agreed
+                      ? Colors.accentPrimary
+                      : "transparent",
+                  },
+                ]}
+              >
+                {agreed && (
+                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                )}
+              </View>
+              <AppText style={[styles.termsText, { color: Colors.outline }]}>
+                I agree to the{" "}
+                <AppText
+                  style={[styles.termsLink, { color: Colors.accentPrimary }]}
+                >
+                  Community Rules
+                </AppText>{" "}
+                &{" "}
+                <AppText
+                  style={[styles.termsLink, { color: Colors.accentPrimary }]}
+                >
+                  Terms of Service
+                </AppText>
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+
+        {/* ── Create account button ── */}
+        <View style={styles.bottomSection}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={onSubmit}
+            style={[
+              styles.createBtn,
+              {
+                backgroundColor: canSubmit
+                  ? Colors.accentPrimary
+                  : Colors.outline,
+              },
+            ]}
+          >
+            <AppText style={styles.createBtnText}>Create account</AppText>
+            <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-export default SignupThree;
+export default SignupStepThree;
