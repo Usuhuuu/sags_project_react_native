@@ -2,6 +2,8 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import RNFS from "react-native-fs";
 
 const apiUrl =
   Constants.expoConfig?.extra?.apiUrl ??
@@ -9,7 +11,7 @@ const apiUrl =
 
 const tokenWithRetry = async (
   maxRetry: number = 3,
-  maxInterval: number = 300
+  maxInterval: number = 300,
 ) => {
   let token = null;
   let retry = 0;
@@ -56,6 +58,12 @@ export const axiosInstanceRegular = axios.create({
 axiosInstance.interceptors.request.use(
   async (config) => {
     const token = await tokenWithRetry();
+
+    const hallVersion = (await AsyncStorage.getItem("hall_version")) ?? "0";
+    if (hallVersion) {
+      config.headers["x-hall-version"] = hallVersion;
+    }
+
     if (!token) {
       Notifier.showNotification({
         title: "Oops",
@@ -63,28 +71,19 @@ axiosInstance.interceptors.request.use(
         Component: NotifierComponents.Alert,
         componentProps: { alertType: "warn" },
       });
+      config.headers.Authorization = null;
+
       throw {
         message: "could't find Token",
         errors: ["Please login to process", "Token is required"],
       };
     }
-    if (token) {
-      const { accessToken } = JSON.parse(token);
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    } else {
-      config.headers.Authorization = null;
-      Notifier.showNotification({
-        title: "Oops",
-        description: "Please login in to process",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "warn" },
-      });
-      throw new Error("could't find Token");
-    }
+    const { accessToken } = JSON.parse(token);
+    config.headers.Authorization = `Bearer ${accessToken}`;
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 axiosInstance.interceptors.response.use(
@@ -99,16 +98,15 @@ axiosInstance.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       const token = await SecureStore.getItemAsync("Tokens");
-      const notificationToken = await SecureStore.getItemAsync(
-        "notificationToken"
-      );
+      const notificationToken =
+        await SecureStore.getItemAsync("notificationToken");
       if (token) {
         const { refreshToken } = JSON.parse(token);
         try {
           const newAccessToken = await axiosInstanceRegular.post(
             "/auth/refresh",
             { notificationToken },
-            { headers: { Authorization: `Bearer ${refreshToken}` } }
+            { headers: { Authorization: `Bearer ${refreshToken}` } },
           );
           switch (true) {
             case newAccessToken.status === 400 &&
@@ -129,7 +127,7 @@ axiosInstance.interceptors.response.use(
                 JSON.stringify({
                   accessToken: newAccessToken.data.newAccessToken,
                   refreshToken,
-                })
+                }),
               );
               originalRequest.headers.Authorization = `Bearer ${newAccessToken.data.newAccessToken}`;
               return axiosInstance(originalRequest);
@@ -142,9 +140,22 @@ axiosInstance.interceptors.response.use(
         }
       }
     }
-
+    if (
+      error.response.status === 409 &&
+      error.response?.data?.code === "OUTDATED_VERSION" &&
+      !originalRequest._versionRetry
+    ) {
+      originalRequest._versionRetry = true;
+      const hallResponse = await axiosInstanceRegular.get("/api/halls");
+      originalRequest.headers["x-hall-version"] = hallResponse.data.version;
+      await AsyncStorage.setItem(
+        "hall_version",
+        String(hallResponse.data.version),
+      );
+      await AsyncStorage.setItem("hall_infos", hallResponse.data.hallData);
+    }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

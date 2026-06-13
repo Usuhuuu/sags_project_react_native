@@ -1,11 +1,9 @@
 import {
   ScrollView,
   View,
-  Text,
   StyleSheet,
   Image,
   TouchableOpacity,
-  Dimensions,
 } from "react-native";
 import React from "react";
 import { Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
@@ -18,17 +16,40 @@ import { format } from "date-fns";
 import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import { useWindowDimensions } from "react-native";
 
 interface Step_two_pc_props {
   listing: EsportBookingData | undefined;
   step?: number;
   setStep?: React.Dispatch<React.SetStateAction<number>>;
 }
-const Step_two_pc = ({ listing, step, setStep }: Step_two_pc_props) => {
-  const { width } = Dimensions.get("window");
+
+const SummaryRow = ({
+  label,
+  value,
+  colors,
+}: {
+  label: string;
+  value: string;
+  colors: any;
+}) => (
+  <View style={[s.summaryRow, { borderBottomColor: colors.borderSubtle }]}>
+    <AppText style={[s.summaryLabel, { color: colors.onSurfaceVariant }]}>
+      {label}
+    </AppText>
+    <AppText style={[s.summaryValue, { color: colors.onSurface }]}>
+      {value}
+    </AppText>
+  </View>
+);
+
+const Step_two_pc = ({ listing }: Step_two_pc_props) => {
+  const { width } = useWindowDimensions();
   const { colors } = useTheme();
   const bookingDetails = useBookingStore((state) => state.esportBookingDetails);
+
   if (!bookingDetails) return <OwnActivaterIndicator />;
+
   const renderItems = [
     {
       key: "date",
@@ -36,46 +57,52 @@ const Step_two_pc = ({ listing, step, setStep }: Step_two_pc_props) => {
       value: bookingDetails.bookingDate
         ? format(new Date(bookingDetails.bookingDate), "EEEE, MMM d, yyyy")
         : undefined,
-      icon: <Entypo name="calendar" size={24} color="white" />,
+      icon: <Entypo name="calendar" size={22} color={colors.accentPrimary} />,
       isLast: false,
     },
     {
       key: "tier",
       label: "Zone Selection",
       value: bookingDetails.tier,
-      icon: <MaterialIcons name="monitor" size={24} color="white" />,
+      icon: (
+        <MaterialIcons name="monitor" size={22} color={colors.accentPrimary} />
+      ),
       isLast: false,
     },
     {
       key: "hours",
       label: "Time Package",
       value: `${bookingDetails.hours} Hours Package`,
-      icon: <Feather name="clock" size={24} color="white" />,
+      icon: <Feather name="clock" size={22} color={colors.accentPrimary} />,
       isLast: false,
     },
     {
       key: "startTime",
       label: "Arrival Time",
       date: bookingDetails.startTime as Date,
-      icon: <Feather name="watch" size={24} color="white" />,
+      icon: <Feather name="watch" size={22} color={colors.accentPrimary} />,
       isLast: true,
     },
   ];
+
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={s.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Venue Card */}
-
         <View
           style={[
-            styles.venueCard,
+            s.venueCard,
             {
-              backgroundColor: colors.containerColor,
+              backgroundColor: colors.surface,
               shadowColor: colors.shadowColor,
+              borderColor: colors.border,
             },
           ]}
         >
-          <View style={styles.imageContainer}>
+          <View style={s.imageContainer}>
             <Carousel
               data={
                 listing?.imageUrls ?? [
@@ -83,103 +110,134 @@ const Step_two_pc = ({ listing, step, setStep }: Step_two_pc_props) => {
                 ]
               }
               renderItem={({ item }: { item: string }) => (
-                <Image source={{ uri: item }} style={styles.venueImage} />
+                <Image source={{ uri: item }} style={s.venueImage} />
               )}
-              width={width - 20}
+              width={width - 32}
               height={180}
             />
-            <View style={styles.badge}>
-              <AppText style={styles.badgeText}>Top Rated</AppText>
+            <View style={[s.badge, { backgroundColor: colors.accentPrimary }]}>
+              <AppText style={s.badgeText}>Top Rated</AppText>
             </View>
           </View>
 
-          <View style={styles.venueInfo}>
-            <View>
-              <AppText style={styles.venueName}>{listing?.name}</AppText>
-              <TouchableOpacity
-                onPress={() => {
-                  console.log("Open map");
-                }}
-              >
-                <AppText style={styles.venueLocation}>
-                  📍 {listing?.location.smart_location}
-                </AppText>
-              </TouchableOpacity>
-            </View>
+          <View style={s.venueInfo}>
+            <AppText style={[s.venueName, { color: colors.onSurface }]}>
+              {listing?.name}
+            </AppText>
+            <TouchableOpacity onPress={() => console.log("Open map")}>
+              <AppText style={[s.venueLocation, { color: colors.outline }]}>
+                📍 {listing?.location.smart_location}
+              </AppText>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Booking Details */}
-        <Text style={styles.sectionTitle}>BOOKING DETAILS</Text>
+        <AppText style={[s.sectionTitle, { color: colors.outline }]}>
+          BOOKING DETAILS
+        </AppText>
         <View
           style={[
-            styles.detailsCard,
+            s.detailsCard,
             {
-              backgroundColor: colors.containerColor,
+              backgroundColor: colors.surface,
               shadowColor: colors.shadowColor,
+              borderColor: colors.border,
             },
           ]}
         >
-          {Array.isArray(renderItems) &&
-            renderItems.map((item, index) => {
-              const tierUpperCase =
-                item.key === "tier"
-                  ? item.value
-                      ?.toString()
-                      .replace(/^\w/, (char) => char.toUpperCase())
-                  : item.value;
-              return (
+          {renderItems.map((item, index) => {
+            const tierUpperCase =
+              item.key === "tier"
+                ? item.value
+                    ?.toString()
+                    .replace(/^\w/, (char) => char.toUpperCase())
+                : item.value;
+            return (
+              <View
+                style={[
+                  s.detailItem,
+                  !item.isLast && {
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.borderSubtle,
+                  },
+                ]}
+                key={`${item.key}-${index}`}
+              >
                 <View
-                  style={[styles.detailItem, !item.isLast && styles.itemBorder]}
-                  key={`${item.key}-${index}`}
+                  style={[
+                    s.iconCircle,
+                    { backgroundColor: colors.accentPrimaryGlow },
+                  ]}
                 >
-                  <View style={styles.iconCircle}>{item.icon}</View>
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <AppText style={styles.detailLabel}>{item.label}</AppText>
-                    {item.value ? (
-                      <AppText style={styles.detailValue}>
-                        {tierUpperCase}
-                      </AppText>
-                    ) : item?.date ? (
-                      <AppText style={styles.detailValue}>
-                        {format(new Date(item.date), "HH:mm")}
-                      </AppText>
-                    ) : (
-                      <AppText>--:-- --</AppText>
-                    )}
-                  </View>
-                  <TouchableOpacity>
-                    <AppText style={styles.editText}>Edit</AppText>
-                  </TouchableOpacity>
+                  {item.icon}
                 </View>
-              );
-            })}
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <AppText style={[s.detailLabel, { color: colors.outline }]}>
+                    {item.label}
+                  </AppText>
+                  {item.value ? (
+                    <AppText
+                      style={[s.detailValue, { color: colors.onSurface }]}
+                    >
+                      {tierUpperCase}
+                    </AppText>
+                  ) : item?.date ? (
+                    <AppText
+                      style={[s.detailValue, { color: colors.onSurface }]}
+                    >
+                      {format(new Date(item.date), "HH:mm")}
+                    </AppText>
+                  ) : (
+                    <AppText style={{ color: colors.outline }}>
+                      --:-- --
+                    </AppText>
+                  )}
+                </View>
+                <TouchableOpacity>
+                  <AppText
+                    style={[s.editText, { color: colors.accentPrimary }]}
+                  >
+                    Edit
+                  </AppText>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
         </View>
 
         {/* Payment Summary */}
-        <AppText style={styles.sectionTitle}>PAYMENT SUMMARY</AppText>
+        <AppText style={[s.sectionTitle, { color: colors.outline }]}>
+          PAYMENT SUMMARY
+        </AppText>
         <View
           style={[
-            styles.detailsCard,
+            s.detailsCard,
             {
-              backgroundColor: colors.containerColor,
+              backgroundColor: colors.surface,
               shadowColor: colors.shadowColor,
+              borderColor: colors.border,
             },
           ]}
         >
           <SummaryRow
             label={`${listing?.tier} zone rate (3 Hours)`}
             value="₩3,000"
+            colors={colors}
           />
-          <SummaryRow label="Service Fee" value="₩200" />
-          <View style={styles.divider} />
-          <View style={styles.totalRow}>
-            <AppText style={styles.totalLabel}>Total Amount</AppText>
-            <AppText style={styles.totalValue}>₩3,200</AppText>
+          <SummaryRow label="Service Fee" value="₩200" colors={colors} />
+          <View style={[s.divider, { backgroundColor: colors.borderSubtle }]} />
+          <View style={s.totalRow}>
+            <AppText style={[s.totalLabel, { color: colors.onSurface }]}>
+              Total Amount
+            </AppText>
+            <AppText style={[s.totalValue, { color: colors.accentPrimary }]}>
+              ₩3,200
+            </AppText>
           </View>
         </View>
 
-        <AppText style={styles.footerTerms}>
+        <AppText style={[s.footerTerms, { color: colors.outline }]}>
           By clicking "Confirm & Pay", you agree to our booking terms and house
           rules.
         </AppText>
@@ -188,34 +246,17 @@ const Step_two_pc = ({ listing, step, setStep }: Step_two_pc_props) => {
   );
 };
 
-type SummaryRowProps = {
-  label: string;
-  value: string;
-};
-
-const SummaryRow: React.FC<SummaryRowProps> = ({ label, value }) => (
-  <View style={styles.summaryRow}>
-    <AppText style={styles.summaryLabel}>{label}</AppText>
-    <AppText style={styles.summaryValue}>{value}</AppText>
-  </View>
-);
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#121826" },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-  },
-  headerTitle: { color: "white", fontSize: 18, fontWeight: "bold" },
-  scrollContent: { padding: 16 },
-
+const s = StyleSheet.create({
+  scrollContent: { padding: 16, paddingBottom: 40 },
   venueCard: {
     borderRadius: 16,
     marginBottom: 24,
-    shadowOpacity: 0.2,
+    borderWidth: 1,
+    shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 3,
+    overflow: "hidden",
   },
   imageContainer: { height: 180, position: "relative" },
   venueImage: { width: "100%", height: "100%" },
@@ -223,114 +264,72 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 12,
     left: 12,
-    backgroundColor: "#3B82F6",
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: 8,
   },
-  badgeText: { fontSize: 12, fontWeight: "bold" },
+  badgeText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
   venueInfo: {
     padding: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    gap: 4,
   },
-  venueName: { fontSize: 20, fontWeight: "bold" },
-  venueLocation: { marginTop: 4 },
-  gameIconContainer: {
-    backgroundColor: "#2D3748",
-    padding: 8,
-    borderRadius: 12,
-  },
-
+  venueName: { fontSize: 20, fontWeight: "700" },
+  venueLocation: { marginTop: 2, fontSize: 13 },
   sectionTitle: {
-    color: "#94A3B8",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 12,
+    fontSize: 12,
+    fontWeight: "800",
     letterSpacing: 1,
+    marginBottom: 12,
   },
   detailsCard: {
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
-    shadowOpacity: 0.4,
+    borderWidth: 1,
+    shadowOpacity: 0.06,
     shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2,
   },
-
   detailItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
   },
-  itemBorder: { borderBottomWidth: 1, borderBottomColor: "#2D3748" },
   iconCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#2D3748",
     justifyContent: "center",
     alignItems: "center",
   },
-  detailLabel: { color: "#94A3B8", fontSize: 12 },
-  detailValue: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginTop: 2,
-  },
-  editText: { color: "#3B82F6", fontWeight: "bold" },
-
+  detailLabel: { fontSize: 12, marginBottom: 2 },
+  detailValue: { fontSize: 16, fontWeight: "600" },
+  editText: { fontSize: 13, fontWeight: "700" },
   summaryRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
   },
-  summaryLabel: { color: "#94A3B8", fontSize: 15 },
+  summaryLabel: { fontSize: 15 },
   summaryValue: { fontSize: 15, fontWeight: "600" },
-  divider: { height: 1, backgroundColor: "#2D3748", marginVertical: 12 },
+  divider: { height: 1, marginVertical: 8 },
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    paddingTop: 4,
   },
-  totalLabel: { fontSize: 18, fontWeight: "bold" },
-  totalValue: { color: "#3B82F6", fontSize: 20, fontWeight: "bold" },
-
+  totalLabel: { fontSize: 18, fontWeight: "700" },
+  totalValue: { fontSize: 20, fontWeight: "800" },
   footerTerms: {
-    color: "#64748B",
     textAlign: "center",
     fontSize: 12,
+    lineHeight: 18,
     paddingHorizontal: 20,
     marginBottom: 100,
-  },
-
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    backgroundColor: "#1E2632",
-    padding: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#2D3748",
-  },
-  bottomLabel: { color: "#94A3B8", fontSize: 12 },
-  bottomPrice: { color: "white", fontSize: 20, fontWeight: "bold" },
-  payButton: {
-    backgroundColor: "#1D88FE",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  payButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-    marginRight: 8,
   },
 });
 

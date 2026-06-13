@@ -13,7 +13,6 @@ import React, { useCallback, useState } from "react";
 import {
   ScrollView,
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   Image,
@@ -26,11 +25,12 @@ const PC_BANG_BLUE = "#00d2ff";
 const PC_BANG_PURPLE = "#9d50bb";
 
 type FieldType = {
-  tier: String;
+  tier: string;
   hours: number | string;
   startTime: Date | string;
   bookingDate: Date;
 };
+
 const Step_one_pc = ({
   initTime,
   setInitTime,
@@ -39,6 +39,7 @@ const Step_one_pc = ({
   setInitTime: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const { theme, colors } = useTheme();
+
   const tiers = [
     {
       id: "regular",
@@ -62,7 +63,9 @@ const Step_one_pc = ({
       backgroundImage: require("@/assets/images/computerImage/stage.png"),
     },
   ];
+
   const [selectedData, setSelectedDate] = useState(new Date());
+
   const packages = [
     { label: "1 Hour", value: 1, price: 1200 },
     { label: "3 Hours", value: 3, price: 3000 },
@@ -92,7 +95,6 @@ const Step_one_pc = ({
       updateField: "tier" | "hours" | "startTime" | "bookingDate";
       value: FieldType[typeof updateField];
     }) => {
-      console.log(updateField, value);
       setBookingDetails({ [updateField]: value });
     },
     [setBookingDetails],
@@ -100,151 +102,121 @@ const Step_one_pc = ({
 
   if (bookingDetails === null) {
     return (
-      <View>
-        <ActivityIndicator size={"large"} color={colors.primary} />
+      <View style={s.loading}>
+        <ActivityIndicator size="large" color={colors.accentPrimary} />
       </View>
     );
   }
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <AppText style={styles.title}>Gamer's Haven</AppText>
-        <AppText style={styles.subtitle}>
+    <View style={[s.root, { backgroundColor: colors.backgroundColor }]}>
+      <ScrollView
+        contentContainerStyle={s.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <AppText style={[s.title, { color: colors.onSurface }]}>
+          Gamer's Haven
+        </AppText>
+        <AppText style={[s.subtitle, { color: colors.outline }]}>
           Select your gaming environment
         </AppText>
 
         {/* TIER SELECTION */}
-        <View
-          style={{
-            backgroundColor: colors.backgroundColor,
-            marginBottom: 30,
-          }}
-        >
-          {tiers.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() =>
-                updateBookingDetails({
-                  updateField: "tier",
-                  value: item.id,
-                })
-              }
-              style={[
-                styles.tierCard,
-                {
-                  backgroundColor: colors.containerColor,
-                  borderColor:
-                    item.id === bookingDetails.tier
-                      ? colors.primary
-                      : colors.dark,
-                  borderWidth: item.id === bookingDetails.tier ? 2 : undefined,
-                  borderRadius: 12,
-                  shadowColor:
-                    item.id === bookingDetails.tier ? colors.primary : "#000",
-                },
-              ]}
-            >
-              {"component" in item ? item.icon : null}
-
-              <View
-                style={{
-                  overflow: "hidden",
-                  borderRadius: 10,
-                }}
+        <View style={s.tierSection}>
+          {tiers.map((item) => {
+            const active = item.id === bookingDetails.tier;
+            return (
+              <TouchableOpacity
+                key={item.id}
+                activeOpacity={0.8}
+                onPress={() =>
+                  updateBookingDetails({ updateField: "tier", value: item.id })
+                }
+                style={[
+                  s.tierCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: active ? colors.accentPrimary : colors.border,
+                    borderWidth: active ? 2 : 1,
+                    shadowColor: active
+                      ? colors.accentPrimary
+                      : colors.shadowColor,
+                  },
+                ]}
               >
                 {item.id === "stage" ? (
-                  <View
-                    style={{
-                      flex: 1,
-                      flexDirection: "row",
-                      backgroundColor: "#152A1E",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Image
-                      source={item.backgroundImage}
-                      style={{
-                        height: 100,
-                        width: "50%",
-                        resizeMode: "cover",
-                      }}
-                    />
-                    <View>
-                      <Text style={styles.tierLabel}>{item.label}</Text>
-                      <Text style={styles.tierDesc}>{item.desc}</Text>
+                  <View style={[s.stageInner, { backgroundColor: "#0D1A14" }]}>
+                    <Image source={item.backgroundImage} style={s.stageImage} />
+                    <View style={s.tierTextCol}>
+                      <AppText style={s.tierLabel}>{item.label}</AppText>
+                      <AppText style={s.tierDesc}>{item.desc}</AppText>
                     </View>
                   </View>
                 ) : (
                   <ImageBackground
                     source={item.backgroundImage}
-                    style={{ padding: 30 }}
+                    style={s.tierBg}
                     resizeMode={item.id === "vip" ? "stretch" : "cover"}
                   >
-                    <Text style={styles.tierLabel}>{item.label}</Text>
-                    <Text style={styles.tierDesc}>{item.desc}</Text>
+                    <AppText style={s.tierLabel}>{item.label}</AppText>
+                    <AppText style={s.tierDesc}>{item.desc}</AppText>
                   </ImageBackground>
                 )}
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
-        <View style={[styles.section, { gap: 15 }]}>
-          <AppText style={styles.sectionTitle}>When you want to play</AppText>
+        {/* DATE & TIME */}
+        <View style={s.section}>
+          <AppText style={[s.sectionTitle, { color: colors.onSurface }]}>
+            When you want to play
+          </AppText>
           <View style={{ gap: 10 }}>
-            <AppText style={{ color: colors.themeColorTextSecondary }}>
+            <AppText style={[s.fieldLabel, { color: colors.outline }]}>
               SELECT DATE
             </AppText>
             <WeekCalendarWithoutMonth
               selectedDay={selectedData}
               setSelectedDay={(date) => {
-                console.log("selected date:", date);
                 updateBookingDetails({
                   updateField: "bookingDate",
                   value: date,
                 });
                 setSelectedDate(date);
               }}
-              containerStyle={{
-                flex: 1,
-                width: "100%",
-                height: "100%",
-                paddingBottom: 10,
-              }}
+              containerStyle={s.calendarContainer}
               selectedDayTextStyle={{ color: colors.white }}
               selectedDayNumberStyle={{ color: colors.white }}
-              selectedContainerStyle={{ backgroundColor: colors.primary }}
+              selectedContainerStyle={{ backgroundColor: colors.accentPrimary }}
               textWeekStyle={{
-                color: colors.darkGrey,
+                color: colors.outline,
                 fontSize: 12,
                 fontWeight: "600",
               }}
               textDayStyle={{
-                color:
-                  theme === "dark" ? colors.themeColorTextPure : colors.dark,
+                color: theme === "dark" ? colors.onSurface : colors.dark,
                 fontWeight: "800",
                 fontSize: 17,
               }}
               dayBoxStyle={{
                 borderRadius: 15,
                 backgroundColor:
-                  theme === "dark" ? colors.containerColor : colors.white,
+                  theme === "dark" ? colors.surfaceHigh : colors.white,
               }}
               monthTextStyle={{
-                color: colors.darkGrey,
+                color: colors.outline,
                 fontSize: 15,
                 fontWeight: "500",
               }}
             />
           </View>
           <View style={{ gap: 10 }}>
-            <AppText>START TIME</AppText>
+            <AppText style={[s.fieldLabel, { color: colors.outline }]}>
+              START TIME
+            </AppText>
             <View
-              style={{
-                shadowColor: colors.shadowColor,
-                shadowOpacity: 0.1,
-                shadowOffset: { width: 2, height: 5 },
-              }}
+              style={[s.timePickerShadow, { shadowColor: colors.shadowColor }]}
             >
               <TimePicker15Min
                 onSelect={updateBookingDetails}
@@ -256,214 +228,203 @@ const Step_one_pc = ({
           </View>
         </View>
 
-        {/* TIME SELECTION */}
-        <AppText style={styles.sectionTitle}>Choose Time Package</AppText>
-        <View
-          style={{
-            flexDirection: "row",
-            width: "100%",
-            gap: 10,
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+        {/* PACKAGES */}
+        <AppText style={[s.sectionTitle, { color: colors.onSurface }]}>
+          Choose Time Package
+        </AppText>
+        <View style={s.pkgGrid}>
           {packages.map((pkg, index) => {
             const isSelected = bookingDetails.hours === pkg.value;
-            const popular = pkg.label === "3 Hours";
             return (
               <TouchableOpacity
-                onPress={() => {
+                key={index}
+                activeOpacity={0.8}
+                onPress={() =>
                   updateBookingDetails({
                     updateField: "hours",
                     value: pkg.value,
-                  });
-                }}
-                style={{
-                  marginBottom: 15,
-                  alignItems: "center",
-                  justifyContent: pkg.isSpecial ? "flex-start" : "center",
-                  width: pkg.isSpecial ? "100%" : "30%",
-                  flexDirection: pkg.isSpecial ? "row" : "column",
-                  backgroundColor: pkg.isSpecial
-                    ? "transparent"
-                    : colors.containerColor,
-                  borderRadius: 12,
-                  borderWidth:
-                    pkg.isSpecial && isSelected ? 2 : isSelected ? 2 : 0,
-                  borderColor:
-                    pkg.isSpecial && isSelected
-                      ? PC_BANG_PURPLE
-                      : !pkg.isSpecial && isSelected
-                        ? colors.primary
-                        : colors.containerColor,
-                  shadowColor:
-                    pkg.isSpecial && isSelected
-                      ? PC_BANG_PURPLE
-                      : !pkg.isSpecial && isSelected
-                        ? colors.primary
-                        : "#000",
-                  shadowOpacity: 0.1,
-                  shadowOffset: { width: 2, height: 5 },
-                  shadowRadius: 5,
-                }}
-                key={index}
+                  })
+                }
+                style={[
+                  pkg.isSpecial ? s.pkgFull : s.pkgThird,
+                  {
+                    backgroundColor: pkg.isSpecial
+                      ? "transparent"
+                      : colors.surface,
+                    borderColor: isSelected
+                      ? pkg.isSpecial
+                        ? PC_BANG_PURPLE
+                        : colors.accentPrimary
+                      : colors.border,
+                    borderWidth: isSelected ? 2 : 1,
+                    shadowColor: isSelected
+                      ? pkg.isSpecial
+                        ? PC_BANG_PURPLE
+                        : colors.accentPrimary
+                      : colors.shadowColor,
+                  },
+                ]}
               >
                 {pkg.isSpecial ? (
                   <LinearGradient
                     colors={["#0C0C1E", "#2B1E4E"]}
                     start={{ x: 0.7, y: 0.1 }}
                     end={{ x: 0, y: 0 }}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      flex: 1,
-                      padding: 15,
-                      borderRadius: 10,
-                    }}
+                    style={s.nightGradient}
                   >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 10,
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 40,
-                          height: 40,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          borderRadius: 25,
-                          backgroundColor: "#3b296cff",
-                        }}
-                      >
-                        <Ionicons
-                          name="moon-sharp"
-                          size={30}
-                          color={"#C8B6FF"}
-                        />
+                    <View style={s.nightLeft}>
+                      <View style={s.nightIconBox}>
+                        <Ionicons name="moon-sharp" size={26} color="#C8B6FF" />
                       </View>
                       <View>
-                        <AppText
-                          style={{ color: colors.themeColorTextSecondary }}
-                        >
+                        <AppText style={{ color: colors.onSurface }}>
                           {pkg.label}
                         </AppText>
                         <AppText
-                          style={{
-                            fontSize: 11,
-                            color: colors.darkGrey,
-                          }}
+                          style={[s.nightTime, { color: colors.outline }]}
                         >
                           {pkg.night_time}
                         </AppText>
                       </View>
                     </View>
-                    <AppText style={{ color: colors.white }}>
-                      {pkg.price}
+                    <AppText style={{ color: colors.white, fontWeight: "700" }}>
+                      ₩{pkg.price.toLocaleString()}
                     </AppText>
                   </LinearGradient>
                 ) : (
-                  <View
-                    style={{
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: 10,
-                    }}
-                  >
-                    {popular && (
+                  <View style={s.pkgInner}>
+                    {pkg.label === "3 Hours" && (
                       <View
-                        style={{
-                          position: "absolute",
-                          top: -8,
-                          backgroundColor: colors.primary,
-                          paddingHorizontal: 8,
-                          borderRadius: 12,
-                        }}
+                        style={[
+                          s.popularBadge,
+                          { backgroundColor: colors.accentPrimary },
+                        ]}
                       >
-                        <AppText style={{ color: colors.white }}>
-                          Popular
-                        </AppText>
+                        <AppText style={s.popularText}>Popular</AppText>
                       </View>
                     )}
-                    <AppText style={{ color: colors.themeColorTextSecondary }}>
+                    <AppText
+                      style={[s.pkgLabel, { color: colors.onSurfaceVariant }]}
+                    >
                       {pkg.label}
                     </AppText>
-                    <AppText>{pkg.price}</AppText>
+                    <AppText style={[s.pkgPrice, { color: colors.onSurface }]}>
+                      ₩{pkg.price.toLocaleString()}
+                    </AppText>
                   </View>
                 )}
               </TouchableOpacity>
             );
           })}
         </View>
-
-        {/* FOOTER / BOOKING */}
       </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f0f15" },
-  content: { padding: 24 },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 4 },
-  subtitle: { fontSize: 14, color: "#888", marginBottom: 30 },
-  section: { marginBottom: 30 },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: "600",
-    marginBottom: 15,
+const s = StyleSheet.create({
+  root: { flex: 1 },
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+  content: { padding: 24, paddingBottom: 40 },
+  title: {
+    fontSize: 28,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    marginBottom: 4,
   },
+  subtitle: { fontSize: 14, marginBottom: 28 },
+  tierSection: { marginBottom: 28 },
   tierCard: {
     marginBottom: 12,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.6,
-    shadowOffset: { width: 2, height: 5 },
+    borderRadius: 16,
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 4,
+    overflow: "hidden",
   },
-  activeTier: { backgroundColor: "#1a2433" },
-  tierIcon: { fontSize: 24, marginRight: 15 },
-  tierLabel: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  tierDesc: { color: "#888", fontSize: 12 },
-  packageGrid: {
+  tierBg: { padding: 24, minHeight: 100, justifyContent: "flex-end" },
+  stageInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+  stageImage: { height: 100, width: "50%", resizeMode: "cover" },
+  tierTextCol: { flex: 1, paddingHorizontal: 14, gap: 2 },
+  tierLabel: { color: "#FFFFFF", fontSize: 18, fontWeight: "700" },
+  tierDesc: { color: "#CCCCCC", fontSize: 12 },
+  section: { marginBottom: 28, gap: 16 },
+  sectionTitle: { fontSize: 20, fontWeight: "700", marginBottom: 4 },
+  fieldLabel: { fontSize: 12, fontWeight: "700", letterSpacing: 0.8 },
+  calendarContainer: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+    paddingBottom: 10,
+  },
+  timePickerShadow: {
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  pkgGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    gap: 10,
     justifyContent: "space-between",
   },
-  packageBtn: {
-    width: "48%",
-    padding: 16,
-    borderRadius: 10,
-    marginBottom: 12,
-    alignItems: "center",
-    borderColor: "#333",
+  pkgThird: {
+    width: "30%",
+    borderRadius: 14,
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2,
+    overflow: "hidden",
   },
-  activePackage: { backgroundColor: PC_BANG_BLUE, borderColor: PC_BANG_BLUE },
-  specialBtn: { borderColor: PC_BANG_PURPLE, borderStyle: "dashed" },
-  packageLabel: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  packagePrice: { color: "#888", fontSize: 12, marginTop: 4 },
-  activeText: { color: "#000" },
-  footer: {
-    marginTop: 20,
-    padding: 20,
-    backgroundColor: "#1a1a24",
-    borderRadius: 10,
+  pkgFull: {
+    width: "100%",
+    borderRadius: 14,
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2,
+    overflow: "hidden",
+  },
+  pkgInner: {
+    alignItems: "center",
+    paddingVertical: 18,
+    paddingHorizontal: 8,
+    position: "relative",
+  },
+  popularBadge: {
+    position: "absolute",
+    top: -8,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  popularText: { color: "#FFFFFF", fontSize: 10, fontWeight: "800" },
+  pkgLabel: { fontSize: 13, fontWeight: "600", marginBottom: 4 },
+  pkgPrice: { fontSize: 18, fontWeight: "800" },
+  nightGradient: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
+    padding: 16,
+    borderRadius: 12,
+  },
+  nightLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  nightIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#3b296c",
+    justifyContent: "center",
     alignItems: "center",
   },
-  footerLabel: { fontSize: 12 },
-  totalText: { fontSize: 22, fontWeight: "bold" },
-  bookBtn: {
-    backgroundColor: PC_BANG_BLUE,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
-  },
-  bookBtnText: { fontWeight: "bold", fontSize: 16 },
+  nightTime: { fontSize: 11, marginTop: 1 },
 });
 
 export default Step_one_pc;

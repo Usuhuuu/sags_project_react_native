@@ -7,7 +7,6 @@ import {
 } from "react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/src/context/authContext";
-import { HashedSportData } from "@/utils/sport_hall_hash";
 import Order_Separator from "@/src/utils/book/order_separator";
 import {
   Booking_Block_Type,
@@ -29,6 +28,7 @@ import dayjs from "dayjs";
 import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { useIsFocused } from "@react-navigation/native";
+import { useHallInfo } from "@/src/context/hallInfoContext";
 
 const OrderScreen = () => {
   const { colors: Colors, theme } = useTheme();
@@ -58,6 +58,7 @@ const OrderScreen = () => {
   const [initDate, setInitDate] = useState(dayjs().toDate());
   const [endDateValue, setEndDateValue] = useState<string | null>(null);
 
+  const { getSpecificHall } = useHallInfo();
   const timezone = encodeURIComponent(
     Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
@@ -125,7 +126,7 @@ const OrderScreen = () => {
       for (const item of data.bookingData) {
         if (!seen.has(item._id)) {
           seen.add(item._id);
-          unique.push({ ...item, zaal_info: HashedSportData[item.zaal_ID] });
+          unique.push({ ...item, zaal_info: getSpecificHall(item.zaal_ID) });
         }
       }
       if (unique.length === 0) return;

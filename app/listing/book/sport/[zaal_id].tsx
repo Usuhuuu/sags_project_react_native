@@ -24,6 +24,7 @@ import { saveToken } from "../../../../src/utils/book/session";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 import { bookingNotificationSchedule } from "@/src/context/store/notificationStore";
 import { queryClient } from "@/hooks/queryClient";
+import { useHallInfo } from "@/src/context/hallInfoContext";
 
 export type ReservationBlock = {
   start_time: string;
@@ -111,11 +112,13 @@ const TransactionPage = () => {
   const [reserved_times, setReserved_times] = useState<
     ReservationBlock[] | undefined
   >(undefined);
+  const { getSpecificHall } = useHallInfo();
 
   const bookingDetails = useBookingStore(
     (state) => state.sportBookingDetails,
   ) as SportBookingData;
 
+  console.log(bookingDetails);
   useEffect(() => {
     bookingDetails?.selectedTimeSlots?.includes("WHOLE_DAY")
       ? setWholeDay(true)

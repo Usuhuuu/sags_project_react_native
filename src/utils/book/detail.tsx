@@ -314,8 +314,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       dateSlotGiver(today);
     }
   }, [today]);
-  const baseTime_start = baseTimeSlot[0].start_time;
-  const baseTime_end = baseTimeSlot[baseTimeSlot.length - 1].end_time;
+  const baseTime_start = baseTimeSlot[0]?.start_time;
+  const baseTime_end = baseTimeSlot[baseTimeSlot.length - 1]?.end_time;
 
   const handleOrder = () => {
     const zaal_id = sportHallID;

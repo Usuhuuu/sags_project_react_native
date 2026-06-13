@@ -33,7 +33,6 @@ const Profile: React.FC = () => {
       retry: 0,
     },
   );
-
   useEffect(() => {
     if (data) {
       setFormData(data.profileData);
@@ -53,13 +52,6 @@ const Profile: React.FC = () => {
       </View>
     );
   }
-  // useEffect(() => {
-  //   if (LoginStatus) {
-  //     queryClient.invalidateQueries({
-  //       queryKey: [`auth_status`],
-  //     });
-  //   }
-  // }, [LoginStatus]);
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(formData);
   };

@@ -33,7 +33,6 @@ import {
   Ionicons,
   MaterialCommunityIcons,
   FontAwesome6,
-  MaterialIcons,
 } from "@expo/vector-icons";
 
 // Render the right icon component based on the map entry
@@ -170,9 +169,11 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   });
 
   const itemsRef = useRef<(View | null)[]>([]);
+  const pendingIndex = useRef(0);
 
   const selectCategory = (index: number) => {
     const selected = itemsRef.current[index];
+    pendingIndex.current = index;
     setActiveIndex(index);
     if (selected) {
       (selected as unknown as View).measure(
@@ -182,7 +183,10 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       );
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onCategoryChanged(sportDetail[index].id);
+  };
+
+  const onScrollEnd = () => {
+    onCategoryChanged(sportDetail[pendingIndex.current].id);
   };
 
   const openDrawer = () => {
@@ -258,6 +262,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={[styles.scrollViewContent]}
+            onMomentumScrollEnd={onScrollEnd}
           >
             {sportDetail?.map((item: any, index: number) => {
               const itemWidth = width / Object.keys(iconMap).length;

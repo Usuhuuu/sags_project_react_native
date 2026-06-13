@@ -25,6 +25,7 @@ import {
 } from "@/hooks/permissions";
 import { useNotificationStore } from "@/src/context/store/notificationStore";
 import { useTranslation } from "react-i18next";
+import HallInfoProvider from "@/src/context/hallInfoContext";
 export { ErrorBoundary } from "expo-router";
 
 configureReanimatedLogger({
@@ -294,7 +295,9 @@ export default Sentry.wrap(() => (
               <LanguageProvider>
                 <SavedHallsProvider>
                   <CalendarProvider>
-                    <RootLayout />
+                    <HallInfoProvider>
+                      <RootLayout />
+                    </HallInfoProvider>
                   </CalendarProvider>
                 </SavedHallsProvider>
               </LanguageProvider>

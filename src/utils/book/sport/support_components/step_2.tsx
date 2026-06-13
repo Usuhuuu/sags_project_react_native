@@ -3,7 +3,7 @@ import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import React, { SetStateAction } from "react";
-import { ScrollView, TouchableOpacity, View, ViewStyle } from "react-native";
+import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 
 interface Step_Two_Props {
@@ -18,6 +18,111 @@ interface Step_Two_Props {
   setPlayersNeeded: React.Dispatch<SetStateAction<{ [key: number]: number }>>;
 }
 
+// ── Styles ─────────────────────────────────────────────────────────────────
+const createStyles = (c: any) =>
+  StyleSheet.create({
+    root: {
+      paddingHorizontal: 16,
+      paddingTop: 20,
+      paddingBottom: 24,
+      gap: 12,
+    },
+    sessionCard: {
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: c.surface,
+      borderWidth: 1,
+      borderColor: c.border,
+      shadowColor: c.shadowColor,
+      shadowOpacity: 0.08,
+      shadowOffset: { height: 2, width: 0 },
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    sessionTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: c.onSurface,
+    },
+    sessionTime: {
+      fontSize: 15,
+      fontWeight: "500",
+      color: c.onSurfaceVariant,
+      marginTop: 2,
+      marginBottom: 14,
+    },
+    peopleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: c.surfaceHigh,
+      borderRadius: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+    },
+    peopleLabelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    peopleLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: c.onSurface,
+    },
+    stepperRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    stepperBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: c.accentPrimaryGlow,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    stepperValue: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: c.onSurface,
+      minWidth: 24,
+      textAlign: "center",
+    },
+    btnRow: {
+      flexDirection: "row",
+      gap: 12,
+      paddingTop: 8,
+    },
+    btnOutline: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: 14,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: c.border,
+      backgroundColor: c.surface,
+    },
+    btnOutlineText: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: c.onSurface,
+    },
+    btnPrimary: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: 14,
+      borderRadius: 14,
+      backgroundColor: c.accentPrimary,
+    },
+    btnPrimaryText: {
+      color: "#FFFFFF",
+      fontSize: 15,
+      fontWeight: "700",
+    },
+  });
+
 const Step_Two = ({
   selectedTimeSlots,
   setSteps,
@@ -29,283 +134,145 @@ const Step_Two = ({
   playersNeeded,
   setPlayersNeeded,
 }: Step_Two_Props) => {
-  const { colors, theme } = useTheme();
+  const { colors } = useTheme();
+  const s = createStyles(colors);
 
   return (
-    <View
-      style={{
-        backgroundColor: colors.backgroundColor,
-        flex: 1,
-        alignItems: "center",
-        gap: 20,
-        marginTop: 20,
-      }}
-    >
-      <View
-        style={{
-          width: "90%",
-          gap: 10,
-          padding: 5,
-          shadowColor: colors.shadowColor,
-          shadowOpacity: 1,
-          shadowOffset: { height: 0, width: 0 },
-        }}
-      >
-        {wholeDay ? (
-          <View
-            style={{
-              flexDirection: "column",
-              justifyContent: "space-between",
-              padding: 10,
-              gap: 5,
-              borderWidth: 1,
-              borderColor: colors.littleDark,
-              borderRadius: 5,
-            }}
-          >
-            <AppText
-              style={{
-                fontSize: 18,
-                fontWeight: 300,
-                color: colors.themeColorTextPure,
-              }}
-            >
-              {bookingDetails?.workTime}
-            </AppText>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                borderWidth: 1,
-                padding: 5,
-                borderColor: colors.littleDark,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 5,
+    <View style={s.root}>
+      {wholeDay ? (
+        <View style={s.sessionCard}>
+          <AppText style={s.sessionTitle}>{bookingDetails?.workTime}</AppText>
+          <View style={[s.peopleRow, { marginTop: 14 }]}>
+            <View style={s.peopleLabelRow}>
+              <MaterialIcons
+                name="people-alt"
+                size={22}
+                color={colors.onSurface}
+              />
+              <AppText style={s.peopleLabel}>People Needed</AppText>
+            </View>
+            <View style={s.stepperRow}>
+              <TouchableOpacity
+                style={s.stepperBtn}
+                onPress={() => {
+                  if (wholeDayPeople < 20) {
+                    setWholeDayPeople(wholeDayPeople + 1);
+                  } else {
+                    Notifier.showNotification({
+                      title: "Oops",
+                      description: "Needed people must be below 20",
+                      Component: NotifierComponents.Alert,
+                      componentProps: { alertType: "warn" },
+                    });
+                  }
                 }}
               >
-                <MaterialIcons
-                  name="people-alt"
-                  size={24}
-                  color={colors.themeColorTextPure}
+                <AntDesign name="plus" size={16} color={colors.accentPrimary} />
+              </TouchableOpacity>
+              <AppText style={s.stepperValue}>{wholeDayPeople}</AppText>
+              <TouchableOpacity
+                style={s.stepperBtn}
+                onPress={() => {
+                  if (wholeDayPeople > 0) setWholeDayPeople(wholeDayPeople - 1);
+                }}
+              >
+                <AntDesign
+                  name="minus"
+                  size={16}
+                  color={colors.accentPrimary}
                 />
-                <AppText style={{ color: colors.themeColorTextPure }}>
-                  Peoples Needed
-                </AppText>
-              </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => {
-                    if (wholeDayPeople < 20) {
-                      setWholeDayPeople(wholeDayPeople + 1);
-                    } else {
-                      Notifier.showNotification({
-                        title: "Oops",
-                        description: "Needed people must be belov 20",
-                        Component: NotifierComponents.Alert,
-                        componentProps: { alertType: "warn" },
-                      });
-                    }
-                  }}
-                >
-                  <AntDesign
-                    name="plus"
-                    size={20}
-                    color={colors.themeColorTextPure}
-                  />
-                </TouchableOpacity>
-                <AppText style={{ fontSize: 20 }}>{wholeDayPeople}</AppText>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (wholeDayPeople > 0)
-                      setWholeDayPeople(wholeDayPeople - 1);
-                  }}
-                >
-                  <AntDesign
-                    name="minus"
-                    size={20}
-                    color={colors.themeColorTextPure}
-                  />
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
-        ) : (
-          <>
-            {selectedTimeSlots.map((group, index) => {
-              const startTime = group[0].split("~")[0];
-              const endTime = group[group.length - 1].split("~")[1];
-              return (
-                <ScrollView
-                  key={index}
-                  style={{
-                    flexDirection: "column",
-                    padding: 15,
-                    borderRadius: 10,
-                    backgroundColor: colors.containerColor,
-                  }}
-                >
-                  <AppText
-                    style={{
-                      fontSize: 20,
-                      fontWeight: 500,
-                      color: colors.themeColorTextPure,
-                    }}
-                  >
-                    Session {index + 1}
-                  </AppText>
-                  <AppText
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 300,
-                      color: colors.themeColorTextPure,
-                    }}
-                  >
-                    {startTime} – {endTime}
-                  </AppText>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      borderWidth: 1,
-                      padding: 5,
-                      borderColor: colors.littleDark,
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 5,
-                      }}
-                    >
-                      <MaterialIcons
-                        name="people-alt"
-                        size={24}
-                        color={colors.themeColorTextPure}
-                      />
-                      <AppText style={{ color: colors.themeColorTextPure }}>
-                        Peoples Needed
-                      </AppText>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        maxWidth: "20%",
-                      }}
-                    >
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (
-                            playersNeeded[index] < 20 ||
-                            (playersNeeded[index] ?? 0) === 0
-                          ) {
-                            setPlayersNeeded((prev) => ({
-                              ...prev,
-                              [index]: (prev[index] || 0) + 1,
-                            }));
-                          } else {
-                            Notifier.showNotification({
-                              title: "Oops",
-                              description: "Needed people must be belov 20",
-                              Component: NotifierComponents.Alert,
-                              componentProps: { alertType: "warn" },
-                            });
-                          }
-                        }}
-                        style={{
-                          maxWidth: "30%",
-                        }}
-                      >
-                        <AntDesign
-                          name="plus"
-                          size={20}
-                          color={colors.themeColorTextPure}
-                        />
-                      </TouchableOpacity>
-                      <AppText
-                        style={{
-                          fontSize: 20,
-                          color: colors.themeColorTextPure,
-                          maxWidth: "40%",
-                        }}
-                      >
-                        {playersNeeded[index] ?? 0}{" "}
-                      </AppText>
-                      <TouchableOpacity
-                        onPress={() => {
+        </View>
+      ) : (
+        <>
+          {selectedTimeSlots.map((group, index) => {
+            const startTime = group[0].split("~")[0];
+            const endTime = group[group.length - 1].split("~")[1];
+            return (
+              <View key={index} style={s.sessionCard}>
+                <AppText style={s.sessionTitle}>Session {index + 1}</AppText>
+                <AppText style={s.sessionTime}>
+                  {startTime} – {endTime}
+                </AppText>
+                <View style={s.peopleRow}>
+                  <View style={s.peopleLabelRow}>
+                    <MaterialIcons
+                      name="people-alt"
+                      size={22}
+                      color={colors.onSurface}
+                    />
+                    <AppText style={s.peopleLabel}>People Needed</AppText>
+                  </View>
+                  <View style={s.stepperRow}>
+                    <TouchableOpacity
+                      style={s.stepperBtn}
+                      onPress={() => {
+                        if (
+                          playersNeeded[index] < 20 ||
+                          (playersNeeded[index] ?? 0) === 0
+                        ) {
                           setPlayersNeeded((prev) => ({
                             ...prev,
-                            [index]: Math.max((prev[index] || 0) - 1, 0),
+                            [index]: (prev[index] || 0) + 1,
                           }));
-                        }}
-                      >
-                        <AntDesign
-                          name="minus"
-                          size={20}
-                          color={colors.themeColorTextPure}
-                        />
-                      </TouchableOpacity>
-                    </View>
+                        } else {
+                          Notifier.showNotification({
+                            title: "Oops",
+                            description: "Needed people must be below 20",
+                            Component: NotifierComponents.Alert,
+                            componentProps: { alertType: "warn" },
+                          });
+                        }
+                      }}
+                    >
+                      <AntDesign
+                        name="plus"
+                        size={16}
+                        color={colors.accentPrimary}
+                      />
+                    </TouchableOpacity>
+                    <AppText style={s.stepperValue}>
+                      {playersNeeded[index] ?? 0}
+                    </AppText>
+                    <TouchableOpacity
+                      style={s.stepperBtn}
+                      onPress={() => {
+                        setPlayersNeeded((prev) => ({
+                          ...prev,
+                          [index]: Math.max((prev[index] || 0) - 1, 0),
+                        }));
+                      }}
+                    >
+                      <AntDesign
+                        name="minus"
+                        size={16}
+                        color={colors.accentPrimary}
+                      />
+                    </TouchableOpacity>
                   </View>
-                </ScrollView>
-              );
-            })}
-          </>
-        )}
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          width: "90%",
-          justifyContent: "center",
-          gap: 20,
-          alignItems: "center",
-          flex: 1,
-        }}
-      >
+                </View>
+              </View>
+            );
+          })}
+        </>
+      )}
+
+      <View style={s.btnRow}>
         <TouchableOpacity
-          style={{
-            width: "45%",
-            alignItems: "center",
-            padding: 10,
-            borderWidth: 1,
-            gap: 10,
-            borderColor: colors.darkGrey,
-            borderRadius: 5,
-          }}
+          style={s.btnOutline}
+          activeOpacity={0.7}
           onPress={() => setSteps(steps - 1)}
         >
-          <AppText style={{ color: colors.themeColorTextPure }}>
-            Preview
-          </AppText>
+          <AppText style={s.btnOutlineText}>Back</AppText>
         </TouchableOpacity>
         <TouchableOpacity
-          style={{
-            backgroundColor: colors.primary,
-            width: "45%",
-            alignItems: "center",
-            padding: 10,
-            borderWidth: 1,
-            gap: 10,
-            borderColor: colors.darkGrey,
-            borderRadius: 5,
-          }}
+          style={s.btnPrimary}
+          activeOpacity={0.8}
           onPress={() => setSteps(steps + 1)}
         >
-          <AppText style={{ color: colors.white }}>Next</AppText>
+          <AppText style={s.btnPrimaryText}>Next</AppText>
         </TouchableOpacity>
       </View>
     </View>

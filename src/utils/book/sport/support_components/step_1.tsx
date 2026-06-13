@@ -5,7 +5,7 @@ import {
 import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import React, { SetStateAction } from "react";
-import { View, TouchableOpacity, Image } from "react-native";
+import { View, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { format, isValid } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -17,6 +17,180 @@ interface Step_One_Props {
   setSteps: React.Dispatch<SetStateAction<number>>;
 }
 
+// ── Styles ─────────────────────────────────────────────────────────────────
+const createStyles = (c: any) =>
+  StyleSheet.create({
+    root: {
+      backgroundColor: c.backgroundColor,
+      flex: 1,
+      gap: 20,
+      width: "100%",
+    },
+    header: {
+      width: "100%",
+      justifyContent: "center",
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    title: {
+      fontWeight: "800",
+      fontSize: 26,
+      color: c.onSurface,
+      letterSpacing: -0.5,
+    },
+    body: {
+      flex: 1,
+      alignItems: "center",
+      gap: 20,
+      width: "100%",
+      paddingBottom: 20,
+    },
+    card: {
+      backgroundColor: c.surface,
+      padding: 16,
+      width: "92%",
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: c.border,
+      shadowColor: c.shadowColor,
+      shadowOpacity: 0.08,
+      shadowOffset: { height: 2, width: 0 },
+      shadowRadius: 10,
+      elevation: 3,
+    },
+    topSection: {
+      borderBottomWidth: 1,
+      borderBottomColor: c.borderSubtle,
+      paddingBottom: 14,
+    },
+    imageRow: {
+      flexDirection: "row",
+      height: 100,
+      width: "100%",
+      marginBottom: 10,
+    },
+    image: {
+      width: "38%",
+      height: "100%",
+      borderRadius: 12,
+      backgroundColor: c.surfaceHigh,
+    },
+    infoCol: {
+      flex: 1,
+      paddingLeft: 14,
+      justifyContent: "center",
+      gap: 6,
+    },
+    infoRow: {
+      justifyContent: "center",
+    },
+    labelText: {
+      color: c.outline,
+      fontSize: 12,
+      fontWeight: "600",
+      letterSpacing: 0.3,
+      textTransform: "uppercase",
+    },
+    valueText: {
+      fontWeight: "700",
+      fontSize: 18,
+      color: c.onSurface,
+    },
+    valueTextLocation: {
+      color: c.outline,
+      fontWeight: "600",
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    priceRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 2,
+    },
+    durationRow: {
+      flexDirection: "row",
+      gap: 6,
+      alignItems: "center",
+    },
+    durationLabel: {
+      fontSize: 15,
+      fontWeight: "500",
+      color: c.onSurfaceVariant,
+    },
+    priceLabel: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: c.accentPrimary,
+    },
+    summarySection: {
+      paddingTop: 14,
+      gap: 2,
+    },
+    summaryRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 10,
+      paddingHorizontal: 2,
+    },
+    summaryLabel: {
+      fontSize: 15,
+      fontWeight: "500",
+      color: c.onSurfaceVariant,
+    },
+    summaryValue: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: c.onSurface,
+    },
+    timeRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 8,
+      paddingHorizontal: 2,
+    },
+    totalRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 2,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: c.borderSubtle,
+      marginTop: 6,
+    },
+    totalLabel: {
+      color: c.onSurface,
+      fontSize: 20,
+      fontWeight: "800",
+    },
+    totalValue: {
+      color: c.accentPrimary,
+      fontSize: 20,
+      fontWeight: "800",
+    },
+    btnRow: {
+      flexDirection: "row",
+      width: "92%",
+      justifyContent: "center",
+    },
+    nextBtn: {
+      backgroundColor: c.accentPrimary,
+      width: "100%",
+      alignItems: "center",
+      paddingVertical: 16,
+      borderRadius: 16,
+    },
+    nextBtnText: {
+      color: "#FFFFFF",
+      fontSize: 17,
+      fontWeight: "700",
+      letterSpacing: 0.3,
+    },
+  });
+
 const Step_One = ({
   bookingDetails,
   wholeDay,
@@ -25,6 +199,8 @@ const Step_One = ({
   setSteps,
 }: Step_One_Props) => {
   const { colors } = useTheme();
+  const s = createStyles(colors);
+
   const updateSessions = {
     booking_summary: [
       {
@@ -59,275 +235,90 @@ const Step_One = ({
     }
   };
   return (
-    <View
-      style={{
-        backgroundColor: colors.backgroundColor,
-        flex: 1,
-        gap: 20,
-        width: "100%",
-      }}
-    >
-      <View
-        style={{
-          width: "100%",
-          justifyContent: "center",
-          paddingHorizontal: 15,
-        }}
-      >
-        <AppText
-          style={{
-            fontWeight: 800,
-            fontSize: 24,
-          }}
-        >
-          Booking Summary
-        </AppText>
+    <View style={s.root}>
+      <View style={s.header}>
+        <AppText style={s.title}>Booking Summary</AppText>
       </View>
-      <View
-        style={{
-          flex: 1,
-          alignItems: "center",
-          gap: 20,
-          width: "100%",
-        }}
-      >
-        <View
-          style={{
-            backgroundColor: colors.containerColor,
-            padding: 15,
-            width: "90%",
-            height: "100%",
-            borderRadius: 10,
-            shadowColor: colors.shadowColor,
-            shadowOpacity: 1,
-            shadowOffset: { height: 0, width: 0 },
-          }}
-        >
-          <View
-            style={{
-              height: "50%",
-              width: "100%",
-              borderBottomWidth: 1,
-              borderBottomColor: colors.darkGrey,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", height: "80%", width: "100%" }}
-            >
+      <View style={s.body}>
+        <View style={s.card}>
+          <View style={s.topSection}>
+            <View style={s.imageRow}>
               <Image
                 source={{ uri: bookingDetails?.imageUrls?.[0] ?? "" }}
-                style={{ width: "40%", height: "90%", borderRadius: 10 }}
+                style={s.image}
               />
-              <View style={{ height: "90%" }}>
+              <View style={s.infoCol}>
                 {updateSessions.booking_summary.map((item) => (
-                  <View
-                    style={{
-                      flex: 1,
-                      marginHorizontal: 10,
-                    }}
-                    key={Math.random()}
-                  >
+                  <View style={s.infoRow} key={Math.random()}>
                     {item.label !== "Location" ? (
-                      <AppText style={{ color: colors.darkGrey, fontSize: 16 }}>
-                        {item.label}
-                      </AppText>
+                      <AppText style={s.labelText}>{item.label}</AppText>
                     ) : null}
                     {item.label === "Location" ? (
-                      <AppText
-                        style={{
-                          width: "90%",
-                          color: colors.darkGrey,
-                          fontWeight: 600,
-                        }}
-                      >
+                      <AppText style={s.valueTextLocation}>
                         {item.value}
                       </AppText>
                     ) : (
-                      <AppText
-                        style={{
-                          width: "65%",
-                          fontWeight: 900,
-                          fontSize: 20,
-                        }}
-                      >
-                        {item.value}
-                      </AppText>
+                      <AppText style={s.valueText}>{item.value}</AppText>
                     )}
                   </View>
                 ))}
               </View>
             </View>
-            <View
-              style={{
-                flex: 1,
-                height: "10%",
-                paddingHorizontal: 10,
-              }}
-            >
-              {!wholeDay && (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: 5,
-                    }}
-                  >
-                    <View style={{ flexDirection: "row", gap: 5 }}>
-                      <MaterialCommunityIcons
-                        name="clock-time-nine-outline"
-                        size={24}
-                        color={colors.darkGrey}
-                      />
-                      <AppText
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 300,
-                          color: colors.darkGrey,
-                        }}
-                      >
-                        1 Hour
-                      </AppText>
-                    </View>
-                  </View>
-                  <AppText
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 300,
-                      color: colors.themeColorTextPure,
-                    }}
-                  >
-                    ₮{bookingDetails?.price.oneHour}
-                  </AppText>
+            {!wholeDay && (
+              <View style={s.priceRow}>
+                <View style={s.durationRow}>
+                  <MaterialCommunityIcons
+                    name="clock-time-nine-outline"
+                    size={20}
+                    color={colors.onSurfaceVariant}
+                  />
+                  <AppText style={s.durationLabel}>1 Hour</AppText>
                 </View>
-              )}
-            </View>
+                <AppText style={s.priceLabel}>
+                  ₮{bookingDetails?.price.oneHour}
+                </AppText>
+              </View>
+            )}
           </View>
-          <View
-            style={{
-              flex: 1,
-              borderBottomColor: colors.darkGrey,
-              borderBottomWidth: 1,
-            }}
-          >
-            <View
-              style={{
-                paddingVertical: 10,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                padding: 10,
-              }}
-            >
-              <AppText
-                style={{
-                  fontSize: 18,
-                  fontWeight: 300,
-                  color: colors.darkGrey,
-                }}
-              >
-                Date
-              </AppText>
-              <AppText style={{ fontSize: 18, fontWeight: 300 }}>
+
+          <View style={s.summarySection}>
+            <View style={s.summaryRow}>
+              <AppText style={s.summaryLabel}>Date</AppText>
+              <AppText style={s.summaryValue}>
                 {bookingDetails?.date
                   ? format(new Date(bookingDetails.date), "EEE, dd LLLL")
                   : ""}
               </AppText>
             </View>
-            <View
-              style={{
-                gap: 5,
-              }}
-            >
-              {wholeDay ? (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    padding: 20,
-                  }}
-                >
-                  <AppText
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 300,
-                      color: colors.themeColorTextPure,
-                    }}
-                  >
-                    Time
-                  </AppText>
-                  <AppText
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 300,
-                      color: colors.themeColorTextPure,
-                    }}
-                  >
-                    {bookingDetails?.workTime}
-                  </AppText>
-                </View>
-              ) : (
-                <>
-                  {selectedTimeSlots.map((group, index) => {
-                    const startTime = group[0].split("~")[0];
-                    const endTime = group[group.length - 1].split("~")[1];
-                    return (
-                      <View
-                        key={index}
-                        style={{
-                          flexDirection: "row",
 
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: 10,
-                        }}
-                      >
-                        <AppText
-                          style={{
-                            fontSize: 18,
-                            fontWeight: 300,
-                            color: colors.darkGrey,
-                          }}
-                        >
-                          Time {index + 1}
-                        </AppText>
-                        <AppText
-                          style={{
-                            fontSize: 18,
-                            fontWeight: 300,
-                            color: colors.themeColorTextPure,
-                          }}
-                        >
-                          {startTime} – {endTime}
-                        </AppText>
-                      </View>
-                    );
-                  })}
-                </>
-              )}
-            </View>
+            {wholeDay ? (
+              <View style={s.summaryRow}>
+                <AppText style={s.summaryLabel}>Time</AppText>
+                <AppText style={s.summaryValue}>
+                  {bookingDetails?.workTime}
+                </AppText>
+              </View>
+            ) : (
+              <>
+                {selectedTimeSlots.map((group, index) => {
+                  const startTime = group[0].split("~")[0];
+                  const endTime = group[group.length - 1].split("~")[1];
+                  return (
+                    <View key={index} style={s.timeRow}>
+                      <AppText style={s.summaryLabel}>Time {index + 1}</AppText>
+                      <AppText style={s.summaryValue}>
+                        {startTime} – {endTime}
+                      </AppText>
+                    </View>
+                  );
+                })}
+              </>
+            )}
           </View>
 
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              padding: 10,
-            }}
-          >
-            <AppText style={{ color: colors.darkGrey, fontSize: 26 }}>
-              TOTAL
-            </AppText>
-            <AppText
-              style={{
-                color: colors.themeColorTextPure,
-                fontSize: 26,
-                fontWeight: 600,
-              }}
-            >
+          <View style={s.totalRow}>
+            <AppText style={s.totalLabel}>TOTAL</AppText>
+            <AppText style={s.totalValue}>
               ₮
               {wholeDay
                 ? bookingDetails?.price?.wholeDay
@@ -336,30 +327,14 @@ const Step_One = ({
             </AppText>
           </View>
         </View>
-        <View
-          style={{
-            flexDirection: "row",
-            width: "90%",
-            justifyContent: "center",
-            gap: 20,
-            alignItems: "center",
-            flex: 1,
-          }}
-        >
+
+        <View style={s.btnRow}>
           <TouchableOpacity
-            style={{
-              backgroundColor: colors.primary,
-              width: "45%",
-              alignItems: "center",
-              padding: 10,
-              borderWidth: 1,
-              gap: 10,
-              borderColor: colors.darkGrey,
-              borderRadius: 5,
-            }}
+            style={s.nextBtn}
+            activeOpacity={0.8}
             onPress={() => setSteps(steps + 1)}
           >
-            <AppText style={{ color: colors.white }}>Next</AppText>
+            <AppText style={s.nextBtnText}>Next</AppText>
           </TouchableOpacity>
         </View>
       </View>

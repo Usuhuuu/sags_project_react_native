@@ -539,7 +539,7 @@ export const OrderItem = React.memo(
 
               {/* Hall name */}
               <Text style={S.hallName} numberOfLines={1}>
-                {data.zaal_info.hall_details.hall_name}
+                {data.zaal_info?.hall_details.hall_name}
               </Text>
 
               {/* Date */}

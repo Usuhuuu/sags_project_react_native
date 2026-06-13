@@ -1,5 +1,5 @@
-import React, { SetStateAction } from "react";
-import { View, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
+import React, { useCallback, useRef, useState } from "react";
+import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTheme } from "@/src/context/themeContext";
@@ -11,7 +11,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Checkbox } from "react-native-paper";
-import { FontAwesome } from "@expo/vector-icons";
 import { NotificationItem } from "@/app/listing/notification/notification";
 
 type SwipeableRowProps = {
@@ -24,6 +23,68 @@ type SwipeableRowProps = {
   setSelectedList: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
+// ── Static styles (created once) ───────────────────────────────────────────
+const s = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginVertical: 4,
+  },
+  card: { flex: 1, borderRadius: 16, borderWidth: 1, overflow: "hidden" },
+  inner: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingVertical: 14,
+    paddingRight: 14,
+    paddingLeft: 12,
+  },
+  lead: { width: 20, alignItems: "center", paddingTop: 6, flexShrink: 0 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  col: { flex: 1, minWidth: 0 },
+  top: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  body: { fontSize: 13, lineHeight: 18 },
+  meta: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 10 },
+  newBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  newText: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  timeRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  time: { fontSize: 11 },
+  del: {
+    marginVertical: 4,
+    marginRight: 16,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    width: 88,
+  },
+  delInner: { alignItems: "center", gap: 4 },
+  delText: { fontSize: 11, fontWeight: "600" },
+});
+
+function relTime(time: string): string {
+  const d = new Date(time);
+  const m = differenceInMinutes(new Date(), d);
+  if (m < 1) return "Just now";
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m / 60)}h ago`;
+  if (m < 10080) return format(d, "EEEE");
+  return format(d, "MMM d");
+}
+
 const SwipeableRow: React.FC<SwipeableRowProps> = ({
   item,
   itemSave,
@@ -32,272 +93,174 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
   selectedList,
   setSelectedList,
 }) => {
-  const { colors: Colors } = useTheme();
-  const styles = StyleSheet.create({
-    notificationItem: {
-      borderRadius: 8,
-      padding: 16,
-    },
+  const { colors: C } = useTheme();
+  const isNew = differenceInMinutes(new Date(), new Date(item.time)) < 5;
+  const deleting = useRef(false);
 
-    notificationContent: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
+  const [expanded, setExpanded] = useState(false);
+  const chevronDeg = useSharedValue(0);
 
-    notificationText: {
-      flex: 1,
-      paddingRight: 10,
-    },
+  const toggle = useCallback(() => {
+    setExpanded((prev) => {
+      const n = !prev;
+      chevronDeg.value = withTiming(n ? 90 : 0, { duration: 250 });
+      return n;
+    });
+  }, []);
 
-    notificationMessage: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: Colors.themeColorTextPure,
-    },
+  const chStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${chevronDeg.value}deg` }],
+  }));
 
-    notificationTime: {
-      fontSize: 12,
-      marginTop: 4,
-      color: Colors.darkGrey,
-    },
+  const onPress = useCallback(() => {
+    if (!item.seen) {
+      item.seen = true;
+      void itemSave(item.id);
+    }
+    toggle();
+  }, [item, itemSave, toggle]);
 
-    badgeRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      marginBottom: 6,
-    },
+  const onDelete_ = useCallback(() => {
+    if (deleting.current) return;
+    deleting.current = true;
+    Alert.alert("Delete notification", "", [
+      {
+        text: "Cancel",
+        style: "cancel",
+        onPress: () => {
+          deleting.current = false;
+        },
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          deleting.current = false;
+          onDelete(item.id);
+        },
+      },
+    ]);
+  }, [item.id, onDelete]);
 
-    badge: {
-      backgroundColor: "#1e3a5f",
-      color: "#4da3ff",
-      paddingHorizontal: 6,
-      paddingVertical: 3,
-      borderRadius: 4,
-      fontSize: 12,
-      fontWeight: "700",
-    },
+  const toggleSel = useCallback(() => {
+    setSelectedList?.((p) => {
+      const id = item.id.toString();
+      return p.includes(id) ? p.filter((i) => i !== id) : [...p, id];
+    });
+  }, [item.id, setSelectedList]);
 
-    deleteAction: {
-      backgroundColor: "#ff1515",
-      padding: 15,
-      marginVertical: 8,
-      marginRight: 20,
-      borderRadius: 10,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-  });
+  const rightActions = useCallback(
+    () => (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={[s.del, { backgroundColor: C.errorColor }]}
+        onPress={onDelete_}
+      >
+        <View style={s.delInner}>
+          <Ionicons name="trash-outline" size={20} color={C.white} />
+          <AppText style={[s.delText, { color: C.white }]}>Delete</AppText>
+        </View>
+      </TouchableOpacity>
+    ),
+    [onDelete_, C],
+  );
 
-  const diffMinut = differenceInMinutes(new Date(), new Date(item.time));
+  const checked = selectedList?.includes(item.id.toString());
 
-  /** Animation state */
-  const expanded = useSharedValue(false);
-  const bodyHeight = useSharedValue(0);
-
-  const animatedBodyStyle = useAnimatedStyle(() => {
-    return {
-      height: withTiming(expanded.value ? bodyHeight.value : 0, {
-        duration: 250,
-      }),
-      opacity: withTiming(expanded.value ? 1 : 0, {
-        duration: 200,
-      }),
-    };
-  });
-  const { width } = Dimensions.get("window");
   return (
     <Swipeable
-      renderRightActions={() => (
-        <TouchableOpacity
-          style={styles.deleteAction}
-          onPress={() => onDelete(item.id)}
-        >
-          <Ionicons name="close" size={24} color={Colors.themeColorTextPure} />
-        </TouchableOpacity>
-      )}
+      renderRightActions={rightActions}
+      overshootRight={false}
+      overshootFriction={8}
     >
-      <View
-        style={{
-          width: "100%",
-          flex: 1,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          marginHorizontal: selectReady ? 10 : 0,
-        }}
-      >
+      <View style={s.row}>
         {selectReady && (
-          <View
-            style={{ backgroundColor: Colors.containerColor, borderRadius: 25 }}
-          >
-            <Checkbox
-              status={
-                selectedList?.includes(item.id.toString())
-                  ? "checked"
-                  : "unchecked"
-              }
-              onPress={() => {
-                {
-                  setSelectedList?.((prev) => {
-                    if (prev.includes(item.id.toString())) {
-                      return prev.filter((id) => id !== item.id.toString());
-                    } else {
-                      return [...prev, item.id.toString()];
-                    }
-                  });
-                }
-              }}
-              color={Colors.primary}
-            />
-          </View>
+          <Checkbox
+            status={checked ? "checked" : "unchecked"}
+            onPress={toggleSel}
+            color={C.primary}
+            uncheckedColor={C.outline}
+          />
         )}
-        <TouchableOpacity
-          onPress={() => {
-            item.seen = true;
-            itemSave(item.id);
-            return (expanded.value = !expanded.value);
-          }}
-          style={{
-            flex: 1,
-            width: selectReady ? width * 0.85 : width,
-          }}
-        >
-          <View
-            style={{
-              marginHorizontal: 20,
-              marginVertical: 8,
-              borderRadius: 8,
-              backgroundColor: Colors.containerColor,
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.15,
-              shadowRadius: 2,
+        <View
+          style={[
+            s.card,
+            {
+              backgroundColor: item.seen ? C.surfaceHigh : C.surface,
+              borderColor: isNew ? C.accentPrimaryBorder : C.border,
+              shadowColor: C.shadowColor,
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
               elevation: 3,
-            }}
+            },
+          ]}
+        >
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={onPress}
+            style={s.inner}
           >
-            <View
-              style={[
-                styles.notificationItem,
-                {
-                  borderWidth: 1,
-                  borderColor:
-                    diffMinut < 5 ? Colors.primary : Colors.containerColor,
-                  backgroundColor: item.seen
-                    ? "#151a2060"
-                    : Colors.containerColor,
-                },
-              ]}
-            >
-              <View style={styles.notificationContent}>
-                <View style={styles.notificationText}>
-                  {/* BADGE */}
-                  {diffMinut < 5 && (
-                    <View style={styles.badgeRow}>
-                      <AppText style={styles.badge}>NEW</AppText>
-                      <AppText style={styles.notificationTime}>
-                        {diffMinut < 60
-                          ? `${diffMinut} minutes ago`
-                          : format(new Date(item.time), "HH:mm")}
-                      </AppText>
-                    </View>
-                  )}
-
-                  {/* TITLE */}
-                  <AppText
-                    style={[
-                      styles.notificationMessage,
-                      {
-                        opacity: item.seen ? 0.4 : 1,
-                      },
-                    ]}
-                  >
-                    {item.message?.title}
-                  </AppText>
-
-                  {/* INVISIBLE MEASUREMENT (NOT CLIPPED) */}
-                  <View
-                    style={{ position: "absolute", opacity: 0, zIndex: -1 }}
-                    onLayout={(e) => {
-                      if (bodyHeight.value === 0) {
-                        bodyHeight.value = e.nativeEvent.layout.height;
-                      }
-                    }}
-                  >
-                    <AppText
-                      style={[
-                        styles.notificationMessage,
-                        {
-                          opacity: item.seen ? 0.4 : 1,
-                        },
-                      ]}
-                    >
-                      {item.message.body}
+            <View style={s.lead}>
+              <View
+                style={[
+                  s.dot,
+                  {
+                    backgroundColor: item.seen
+                      ? "transparent"
+                      : C.accentPrimary,
+                  },
+                ]}
+              />
+            </View>
+            <View style={s.col}>
+              <View style={s.top}>
+                <AppText
+                  numberOfLines={1}
+                  style={{
+                    fontSize: 15,
+                    fontWeight: "600",
+                    color: item.seen ? C.outline : C.onSurface,
+                    flexShrink: 1,
+                  }}
+                >
+                  {item.message?.title}
+                </AppText>
+                <Animated.View style={chStyle}>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={C.outline}
+                  />
+                </Animated.View>
+              </View>
+              <AppText
+                numberOfLines={expanded ? 0 : 1}
+                style={[
+                  s.body,
+                  { color: item.seen ? C.outline : C.onSurfaceVariant },
+                ]}
+              >
+                {item.message?.body}
+              </AppText>
+              <View style={s.meta}>
+                {isNew && (
+                  <View style={[s.newBadge, { backgroundColor: C.green }]}>
+                    <AppText style={[s.newText, { color: C.white }]}>
+                      NEW
                     </AppText>
-
-                    {diffMinut >= 5 && (
-                      <AppText style={styles.notificationTime}>
-                        {format(new Date(item.time), "PPp")}
-                      </AppText>
-                    )}
                   </View>
-
-                  {/* ANIMATED BODY (CLIPPED) */}
-                  <Animated.View
-                    style={[
-                      { overflow: "hidden", paddingTop: 8 },
-                      animatedBodyStyle,
-                    ]}
-                  >
-                    <AppText
-                      style={[
-                        styles.notificationMessage,
-                        {
-                          color: Colors.darkGrey,
-                          opacity: item.seen ? 0.4 : 1,
-                        },
-                      ]}
-                    >
-                      {item.message.body}
-                    </AppText>
-                  </Animated.View>
-                  {diffMinut >= 5 && (
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        gap: 5,
-                        alignItems: "center",
-                        marginTop: 10,
-                      }}
-                    >
-                      <FontAwesome
-                        name="check-circle"
-                        size={16}
-                        color={Colors.darkGrey}
-                      />
-                      <AppText
-                        style={[
-                          styles.notificationTime,
-                          {
-                            marginTop: 0,
-                          },
-                        ]}
-                      >
-                        {format(new Date(item.time), "PPp")}
-                      </AppText>
-                    </View>
-                  )}
+                )}
+                <View style={s.timeRow}>
+                  <Ionicons name="time-outline" size={11} color={C.outline} />
+                  <AppText style={[s.time, { color: C.outline }]}>
+                    {relTime(item.time)}
+                  </AppText>
                 </View>
-
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={Colors.primary}
-                />
               </View>
             </View>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
       </View>
     </Swipeable>
   );

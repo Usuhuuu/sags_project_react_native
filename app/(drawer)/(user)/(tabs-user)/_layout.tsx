@@ -12,7 +12,6 @@ import { useSharedValue } from "react-native-reanimated";
 const TabsLayout = () => {
   const { colors: Colors, theme } = useTheme();
   const { t } = useTranslation();
-  const { LoginStatus } = useAuth();
   const bottomSheetY = useSharedValue(0);
 
   return (

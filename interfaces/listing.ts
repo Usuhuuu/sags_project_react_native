@@ -52,39 +52,17 @@ export interface SportHallDataType {
       darts: boolean;
     };
     hall_phone_number: string;
+    base_time_slots?: {
+      start_time?: string;
+      end_time?: string;
+    }[];
   };
-  base_time_slots: {
-    start_time?: string;
-    end_time?: string;
-  }[];
-  hall_location: {
+
+  hall_locations: {
     latitude: string;
     longitude: string;
     smart_location?: string;
   };
-  // name: string;
-  // address: string;
-  // imageUrls: string[];
-  // phoneNumber: string;
-  // workTime: SportHallWorkTime;
-  // price: SportHallPrice;
-  // location: {
-  //   latitude: string;
-  //   longitude: string;
-  //   smart_location?: string;
-  // };
-  // availableTimeSlots: {
-  //   start_time?: string;
-  //   end_time?: string;
-  // }[];
-  // listing_url?: string;
-  // feature: SportHallFeature;
-  // rating?: number;
-  // distance?: number;
-  // priceSort?: number;
-  // partnersLookingFor?: string;
-  // playersNeeded?: string;
-  // sportType: HallCategoryType;
 }
 
 export interface EsportHallDataType {
@@ -117,10 +95,19 @@ export interface EsportHallDataType {
       darts: boolean;
     };
     hall_phone_number: string;
-    hall_location: {
+    hall_locations: {
       latitude: string;
       longitude: string;
       smart_location?: string;
     };
+    base_time_slots?: {
+      start_time?: string;
+      end_time?: string;
+    }[];
+  };
+  hall_locations: {
+    latitude: string;
+    longitude: string;
+    smart_location?: string;
   };
 }

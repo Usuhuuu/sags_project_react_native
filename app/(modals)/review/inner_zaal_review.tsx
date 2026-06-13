@@ -11,12 +11,11 @@ import StarRating from "../../../src/utils/review/star_rating";
 import { launchImageLibrary } from "react-native-image-picker";
 import { Entypo } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import SportHallData from "@/assets/Data/sportHall.json";
-import { SportHallDataType } from "@/interfaces/listing";
 import { useLocalSearchParams } from "expo-router";
 import axiosInstance from "@/hooks/axiosInstance";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "@/src/context/themeContext";
+import { useHallInfo } from "@/src/context/hallInfoContext";
 
 const Inner_Zaal_Review = () => {
   const { colors: Colors } = useTheme();
@@ -24,9 +23,9 @@ const Inner_Zaal_Review = () => {
   const [imageUrl, setImageUrl] = useState<string[]>([]);
   const [text, setText] = useState<string>("");
   const sport_hall_id = useLocalSearchParams().zaalId as string;
-  const zaal_data = (SportHallData as unknown as SportHallDataType[]).find(
-    (item) => item.sportHallID === sport_hall_id,
-  );
+
+  const { getSpecificHall } = useHallInfo();
+  const zaal_data = getSpecificHall(sport_hall_id);
   const handle_submit = async () => {
     try {
       const response = await axiosInstance.post(

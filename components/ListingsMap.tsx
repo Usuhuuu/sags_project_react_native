@@ -8,14 +8,20 @@ import {
 import React, { memo, useEffect, useState, useCallback, useMemo } from "react";
 import MapView, { Marker, PROVIDER_GOOGLE, Callout } from "react-native-maps";
 import * as Location from "expo-location";
-import { HallCategoryType, SportHallDataType } from "@/interfaces/listing";
+import {
+  EsportHallDataType,
+  EsportHallPrices,
+  HallCategoryType,
+  SportHallDataType,
+  SportHallPrice,
+} from "@/interfaces/listing";
 import { useRouter } from "expo-router";
 import MapViewClustering from "react-native-map-clustering";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as SecureStorage from "expo-secure-store";
 import { useTheme } from "@/src/context/themeContext";
-import { LightTheme, ThemeColors } from "@/constants/Colors";
+import { ThemeColors } from "@/constants/Colors";
 
 const INITIAL_REGION = {
   latitude: 47.918873,
@@ -29,38 +35,40 @@ const noop = () => {};
 type MarkerStyles = ReturnType<typeof createMarkerStyle>;
 
 interface HallMarkerProps {
-  item: SportHallDataType;
+  item: SportHallDataType | EsportHallDataType;
   ms: MarkerStyles;
   colors: ThemeColors;
-  onNavigate: (id: string) => void;
+  onNavigate: (id: string, type: string) => void;
   onFocus: (lat: number, lng: number) => void;
 }
 
 const HallMarker = memo(
   ({ item, ms, colors, onNavigate, onFocus }: HallMarkerProps) => {
     const subtitle =
-      item.hall_location?.smart_location ?? item.hall_details.hall_address;
+      item?.hall_locations?.smart_location ?? item.hall_details.hall_address;
     const workTime = `${item.hall_details.hall_work_time.start_time} – ${item.hall_details.hall_work_time.end_time}`;
-    const pricePerHour = item.hall_details.hall_price?.oneHour;
+    const pricePerHour =
+      (item.hall_details?.hall_price as SportHallPrice)?.oneHour ??
+      (item?.hall_details.hall_price as EsportHallPrices)?.pcHall?.oneHour;
 
     // Stable handlers – recreated only when item location or callbacks change.
     const handleMarkerPress = useCallback(() => {
       onFocus(
-        parseFloat(item.hall_location?.latitude),
-        parseFloat(item.hall_location?.longitude),
+        parseFloat(item.hall_locations?.latitude),
+        parseFloat(item.hall_locations?.longitude),
       );
-    }, [item.hall_location, onFocus]);
+    }, [item.hall_locations, onFocus]);
 
-    const handleCalloutPress = useCallback(
-      () => onNavigate(item.sportHallID),
-      [item.sportHallID, onNavigate],
-    );
+    const handleCalloutPress = useCallback(() => {
+      const type = item.hall_types.main.split("_")[0];
+      onNavigate(item.sportHallID, type);
+    }, [item.sportHallID, onNavigate]);
 
     return (
       <Marker
         coordinate={{
-          latitude: parseFloat(item.hall_location?.latitude),
-          longitude: parseFloat(item.hall_location?.longitude),
+          latitude: parseFloat(item.hall_locations?.latitude),
+          longitude: parseFloat(item.hall_locations?.longitude),
         }}
         tracksViewChanges={false}
         tracksInfoWindowChanges={false}
@@ -135,7 +143,7 @@ const ListingsMap = memo(
     listings,
     selectedCategory,
   }: {
-    listings: SportHallDataType[];
+    listings: (SportHallDataType | EsportHallDataType)[];
     selectedCategory: string;
   }) => {
     const { colors, theme } = useTheme();
@@ -152,30 +160,22 @@ const ListingsMap = memo(
     const router = useRouter();
     const mapRef = React.useRef<MapView | null>(null);
 
-    /**
-     * Derived data, not state.
-     * – No extra array allocation when selectedCategory === "all" (returns the
-     *   same `listings` reference).
-     * – Eliminates the useState + useEffect pair that previously kept a
-     *   duplicate of the array in memory.
-     */
     const filteredHalls = useMemo(() => {
       if (selectedCategory === "all") return listings;
       const key = selectedCategory.toLowerCase() as HallCategoryType;
-      return listings.filter((hall) => hall.hall_types.sub.includes(key));
+      const temp = listings.filter((hall) => hall.hall_types.sub.includes(key));
+      return temp;
     }, [selectedCategory, listings]);
 
     // ── Stable callbacks ────────────────────────────────────────────────────
 
     const onNavigate = useCallback(
-      (id: string) => router.push(`/listing/${id}`),
+      (id: string, type: string) => {
+        router.push(`/listing/${id}`);
+      },
       [router],
     );
 
-    /**
-     * useCallback so MapViewClustering receives the same function reference
-     * across renders and doesn't needlessly re-run its own reconciliation.
-     */
     const setMapRef = useCallback((ref: any) => {
       mapRef.current = ref as unknown as MapView;
     }, []);
@@ -235,11 +235,6 @@ const ListingsMap = memo(
       };
       init();
     }, []);
-
-    /**
-     * renderCluster deps include `styles` so cluster markers re-colour
-     * correctly on theme change. Previously [] caused stale colours.
-     */
     const renderCluster = useCallback(
       (cluster: any) => {
         const { id, geometry, onPress, properties } = cluster;

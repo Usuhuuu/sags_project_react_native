@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
-import SportHallData from "@/assets/Data/sportHall.json";
 import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
 import { HallTypesSeparator } from "@/interfaces/hallTypes";
 import SportHall from "@/src/screens/hall/sportHall";
@@ -9,18 +8,18 @@ import Pc_Halls from "@/src/screens/hall/pcHall";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useTheme } from "../../src/context/themeContext";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import { useHallInfo } from "@/src/context/hallInfoContext";
 
 const DetailsPage = () => {
   const { sportHallID } = useLocalSearchParams();
+  const { getSpecificHall } = useHallInfo();
   const { colors } = useTheme();
 
   const [loading, setLoading] = useState<boolean>(true);
   const [hallSeparator, setHallSeparotor] = useState<HallTypesSeparator | null>(
     null,
   );
-  const listing = SportHallData.find(
-    (item) => item.sportHallID === sportHallID,
-  ) as unknown as SportHallDataType | EsportHallDataType;
+  const listing = getSpecificHall(String(sportHallID));
   const hallSeparatorFunc = () => {
     const sportSet = new Set(listing?.hall_types.sub);
     if (!sportSet) return;

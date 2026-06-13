@@ -1,293 +1,290 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-  ReactElement,
-} from "react";
+import React, { useState, useCallback, useMemo, memo, useEffect } from "react";
 import {
   View,
-  StyleSheet,
   Text,
   Image,
   TouchableOpacity,
-  ListRenderItem,
-  ImageBackground,
+  FlatList,
+  StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { MaterialIcons } from "@expo/vector-icons";
-import {
-  BottomSheetFlatList,
-  BottomSheetFlatListMethods,
-} from "@gorhom/bottom-sheet";
-import { LinearGradient } from "expo-linear-gradient";
-import { EsportHallDataType, SportHallDataType } from "@/interfaces/listing";
+import { Ionicons } from "@expo/vector-icons";
+
 import { useTheme } from "@/src/context/themeContext";
-import AppText from "@/constants/appTextDefault";
-import OwnActivaterIndicator from "@/constants/loaderAnimation";
+import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 
 interface Props {
-  listings: (SportHallDataType | EsportHallDataType)[];
+  listings: any[];
   category: string;
   refresh: number;
 }
 
-const ListingComponent = ({ listings: items, category }: Props) => {
-  const { colors: Colors } = useTheme();
+const ITEMS_PER_PAGE = 15;
+const INCREMENT = 7;
+const ITEM_HEIGHT = 105;
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      paddingTop: 5,
-      paddingHorizontal: 16,
-    },
-    itemContainer: {
-      marginBottom: 20,
-      borderRadius: 20,
-      overflow: "hidden",
-    },
-    backgroundImage: {
-      width: "100%",
-      height: 200,
-      justifyContent: "flex-end",
-      resizeMode: "cover",
-    },
-    detailsContainer: {
-      padding: 20,
-      justifyContent: "flex-end",
-      backgroundColor: "rgba(0, 0, 0, 0.6)",
-      width: "100%",
-    },
-    text: {
-      color: "white",
-      fontSize: 16,
-      fontWeight: "bold",
-      marginBottom: 5,
-    },
-    ratingContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginVertical: 5,
-    },
-    locationContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingRight: 10,
-    },
-    placeholderImage: {
-      width: 20,
-      height: 20,
-      marginRight: 8,
-    },
-    flatListContent: {},
-    icon: {
-      width: 23,
-      height: 23,
-    },
+const ListingItem = memo(
+  ({ item, onPress }: { item: any; onPress: (id: string) => void }) => {
+    const { colors: C } = useTheme();
+    const price =
+      item.hall_details?.hall_price?.oneHour ??
+      item.hall_details?.hall_price?.pcHall?.oneHour;
+    const img = item.hall_details?.hall_imageURLs?.[0];
 
-    categoryButton: {
-      paddingHorizontal: 10,
-      paddingVertical: 8,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 5,
-    },
+    return (
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => onPress(item.sportHallID ?? item.reference_hallId)}
+        style={[s.card, { backgroundColor: C.surface, borderColor: C.border }]}
+      >
+        <View style={[s.cardAccent, { backgroundColor: C.accentPrimary }]} />
+        {img ? (
+          <View style={[s.imgWrap, { borderColor: C.borderSubtle }]}>
+            <Image source={{ uri: img }} style={s.img} />
+          </View>
+        ) : (
+          <View
+            style={[s.imgPlaceholder, { backgroundColor: C.accentPrimaryGlow }]}
+          >
+            <Ionicons
+              name="business-outline"
+              size={28}
+              color={C.accentPrimary}
+            />
+          </View>
+        )}
+        <View style={s.info}>
+          <Text style={[s.name, { color: C.onSurface }]} numberOfLines={1}>
+            {item.hall_details?.hall_name ?? "Sports Hall"}
+          </Text>
+          <View style={s.row}>
+            <Ionicons name="location-outline" size={11} color={C.outline} />
+            <Text style={[s.sub, { color: C.outline }]} numberOfLines={1}>
+              {item.hall_location?.smart_location ??
+                item.hall_details?.hall_address ??
+                "Ulaanbaatar"}
+            </Text>
+          </View>
+          <View style={s.bottomRow}>
+            <Text style={[s.price, { color: C.accentPrimary }]}>
+              ₮{(price ?? 0).toLocaleString()}
+              <Text style={[s.unit, { color: C.outline }]}> / hr</Text>
+            </Text>
+            <View style={[s.badge, { backgroundColor: C.accentPrimaryGlow }]}>
+              <Ionicons name="star" size={10} color="#FFD700" />
+              <Text style={[s.badgeText, { color: C.accentPrimary }]}>4.8</Text>
+            </View>
+          </View>
+        </View>
+        <Ionicons
+          name="chevron-forward"
+          size={16}
+          color={C.outline}
+          style={s.chev}
+        />
+      </TouchableOpacity>
+    );
+  },
+);
 
-    viewButton: {
-      backgroundColor: "rgba(97, 179, 250, 0) ",
-      height: 200,
-      width: 40,
-      position: "absolute",
-      right: 0,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-  });
-  const [loading, setLoading] = useState(false);
-  const listRef = useRef<BottomSheetFlatListMethods>(null);
+const categories = [
+  { key: "nearby", label: "Nearby" },
+  { key: "top", label: "Top Rated" },
+  { key: "recommended", label: "Recommended" },
+];
+
+const ListingComponent = ({ listings: items }: Props) => {
+  const { colors: C } = useTheme();
   const router = useRouter();
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [selected, setSelected] = useState<string | null>(null);
 
-  const handleCategoryPress = (label: string): void => {
-    setSelected(label);
-  };
+  const displayedItems = useMemo(
+    () => items.slice(0, visibleCount),
+    [items, visibleCount],
+  );
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 200);
-  }, [category, items]);
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [items]);
 
-  const handlePress = useCallback(
-    (sportHallID: string) => {
-      router.push(`/listing/${sportHallID}`);
-    },
+  const onPress = useCallback(
+    (id: string) => router.push(`/listing/${id}`),
     [router],
   );
 
-  const isSportHall = (
-    it: SportHallDataType | EsportHallDataType,
-  ): it is SportHallDataType => {
-    return !!(it as SportHallDataType).hall_details?.hall_price?.oneHour;
-  };
-
-  const ListingItem = React.memo(
-    ({
-      item,
-      onPress,
-    }: {
-      item: SportHallDataType | EsportHallDataType;
-      onPress: (id: string) => void;
-    }) => {
-      return (
-        <TouchableOpacity
-          onPress={() => onPress(item.sportHallID)}
-          style={styles.itemContainer}
-        >
-          <ImageBackground
-            source={require("../assets/images/listingicons/1.png")}
-            style={styles.backgroundImage}
-          >
-            <View style={styles.detailsContainer}>
-              <Text style={styles.text}>
-                {item.hall_details?.hall_name ?? "Hall Name"}
-              </Text>
-
-              <View style={styles.ratingContainer}>
-                <MaterialIcons name="sports-score" size={24} color="red" />
-                {/* <Text style={styles.text}>
-                  {item.review_scores_rating / 20}
-                </Text> */}
-              </View>
-
-              <View style={styles.locationContainer}>
-                <Image
-                  source={require("../assets/images/placeholder.png")}
-                  style={styles.placeholderImage}
-                />
-                {/* <Text style={styles.text}>{item.city}</Text>
-                <Text style={styles.text}>{item.neighbourhood}</Text> */}
-              </View>
-
-              {/* {"price" in item ? (
-                <AppText>{item.price.oneHour} / hr</AppText>
-              ) : "prices" in item ? (
-                <Text style={styles.text}>
-                  ${item.prices.regularPc.oneHour} / hr
-                </Text>
-              ) : null} */}
-
-              {isSportHall(item) ? (
-                <AppText>{item.hall_details.hall_price.oneHour} / hr</AppText>
-              ) : null}
-
-              <TouchableOpacity style={styles.viewButton}>
-                <Image
-                  source={require("../assets/images/listingicons/right.png")}
-                  style={styles.icon}
-                />
-              </TouchableOpacity>
-            </View>
-          </ImageBackground>
-        </TouchableOpacity>
-      );
-    },
-    (prevProps, nextProps) => prevProps.item === nextProps.item,
+  const renderItem = useCallback(
+    ({ item }: { item: any }) => <ListingItem item={item} onPress={onPress} />,
+    [onPress],
   );
 
-  const renderRow: ListRenderItem<SportHallDataType | EsportHallDataType> =
-    useCallback(
-      ({ item }) => {
-        return <ListingItem item={item} onPress={handlePress} />;
-      },
-      [handlePress],
-    );
-
-  const CategoryButton = ({
-    label,
-    selected,
-    onPress,
-  }: {
-    label: ReactElement<any, any>;
-    selected: boolean;
-    onPress: () => void;
-  }) => (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[
-        styles.categoryButton,
-        selected && {
-          backgroundColor: Colors.primary,
-          borderRadius: 10,
-          elevation: 5,
-        }, // Selected button styling
-      ]}
-    >
-      <Text
-        style={[
-          selected && {
-            fontSize: 18,
-            fontWeight: "bold",
-            color: Colors.themeColorTextPure,
-          }, // Change text color to white when selected
-        ]}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
+  const keyExtractor = useCallback(
+    (item: any) =>
+      String(item.sportHallID ?? item.reference_hallId ?? item._id),
+    [],
   );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: ITEM_HEIGHT,
+      offset: ITEM_HEIGHT * index,
+      index,
+    }),
+    [],
+  );
+
+  const loadMore = useCallback(
+    () => setVisibleCount((p) => Math.min(p + INCREMENT, items.length)),
+    [items.length],
+  );
+  const hasMore = visibleCount < items.length;
 
   return (
-    <LinearGradient
-      colors={[Colors.backgroundColor, Colors.primary]}
-      start={[0, 0]}
-      end={[0, 1]}
-      style={[styles.container, { flex: 1 }]}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-around",
-          backgroundColor: Colors.backgroundColor,
-          borderRadius: 20,
-          paddingVertical: 8,
-          marginVertical: 10,
-          borderColor: Colors.primary,
-          borderWidth: 1,
-          elevation: 10,
-          shadowOpacity: 0.3,
-        }}
-      >
-        {["ойрхон ", "шилдэг", "зөвлөx"].map((label) => (
-          <CategoryButton
-            key={label}
-            label={<AppText>{label}</AppText>}
-            selected={selected === label}
-            onPress={() => handleCategoryPress(label)}
-          />
-        ))}
+    <View style={s.container} pointerEvents="box-none">
+      <View style={s.filterRow}>
+        {categories.map((cat) => {
+          const active = selected === cat.key;
+          return (
+            <TouchableOpacity
+              key={cat.key}
+              activeOpacity={0.7}
+              onPress={() =>
+                setSelected((prev) => (prev === cat.key ? null : cat.key))
+              }
+              style={[
+                s.filterBtn,
+                {
+                  backgroundColor: active ? C.accentPrimary : C.surface,
+                  borderColor: active ? C.accentPrimary : C.border,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  s.filterText,
+                  { color: active ? "#FFF" : C.onSurface },
+                  active && { fontWeight: "700" },
+                ]}
+              >
+                {cat.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
-
-      {loading ? (
-        <OwnActivaterIndicator />
-      ) : (
-        <BottomSheetFlatList
-          ref={listRef}
-          data={items}
-          renderItem={renderRow}
-          keyExtractor={(item: any) => item.sportHallID}
-          contentContainerStyle={styles.flatListContent}
-          onEndReached={() => console.log("end reached")}
-          onEndReachedThreshold={0.1}
-          initialNumToRender={10}
-          windowSize={5}
-          maintainVisibleContentPosition={{
-            minIndexForVisible: 0,
-          }}
-        />
-      )}
-    </LinearGradient>
+      <BottomSheetFlatList
+        data={displayedItems}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        ListEmptyComponent={
+          <View style={s.empty}>
+            <Text style={[s.emptyText, { color: C.outline }]}>
+              No halls found
+            </Text>
+          </View>
+        }
+        ListFooterComponent={
+          hasMore ? (
+            <View style={s.footer}>
+              <Text style={[s.footerText, { color: C.outline }]}>
+                Loading more...
+              </Text>
+            </View>
+          ) : null
+        }
+        contentContainerStyle={s.list}
+        showsVerticalScrollIndicator={false}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        getItemLayout={getItemLayout}
+        initialNumToRender={8}
+        maxToRenderPerBatch={5}
+        windowSize={3}
+      />
+    </View>
   );
 };
+
+const s = StyleSheet.create({
+  container: { flex: 1 },
+  list: { paddingHorizontal: 12, paddingTop: 8, paddingBottom: 24 },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderRadius: 12,
+    position: "relative",
+  },
+  cardAccent: {
+    position: "absolute",
+    left: 0,
+    top: 12,
+    bottom: 12,
+    width: 3,
+    borderTopRightRadius: 2,
+    borderBottomRightRadius: 2,
+  },
+  imgWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+    overflow: "hidden",
+    borderWidth: 1,
+  },
+  img: { width: "100%", height: "100%" },
+  imgPlaceholder: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  info: { flex: 1, paddingLeft: 12, gap: 4 },
+  name: { fontSize: 15, fontWeight: "700" },
+  row: { flexDirection: "row", alignItems: "center", gap: 4 },
+  sub: { fontSize: 12, flex: 1 },
+  bottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 4,
+  },
+  price: { fontSize: 14, fontWeight: "800" },
+  unit: { fontSize: 11, fontWeight: "400" },
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  badgeText: { fontSize: 10, fontWeight: "700" },
+  chev: { marginLeft: 4 },
+  empty: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  emptyText: { fontSize: 14 },
+  filterRow: {
+    flexDirection: "row",
+    paddingHorizontal: 12,
+    gap: 8,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  filterBtn: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  filterText: { fontSize: 12, fontWeight: "600" },
+  footer: { paddingVertical: 16, alignItems: "center" },
+  footerText: { fontSize: 12, fontWeight: "600" },
+});
 
 export default ListingComponent;

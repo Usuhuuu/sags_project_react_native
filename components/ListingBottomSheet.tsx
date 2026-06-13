@@ -81,8 +81,6 @@ const ListingBottomSheet = ({
       <View
         style={{
           backgroundColor: Colors.backgroundColor,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
           flex: 1,
         }}
       >
@@ -124,9 +122,9 @@ const ListingBottomSheet = ({
 const styles = StyleSheet.create({
   absoluteBtn: {
     position: "absolute",
-    bottom: 50,
-    alignSelf: "flex-end",
-    width: "30%",
+    bottom: 30,
+    right: 20,
+    zIndex: 100,
   },
 
   btnText: {

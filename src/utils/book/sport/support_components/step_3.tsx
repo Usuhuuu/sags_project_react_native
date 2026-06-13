@@ -2,7 +2,7 @@ import { SportBookingData } from "@/src/context/store/bookStore";
 import { useTheme } from "@/src/context/themeContext";
 import AppText from "@/constants/appTextDefault";
 import React, { SetStateAction } from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { format } from "date-fns";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
@@ -19,6 +19,209 @@ interface Step_Three_Props {
   handleOrder: () => void;
 }
 
+// ── Styles ─────────────────────────────────────────────────────────────────
+const createStyles = (c: any) =>
+  StyleSheet.create({
+    root: {
+      paddingHorizontal: 16,
+      paddingTop: 20,
+      paddingBottom: 24,
+      gap: 16,
+    },
+    card: {
+      backgroundColor: c.surface,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: c.border,
+      padding: 16,
+      shadowColor: c.shadowColor,
+      shadowOpacity: 0.08,
+      shadowOffset: { height: 2, width: 0 },
+      shadowRadius: 10,
+      elevation: 3,
+      gap: 14,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: "800",
+      color: c.onSurface,
+      letterSpacing: -0.3,
+    },
+    infoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: c.surfaceHigh,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+    },
+    infoLabel: {
+      fontSize: 15,
+      fontWeight: "500",
+      color: c.onSurfaceVariant,
+    },
+    infoValue: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: c.onSurface,
+    },
+    sectionLabel: {
+      fontSize: 17,
+      fontWeight: "700",
+      color: c.onSurface,
+      marginTop: 4,
+    },
+    timeCard: {
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: 14,
+      overflow: "hidden",
+    },
+    timeHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: c.borderSubtle,
+    },
+    timeHeaderLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    timeHeaderLabel: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: c.onSurface,
+    },
+    timeHeaderPrice: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: c.accentPrimary,
+    },
+    peopleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+    },
+    peopleLabel: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: c.onSurfaceVariant,
+    },
+    peopleValue: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: c.onSurface,
+    },
+    peopleIcon: {
+      marginLeft: 4,
+    },
+    sessionRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      backgroundColor: c.surfaceHigh,
+      marginHorizontal: 8,
+      borderRadius: 10,
+      marginBottom: 4,
+    },
+    sessionText: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: c.onSurfaceVariant,
+    },
+    sessionValue: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: c.onSurface,
+    },
+    breakdownCard: {
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: 14,
+      overflow: "hidden",
+    },
+    breakdownHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: c.borderSubtle,
+    },
+    breakdownRow: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+    },
+    breakdownCell: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: c.onSurface,
+      textAlign: "center",
+    },
+    totalRow: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderTopWidth: 1,
+      borderTopColor: c.borderSubtle,
+      alignItems: "center",
+    },
+    totalText: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: c.accentPrimary,
+    },
+    bookerTotalText: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: c.onSurface,
+      textAlign: "center",
+      paddingVertical: 10,
+    },
+    btnRow: {
+      flexDirection: "row",
+      gap: 12,
+    },
+    btnOutline: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: 14,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: c.border,
+      backgroundColor: c.surface,
+    },
+    btnOutlineText: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: c.onSurface,
+    },
+    btnPrimary: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: 14,
+      borderRadius: 14,
+      backgroundColor: c.accentPrimary,
+    },
+    btnPrimaryText: {
+      color: "#FFFFFF",
+      fontSize: 15,
+      fontWeight: "700",
+    },
+  });
+
 const Step_Three = ({
   bookingDetails,
   wholeDay,
@@ -32,471 +235,191 @@ const Step_Three = ({
   playersNeeded,
 }: Step_Three_Props) => {
   const { colors } = useTheme();
+  const s = createStyles(colors);
 
   return (
-    <View
-      style={{
-        backgroundColor: colors.backgroundColor,
-        flex: 1,
-        alignItems: "center",
-        gap: 20,
-      }}
-    >
-      <View
-        style={{
-          width: "90%",
-          gap: 10,
-          backgroundColor: colors.containerColor,
-          padding: 15,
-          borderRadius: 10,
-          shadowColor: colors.shadowColor,
-          shadowOpacity: 1,
-          shadowOffset: { height: 0, width: 0 },
-        }}
-      >
-        <View>
-          <AppText
-            style={{
-              fontSize: 24,
-              color: colors.themeColorTextPure,
-            }}
-          >
-            Booking Confirmation
-          </AppText>
-        </View>
+    <View style={s.root}>
+      <View style={s.card}>
+        <AppText style={s.title}>Booking Confirmation</AppText>
 
-        <View
-          style={{
-            gap: 10,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              borderWidth: 1,
-              padding: 20,
-              borderRadius: 5,
-              justifyContent: "space-between",
-              borderColor: colors.darkGrey,
-            }}
-          >
-            <AppText
-              style={{
-                fontSize: 18,
-                fontWeight: 500,
-                color: colors.themeColorTextPure,
-              }}
-            >
-              {bookingDetails?.name}
-            </AppText>
+        {/* Hall name & Date */}
+        <View style={{ gap: 10 }}>
+          <View style={s.infoRow}>
+            <AppText style={s.infoValue}>{bookingDetails?.name}</AppText>
           </View>
-          <View
-            style={{
-              flexDirection: "row",
-              borderWidth: 1,
-              padding: 20,
-              borderRadius: 5,
-              justifyContent: "space-between",
-              borderColor: colors.darkGrey,
-            }}
-          >
-            <AppText
-              style={{
-                fontSize: 18,
-                fontWeight: 500,
-                color: colors.darkGrey,
-              }}
-            >
-              Date
-            </AppText>
-            <AppText
-              style={{
-                fontSize: 18,
-                fontWeight: 500,
-                color: colors.themeColorTextPure,
-              }}
-            >
+          <View style={s.infoRow}>
+            <AppText style={s.infoLabel}>Date</AppText>
+            <AppText style={s.infoValue}>
               {bookingDetails?.date
                 ? format(new Date(bookingDetails.date), "EEE, dd LLLL")
                 : ""}
             </AppText>
           </View>
         </View>
-        <AppText style={{ fontSize: 24, color: colors.themeColorTextPure }}>
-          Times & Player Needed
-        </AppText>
-        <View style={{ gap: 10 }}>
-          {wholeDay ? (
-            <View
-              style={{
-                flexDirection: "column",
-                justifyContent: "space-between",
-                gap: 5,
-                borderWidth: 1,
-                borderColor: colors.darkGrey,
-                borderRadius: 5,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  padding: 20,
-                  borderBottomWidth: 1,
-                  alignItems: "center",
-                  borderBottomColor: colors.darkGrey,
-                }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 5,
-                    alignItems: "center",
-                  }}
-                >
-                  <MaterialCommunityIcons
-                    name="clock-time-nine-outline"
-                    size={24}
-                    color={colors.themeColorTextPure}
-                  />
-                  <AppText
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 500,
-                      color: colors.themeColorTextPure,
-                    }}
-                  >
-                    Whole Day
-                  </AppText>
-                </View>
-                <AppText
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 500,
-                    color: colors.themeColorTextPure,
-                  }}
-                >
-                  ₮{bookingDetails?.price.wholeDay}
-                </AppText>
+
+        <AppText style={s.sectionLabel}>Times & Players</AppText>
+
+        {wholeDay ? (
+          <View style={s.timeCard}>
+            <View style={s.timeHeader}>
+              <View style={s.timeHeaderLeft}>
+                <MaterialCommunityIcons
+                  name="clock-time-nine-outline"
+                  size={20}
+                  color={colors.onSurface}
+                />
+                <AppText style={s.timeHeaderLabel}>Whole Day</AppText>
               </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  padding: 20,
-                  borderBottomWidth: 1,
-                  alignItems: "center",
-                  borderBottomColor: colors.themeColorTextPure,
-                }}
-              >
-                <AppText
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 500,
-                    color: colors.darkGrey,
-                  }}
-                >
-                  Peoples
-                </AppText>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <AppText
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 500,
-                      color: colors.themeColorTextPure,
-                    }}
-                  >
-                    {wholeDayPeople}
-                  </AppText>
-                  <MaterialIcons
-                    name="people-alt"
-                    size={24}
-                    color={colors.themeColorTextPure}
-                  />
-                </View>
-              </View>
-              <View
-                style={{
-                  marginTop: 10,
-                  padding: 10,
-                  gap: 5,
-                }}
-              >
-                <AppText
-                  style={{
-                    fontSize: 18,
-                    fontWeight: "bold",
-                    textAlign: "center",
-                    color: colors.themeColorTextPure,
-                  }}
-                >
-                  Booker's Total: ₮
-                  {wholeDayPeople <= 0
-                    ? bookingDetails?.price.wholeDay
-                    : Number(bookingDetails?.price.wholeDay) / wholeDayPeople}
-                </AppText>
+              <AppText style={s.timeHeaderPrice}>
+                ₮{bookingDetails?.price.wholeDay}
+              </AppText>
+            </View>
+            <View style={s.peopleRow}>
+              <AppText style={s.peopleLabel}>People</AppText>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <AppText style={s.peopleValue}>{wholeDayPeople}</AppText>
+                <MaterialIcons
+                  name="people-alt"
+                  size={20}
+                  color={colors.onSurface}
+                  style={s.peopleIcon}
+                />
               </View>
             </View>
-          ) : (
-            <>
-              <View style={{ gap: 10 }}>
-                {selectedTimeSlots.map((group, index) => {
-                  const startTime = group[0].split("~")[0];
-                  const endTime = group[group.length - 1].split("~")[1];
-                  return (
-                    <View
-                      key={index}
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        padding: 10,
-                        gap: 5,
-                        borderWidth: 1,
-                        borderColor: colors.themeColorTextPure,
-                        borderRadius: 5,
-                      }}
-                    >
-                      <AppText
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 500,
-                          color: colors.darkGrey,
-                        }}
-                      >
-                        {startTime} – {endTime}
-                      </AppText>
-                      <AppText
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 500,
-                          color: colors.themeColorTextPure,
-                        }}
-                      >
-                        {playersNeeded[index] || 0} Person
-                      </AppText>
-                    </View>
-                  );
-                })}
-              </View>
-              <View
-                style={{
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  gap: 5,
-                  borderWidth: 1,
-                  borderColor: colors.themeColorTextPure,
-                  borderRadius: 5,
-                }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    padding: 20,
-                    borderBottomWidth: 1,
-                    alignItems: "center",
-                    borderBottomColor: colors.themeColorTextPure,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: 5,
-                      alignItems: "center",
-                    }}
-                  >
-                    <MaterialCommunityIcons
-                      name="clock-time-nine-outline"
-                      size={24}
-                      color={colors.darkGrey}
-                    />
-                    <AppText
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 500,
-                        color: colors.darkGrey,
-                      }}
-                    >
-                      1 Hour
+            <View style={s.totalRow}>
+              <AppText style={s.totalText}>
+                Booker's Total: ₮
+                {wholeDayPeople <= 0
+                  ? bookingDetails?.price.wholeDay
+                  : Number(bookingDetails?.price.wholeDay) / wholeDayPeople}
+              </AppText>
+            </View>
+          </View>
+        ) : (
+          <>
+            {/* Time slots */}
+            <View style={{ gap: 8 }}>
+              {selectedTimeSlots.map((group, index) => {
+                const startTime = group[0].split("~")[0];
+                const endTime = group[group.length - 1].split("~")[1];
+                return (
+                  <View key={index} style={s.sessionRow}>
+                    <AppText style={s.sessionText}>
+                      {startTime} – {endTime}
+                    </AppText>
+                    <AppText style={s.sessionValue}>
+                      {playersNeeded[index] || 0} Person
                     </AppText>
                   </View>
+                );
+              })}
+            </View>
+
+            {/* Price breakdown */}
+            <View style={s.breakdownCard}>
+              <View style={s.breakdownHeader}>
+                <View style={s.timeHeaderLeft}>
+                  <MaterialCommunityIcons
+                    name="clock-time-nine-outline"
+                    size={20}
+                    color={colors.onSurfaceVariant}
+                  />
                   <AppText
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 500,
-                      color: colors.themeColorTextPure,
-                    }}
+                    style={[
+                      s.timeHeaderLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
                   >
-                    ₮{bookingDetails?.price.oneHour}
+                    1 Hour
                   </AppText>
                 </View>
-                <View>
-                  {(() => {
-                    return (
-                      <>
-                        {selectedTimeSlots.map((group, index) => {
-                          const startTime = group[0].split("~")[0];
-                          const endTime = group[group.length - 1].split("~")[1];
-
-                          const getHour = (time: string) => {
-                            const [hourStr] = time.split(":");
-                            return parseInt(hourStr, 10);
-                          };
-
-                          const startHour = getHour(startTime);
-                          const endHour = getHour(endTime);
-                          const durationHours = endHour - startHour;
-
-                          const costPerHour = 1000;
-                          const totalCost = durationHours * costPerHour;
-
-                          const totalPeople = (playersNeeded[index] || 0) + 1;
-
-                          const paymentPerPeople =
-                            totalPeople > 0 ? totalCost / totalPeople : 0;
-
-                          // Add to booker’s total
-                          paymentPerPeopleArray.push(paymentPerPeople);
-                          totalBookerPaymentArray.push(paymentPerPeople);
-
-                          return (
-                            <View
-                              key={index}
-                              style={{
-                                flexDirection: "column",
-                                justifyContent: "space-evenly",
-                                padding: 10,
-                                gap: 5,
-                              }}
-                            >
-                              <AppText
-                                style={{
-                                  fontSize: 16,
-                                  fontWeight: 500,
-                                  color: colors.darkGrey,
-                                }}
-                              >
-                                Session {index + 1}:
-                              </AppText>
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  justifyContent: "space-around",
-                                }}
-                              >
-                                <AppText
-                                  style={{
-                                    fontSize: 18,
-                                    fontWeight: 500,
-                                    color: colors.themeColorTextPure,
-                                  }}
-                                >
-                                  {durationHours} Hours
-                                </AppText>
-                                <AppText
-                                  style={{
-                                    fontSize: 18,
-                                    fontWeight: 500,
-                                    color: colors.themeColorTextPure,
-                                  }}
-                                >
-                                  {totalPeople} Players
-                                </AppText>
-                                <AppText
-                                  style={{
-                                    fontSize: 18,
-                                    fontWeight: 500,
-                                    color: colors.themeColorTextPure,
-                                  }}
-                                >
-                                  ₮{paymentPerPeople.toFixed(2)} Per Person
-                                </AppText>
-                              </View>
-                            </View>
-                          );
-                        })}
-
-                        <View
-                          style={{
-                            marginTop: 10,
-                            padding: 10,
-                            borderTopWidth: 1,
-                            borderColor: colors.littleDark,
-                          }}
-                        >
-                          <AppText
-                            style={{
-                              fontSize: 18,
-                              fontWeight: "bold",
-                              textAlign: "center",
-                              color: colors.themeColorTextPure,
-                            }}
-                          >
-                            Booker's Total: ₮
-                            {totalBookerPaymentArray
-                              .reduce((sum, v) => sum + v, 0)
-                              .toFixed(2)}
-                          </AppText>
-                        </View>
-                      </>
-                    );
-                  })()}
-                </View>
+                <AppText style={s.timeHeaderPrice}>
+                  ₮{bookingDetails?.price.oneHour}
+                </AppText>
               </View>
-            </>
-          )}
-        </View>
+
+              {(() => {
+                return (
+                  <>
+                    {selectedTimeSlots.map((group, index) => {
+                      const startTime = group[0].split("~")[0];
+                      const endTime = group[group.length - 1].split("~")[1];
+
+                      const getHour = (time: string) => {
+                        const [hourStr] = time.split(":");
+                        return parseInt(hourStr, 10);
+                      };
+
+                      const startHour = getHour(startTime);
+                      const endHour = getHour(endTime);
+                      const durationHours = endHour - startHour;
+
+                      const costPerHour = 1000;
+                      const totalCost = durationHours * costPerHour;
+
+                      const totalPeople = (playersNeeded[index] || 0) + 1;
+
+                      const paymentPerPeople =
+                        totalPeople > 0 ? totalCost / totalPeople : 0;
+
+                      paymentPerPeopleArray.push(paymentPerPeople);
+                      totalBookerPaymentArray.push(paymentPerPeople);
+
+                      return (
+                        <View key={index} style={{ paddingVertical: 4 }}>
+                          <AppText
+                            style={[
+                              s.sessionText,
+                              { paddingHorizontal: 16, paddingTop: 6 },
+                            ]}
+                          >
+                            Session {index + 1}:
+                          </AppText>
+                          <View style={s.breakdownRow}>
+                            <AppText style={s.breakdownCell}>
+                              {durationHours} Hours
+                            </AppText>
+                            <AppText style={s.breakdownCell}>
+                              {totalPeople} Players
+                            </AppText>
+                            <AppText style={s.breakdownCell}>
+                              ₮{paymentPerPeople.toFixed(2)}/person
+                            </AppText>
+                          </View>
+                        </View>
+                      );
+                    })}
+
+                    <View style={s.totalRow}>
+                      <AppText style={s.bookerTotalText}>
+                        Booker's Total: ₮
+                        {totalBookerPaymentArray
+                          .reduce((sum, v) => sum + v, 0)
+                          .toFixed(2)}
+                      </AppText>
+                    </View>
+                  </>
+                );
+              })()}
+            </View>
+          </>
+        )}
       </View>
-      <View
-        style={{
-          flexDirection: "row",
-          width: "90%",
-          justifyContent: "center",
-          gap: 20,
-          alignItems: "center",
-          flex: 1,
-        }}
-      >
+
+      <View style={s.btnRow}>
         <TouchableOpacity
-          style={{
-            width: "45%",
-            alignItems: "center",
-            padding: 10,
-            borderWidth: 1,
-            gap: 10,
-            borderColor: colors.darkGrey,
-            borderRadius: 5,
-          }}
+          style={s.btnOutline}
+          activeOpacity={0.7}
           onPress={() => setSteps(steps - 1)}
         >
-          <AppText style={{ color: colors.themeColorTextPure }}>
-            Preview
-          </AppText>
+          <AppText style={s.btnOutlineText}>Back</AppText>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            {
-              backgroundColor: colors.primary,
-              width: "45%",
-              alignItems: "center",
-              padding: 10,
-              borderWidth: 1,
-              gap: 10,
-              borderColor: colors.darkGrey,
-              borderRadius: 5,
-            },
-          ]}
-          onPress={() => {
-            handleOrder();
-          }}
+          style={s.btnPrimary}
+          activeOpacity={0.8}
+          onPress={() => handleOrder()}
         >
-          <AppText style={{ color: colors.themeColorTextPure }}>Book</AppText>
+          <AppText style={s.btnPrimaryText}>Book</AppText>
         </TouchableOpacity>
       </View>
     </View>
