@@ -3,7 +3,7 @@ import {
   useBookingStore,
 } from "@/src/context/store/bookStore";
 import { router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, TouchableOpacity, ScrollView } from "react-native";
 import { Feather, FontAwesome, Fontisto, Ionicons } from "@expo/vector-icons";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -118,7 +118,6 @@ const TransactionPage = () => {
     (state) => state.sportBookingDetails,
   ) as SportBookingData;
 
-  console.log(bookingDetails);
   useEffect(() => {
     bookingDetails?.selectedTimeSlots?.includes("WHOLE_DAY")
       ? setWholeDay(true)
@@ -128,8 +127,50 @@ const TransactionPage = () => {
   }, []);
   const [isOrdering, setIsOrdering] = useState<boolean>(false);
 
-  const paymentPerPeopleArray: number[] = [];
-  const totalBookerPaymentArray: number[] = [];
+  // ── Derived pricing (computed, readonly — frontend can't edit) ──────────
+  const timeCount = useMemo(() => {
+    if (wholeDay) return 24;
+    const getHour = (time: string) => {
+      const [hourStr] = time.split(":");
+      return parseInt(hourStr, 10);
+    };
+    return selectedTimeSlots.reduce((total, group) => {
+      const startTime = group[0].split("~")[0];
+      const endTime = group[group.length - 1].split("~")[1];
+      return total + (getHour(endTime) - getHour(startTime));
+    }, 0);
+  }, [selectedTimeSlots, wholeDay]);
+
+  const totalPrice = useMemo(() => {
+    if (!bookingDetails?.price) return 0;
+    if (wholeDay) return Number(bookingDetails.price.wholeDay);
+    const hourlyRate = Number(bookingDetails.price.oneHour);
+    return timeCount * hourlyRate;
+  }, [bookingDetails?.price, wholeDay, timeCount]);
+
+  const paymentPerPeopleArray = useMemo(() => {
+    if (wholeDay) return [];
+    const hourlyRate = Number(bookingDetails?.price?.oneHour || 0);
+    const getHour = (time: string) => {
+      const [hourStr] = time.split(":");
+      return parseInt(hourStr, 10);
+    };
+    return selectedTimeSlots.map((group, index) => {
+      const startTime = group[0].split("~")[0];
+      const endTime = group[group.length - 1].split("~")[1];
+      const durationHours = getHour(endTime) - getHour(startTime);
+      const totalCost = durationHours * hourlyRate;
+      const totalPeople = (playersNeeded[index] || 0) + 1;
+      return totalPeople > 0 ? totalCost / totalPeople : 0;
+    });
+  }, [
+    selectedTimeSlots,
+    bookingDetails?.price?.oneHour,
+    wholeDay,
+    playersNeeded,
+  ]);
+
+  const totalBookerPaymentArray = paymentPerPeopleArray;
 
   const handleOrder = async () => {
     try {
@@ -428,6 +469,8 @@ const TransactionPage = () => {
                   playersNeeded={playersNeeded}
                   paymentPerPeopleArray={paymentPerPeopleArray}
                   totalBookerPaymentArray={totalBookerPaymentArray}
+                  timeCount={timeCount}
+                  totalPrice={totalPrice}
                   handleOrder={handleOrder}
                 />
               )}

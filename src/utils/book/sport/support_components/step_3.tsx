@@ -16,6 +16,8 @@ interface Step_Three_Props {
   playersNeeded: { [key: number]: number };
   paymentPerPeopleArray: number[];
   totalBookerPaymentArray: number[];
+  timeCount: number;
+  totalPrice: number;
   handleOrder: () => void;
 }
 
@@ -190,6 +192,23 @@ const createStyles = (c: any) =>
       textAlign: "center",
       paddingVertical: 10,
     },
+    totalSummaryRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+    },
+    totalSummaryLabel: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: c.onSurface,
+    },
+    totalSummaryValue: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: c.accentPrimary,
+    },
     btnRow: {
       flexDirection: "row",
       gap: 12,
@@ -231,6 +250,8 @@ const Step_Three = ({
   wholeDayPeople,
   totalBookerPaymentArray,
   paymentPerPeopleArray,
+  timeCount,
+  totalPrice,
   handleOrder,
   playersNeeded,
 }: Step_Three_Props) => {
@@ -338,69 +359,72 @@ const Step_Three = ({
                 </AppText>
               </View>
 
-              {(() => {
+              {/* Total summary — clean, straight rows */}
+              <View style={s.totalSummaryRow}>
+                <AppText style={s.totalSummaryLabel}>Total Hours</AppText>
+                <AppText style={s.totalSummaryValue}>{timeCount}h</AppText>
+              </View>
+              <View
+                style={[
+                  s.totalSummaryRow,
+                  { borderTopWidth: 0, paddingTop: 0 },
+                ]}
+              >
+                <AppText style={s.totalSummaryLabel}>Total Price</AppText>
+                <AppText style={s.totalSummaryValue}>
+                  ₮{totalPrice.toLocaleString()}
+                </AppText>
+              </View>
+
+              {selectedTimeSlots.map((group, index) => {
+                const startTime = group[0].split("~")[0];
+                const endTime = group[group.length - 1].split("~")[1];
+
+                const getHour = (time: string) => {
+                  const [hourStr] = time.split(":");
+                  return parseInt(hourStr, 10);
+                };
+
+                const startHour = getHour(startTime);
+                const endHour = getHour(endTime);
+                const durationHours = endHour - startHour;
+
+                const totalPeople = (playersNeeded[index] || 0) + 1;
+                const paymentPerPerson = paymentPerPeopleArray[index] ?? 0;
+
                 return (
-                  <>
-                    {selectedTimeSlots.map((group, index) => {
-                      const startTime = group[0].split("~")[0];
-                      const endTime = group[group.length - 1].split("~")[1];
-
-                      const getHour = (time: string) => {
-                        const [hourStr] = time.split(":");
-                        return parseInt(hourStr, 10);
-                      };
-
-                      const startHour = getHour(startTime);
-                      const endHour = getHour(endTime);
-                      const durationHours = endHour - startHour;
-
-                      const costPerHour = 1000;
-                      const totalCost = durationHours * costPerHour;
-
-                      const totalPeople = (playersNeeded[index] || 0) + 1;
-
-                      const paymentPerPeople =
-                        totalPeople > 0 ? totalCost / totalPeople : 0;
-
-                      paymentPerPeopleArray.push(paymentPerPeople);
-                      totalBookerPaymentArray.push(paymentPerPeople);
-
-                      return (
-                        <View key={index} style={{ paddingVertical: 4 }}>
-                          <AppText
-                            style={[
-                              s.sessionText,
-                              { paddingHorizontal: 16, paddingTop: 6 },
-                            ]}
-                          >
-                            Session {index + 1}:
-                          </AppText>
-                          <View style={s.breakdownRow}>
-                            <AppText style={s.breakdownCell}>
-                              {durationHours} Hours
-                            </AppText>
-                            <AppText style={s.breakdownCell}>
-                              {totalPeople} Players
-                            </AppText>
-                            <AppText style={s.breakdownCell}>
-                              ₮{paymentPerPeople.toFixed(2)}/person
-                            </AppText>
-                          </View>
-                        </View>
-                      );
-                    })}
-
-                    <View style={s.totalRow}>
-                      <AppText style={s.bookerTotalText}>
-                        Booker's Total: ₮
-                        {totalBookerPaymentArray
-                          .reduce((sum, v) => sum + v, 0)
-                          .toFixed(2)}
+                  <View key={index} style={{ paddingVertical: 4 }}>
+                    <AppText
+                      style={[
+                        s.sessionText,
+                        { paddingHorizontal: 16, paddingTop: 6 },
+                      ]}
+                    >
+                      Session {index + 1}:
+                    </AppText>
+                    <View style={s.breakdownRow}>
+                      <AppText style={s.breakdownCell}>
+                        {durationHours} Hours
+                      </AppText>
+                      <AppText style={s.breakdownCell}>
+                        {totalPeople} Players
+                      </AppText>
+                      <AppText style={s.breakdownCell}>
+                        ₮{paymentPerPerson.toFixed(2)}/person
                       </AppText>
                     </View>
-                  </>
+                  </View>
                 );
-              })()}
+              })}
+
+              <View style={s.totalRow}>
+                <AppText style={s.bookerTotalText}>
+                  Booker's Total: ₮
+                  {totalBookerPaymentArray
+                    .reduce((sum, v) => sum + v, 0)
+                    .toFixed(2)}
+                </AppText>
+              </View>
             </View>
           </>
         )}

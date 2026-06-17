@@ -22,7 +22,7 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = zaalproject/Info.plist; sourceTree = "<group>"; };
 		3B3411526C66A3D636EA28B4 /* Pods-zaalproject.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-zaalproject.release.xcconfig"; path = "Target Support Files/Pods-zaalproject/Pods-zaalproject.release.xcconfig"; sourceTree = "<group>"; };
 		54C129F03FE80C187AF5C558 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-zaalproject/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		5984782E0ED0356C9BE76C32 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = zaalproject/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		5984782E0ED0356C9BE76C32 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = zaalproject/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		6C40CD8B414DB6F0CCA711F9 /* Pods-zaalproject.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-zaalproject.debug.xcconfig"; path = "Target Support Files/Pods-zaalproject/Pods-zaalproject.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = zaalproject/SplashScreen.storyboard; sourceTree = "<group>"; };
 		B34CF3F17EFA21FB5CFAA931 /* libPods-zaalproject.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-zaalproject.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -119,7 +119,6 @@
 				6C40CD8B414DB6F0CCA711F9 /* Pods-zaalproject.debug.xcconfig */,
 				3B3411526C66A3D636EA28B4 /* Pods-zaalproject.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -167,9 +166,7 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = JN448N4FBR;
 						LastSwiftMigration = 1250;
-						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -423,6 +420,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.usuhbayr.zaalproject;
 				PRODUCT_NAME = zaalproject;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "zaalproject/zaalproject-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -457,6 +455,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.usuhbayr.zaalproject;
 				PRODUCT_NAME = zaalproject;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "zaalproject/zaalproject-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

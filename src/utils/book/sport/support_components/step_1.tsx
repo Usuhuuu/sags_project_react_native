@@ -17,7 +17,6 @@ interface Step_One_Props {
   setSteps: React.Dispatch<SetStateAction<number>>;
 }
 
-// ── Styles ─────────────────────────────────────────────────────────────────
 const createStyles = (c: any) =>
   StyleSheet.create({
     root: {
@@ -201,6 +200,24 @@ const Step_One = ({
   const { colors } = useTheme();
   const s = createStyles(colors);
 
+  // ── Derived pricing ──────────────────────────────────────────────────
+  const timeCount = React.useMemo(() => {
+    if (wholeDay) return 24;
+    const getHour = (time: string) => {
+      const [hourStr] = time.split(":");
+      return parseInt(hourStr, 10);
+    };
+    return selectedTimeSlots.reduce((total, group) => {
+      const startTime = group[0].split("~")[0];
+      const endTime = group[group.length - 1].split("~")[1];
+      return total + (getHour(endTime) - getHour(startTime));
+    }, 0);
+  }, [selectedTimeSlots, wholeDay]);
+
+  const totalPrice = wholeDay
+    ? Number(bookingDetails?.price?.wholeDay || 0)
+    : timeCount * Number(bookingDetails?.price?.oneHour || 0);
+
   const updateSessions = {
     booking_summary: [
       {
@@ -316,14 +333,15 @@ const Step_One = ({
             )}
           </View>
 
+          <View style={s.summaryRow}>
+            <AppText style={s.summaryLabel}>Total Hours</AppText>
+            <AppText style={s.summaryValue}>{timeCount}h</AppText>
+          </View>
+
           <View style={s.totalRow}>
             <AppText style={s.totalLabel}>TOTAL</AppText>
             <AppText style={s.totalValue}>
-              ₮
-              {wholeDay
-                ? bookingDetails?.price?.wholeDay
-                : (selectedTimeSlots.length ?? 0) *
-                  Number(bookingDetails?.price.oneHour)}
+              ₮{totalPrice.toLocaleString()}
             </AppText>
           </View>
         </View>

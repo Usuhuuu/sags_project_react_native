@@ -20,8 +20,6 @@ const TabsLayout = () => {
         tabBarInactiveTintColor: Colors.themeColorTextSecondary,
         tabBarActiveTintColor: Colors.themeColorTextPure,
         headerShadowVisible: false,
-
-        // 👇 Change image to icons
         tabBarStyle: {
           backgroundColor: Colors.containerColor,
           borderTopWidth: theme === "dark" ? 0 : 0,
@@ -29,7 +27,6 @@ const TabsLayout = () => {
           elevation: 0,
           shadowOpacity: 0,
         },
-
         tabBarBackground: () => (
           <LinearGradient
             colors={[Colors.backgroundColor, Colors.primary]}
@@ -38,12 +35,13 @@ const TabsLayout = () => {
             style={StyleSheet.absoluteFill}
           />
         ),
-
         headerStyle: {
           backgroundColor: Colors.backgroundColor,
         },
         headerTintColor: Colors.themeColorTextPure,
         headerTitleStyle: { color: Colors.primary },
+        freezeOnBlur: true,
+        lazy: true,
       }}
     >
       {/* ------------ HOME TAB ----------- */}

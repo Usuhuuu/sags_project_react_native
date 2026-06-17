@@ -35,7 +35,7 @@ const ListingBottomSheet = ({
   const [refresh, setrefresh] = useState<number>(0);
 
   const filteredListData = useMemo(() => {
-    return listing.filter((item) => {
+    return listing.filter(() => {
       if (listing[0].hall_types.sub.includes(category as any)) {
         return true;
       }

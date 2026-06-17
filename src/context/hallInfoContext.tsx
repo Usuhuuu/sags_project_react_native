@@ -1,3 +1,4 @@
+import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import { SportHallDataType, EsportHallDataType } from "@/interfaces/listing";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
@@ -86,6 +87,22 @@ const HALL_DEFAULT_TIME_SLOTS = [
 ];
 const HallInfoContext = createContext<HallInfoType | undefined>(undefined);
 
+const initHallInfo = async () => {
+  try {
+    const response = await axiosInstanceRegular.get("/api/halls");
+    if (response.data) {
+      await AsyncStorage.setItem("hall_version", String(response.data.version));
+      await AsyncStorage.setItem("hall_infos", response.data.hallData);
+      return response.data.hallData;
+    } else {
+      return [];
+    }
+  } catch (err) {
+    console.log(err);
+    return [];
+  }
+};
+
 const HallInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [hallInfo, setHallInfo] = useState<
     Record<string, SportHallDataType | EsportHallDataType>
@@ -95,7 +112,9 @@ const HallInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const hallInfoGetter = async () => {
       try {
         const rawHallInfo = await AsyncStorage.getItem("hall_infos");
-        const hallInfos = rawHallInfo ? JSON.parse(rawHallInfo) : [];
+        const hallInfos = rawHallInfo
+          ? JSON.parse(rawHallInfo)
+          : await initHallInfo();
         const hallMap: Record<string, SportHallDataType | EsportHallDataType> =
           {};
         for (const hall of hallInfos) {

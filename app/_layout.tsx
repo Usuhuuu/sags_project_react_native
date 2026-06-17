@@ -112,15 +112,6 @@ export function RootLayout() {
     };
   }, []);
 
-  // Notifications.setNotificationHandler({
-  //   handleNotification: async () => {
-  //     return {
-  //       shouldShowAlert: true,
-  //       shouldPlaySound: true,
-  //       shouldSetBadge: true,
-  //     };
-  //   },
-  // });
   useEffect(() => {
     if (notificationData) {
       if (notificationData.data?.isLocal) return;
