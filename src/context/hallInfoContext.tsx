@@ -109,12 +109,15 @@ const HallInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   >({});
 
   useEffect(() => {
+    let mounted = true;
     const hallInfoGetter = async () => {
       try {
         const rawHallInfo = await AsyncStorage.getItem("hall_infos");
+        if (!mounted) return;
         const hallInfos = rawHallInfo
           ? JSON.parse(rawHallInfo)
           : await initHallInfo();
+        if (!mounted) return;
         const hallMap: Record<string, SportHallDataType | EsportHallDataType> =
           {};
         for (const hall of hallInfos) {
@@ -130,6 +133,9 @@ const HallInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       }
     };
     hallInfoGetter();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const getSpecificHall = React.useCallback(

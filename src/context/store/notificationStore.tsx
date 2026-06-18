@@ -42,7 +42,7 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
   addNotification: async (notif: RawNotification) => {
     const saved = await AsyncStorage.getItem("saved_notifications");
     const parsed: RawNotification[] = saved ? JSON.parse(saved) : [];
-    const updated = [notif, ...parsed];
+    const updated = [notif, ...parsed].slice(0, 100);
     await AsyncStorage.setItem("saved_notifications", JSON.stringify(updated));
     set((state) => ({
       notifications: [
@@ -53,7 +53,7 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
           seen: notif.seen ?? false,
         },
         ...state.notifications,
-      ],
+      ].slice(0, 100),
     }));
   },
   seenNotification: async (id: string) => {

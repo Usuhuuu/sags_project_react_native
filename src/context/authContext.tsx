@@ -25,18 +25,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [authInit, setAuthInit] = useState<boolean>(true);
   // Check login status on mount
   useEffect(() => {
+    let mounted = true;
     const persistLoginStatus = async () => {
       try {
         const loginStatus = await AsyncStorage.getItem("LoginStatus");
-        setIsAuthenticated(!!loginStatus); // set to true if loginStatus exists
+        if (!mounted) return;
+        setIsAuthenticated(!!loginStatus);
       } catch (error) {
         console.error("Failed to load login status from AsyncStorage", error);
       } finally {
-        setAuthInit(false);
+        if (mounted) setAuthInit(false);
       }
     };
 
     persistLoginStatus();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const login = async () => {

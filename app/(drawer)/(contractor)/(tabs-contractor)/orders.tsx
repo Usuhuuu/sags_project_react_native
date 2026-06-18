@@ -66,27 +66,24 @@ const ContractorBooking = () => {
     },
     {
       enabled: isFocused,
+      refetchInterval: false,
     },
   );
 
   useEffect(() => {
     if (data?.success && data.contractorData) {
+      const incoming = data.contractorData?.book ?? [];
+      if (!incoming.length) return;
+
       setBookingData((prev) => {
-        const incoming = data.contractorData?.book ?? [];
-
-        if (!incoming.length) return prev;
-
         const existing = prev[activeTab];
-
         const map = new Map<string, ContractorBookingType>();
 
-        // keep old
         for (const item of existing) {
           if (!item._id) continue;
           map.set(item._id, item);
         }
 
-        // add new page
         for (const item of incoming) {
           if (!item._id) continue;
           map.set(item._id, item);
@@ -98,7 +95,7 @@ const ContractorBooking = () => {
         };
       });
     }
-  }, [data, error]);
+  }, [data, error, activeTab]);
 
   const bookingStatusDetail: TabItem[] = [
     {

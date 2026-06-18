@@ -33,15 +33,7 @@ const ListingBottomSheet = ({
   const { height } = Dimensions.get("window");
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [refresh, setrefresh] = useState<number>(0);
-
-  const filteredListData = useMemo(() => {
-    return listing.filter(() => {
-      if (listing[0].hall_types.sub.includes(category as any)) {
-        return true;
-      }
-      return false;
-    });
-  }, [listing, category]);
+  const [sheetIndex, setSheetIndex] = useState(0);
 
   const showMap = () => {
     bottomSheetRef.current?.collapse();
@@ -51,7 +43,7 @@ const ListingBottomSheet = ({
   const unabledHeight = height - insets.bottom - insets.top;
   const snapPoints = useMemo(
     () => [unabledHeight * 0.04, unabledHeight * 0.85],
-    [],
+    [unabledHeight],
   );
 
   return (
@@ -60,6 +52,7 @@ const ListingBottomSheet = ({
       snapPoints={snapPoints}
       enableOverDrag={false}
       animatedPosition={bottomSheetY}
+      onChange={(index) => setSheetIndex(index)}
       handleStyle={{
         backgroundColor: Colors.backgroundColor,
       }}
@@ -84,11 +77,8 @@ const ListingBottomSheet = ({
           flex: 1,
         }}
       >
-        <Listings
-          listings={filteredListData}
-          category={category}
-          refresh={refresh}
-        />
+        <Listings listings={listing} category={category} refresh={refresh} />
+
         <View style={styles.absoluteBtn}>
           <TouchableOpacity
             onPress={showMap}

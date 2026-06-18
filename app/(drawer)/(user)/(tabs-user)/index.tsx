@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useCallback } from "react";
 import { Stack } from "expo-router";
 import ExploreHeader from "@/components/ExploreHeader";
 import ListingsMap from "@/components/ListingsMap";
@@ -18,6 +18,7 @@ const Page = () => {
   const bottomSheetY = useSharedValue(0);
 
   const onDataChanged = (c: HallCategoryValue) => {
+    console.log(`Category changed:`, c);
     setCategory(c);
   };
 

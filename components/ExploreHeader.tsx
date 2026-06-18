@@ -175,18 +175,15 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     const selected = itemsRef.current[index];
     pendingIndex.current = index;
     setActiveIndex(index);
-    if (selected) {
-      (selected as unknown as View).measure(
-        (_fx, fy, width, height, px, py) => {
-          scrollRef.current?.scrollTo({ x: px - 16, animated: true });
-        },
-      );
-    }
+    onCategoryChanged(sportDetail[index]?.id);
+    selected?.measure((_fx, _fy, _w, _h, px) => {
+      scrollRef.current?.scrollTo({ x: px - 16, animated: true });
+    });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const onScrollEnd = () => {
-    onCategoryChanged(sportDetail[pendingIndex.current].id);
+    onCategoryChanged(sportDetail[pendingIndex.current]?.id);
   };
 
   const openDrawer = () => {
@@ -299,6 +296,18 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
                       activeIndex === index ? Colors.primary : Colors.outline
                     }
                   />
+                  {activeIndex === index && (
+                    <View
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: Colors.primary,
+                        position: "absolute",
+                        bottom: 6,
+                      }}
+                    />
+                  )}
                 </TouchableOpacity>
               );
             })}

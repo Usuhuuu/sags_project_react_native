@@ -1,5 +1,5 @@
 import "@/utils/i18";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { TouchableOpacity } from "react-native";
 import { Stack, router } from "expo-router";
 import * as Sentry from "@sentry/react-native";
@@ -38,16 +38,7 @@ Sentry.init({
   tracesSampleRate: 1.0,
 });
 
-type SimpleNotificationContent = {
-  title: string;
-  body: string;
-  data?: any;
-};
-
 export function RootLayout() {
-  const [notificationData, setNotificationData] =
-    useState<SimpleNotificationContent | null>(null);
-
   // Notification Section
   useEffect(() => {
     const addNotification = useNotificationStore.getState().addNotification;
@@ -76,61 +67,13 @@ export function RootLayout() {
             queryKey: [`auth_friend`],
           });
         }
-
-        // Optionally update local state for immediate UI updates
-        setNotificationData((prev) => {
-          if (
-            prev?.title === title &&
-            prev?.body === body &&
-            JSON.stringify(prev?.data) === JSON.stringify(data)
-          ) {
-            return prev; // Skip duplicate
-          }
-
-          return {
-            title: newNotification.title,
-            body: newNotification.body,
-            data: {
-              ...data,
-              isLocal: true,
-            },
-          };
-        });
       },
     );
 
-    const responseListener =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        const { data } = response.notification.request.content;
-        if (data?.targetScreen) {
-        }
-      });
-
     return () => {
       listener.remove();
-      responseListener.remove();
     };
   }, []);
-
-  useEffect(() => {
-    if (notificationData) {
-      if (notificationData.data?.isLocal) return;
-      Notifications.scheduleNotificationAsync({
-        content: {
-          title: notificationData.title,
-          body: notificationData.body,
-          data: {
-            ...notificationData.data,
-            isLocal: true,
-          },
-          sound: "default",
-          badge: 1,
-        },
-        trigger: null,
-      });
-      console.log("Notification data:", notificationData);
-    }
-  }, [notificationData]);
 
   useEffect(() => {
     calendarPermission();
@@ -201,20 +144,6 @@ export function RootLayoutNav() {
           headerTitleStyle: { fontSize: 24, color: Colors.primary },
           animation: "fade",
           headerShown: false,
-          headerLeft: () => {
-            return (
-              <TouchableOpacity onPress={() => router.back()}>
-                <Ionicons name="arrow-back" size={24} color={Colors.primary} />
-              </TouchableOpacity>
-            );
-          },
-          headerRight: () => {
-            return (
-              <TouchableOpacity>
-                <Ionicons />
-              </TouchableOpacity>
-            );
-          },
         }}
       />
       <Stack.Screen

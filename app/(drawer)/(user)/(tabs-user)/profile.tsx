@@ -9,7 +9,7 @@ import { useAuth } from "@/src/context/authContext";
 import Page from "@/app/(modals)/authentication/login";
 
 import { useTheme } from "@/src/context/themeContext";
-import { useAuthQuery, useRegularQuery } from "@/hooks/useQuery";
+import { useAuthQuery } from "@/hooks/useQuery";
 import ServerErrorScreen from "@/app/servererror";
 import OwnActivaterIndicator from "@/constants/loaderAnimation";
 

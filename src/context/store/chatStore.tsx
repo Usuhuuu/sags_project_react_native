@@ -93,6 +93,12 @@ export const useChatStore = create<MessageMapProp>((set) => ({
           unique.push(msg);
         }
       }
+      // Cap stored messages per chat to prevent unbounded memory growth
+      const MAX_MESSAGES_PER_CHAT = 200;
+      if (unique.length > MAX_MESSAGES_PER_CHAT) {
+        unique.splice(0, unique.length - MAX_MESSAGES_PER_CHAT);
+      }
+
       newMap.set(chatID, {
         messages: unique,
         no_more_message: no_more_message ?? prevMsj.no_more_message,

@@ -1,18 +1,14 @@
-import { useAuth } from "@/src/context/authContext";
 import { useTheme } from "@/src/context/themeContext";
-import ExploreHeader from "@/components/ExploreHeader";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Tabs } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { View, StyleSheet } from "react-native";
-import { useSharedValue } from "react-native-reanimated";
 
 const TabsLayout = () => {
   const { colors: Colors, theme } = useTheme();
   const { t } = useTranslation();
-  const bottomSheetY = useSharedValue(0);
 
   return (
     <Tabs
@@ -50,12 +46,7 @@ const TabsLayout = () => {
         options={{
           tabBarLabel: t("home"),
           headerShadowVisible: false,
-          header: () => (
-            <ExploreHeader
-              onCategoryChanged={(category) => console.log(category)}
-              bottomSheetY={bottomSheetY}
-            />
-          ),
+
           tabBarIcon: ({ focused }) => {
             return (
               <Ionicons

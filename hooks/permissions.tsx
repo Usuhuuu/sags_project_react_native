@@ -23,7 +23,7 @@ export const calendarPermission = async () => {
         const updatedPermissions = { ...permissions, calendar: status };
         await AsyncStorage.setItem(
           "Permissions",
-          JSON.stringify(updatedPermissions)
+          JSON.stringify(updatedPermissions),
         );
       }
     }
@@ -44,7 +44,7 @@ export const reminderPermission = async () => {
       const updatedPermissions = { ...permissions, reminder: status };
       await AsyncStorage.setItem(
         "Permissions",
-        JSON.stringify(updatedPermissions)
+        JSON.stringify(updatedPermissions),
       );
     }
   } catch (err) {
@@ -65,7 +65,7 @@ export const cameraPermission = async () => {
         const updatedPermissions = { ...permissions, camera: status };
         await AsyncStorage.setItem(
           "Permissions",
-          JSON.stringify(updatedPermissions)
+          JSON.stringify(updatedPermissions),
         );
       }
     }
@@ -100,12 +100,12 @@ export const requestLocationPermission = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === "granted" || status === "denied") {
         const updatedPermissions = {
-          ...hasLocationPermission,
+          ...allPermission,
           location: status,
         };
         await AsyncStorage.setItem(
           "Permissions",
-          JSON.stringify(updatedPermissions)
+          JSON.stringify(updatedPermissions),
         );
       }
     }
@@ -115,9 +115,8 @@ export const requestLocationPermission = async () => {
 };
 
 export const notificationPermission = async () => {
-  let token: string | null = await SecureStorage.getItemAsync(
-    "notificationToken"
-  );
+  let token: string | null =
+    await SecureStorage.getItemAsync("notificationToken");
   if (token === null) {
     const { status } = await Notification.requestPermissionsAsync();
     if (status === "granted") {

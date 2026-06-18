@@ -80,6 +80,9 @@ export const connectSocket = async (): Promise<Socket | null> => {
 
       if (error.message === "websocket error") {
         console.log("WebSocket error, retrying...");
+        clearTimeout(timeout);
+        isConnecting = false;
+        resolve(null);
         return;
       }
 

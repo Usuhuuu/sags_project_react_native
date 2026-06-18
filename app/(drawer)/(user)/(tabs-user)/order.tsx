@@ -192,7 +192,7 @@ const OrderScreen = () => {
         return;
       }
     }
-  }, [data, error, isLoading]);
+  }, [data, error, isLoading, screenSeparator]);
 
   const loadMore = useCallback(() => {
     if (loading || !hasMore[screenSeparator] || !data?.bookingData.length)

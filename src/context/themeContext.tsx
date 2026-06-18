@@ -21,14 +21,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
-    console.log(theme);
+    let mounted = true;
     const loadTheme = async () => {
       const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+      if (!mounted) return;
       if (savedTheme === "light" || savedTheme === "dark") {
         setTheme(savedTheme);
       }
     };
     loadTheme();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const changeTheme = async (newTheme: "light" | "dark") => {

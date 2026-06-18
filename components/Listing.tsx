@@ -19,8 +19,8 @@ interface Props {
   refresh: number;
 }
 
-const ITEMS_PER_PAGE = 15;
-const INCREMENT = 7;
+const ITEMS_PER_PAGE = 8;
+const INCREMENT = 5;
 const ITEM_HEIGHT = 105;
 
 const ListingItem = memo(
@@ -196,9 +196,10 @@ const ListingComponent = ({ listings: items }: Props) => {
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         getItemLayout={getItemLayout}
-        initialNumToRender={8}
+        initialNumToRender={4}
         maxToRenderPerBatch={5}
-        windowSize={3}
+        windowSize={1}
+        removeClippedSubviews={true}
       />
     </View>
   );

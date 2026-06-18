@@ -214,18 +214,20 @@ const NotificationScreen = () => {
         const saved = await AsyncStorage.getItem(STORAGE_KEY);
         const parsed = saved ? JSON.parse(saved) : [];
         const newItem = { title, body, timestamp, seen: false };
-        const updated = [newItem, ...parsed];
+        const updated = [newItem, ...parsed].slice(0, 100);
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 
-        setSavedNotifications((prev) => [
-          {
-            id: String(timestamp),
-            message: { title: title ?? "Notification", body: body ?? "" },
-            time: String(timestamp),
-            seen: false,
-          },
-          ...prev,
-        ]);
+        setSavedNotifications((prev) =>
+          [
+            {
+              id: String(timestamp),
+              message: { title: title ?? "Notification", body: body ?? "" },
+              time: String(timestamp),
+              seen: false,
+            },
+            ...prev,
+          ].slice(0, 100),
+        );
       },
     );
     return () => subscription.remove();
