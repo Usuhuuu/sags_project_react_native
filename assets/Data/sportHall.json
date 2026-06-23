@@ -1,0 +1,398 @@
+[
+  {
+    "sportHallID": "694e331391de3dc9762352cd",
+    "hall_location": {
+      "latitude": "47.918467",
+      "longitude": "106.917701",
+      "smart_location": "Sukhbaatar District, Ulaanbaatar"
+    },
+    "hall_types": {
+      "main": "sport_hall",
+      "sub": ["basket_ball", "volley_ball", "foot_ball"]
+    },
+    "hall_details": {
+      "hall_name": "Gangnam Sports Center",
+      "hall_price": {
+        "oneHour": 50000,
+        "wholeDay": 350000
+      },
+      "hall_work_time": {
+        "start_time": "08:00",
+        "end_time": "23:00"
+      },
+      "hall_address": "Gangnam-daero 456"
+    },
+    "base_time_slots": [
+      {
+        "start_time": "08:00",
+        "end_time": "09:00"
+      },
+      {
+        "start_time": "09:00",
+        "end_time": "10:00"
+      },
+      {
+        "start_time": "10:00",
+        "end_time": "11:00"
+      },
+      {
+        "start_time": "11:00",
+        "end_time": "12:00"
+      },
+      {
+        "start_time": "12:00",
+        "end_time": "13:00"
+      },
+      {
+        "start_time": "13:00",
+        "end_time": "14:00"
+      },
+      {
+        "start_time": "14:00",
+        "end_time": "15:00"
+      },
+      {
+        "start_time": "15:00",
+        "end_time": "16:00"
+      },
+      {
+        "start_time": "16:00",
+        "end_time": "17:00"
+      },
+      {
+        "start_time": "17:00",
+        "end_time": "18:00"
+      },
+      {
+        "start_time": "18:00",
+        "end_time": "19:00"
+      },
+      {
+        "start_time": "19:00",
+        "end_time": "20:00"
+      },
+      {
+        "start_time": "20:00",
+        "end_time": "21:00"
+      },
+      {
+        "start_time": "21:00",
+        "end_time": "22:00"
+      },
+      {
+        "start_time": "22:00",
+        "end_time": "23:00"
+      },
+      {
+        "start_time": "23:00",
+        "end_time": "00:00"
+      }
+    ],
+    "createdAt": "2025-12-26T07:02:43.342Z",
+    "updatedAt": "2025-12-26T07:02:43.342Z",
+    "__v": 0
+  },
+  {
+    "sportHallID": "694e345d1dfba2b2fbfc89db",
+    "hall_types": {
+      "main": "esport_hall",
+      "sub": ["computer", "playstation"]
+    },
+    "hall_location": {
+      "latitude": "47.922184",
+      "longitude": "106.905721",
+      "smart_location": "Chingeltei District, Ulaanbaatar"
+    },
+    "hall_details": {
+      "hall_name": "VIP Cyber Arena",
+      "hall_price": {
+        "oneHour": 5000,
+        "wholeDay": 40000,
+        "pcHall": {
+          "oneHour": 5000,
+          "wholeNight": 20000
+        },
+        "pcVipHall": {
+          "oneHour": 8000,
+          "wholeNight": 30000
+        },
+        "pcStageHall": {
+          "oneHour": 10000,
+          "wholeNight": 40000
+        }
+      },
+      "hall_work_time": {
+        "start_time": "09:00",
+        "end_time": "06:00"
+      },
+      "hall_address": "Gangnam-daero 123, Gangnam-gu, Seoul"
+    },
+    "base_time_slots": [
+      {
+        "start_time": "08:00",
+        "end_time": "09:00"
+      },
+      {
+        "start_time": "09:00",
+        "end_time": "10:00"
+      },
+      {
+        "start_time": "10:00",
+        "end_time": "11:00"
+      },
+      {
+        "start_time": "11:00",
+        "end_time": "12:00"
+      },
+      {
+        "start_time": "12:00",
+        "end_time": "13:00"
+      },
+      {
+        "start_time": "13:00",
+        "end_time": "14:00"
+      },
+      {
+        "start_time": "14:00",
+        "end_time": "15:00"
+      },
+      {
+        "start_time": "15:00",
+        "end_time": "16:00"
+      },
+      {
+        "start_time": "16:00",
+        "end_time": "17:00"
+      },
+      {
+        "start_time": "17:00",
+        "end_time": "18:00"
+      },
+      {
+        "start_time": "18:00",
+        "end_time": "19:00"
+      },
+      {
+        "start_time": "19:00",
+        "end_time": "20:00"
+      },
+      {
+        "start_time": "20:00",
+        "end_time": "21:00"
+      },
+      {
+        "start_time": "21:00",
+        "end_time": "22:00"
+      },
+      {
+        "start_time": "22:00",
+        "end_time": "23:00"
+      },
+      {
+        "start_time": "23:00",
+        "end_time": "00:00"
+      }
+    ],
+    "createdAt": "2025-12-26T07:08:13.152Z",
+    "updatedAt": "2025-12-26T07:08:13.152Z",
+    "__v": 0
+  },
+  {
+    "sportHallID": "694e34b61dfba2b2fbfc89e3",
+    "hall_types": {
+      "main": "sport_hall",
+      "sub": ["basket_ball", "volley_ball"]
+    },
+    "hall_location": {
+      "latitude": "47.891245",
+      "longitude": "106.884932",
+      "smart_location": "Bayangol District, Ulaanbaatar"
+    },
+    "hall_details": {
+      "hall_name": "Prime Sports Arena",
+      "hall_price": {
+        "oneHour": 60000,
+        "wholeDay": 450000
+      },
+      "hall_work_time": {
+        "start_time": "08:00",
+        "end_time": "23:00"
+      },
+      "hall_address": "Central-ro 45, Yeonsu-gu, Incheon"
+    },
+    "base_time_slots": [
+      {
+        "start_time": "08:00",
+        "end_time": "09:00"
+      },
+      {
+        "start_time": "09:00",
+        "end_time": "10:00"
+      },
+      {
+        "start_time": "10:00",
+        "end_time": "11:00"
+      },
+      {
+        "start_time": "11:00",
+        "end_time": "12:00"
+      },
+      {
+        "start_time": "12:00",
+        "end_time": "13:00"
+      },
+      {
+        "start_time": "13:00",
+        "end_time": "14:00"
+      },
+      {
+        "start_time": "14:00",
+        "end_time": "15:00"
+      },
+      {
+        "start_time": "15:00",
+        "end_time": "16:00"
+      },
+      {
+        "start_time": "16:00",
+        "end_time": "17:00"
+      },
+      {
+        "start_time": "17:00",
+        "end_time": "18:00"
+      },
+      {
+        "start_time": "18:00",
+        "end_time": "19:00"
+      },
+      {
+        "start_time": "19:00",
+        "end_time": "20:00"
+      },
+      {
+        "start_time": "20:00",
+        "end_time": "21:00"
+      },
+      {
+        "start_time": "21:00",
+        "end_time": "22:00"
+      },
+      {
+        "start_time": "22:00",
+        "end_time": "23:00"
+      },
+      {
+        "start_time": "23:00",
+        "end_time": "00:00"
+      }
+    ],
+    "createdAt": "2025-12-26T07:09:42.076Z",
+    "updatedAt": "2025-12-26T07:09:42.076Z",
+    "__v": 0
+  },
+  {
+    "sportHallID": "694e34f21dfba2b2fbfc89eb",
+    "hall_types": {
+      "main": "esport_hall",
+      "sub": ["computer"]
+    },
+    "hall_location": {
+      "latitude": "47.900873",
+      "longitude": "106.934581",
+      "smart_location": "Bayanzurkh District, Ulaanbaatar"
+    },
+    "hall_details": {
+      "hall_name": "Neon Pixel PC Arena",
+      "hall_price": {
+        "oneHour": 4500,
+        "wholeDay": 35000,
+        "pcHall": {
+          "oneHour": 4500,
+          "wholeNight": 18000
+        },
+        "pcVipHall": {
+          "oneHour": 7500,
+          "wholeNight": 28000
+        },
+        "pcStageHall": {
+          "oneHour": 12000,
+          "wholeNight": 45000
+        }
+      },
+      "hall_work_time": {
+        "start_time": "10:00",
+        "end_time": "07:00"
+      },
+      "hall_address": "Haeundae-ro 88, Haeundae-gu, Busan"
+    },
+    "base_time_slots": [
+      {
+        "start_time": "08:00",
+        "end_time": "09:00"
+      },
+      {
+        "start_time": "09:00",
+        "end_time": "10:00"
+      },
+      {
+        "start_time": "10:00",
+        "end_time": "11:00"
+      },
+      {
+        "start_time": "11:00",
+        "end_time": "12:00"
+      },
+      {
+        "start_time": "12:00",
+        "end_time": "13:00"
+      },
+      {
+        "start_time": "13:00",
+        "end_time": "14:00"
+      },
+      {
+        "start_time": "14:00",
+        "end_time": "15:00"
+      },
+      {
+        "start_time": "15:00",
+        "end_time": "16:00"
+      },
+      {
+        "start_time": "16:00",
+        "end_time": "17:00"
+      },
+      {
+        "start_time": "17:00",
+        "end_time": "18:00"
+      },
+      {
+        "start_time": "18:00",
+        "end_time": "19:00"
+      },
+      {
+        "start_time": "19:00",
+        "end_time": "20:00"
+      },
+      {
+        "start_time": "20:00",
+        "end_time": "21:00"
+      },
+      {
+        "start_time": "21:00",
+        "end_time": "22:00"
+      },
+      {
+        "start_time": "22:00",
+        "end_time": "23:00"
+      },
+      {
+        "start_time": "23:00",
+        "end_time": "00:00"
+      }
+    ],
+    "createdAt": "2025-12-26T07:10:42.641Z",
+    "updatedAt": "2025-12-26T07:10:42.641Z",
+    "__v": 0
+  }
+]

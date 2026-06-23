@@ -1,0 +1,298 @@
+{
+  "type": "mn",
+  "name": "Монгол",
+  "author": "Zaal Togsolt",
+  "version": "1.0.0",
+  "data": {
+    "home": "Нүүр хуудас",
+    "together": "Хамтдаа",
+    "order": "Захиалга",
+    "profile": "Профайл",
+    "notificationText": "Мэдэгдэлүүд",
+    "chat": "Чат өрөө",
+    "friends": "Найзууд",
+    "yes": "Тийм",
+    "cancel": "Үгүй",
+    "settings": [
+      {
+        "settingsDetails": "Тохиргоо",
+        "iconLocationSettings": "assets/icons/settings.png",
+        "settingSubtitle": "Таны тохиргоог энд шинэчлэх боломжтой",
+        "preferences": [
+          {
+            "headerPreferences": "Тохиргоонууд",
+            "language": "Хэл",
+            "iconLocationSettings": "globe",
+            "theme": "Thema",
+            "iconLocationTheme": "moon",
+            "notification": "Мэдэгдэл",
+            "iconLocationNotification": "notifications",
+            "about": "Тухай",
+            "iconLocationAbout": "information-circle"
+          }
+        ],
+        "helpSupport": [
+          {
+            "helpSupport": "Тусламж & Дэмжлэг",
+            "contractUs": "Бидэнтэй Холбогдох",
+            "iconLocationContractUs": "mail",
+            "FAQ": "Түгээмэл Асуултууд",
+            "iconLocationFAQ": "help-circle",
+            "termsConditions": "Terms & Conditions",
+            "iconLocationTerms&Conditions": "document",
+            "privacyPolicy": "Privacy Policy",
+            "iconLocationPrivacyPolicy": "lock-closed"
+          }
+        ],
+        "socialMedia": [
+          {
+            "socialMedia": "Нийгмийн сүлжээ",
+            "facebook": "Facebook",
+            "iconLocationFacebook": "logo-facebook",
+            "twitter": "Twitter",
+            "iconLocationTwitter": "logo-twitter",
+            "instagram": "Instagram",
+            "iconLocationInstagram": "logo-instagram"
+          }
+        ],
+        "accountDetails": [
+          {
+            "account": "Таны Account",
+            "profile": "Профайл",
+            "iconLocationProfile": "person",
+            "changePassword": "Нууц үг солих",
+            "iconLocationChangePassword": "lock-closed",
+            "deleteAccount": "Account устгах",
+            "iconLocationdeleteAccount": "trash",
+            "iconLocationLogout": "log-out",
+            "logout": "Account Гарах"
+          }
+        ]
+      }
+    ],
+    "sportTextIcons": [
+      { "name": "Сагсан бөмбөг", "icon": "basketball" },
+      { "name": "Хөл бөмбөг", "icon": "football" },
+      { "name": "Волейбол", "icon": "volleyball" },
+      { "name": "Теннис", "icon": "tennis" },
+      { "name": "Боулинг", "icon": "bowling" },
+      { "name": "Гольф", "icon": "golf" },
+      { "id": "computer", "name": "PC", "icon": "desktopComputer" },
+      {
+        "id": "playstation",
+        "name": "PlayStation",
+        "icon": "gameController"
+      }
+    ],
+    "login": {
+      "login": "Нэвтрэх",
+      "email": "Имэйл & Хэрэглэгчийн ID",
+      "password": "Нууц үг",
+      "phoneNum": "Утасны дугаар",
+      "verify": "Шалгах",
+      "verifyCode": "Баталгаажуулах код",
+      "CheckCode": "шалгах код",
+      "forgotPassword": "Нууц үг мартсан",
+      "continuewithgoogle": "Google-р нэвтрэх",
+      "continuewithfacebook": "Facebook-р нэвтрэх",
+      "signUp": "Бүртгүүлэх"
+    },
+    "Register": [
+      {
+        "register": "Бүртгүүлэх",
+        "userID": "Хэрэглэгчийн ID",
+        "checkID": "ID шалгах",
+        "lastName": "Овог",
+        "firstName": "Нэр",
+        "email": "Имэйл",
+        "phoneNum": "Утасны дугаар",
+        "verificationCode": "Баталгаажуулах код",
+        "sendVerificationCode": "Баталгаажуулах код илгээх",
+        "verify": "Шалгах",
+        "password": "Нууц үг",
+        "confirmPassword": "Нууц үгээ баталгаажуулах",
+        "iagreetothe": "Би ",
+        "termsConditions": "Нууцлал ба нөхцлүүд",
+        "privacyPolicy": "Нууцлалын бодлого"
+      }
+    ],
+    "DrawerScreen": [
+      {
+        "userDrawer": [
+          {
+            "home": "Нүүр хуудас",
+            "news": "Мэдээ",
+            "academy": "Академи",
+            "settings": "Тохиргоо",
+            "bookHistory": "Захиалгын түүх"
+          }
+        ],
+        "adminDrawer": [
+          {
+            "adminPage": "Нүүр хуудас",
+            "userInfo": "Хэрэглэгчийн мэдээлэл",
+            "news": "Мэдээ",
+            "notificationPage": "Мэдэгдлийн хуудас",
+            "settings": "Тохиргоо"
+          }
+        ],
+        "contractorDrawer": [
+          {
+            "contractorPage": "Нүүр хуудас",
+            "userInfo": "Хэрэглэгчийн мэдээлэл",
+            "news": "Мэдээ",
+            "statisticalPage": "Статистикийн хуудас",
+            "notificationPage": "Мэдэгдлийн хуудас",
+            "settings": "Тохиргоо",
+            "registerSportHall": "Спорт заал бүртгэх",
+            "bookCheck": "Захиалга шалгах"
+          }
+        ]
+      }
+    ],
+    "profilesdaData": [
+      {
+        "profileData": [
+          {
+            "profile": "Профайл",
+            "userName": "Хэрэглэгчийн нэр",
+            "name": "Нэр",
+            "email": "Имэйл",
+            "phoneNumber": "Утасны дугаар",
+            "editProfile": "Профайл засах",
+            "saveProfile": "Өөрчлөлтийг хадгалах",
+            "changePassword": "Нууц үг солих",
+            "savedHalls": "Хадгалсан заалууд",
+            "archievements": "Амжилтууд",
+            "rewards": "Шагналууд",
+            "miniiAmjilt": "Миний амжилт"
+          }
+        ]
+      }
+    ],
+    "RolePage": [
+      {
+        "userRole": [
+          {
+            "dashboard": "Хэрэглэгчийн хяналтын самбар"
+          }
+        ],
+        "adminRole": [
+          {
+            "dashboard": "Админы Хяналтын самбар"
+          }
+        ],
+        "contractorRole": [
+          {
+            "dashboard": "Хяналтын самбар"
+          }
+        ]
+      }
+    ],
+    "NotificationPage": {
+      "friendRequest": "Найзын хүсэлт",
+      "noFriendRequest": "Найзын хүсэлт байхгүй",
+      "ReceivedFriendRequest": "Хүлээн авсан найзын хүсэлт",
+      "noFriends": "Найз байхгүй",
+      "accept": "Зөвшөөрөх",
+      "reject": "Татгалзах",
+      "friendList": "Найзын жагсаалт"
+    },
+    "userLogout": {
+      "logoutAlert": "Гарах",
+      "logoutMessage": "Та гарахдаа итгэлтэй байна уу?",
+      "yes": "Тийм",
+      "cancel": "Үгүй"
+    },
+    "userInfo": {
+      "userInfo": "Хэрэглэгчийн мэдээлэл",
+      "firstName": "Нэр",
+      "lastName": "Овог",
+      "userName": "Хэрэглэгчийн ID",
+      "email": "И-мэйл",
+      "phoneNumber": "Утасны дугаар",
+      "address": "Хаяг",
+      "city": "Хот",
+      "zipCode": "Шуудангийн код",
+      "country": "Улс",
+      "editProfile": "Профайл засах",
+      "saveProfile": "Хадгалах"
+    },
+    "aboutUs": {
+      "login": "Нэвтрэх",
+      "register": "Бүртгүүлэх",
+      "aboutUs": "Бидний тухай",
+      "helps": "Тусламж",
+      "contactUs": "Холбоо барих"
+    },
+    "chatRoom": {
+      "chatRoom": "Чат өрөө",
+      "sendMsj": "Илгээх",
+      "message": "Мессеж",
+      "noMessage": "Мессеж алга байна",
+      "enterMessage": "Мессежээ оруулна уу",
+      "groupChats": "Бүлгийн чат",
+      "individualChat": "Хувийн чат",
+      "noChatYet": "Чат хараахан байхгүй байна",
+      "onceYouJoin": "Та тоглоомд нэгдэж эсвэл найзтай болмогц,",
+      "yourChatWillAppearHere": "таны чат энд харагдана"
+    },
+    "friendScreen": {
+      "friends": "Найзууд",
+      "friendRequest": "Найзын хүсэлт",
+      "friendRequestSent": "Илгээсэн хүсэлтүүд",
+      "noFriendRequest": "Найзын хүсэлт алга байна",
+      "noFriendsYet": "Та одоогоор найзгүй байна.",
+      "noFriendsAtAll": "Найзын хүсэлт ирээгүй байна.",
+      "noSendRequests": "Илгээсэн хүсэлт алга байна.",
+      "noFriends": "Найз байхгүй",
+      "accept": "Зөвшөөрөх",
+      "reject": "Татгалзах",
+      "searchPlaceHolder": "Найз хайх эсвэл нэмэх",
+      "noFriendRequestYet": "Найзын хүсэлт хараахан алга",
+      "wantToMeetNewFriends": "Шинэ найзуудтай танилцахыг хүсэж байна уу?",
+      "startDiscoveringPlayersNearby": "Ойр орчмын тоглогчдыг олж эхлээрэй"
+    },
+    "togetherScreen": {
+      "swipeToPartner": "Хамтрагч олоход свайп хийнэ үү",
+      "swipeDescription": "Баруун тийш свайп хийж шүүгдээгүй захиалгуудыг үзэх.",
+      "sortBy": "Эрэмбэлэх",
+      "back": "Буцах",
+      "rating": "Үнэлгээ",
+      "hightRating": "Өндөр үнэлгээ",
+      "lowRating": "Бага үнэлгээ",
+      "price": "Үнэ",
+      "hightPrice": "Өндөр үнэ",
+      "lowPrice": "Бага үнэ",
+      "partnerLookingFor": "Хамтрагч хайж байна",
+      "feature": "Онцлог",
+      "openInMap": "Газрын зураг дээр нээх",
+      "partnerLookingForThisHall": "Энэ зааланд хамтрагч хайж байна",
+      "doYouWantJoinThisHall": "Та энэ зааланд нэгдэхийг хүсэж байна уу?",
+      "join": "Нэгдэх",
+      "cancel": "Цуцлах",
+      "alreadyJoined": "Та энэ зааланд аль хэдийн нэгдсэн байна",
+      "wholeDay": "Бүтэн өдөр"
+    },
+    "Notifications": "Мэдэгдлүүд",
+    "groupChatSettings": {
+      "groupChatSettings": "Бүлгийн Чатын Тохиргоо",
+      "changeGroupName": "Бүлгийн Нэрийг Өөрчлөх",
+      "members": "Гишүүд",
+      "searchInChannel": "Сувганаас Хайх",
+      "notifications": "Мэдэгдэл",
+      "leaveGroup": "Бүлгээс Гарах",
+      "reportGroup": "Бүлгийг Илгээх",
+      "editGroupName": "Бүлгийн чатны нэрийг засах",
+      "thisNameWillBeVisibleToAll": "Энэ нэр бүлгийн бүх гишүүдэд харагдана.",
+      "chatMembers": "Чатын гишүүд",
+      "addMembers": "Гишүүд нэмэх",
+      "save": "Хадгалах",
+      "cancel": "Болих",
+      "nameMustbeLessThan100": "Нэр 100-аас бага байх ёстой",
+      "groupName": "Бүлгийн нэр",
+      "close": "Хаах",
+      "copyLink": "Холбоосыг хуулбарлах"
+    }
+  }
+}

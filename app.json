@@ -8,7 +8,15 @@
     "scheme": "client",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "bundleIdentifier": "com.usuhbayr.client",
+      "config": {
+        "googleMapsApiKey": "YOUR_KEY"
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Allow access to location to show nearby places.",
+        "NSCameraUsageDescription": "Allow access to the camera.",
+        "NSMicrophoneUsageDescription": "Allow access to the microphone."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +25,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.usuhbayr.client"
     },
     "web": {
       "output": "static",
@@ -43,7 +52,18 @@
           "project": "react-native",
           "organization": "zaalproject"
         }
-      ]
+      ],
+      "expo-build-properties",
+      "expo-dev-client",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.4"
+          }
+        }
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

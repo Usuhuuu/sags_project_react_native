@@ -1,0 +1,354 @@
+{
+  "type": "kr",
+  "name": "한국어",
+  "author": "Zaal Togsolt",
+  "version": "1.0.0",
+  "data": {
+    "home": "홈",
+    "together": "함께",
+    "order": "예약",
+    "chat": "채팅방",
+    "friends": "친구들",
+    "profile": "마이패이즈",
+    "notificationText": "알림",
+    "myBookings": "내 예약",
+    "yes": "예",
+    "cancel": "취소",
+    "settings": [
+      {
+        "settingsDetails": "설정",
+        "iconLocationSettings": "assets/icons/settings.png",
+        "settingSubtitle": "여기에서 설정을 업데이트하세요",
+        "preferences": [
+          {
+            "headerPreferences": "기본 설정",
+            "language": "언어",
+            "iconLocationSettings": "globe",
+            "theme": "Theme",
+            "iconLocationTheme": "moon",
+            "notification": "알림",
+            "iconLocationNotification": "notifications",
+            "about": "정보",
+            "iconLocationAbout": "information-circle"
+          }
+        ],
+        "helpSupport": [
+          {
+            "helpSupport": "도움말 및 지원",
+            "contractUs": "문의하기",
+            "iconLocationContractUs": "mail",
+            "FAQ": "자주 묻는 질문",
+            "iconLocationFAQ": "help-circle",
+            "termsConditions": "이용 약관",
+            "iconLocationTerms&Conditions": "document",
+            "privacyPolicy": "개인정보 보호정책",
+            "iconLocationPrivacyPolicy": "lock-closed"
+          }
+        ],
+        "socialMedia": [
+          {
+            "socialMedia": "소셜 미디어",
+            "facebook": "페이스북",
+            "iconLocationFacebook": "logo-facebook",
+            "twitter": "트위터",
+            "iconLocationTwitter": "logo-twitter",
+            "instagram": "인스타그램",
+            "iconLocationInstagram": "logo-instagram"
+          }
+        ],
+        "accountDetails": [
+          {
+            "account": "계정",
+            "profile": "프로필",
+            "iconLocationProfile": "person",
+            "changePassword": "비밀번호 변경",
+            "iconLocationChangePassword": "lock-closed",
+            "deleteAccount": "계정 삭제",
+            "iconLocationdeleteAccount": "trash",
+            "iconLocationLogout": "log-out",
+            "logout": "로그아웃"
+          }
+        ]
+      }
+    ],
+    "sportTextIcons": [
+      { "id": "basket_ball", "name": "농구", "icon": "basketball" },
+      { "id": "foot_ball", "name": "축구", "icon": "football" },
+      { "id": "volley_ball", "name": "배구", "icon": "volleyball" },
+      { "id": "tennis", "name": "테니스", "icon": "tennis" },
+      { "id": "bowling", "name": "볼링", "icon": "bowling" },
+      { "id": "golf", "name": "골프", "icon": "golf" },
+      { "id": "computer", "name": "PC 방", "icon": "desktopComputer" },
+      {
+        "id": "playstation",
+        "name": "플레이스테이션",
+        "icon": "gameController"
+      }
+    ],
+    "login": {
+      "login": "로그인",
+      "email": "이메일",
+      "password": "비밀번호",
+      "phoneNum": "전화번호",
+      "verify": "인증",
+      "verifyCode": "인증 코드",
+      "CheckCode": "코드 확인",
+      "forgotPassword": "비밀번호를 잊으셨나요?",
+      "continuewithgoogle": "구글로 계속하기",
+      "continuewithfacebook": "페이스북으로 계속하기",
+      "signUp": "회원가입"
+    },
+    "Register": [
+      {
+        "register": "등록",
+        "userID": "사용자 ID",
+        "checkID": "ID 확인",
+        "lastName": "성",
+        "firstName": "이름",
+        "email": "이메일",
+        "phoneNum": "전화번호",
+        "verificationCode": "인증 코드",
+        "sendVerificationCode": "인증 코드 보내기",
+        "verify": "인증",
+        "password": "비밀번호",
+        "confirmPassword": "비밀번호 확인",
+        "iagreetothe": "저는 ",
+        "termsConditions": "이용 약관",
+        "privacyPolicy": "개인정보 보호정책"
+      }
+    ],
+    "DrawerScreen": [
+      {
+        "userDrawer": [
+          {
+            "home": "홈",
+            "news": "뉴스",
+            "academy": "학원",
+            "settings": "설정",
+            "bookHistory": "예약 기록"
+          }
+        ],
+        "adminDrawer": [
+          {
+            "adminPage": "홈",
+            "userInfo": "사용자 정보",
+            "news": "뉴스",
+            "notificationPage": "알림 페이지",
+            "settings": "설정"
+          }
+        ],
+        "contractorDrawer": [
+          {
+            "contractorPage": "홈",
+            "userInfo": "사용자 정보",
+            "news": "뉴스",
+            "statisticalPage": "통계 페이지",
+            "notificationPage": "알림 페이지",
+            "settings": "설정",
+            "registerSportHall": "스포츠 홀 등록",
+            "bookCheck": "예약 확인"
+          }
+        ]
+      }
+    ],
+    "profilesdaData": [
+      {
+        "profileData": [
+          {
+            "profile": "프로필",
+            "userName": "사용자 이름",
+            "name": "이름",
+            "email": "이메일",
+            "phoneNumber": "전화번호",
+            "editProfile": "프로필 수정",
+            "saveProfile": "수정 저장",
+            "changePassword": "비밀번호 변경",
+            "savedHalls": "저장된 홀",
+            "archievements": "업적",
+            "rewards": "보상",
+            "miniiAmjilt": "내 성공"
+          }
+        ]
+      }
+    ],
+    "RolePage": [
+      {
+        "userRole": [
+          {
+            "dashboard": "사용자 패이즈"
+          }
+        ],
+        "adminRole": [
+          {
+            "dashboard": "관리자 패이즈"
+          }
+        ],
+        "contractorRole": [
+          {
+            "dashboard": "계약자 패이즈"
+          }
+        ]
+      }
+    ],
+    "NotificationPage": {
+      "friendRequest": "친구 요청",
+      "noFriendRequest": "친구 요청 없음",
+      "ReceivedFriendRequest": "받은 친구 요청",
+      "noFriends": "친구 없음",
+      "accept": "수락",
+      "reject": "거절",
+      "friendList": "친구 목록"
+    },
+    "userLogout": {
+      "logoutAlert": "로그아웃",
+      "logoutMessage": "로그아웃 하시겠습니까?",
+      "yes": "예",
+      "cancel": "아니요"
+    },
+    "userInfo": {
+      "userInfo": "사용자 정보",
+      "firstName": "이름",
+      "lastName": "성",
+      "userName": "사용자 ID",
+      "email": "이메일",
+      "phoneNumber": "전화번호",
+      "address": "주소",
+      "city": "도시",
+      "zipCode": "우편번호",
+      "country": "국가",
+      "editProfile": "프로필 수정",
+      "saveProfile": "저장"
+    },
+    "aboutUs": {
+      "login": "로그인",
+      "register": "등록",
+      "aboutUs": "회사 소개",
+      "helps": "도움말",
+      "contactUs": "서비스 센터"
+    },
+    "chatRoom": {
+      "chatRoom": "채팅방",
+      "sendMsj": "보내기",
+      "message": "메시지",
+      "noMessage": "메시지가 없습니다",
+      "enterMessage": "메시지를 입력하세요",
+      "groupChats": "그룹 채팅",
+      "individualChat": "개인",
+      "noChatYet": "아직 채팅이 없습니다",
+      "onceYouJoin": "게임에 참여하거나 친구가 생기면,",
+      "yourChatWillAppearHere": "여기에 채팅이 표시됩니다"
+    },
+    "friendScreen": {
+      "noFriendRequest": "아직 친구 요청이 없습니다",
+      "noFriendsYet": "아직 친구가 없습니다.",
+      "noFriendsAtAll": "아직 친구 요청이 없습니다.",
+      "noSendRequests": "보낸 요청이 없습니다.",
+      "noFriends": "친구 없음",
+      "accept": "수락",
+      "reject": "거절",
+      "searchPlaceHolder": "친구 검색 및 추가",
+      "friends": "친구",
+      "friendRequest": "친구 요청",
+      "friendRequestSent": "친구 요청 보냄",
+      "noFriendRequestYet": "아직 친구 요청이 없습니다",
+      "wantToMeetNewFriends": "새로운 친구들을 만나고 싶으신가요?",
+      "startDiscoveringPlayersNearby": "주변의 플레이어를 찾아보세요"
+    },
+    "togetherScreen": {
+      "swipeToPartner": "파트너를 찾으려면 스와이프하세요",
+      "swipeDescription": "오른쪽으로 스와이프하면 필터링되지 않은 체육관 예약을 볼 수 있습니다.",
+      "sortBy": "정렬 기준",
+      "back": "뒤로",
+      "rating": "평점",
+      "hightRating": "높은 평점",
+      "lowRating": "낮은 평점",
+      "price": "가격",
+      "hightPrice": "높은 가격",
+      "lowPrice": "낮은 가격",
+      "partnerLookingFor": "파트너를 찾고 있어요",
+      "feature": "기능",
+      "openInMap": "지도에서 열기",
+      "partnerLookingForThisHall": "이 체육관을 찾는 파트너",
+      "doYouWantJoinThisHall": "이 체육관에 참여하시겠습니까?",
+      "join": "참여",
+      "cancel": "취소",
+      "alreadyJoined": "이미 이 체육관에 참여하셨습니다",
+      "wholeDay": "종일"
+    },
+    "Notifications": "알림",
+    "groupChatSettings": {
+      "groupChatSettings": "그룹 채팅 설정",
+      "changeGroupName": "그룹 이름 변경",
+      "members": "멤버",
+      "searchInChannel": "채널에서 검색",
+      "notifications": "알림",
+      "leaveGroup": "그룹 나가기",
+      "reportGroup": "그룹 신고",
+      "editGroupName": "그룹 채팅 이름 수정",
+      "thisNameWillBeVisibleToAll": "이 이름은 그룹의 모든 멤버에게 보입니다.",
+      "chatMembers": "채팅 멤버",
+      "addMembers": "멤버 추가",
+      "save": "저장",
+      "cancel": "취소",
+      "nameMustbeLessThan100Characters": "이름은 100자 미만이어야 합니다.",
+      "copyLink": "링크 복사",
+      "close": "닫기"
+    },
+    "orderScreen": {
+      "myBookings": "내 예약",
+      "history": "예약 내역",
+      "todayUpcoming": "예약",
+      "filter": "필터",
+      "noBookingsFound": "예약을 찾을 수 없습니다",
+      "waiting": "대기 중",
+      "confirmed": "확정됨",
+      "tryAdjustingFilter": "원하는 결과를 찾으려면 필터를 조정해 보세요.",
+      "alreadyPlayed": "이미 완료됨",
+      "pending": "대기 중",
+      "cancelled": "취소됨",
+      "viewDetails": "상세보기",
+      "cancelBooking": "예약 취소",
+      "close": "닫기",
+      "contactCostumerService": "고객 서비스 문의",
+      "paymentInfo": {
+        "paymentInfo": "결제 정보",
+        "paymentStatusPaid": "결제 완료",
+        "paymentStatusPending": "결제 대기",
+        "unpaid": "미결제",
+        "paymentMethod": "결제 수단",
+        "totalAmount": "총 금액"
+      },
+      "bookingInfo": {
+        "bookingInfo": "예약 정보",
+        "date": "날짜",
+        "time": "시간",
+        "statusConfirmed": "확정됨",
+        "statusPending": "대기 중",
+        "statusCancelled": "취소됨",
+        "playerNeeded": "필요 인원"
+      },
+      "playerInfo": {
+        "playerInfo": "플레이어 정보",
+        "playerName": "이름",
+        "playerContact": "연락처",
+        "playerEmail": "이메일",
+        "playerPaymentAmount": "결제 금액",
+        "playerPaymentStatus": "결제 상태"
+      },
+      "months": {
+        "january": "1월",
+        "february": "2월",
+        "march": "3월",
+        "april": "4월",
+        "may": "5월",
+        "june": "6월",
+        "july": "7월",
+        "august": "8월",
+        "september": "9월",
+        "october": "10월",
+        "november": "11월",
+        "december": "12월"
+      }
+    }
+  }
+}

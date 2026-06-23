@@ -37,7 +37,7 @@ function DrawerLayout() {
   if (!LoginStatus) {
     console.log("INVALID LOGIN");
     if (!currentPath.includes("(tabs-user)")) {
-      return <Redirect href="/(drawer)/(user)/(tabs-user)" />;
+      return <Redirect href="/(drawer)/(user)/(tab-user)" />;
     }
     return null;
   }
@@ -57,7 +57,7 @@ function DrawerLayout() {
   if (!data?.role) {
     console.log("INVALID ACCESS");
     if (!currentPath.includes("(tabs-user)")) {
-      return <Redirect href="/(drawer)/(user)/(tabs-user)" />;
+      return <Redirect href="/(drawer)/(user)/(tab-user)" />;
     }
     return null;
   }
@@ -66,21 +66,21 @@ function DrawerLayout() {
     case "admin":
       console.log("ADMIN1");
       if (!currentPath.includes("(tabs-admin)")) {
-        return <Redirect href="/(drawer)/(admin)/(tabs-admin)/overview" />;
+        return <Redirect href="/(drawer)/(admin)/(tab-admin)/overview" />;
       }
       break;
     case "contractor":
       console.log("CONTRACTOR1");
       if (!currentPath.includes("(tabs-contractor)")) {
         return (
-          <Redirect href="/(drawer)/(contractor)/(tabs-contractor)/overview" />
+          <Redirect href="/(drawer)/(contractor)/(tab-contractor)/overview" />
         );
       }
       break;
     default:
       console.log("USER1");
       if (!currentPath.includes("(tabs-user)")) {
-        return <Redirect href="/(drawer)/(user)/(tabs-user)" />;
+        return <Redirect href="/(drawer)/(user)/(tab-user)" />;
       }
       break;
   }

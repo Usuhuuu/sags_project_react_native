@@ -1,9 +1,9 @@
 import { View } from "react-native";
 import React, { useState, useRef, useMemo, useCallback } from "react";
 import { Stack } from "expo-router";
-import ExploreHeader from "@/components/hall_info/explore_header";
-import ListingsMap from "@/components/hall_info/listing_map";
-import ListingBottomSheet from "@/components/hall_info/bottom_sheet";
+import ExploreHeader from "@/components/hall_components/explore_header";
+import ListingsMap from "@/components/hall_components/listing_map";
+import ListingBottomSheet from "@/components/hall_components/bottom_sheet";
 import { useSharedValue } from "react-native-reanimated";
 import { HallCategoryValue } from "@/types/hall_info_type";
 import { useHallInfo } from "@/context/hall_info_context";

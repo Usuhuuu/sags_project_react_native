@@ -38,7 +38,49 @@ export default function TabLayout() {
         lazy: true,
       }}
     >
-      <Tabs.Screen name="" />
+      <Tabs.Screen
+        name="index"
+        options={{
+          tabBarLabel: "home",
+          headerShadowVisible: false,
+
+          tabBarIcon: ({ focused }) => {
+            return (
+              <Ionicons
+                name="home-outline"
+                size={28}
+                color={
+                  focused ? colors.primary : colors.themeColorTextSecondary
+                }
+              />
+            );
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="order"
+        options={{
+          tabBarLabel: "order",
+          headerTitle: "book",
+          headerShadowVisible: false,
+          headerTitleAlign: "left",
+          headerTitleStyle: { color: colors.primary, fontSize: 28 },
+          headerRight: () => (
+            <Ionicons name="filter-outline" size={30} color={colors.primary} />
+          ),
+          tabBarIcon: ({ focused }) => {
+            return (
+              <Ionicons
+                name="filter-outline"
+                size={30}
+                color={
+                  focused ? colors.primary : colors.themeColorTextSecondary
+                }
+              />
+            );
+          },
+        }}
+      />
     </Tabs>
   );
 }

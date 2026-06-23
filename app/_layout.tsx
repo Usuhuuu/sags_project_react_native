@@ -8,6 +8,8 @@ import { NotifierRoot } from "react-native-notifier";
 import { AuthProvider } from "@/context/auth_context";
 import HallInfoProvider from "@/context/hall_info_context";
 import { queryClient } from "@/hooks/queryClient";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "@/hooks/i18n_instance";
 
 configureReanimatedLogger({
   strict: false,
@@ -30,14 +32,16 @@ export function RootLayoutNav() {
 export default Sentry.wrap(() => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <NotifierRoot useRNScreensOverlay={true} />
-        <AuthProvider>
-          <HallInfoProvider>
-            <RootLayout />
-          </HallInfoProvider>
-        </AuthProvider>
-      </SafeAreaProvider>
+      <GestureHandlerRootView>
+        <SafeAreaProvider>
+          <NotifierRoot useRNScreensOverlay={true} />
+          <AuthProvider>
+            <HallInfoProvider>
+              <RootLayout />
+            </HallInfoProvider>
+          </AuthProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     </QueryClientProvider>
   </ThemeProvider>
 ));

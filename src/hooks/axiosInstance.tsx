@@ -1,12 +1,9 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import Constants from "expo-constants";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const apiUrl =
-  Constants.expoConfig?.extra?.apiUrl ??
-  "https://8f9e-118-176-174-110.ngrok-free.app";
+const apiUrl = process.env.API_URL ?? "http://localhost:3000"; //"https://8f9e-118-176-174-110.ngrok-free.app";
 
 const tokenWithRetry = async (
   maxRetry: number = 3,
