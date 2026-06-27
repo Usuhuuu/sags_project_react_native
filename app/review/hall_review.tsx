@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { router, useNavigation } from "expo-router";
@@ -31,6 +31,8 @@ interface SportHallReviewPageProps {
   setPage: React.Dispatch<React.SetStateAction<number>>;
 }
 
+const STAR_FILTERS = ["All", 5, 4, 3, 2, 1] as const;
+
 const SportHallReviewPage = ({
   sport_hall_id,
   reviews,
@@ -39,9 +41,30 @@ const SportHallReviewPage = ({
   setPage,
 }: SportHallReviewPageProps) => {
   const { colors: Colors, theme } = useTheme();
-
   const [filterRating, setFilterRating] = useState<number | "All">("All");
   const navigation = useNavigation();
+
+  // Memoize reviews array once
+  const reviewsArr = useMemo(() => Object.values(reviews), [reviews]);
+  const totalReviews = reviewsArr.length;
+
+  // Memoize filtered reviews
+  const filteredReviews = useMemo(() => {
+    if (filterRating === "All") return reviewsArr;
+    return reviewsArr.filter((review) => review.rating === filterRating);
+  }, [reviewsArr, filterRating]);
+
+  // Memoize star distribution
+  const starDistribution = useMemo(() => {
+    return [5, 4, 3, 2, 1].map((star) => {
+      const starCount = reviewsArr.filter((r) => r.rating === star).length;
+      return {
+        star,
+        count: starCount,
+        percentage: totalReviews > 0 ? starCount / totalReviews : 0,
+      };
+    });
+  }, [reviewsArr, totalReviews]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -62,30 +85,65 @@ const SportHallReviewPage = ({
         </TouchableOpacity>
       ),
     });
-  }, []);
+  }, [sport_hall_id, rating, Colors.primary]);
 
-  const filterReviews = (rating: number | "All") => {
-    if (rating === "All") {
-      return Object.values(reviews);
-    }
-    return Object.values(reviews).filter((review) => review.rating === rating);
-  };
+  const keyExtractor = useCallback((item: Review) => item._id, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: Review }) => (
+      <View
+        style={{
+          marginVertical: 8,
+          padding: 10,
+          borderRadius: 8,
+          borderColor: Colors.littleDarkGrey,
+          borderWidth: 1,
+        }}
+      >
+        <AppText style={{ fontWeight: "bold" }}>
+          {item.user_unique_name}
+        </AppText>
+        <StarRating rating={item.rating} starSize={20} />
+        <AppText>{item.review_message}</AppText>
+        <AppText style={{ fontSize: 12, color: Colors.darkGrey }}>
+          {new Date(item.updatedAt).toLocaleDateString()}
+        </AppText>
+      </View>
+    ),
+    [Colors],
+  );
+
+  const emptyComponent = useCallback(
+    () => (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text
+          style={{ color: theme === "dark" ? Colors.dark : Colors.darkGrey }}
+        >
+          No reviews available
+        </Text>
+      </View>
+    ),
+    [theme, Colors.dark, Colors.darkGrey],
+  );
+
+  const footerComponent = useCallback(
+    () => (
+      <View style={{ padding: 10, alignItems: "center" }}>
+        <Text
+          style={{ color: theme === "dark" ? Colors.dark : Colors.darkGrey }}
+        >
+          {totalReviews >= 10 ? <OwnActivaterIndicator /> : "No more reviews"}
+        </Text>
+      </View>
+    ),
+    [theme, Colors.dark, Colors.darkGrey, totalReviews],
+  );
 
   return (
-    <View
-      style={{
-        backgroundColor: "transparent",
-        width: "95%",
-      }}
-    >
+    <View style={{ backgroundColor: "transparent", width: "95%" }}>
       <View>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <View
-            style={{
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
+          <View style={{ flexDirection: "column", alignItems: "center" }}>
             <Text
               style={{
                 color:
@@ -94,46 +152,34 @@ const SportHallReviewPage = ({
                 fontWeight: "600",
               }}
             >
-              {rating ? rating : 0}
+              {rating || 0}
             </Text>
             <StarRating rating={rating} starSize={20} />
-            <Text style={{ color: Colors.darkGrey }}>
-              {count ? count : 0} review
-            </Text>
+            <Text style={{ color: Colors.darkGrey }}>{count || 0} review</Text>
           </View>
           <View style={{ width: "50%" }}>
-            {[5, 4, 3, 2, 1].map((item) => {
-              const count = Object.values(reviews).reduce((acc, review) => {
-                return acc + (review.rating === item ? 1 : 0);
-              }, 0);
-              const percentage =
-                Object.values(reviews).length > 0
-                  ? (count / Object.values(reviews).length).toFixed(1)
-                  : 0;
-
-              return (
-                <View
-                  style={{
-                    gap: 3,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    maxWidth: "100%",
-                  }}
-                  key={item}
-                >
-                  <Entypo name="star" size={18} color={"gold"} />
-                  <Text style={{ color: Colors.primary }}>{item}</Text>
-                  <Progress.Bar
-                    progress={Number(percentage)}
-                    width={100}
-                    color={Colors.primary}
-                  />
-                  <Text style={{ marginLeft: 5, color: Colors.secondary }}>
-                    {Number(percentage) * 100}%
-                  </Text>
-                </View>
-              );
-            })}
+            {starDistribution.map(({ star, count, percentage }) => (
+              <View
+                key={star}
+                style={{
+                  gap: 3,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  maxWidth: "100%",
+                }}
+              >
+                <Entypo name="star" size={18} color={"gold"} />
+                <Text style={{ color: Colors.primary }}>{star}</Text>
+                <Progress.Bar
+                  progress={percentage}
+                  width={100}
+                  color={Colors.primary}
+                />
+                <Text style={{ marginLeft: 5, color: Colors.secondary }}>
+                  {Math.round(percentage * 100)}%
+                </Text>
+              </View>
+            ))}
           </View>
         </View>
 
@@ -144,13 +190,7 @@ const SportHallReviewPage = ({
               flexDirection: "row",
             }}
           >
-            <View
-              style={{
-                flexDirection: "column",
-                width: "100%",
-                flex: 1,
-              }}
-            >
+            <View style={{ flexDirection: "column", width: "100%", flex: 1 }}>
               <View
                 style={{
                   flexDirection: "row",
@@ -158,46 +198,38 @@ const SportHallReviewPage = ({
                   justifyContent: "space-evenly",
                 }}
               >
-                {["All", 5, 4, 3, 2, 1].map((item) => {
-                  return (
-                    <TouchableOpacity
-                      key={item}
+                {STAR_FILTERS.map((item) => (
+                  <TouchableOpacity
+                    key={item}
+                    style={{
+                      flexDirection: "row",
+                      borderWidth: 1,
+                      padding: 2,
+                      borderColor: Colors.darkGrey,
+                      borderRadius: 10,
+                      alignItems: "center",
+                      width: "15%",
+                      justifyContent: "center",
+                      backgroundColor:
+                        filterRating === item ? Colors.primary : Colors.white,
+                    }}
+                    onPress={() => setFilterRating(item)}
+                  >
+                    <Entypo
+                      name="star"
+                      size={15}
+                      color={filterRating === item ? Colors.white : Colors.dark}
+                    />
+                    <Text
                       style={{
-                        flexDirection: "row",
-                        borderWidth: 1,
-                        padding: 2,
-                        borderColor: Colors.darkGrey,
-                        borderRadius: 10,
-                        alignItems: "center",
-                        width: "15%",
-                        justifyContent: "center",
-                        backgroundColor:
-                          filterRating === item ? Colors.primary : Colors.white,
-                      }}
-                      onPress={() => {
-                        item === "All"
-                          ? setFilterRating("All")
-                          : setFilterRating(item as number);
+                        color:
+                          filterRating === item ? Colors.white : Colors.dark,
                       }}
                     >
-                      <Entypo
-                        name="star"
-                        size={15}
-                        color={
-                          filterRating === item ? Colors.white : Colors.dark
-                        }
-                      />
-                      <Text
-                        style={{
-                          color:
-                            filterRating === item ? Colors.white : Colors.dark,
-                        }}
-                      >
-                        {item}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
               <View
                 style={{
@@ -220,82 +252,35 @@ const SportHallReviewPage = ({
                   Comment
                 </Text>
                 <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
+                  }}
                 >
                   <Entypo name="star" size={24} color="gold" />
-                  <Text>{rating ? rating : 0}</Text>
-                  <Text style={{ color: Colors.darkGrey }}>
-                    ({count ? count : 0})
-                  </Text>
+                  <Text>{rating || 0}</Text>
+                  <Text style={{ color: Colors.darkGrey }}>({count || 0})</Text>
                 </View>
               </View>
             </View>
           </View>
           <FlatList
-            data={filterReviews(filterRating)}
-            keyExtractor={(item) => item._id}
+            data={filteredReviews}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
             style={{ height: "80%" }}
             scrollEnabled={false}
-            renderItem={({ item }) => (
-              <View
-                style={{
-                  marginVertical: 8,
-                  padding: 10,
-                  borderRadius: 8,
-                  borderColor: Colors.littleDarkGrey,
-                  borderWidth: 1,
-                }}
-              >
-                <AppText style={{ fontWeight: "bold" }}>
-                  {item.user_unique_name}
-                </AppText>
-                <StarRating rating={item.rating} starSize={20} />
-                <AppText>{item.review_message}</AppText>
-                <AppText style={{ fontSize: 12, color: Colors.darkGrey }}>
-                  {new Date(item.updatedAt).toLocaleDateString()}
-                </AppText>
-              </View>
-            )}
-            ListEmptyComponent={() => (
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    color: theme === "dark" ? Colors.dark : Colors.darkGrey,
-                  }}
-                >
-                  No reviews available
-                </Text>
-              </View>
-            )}
+            ListEmptyComponent={emptyComponent}
             onEndReached={() => {
-              if (Object.keys(reviews).length >= 10) {
+              if (totalReviews >= 10) {
                 setPage((prev) => prev + 1);
               }
             }}
             onEndReachedThreshold={0.5}
-            ListFooterComponent={() => {
-              return (
-                <View style={{ padding: 10, alignItems: "center" }}>
-                  <Text
-                    style={{
-                      color: theme === "dark" ? Colors.dark : Colors.darkGrey,
-                    }}
-                  >
-                    {Object.keys(reviews).length >= 10 ? (
-                      <OwnActivaterIndicator />
-                    ) : (
-                      "No more reviews"
-                    )}
-                  </Text>
-                </View>
-              );
-            }}
+            ListFooterComponent={footerComponent}
+            removeClippedSubviews
+            windowSize={3}
           />
         </View>
       </View>

@@ -5,7 +5,7 @@ import {
   Text,
   Dimensions,
 } from "react-native";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef } from "react";
 import Listings from "@/components/hall_components/listing";
 import BottomSheet from "@gorhom/bottom-sheet";
 import {
@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface ListingBottomSheetProps {
   listing: (SportHallDataType | EsportHallDataType)[];
   category: HallCategoryValue;
-  bottomSheetY: SharedValue<number>; // Shared value to track bottom sheet position
+  bottomSheetY: SharedValue<number>;
 }
 
 const ListingBottomSheet = ({
@@ -32,13 +32,6 @@ const ListingBottomSheet = ({
   const { colors: Colors } = useTheme();
   const { height } = Dimensions.get("window");
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const [refresh, setrefresh] = useState<number>(0);
-  const [sheetIndex, setSheetIndex] = useState(0);
-
-  const showMap = () => {
-    bottomSheetRef.current?.collapse();
-    setrefresh(refresh + 1);
-  };
   const insets = useSafeAreaInsets();
   const unabledHeight = height - insets.bottom - insets.top;
   const snapPoints = useMemo(
@@ -46,13 +39,16 @@ const ListingBottomSheet = ({
     [unabledHeight],
   );
 
+  const showMap = () => {
+    bottomSheetRef.current?.collapse();
+  };
+
   return (
     <BottomSheet
       ref={bottomSheetRef}
       snapPoints={snapPoints}
       enableOverDrag={false}
       animatedPosition={bottomSheetY}
-      onChange={(index) => setSheetIndex(index)}
       handleStyle={{
         backgroundColor: Colors.backgroundColor,
       }}
@@ -77,7 +73,7 @@ const ListingBottomSheet = ({
           flex: 1,
         }}
       >
-        <Listings listings={listing} category={category} refresh={refresh} />
+        <Listings listings={listing} category={category} />
 
         <View style={styles.absoluteBtn}>
           <TouchableOpacity
@@ -116,7 +112,6 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 100,
   },
-
   btnText: {
     color: "#fff",
     fontSize: 16,

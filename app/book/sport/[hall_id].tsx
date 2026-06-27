@@ -69,29 +69,32 @@ const groupConnectedTimeSlots = (slots: string[]) => {
 const TransactionPage = () => {
   const { colors: Colors } = useTheme();
   const navigation = useNavigation();
-  const customStyles = {
-    stepIndicatorSize: 30,
-    currentStepIndicatorSize: 35,
-    separatorStrokeWidth: 2,
-    currentStepStrokeWidth: 3,
-    stepStrokeCurrentColor: Colors.primary,
-    stepStrokeWidth: 2,
-    stepStrokeFinishedColor: Colors.primary,
-    stepStrokeUnFinishedColor: "#aaaaaa",
-    separatorFinishedColor: Colors.primary,
-    separatorUnFinishedColor: "#aaaaaa",
-    stepIndicatorFinishedColor: Colors.primary,
-    stepIndicatorUnFinishedColor: "#ffffff",
-    stepIndicatorCurrentColor: "#ffffff",
-    stepIndicatorLabelFontSize: 13,
-    currentStepIndicatorLabelFontSize: 13,
-    stepIndicatorLabelCurrentColor: Colors.primary,
-    stepIndicatorLabelFinishedColor: Colors.themeColorTextPure,
-    stepIndicatorLabelUnFinishedColor: Colors.darkGrey,
-    labelColor: Colors.darkGrey,
-    labelSize: 13,
-    currentStepLabelColor: Colors.primary,
-  };
+  const customStyles = useMemo(
+    () => ({
+      stepIndicatorSize: 30,
+      currentStepIndicatorSize: 35,
+      separatorStrokeWidth: 2,
+      currentStepStrokeWidth: 3,
+      stepStrokeCurrentColor: Colors.primary,
+      stepStrokeWidth: 2,
+      stepStrokeFinishedColor: Colors.primary,
+      stepStrokeUnFinishedColor: "#aaaaaa",
+      separatorFinishedColor: Colors.primary,
+      separatorUnFinishedColor: "#aaaaaa",
+      stepIndicatorFinishedColor: Colors.primary,
+      stepIndicatorUnFinishedColor: "#ffffff",
+      stepIndicatorCurrentColor: "#ffffff",
+      stepIndicatorLabelFontSize: 13,
+      currentStepIndicatorLabelFontSize: 13,
+      stepIndicatorLabelCurrentColor: Colors.primary,
+      stepIndicatorLabelFinishedColor: Colors.themeColorTextPure,
+      stepIndicatorLabelUnFinishedColor: Colors.darkGrey,
+      labelColor: Colors.darkGrey,
+      labelSize: 13,
+      currentStepLabelColor: Colors.primary,
+    }),
+    [Colors.primary, Colors.themeColorTextPure, Colors.darkGrey],
+  );
 
   const [steps, setSteps] = useState<number>(0);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[][]>([]);

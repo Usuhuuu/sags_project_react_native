@@ -6,7 +6,7 @@ import {
   simple_fetch,
 } from "./util/fetch_function";
 import { queryClient } from "./queryClient";
-import { useIsFocused } from "expo-router";
+
 import {
   ContractorBookingType,
   ContractorStatisticType,
@@ -109,12 +109,11 @@ export const useRegularQuery = (
   return useQuery({
     queryKey: cacheKey,
     queryFn: () => normalFetch(pathname) as Promise<RQ_QUERY_RETURN_TYPE<any>>,
-    enabled: loginStatus && (options?.enabled ?? true),
-    staleTime: 1000 * 10,
-    refetchOnReconnect: options?.refetchOnReconnect ?? true,
-    refetchOnMount: options?.refetchOnMount ?? true,
-    refetchInterval: 10000,
     ...options,
+    enabled: loginStatus && (options?.enabled ?? true),
+    staleTime: options?.staleTime ?? 1000 * 10,
+    refetchOnReconnect: options?.refetchOnReconnect ?? false,
+    refetchOnMount: options?.refetchOnMount ?? false,
   });
 };
 interface UseSimpleQueryProps {
@@ -132,10 +131,10 @@ export const useSimpleQuery = (
   return useQuery({
     queryKey: cacheKey,
     queryFn: () => simple_fetch({ path: pathname }),
-    enabled: !!cacheKey && (options?.enabled ?? true),
-    staleTime: 5_000,
-    retry: 3,
     ...options,
+    enabled: !!cacheKey && (options?.enabled ?? true),
+    staleTime: options?.staleTime ?? 5_000,
+    retry: options?.retry ?? 1,
   });
 };
 
@@ -153,17 +152,16 @@ export const useAuthQuery = (
   >,
 ) => {
   const { pathname, cacheKey, loginStatus } = props;
-  const isFocus = useIsFocused();
+
   return useQuery({
     queryKey: cacheKey,
     queryFn: () => fetchRoleAndProfile(pathname, loginStatus),
-    subscribed: isFocus,
-    enabled: loginStatus && (options?.enabled ?? true),
-    staleTime: options?.staleTime ?? 10_000,
-    retry: options?.retry ?? 3,
-    refetchOnReconnect: options?.refetchOnReconnect ?? true,
-    refetchOnMount: options?.refetchOnMount ?? true,
     ...options,
+    enabled: loginStatus && (options?.enabled ?? true),
+    staleTime: options?.staleTime ?? 30_000,
+    retry: options?.retry ?? 1,
+    refetchOnReconnect: options?.refetchOnReconnect ?? false,
+    refetchOnMount: options?.refetchOnMount ?? false,
   }) as any;
 };
 

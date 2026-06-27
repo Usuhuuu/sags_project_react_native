@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import React, { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { Stack } from "expo-router";
 import ExploreHeader from "@/components/hall_components/explore_header";
 import ListingsMap from "@/components/hall_components/listing_map";
@@ -30,16 +30,20 @@ const Page = () => {
     [category, hallData],
   );
 
+  const header = useCallback(
+    () => (
+      <ExploreHeader
+        onCategoryChanged={onDataChanged}
+        bottomSheetY={bottomSheetY}
+      />
+    ),
+    [],
+  );
   return (
     <View style={{ flex: 1 }}>
       <Stack.Screen
         options={{
-          header: () => (
-            <ExploreHeader
-              onCategoryChanged={onDataChanged}
-              bottomSheetY={bottomSheetY}
-            />
-          ),
+          header: header,
         }}
       />
       <ListingsMap listings={filteredListings} selectedCategory={category} />

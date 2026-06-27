@@ -14,7 +14,6 @@ import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useBookingStore } from "@/context/store/book_store";
-import Calendar from "@/components/book/calendar";
 import WeekCalendar from "@/components/book/strip_calendar";
 import { useTheme } from "@/context/theme_context";
 import { HallTypesSeparator } from "@/types/hall_separator_type";
@@ -416,11 +415,11 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                 </TouchableOpacity>
 
                 <View style={{ flex: 1 }}>
-                  <Calendar
+                  {/*<Calendar
                     sport_hall_id={sportHallID}
                     formData={formData}
                     setIsOrderScreenVisible={setIsOrderScreenVisible}
-                  />
+                  />*/}
                 </View>
               </View>
             ) : (

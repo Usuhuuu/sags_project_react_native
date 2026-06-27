@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useAuth } from "@/context/auth_context";
 import { View } from "react-native";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
@@ -7,7 +7,6 @@ import { Redirect, useSegments } from "expo-router";
 
 function DrawerLayout() {
   const { LoginStatus, authInitalizing } = useAuth();
-  const segments = useSegments();
   const { data, isLoading, isFetching } = useAuthQuery(
     {
       pathname: "main",
@@ -18,7 +17,6 @@ function DrawerLayout() {
       enabled: LoginStatus,
     },
   );
-
   if (authInitalizing) {
     return (
       <View
@@ -32,15 +30,22 @@ function DrawerLayout() {
       </View>
     );
   }
-
-  const currentPath = segments.join("/");
   if (!LoginStatus) {
-    console.log("INVALID LOGIN");
-    if (!currentPath.includes("(tabs-user)")) {
-      return <Redirect href="/(drawer)/(user)/(tab-user)" />;
-    }
-    return null;
+    return <Redirect href={"/(drawer)/(user)/(tab-user)"} />;
   }
+  const redirectTarget = useMemo(() => {
+    if (!data?.role) return "/(drawer)/(user)/(tab-user)";
+
+    switch (data.role) {
+      case "admin":
+        return "/(drawer)/(admin)/(tab-admin)/overview";
+      case "contractor":
+        return "/(drawer)/(contractor)/(tab-contractor)/overview";
+      default:
+        return "/(drawer)/(user)/(tab-user)";
+    }
+  }, [data?.role]);
+
   if (isLoading || isFetching) {
     return (
       <View
@@ -54,36 +59,8 @@ function DrawerLayout() {
       </View>
     );
   }
-  if (!data?.role) {
-    console.log("INVALID ACCESS");
-    if (!currentPath.includes("(tabs-user)")) {
-      return <Redirect href="/(drawer)/(user)/(tab-user)" />;
-    }
-    return null;
-  }
-
-  switch (data?.role) {
-    case "admin":
-      console.log("ADMIN1");
-      if (!currentPath.includes("(tabs-admin)")) {
-        return <Redirect href="/(drawer)/(admin)/(tab-admin)/overview" />;
-      }
-      break;
-    case "contractor":
-      console.log("CONTRACTOR1");
-      if (!currentPath.includes("(tabs-contractor)")) {
-        return (
-          <Redirect href="/(drawer)/(contractor)/(tab-contractor)/overview" />
-        );
-      }
-      break;
-    default:
-      console.log("USER1");
-      if (!currentPath.includes("(tabs-user)")) {
-        return <Redirect href="/(drawer)/(user)/(tab-user)" />;
-      }
-      break;
-  }
+  console.log(redirectTarget);
+  return <Redirect href={redirectTarget} />;
 }
 
 export default DrawerLayout;

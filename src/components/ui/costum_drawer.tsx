@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -6,12 +6,8 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import {
-  DrawerContentScrollView,
-  DrawerItemList,
-} from "@react-navigation/drawer";
 
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useTranslation } from "react-i18next";
@@ -23,6 +19,11 @@ import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
 import { useAuthQuery } from "@/hooks/useQuery";
 import ProfileAvatar from "@/components/ui/profile_avatar";
+import {
+  DrawerContentComponentProps,
+  DrawerContentScrollView,
+  DrawerItemList,
+} from "expo-router/drawer";
 
 interface UserData {
   email: string;
@@ -32,15 +33,16 @@ interface UserData {
   unique_user_ID: string;
   userImage: string | null;
 }
-const CustomDrawerContent = (props: any) => {
-  const { colors: Colors, theme } = useTheme();
 
+export default function CustomDrawerContext(
+  props: DrawerContentComponentProps,
+) {
+  const { colors: Colors, theme } = useTheme();
   const [userData, setUserData] = useState<UserData | null>(null);
   const { bottom } = useSafeAreaInsets();
   const { t } = useTranslation();
   const { LoginStatus, logIn } = useAuth();
 
-  const router = useRouter();
   const { data, error } = useAuthQuery(
     {
       pathname: "main",
@@ -53,17 +55,6 @@ const CustomDrawerContent = (props: any) => {
   );
 
   useEffect(() => {
-    notificationPermission();
-  }, []);
-
-  useEffect(() => {
-    const requestTracking = async () => {
-      await requestTrackingPermission();
-    };
-    requestTracking();
-  });
-
-  useEffect(() => {
     if (data) {
       const parsedData =
         typeof data.profileData == "string"
@@ -71,7 +62,6 @@ const CustomDrawerContent = (props: any) => {
           : data.profileData;
       const result = Array.isArray(parsedData) ? parsedData[0] : parsedData;
       setUserData(result);
-      logIn();
     } else if (error) {
       //logOut();
       console.log("Error fetching user data: Pisda", error);
@@ -287,7 +277,8 @@ const CustomDrawerContent = (props: any) => {
       </View>
     </View>
   );
-};
+}
+
 const styles = StyleSheet.create({
   container: {},
 
@@ -351,5 +342,3 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
 });
-
-export default CustomDrawerContent;

@@ -10,6 +10,8 @@ import HallInfoProvider from "@/context/hall_info_context";
 import { queryClient } from "@/hooks/queryClient";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "@/hooks/i18n_instance";
+import { LanguageProvider } from "@/context/language_context";
+import { CalendarProvider } from "@/context/calendar_context";
 
 configureReanimatedLogger({
   strict: false,
@@ -34,12 +36,16 @@ export default Sentry.wrap(() => (
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView>
         <SafeAreaProvider>
-          <NotifierRoot useRNScreensOverlay={true} />
-          <AuthProvider>
-            <HallInfoProvider>
-              <RootLayout />
-            </HallInfoProvider>
-          </AuthProvider>
+          <LanguageProvider>
+            <NotifierRoot useRNScreensOverlay={true} />
+            <AuthProvider>
+              <CalendarProvider>
+                <HallInfoProvider>
+                  <RootLayout />
+                </HallInfoProvider>
+              </CalendarProvider>
+            </AuthProvider>
+          </LanguageProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>

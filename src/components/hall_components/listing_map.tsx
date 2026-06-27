@@ -15,13 +15,14 @@ import {
   SportHallDataType,
   SportHallPrice,
 } from "@/types/hall_info_type";
-import { useRouter } from "expo-router";
+import { useIsFocused, useRouter } from "expo-router";
 import MapViewClustering from "react-native-map-clustering";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as SecureStorage from "expo-secure-store";
 import { useTheme } from "@/context/theme_context";
 import { ThemeColors } from "@/theme/colors";
+import OwnActivaterIndicator from "../ui/loader_indicator";
 
 const INITIAL_REGION = {
   latitude: 47.918873,
@@ -29,8 +30,6 @@ const INITIAL_REGION = {
   latitudeDelta: 0.1,
   longitudeDelta: 0.1,
 };
-
-const noop = () => {};
 
 type MarkerStyles = ReturnType<typeof createMarkerStyle>;
 
@@ -152,6 +151,7 @@ const ListingsMap = memo(
     const markerStyles = useMemo(() => createMarkerStyle(colors), [colors]);
 
     const [hasLocationPermission, setHasLocationPermission] = useState(false);
+    const [region, setRegion] = useState<any>(null);
     const [userLocation, setUserLocation] = useState<{
       latitude: number;
       longitude: number;
@@ -166,6 +166,22 @@ const ListingsMap = memo(
       const temp = listings.filter((hall) => hall.hall_types.sub.includes(key));
       return temp;
     }, [selectedCategory, listings]);
+
+    // Only render markers within visible bounds
+    const visibleHalls = useMemo(() => {
+      if (!region) return filteredHalls;
+      const north = region.latitude + region.latitudeDelta / 2;
+      const south = region.latitude - region.latitudeDelta / 2;
+      const east = region.longitude + region.longitudeDelta / 2;
+      const west = region.longitude - region.longitudeDelta / 2;
+      return filteredHalls.filter((hall) => {
+        const lat = parseFloat(hall.hall_locations?.latitude);
+        const lng = parseFloat(hall.hall_locations?.longitude);
+        return lat >= south && lat <= north && lng >= west && lng <= east;
+      });
+    }, [region, filteredHalls]);
+
+    const isFocused = useIsFocused();
 
     // ── Stable callbacks ────────────────────────────────────────────────────
 
@@ -234,6 +250,10 @@ const ListingsMap = memo(
         }
       };
       init();
+
+      return () => {
+        mapRef.current = null;
+      };
     }, []);
     const renderCluster = useCallback(
       (cluster: any) => {
@@ -258,7 +278,23 @@ const ListingsMap = memo(
       },
       [styles],
     );
-    return (
+    useEffect(() => {
+      console.log("ListingsMap mounted");
+
+      return () => {
+        console.log("ListingsMap unmounted");
+      };
+    }, []);
+
+    const handleRegionChange = useCallback((r: any) => {
+      setRegion({
+        latitude: r.latitude,
+        longitude: r.longitude,
+        latitudeDelta: r.latitudeDelta,
+        longitudeDelta: r.longitudeDelta,
+      });
+    }, []);
+    return isFocused ? (
       <View style={styles.container}>
         <MapViewClustering
           mapRef={setMapRef}
@@ -267,20 +303,22 @@ const ListingsMap = memo(
           showsUserLocation={hasLocationPermission}
           showsMyLocationButton={false}
           initialRegion={
-            userLocation
-              ? {
-                  ...userLocation,
-                  latitudeDelta: 0.1,
-                  longitudeDelta: 0.1,
-                }
-              : INITIAL_REGION
+            // userLocation
+            //   ? {
+            //       ...userLocation,
+            //       latitudeDelta: 0.1,
+            //       longitudeDelta: 0.1,
+            //     }
+            //   :
+            INITIAL_REGION
           }
           renderCluster={renderCluster}
           mapType="standard"
           userInterfaceStyle={theme}
-          onRegionChangeComplete={noop}
+          onRegionChangeComplete={handleRegionChange}
+          tracksViewChanges={false}
         >
-          {filteredHalls.map((item) => (
+          {visibleHalls.map((item) => (
             <HallMarker
               key={item.sportHallID}
               item={item}
@@ -311,6 +349,8 @@ const ListingsMap = memo(
           />
         </TouchableOpacity>
       </View>
+    ) : (
+      <OwnActivaterIndicator />
     );
   },
 );

@@ -46,6 +46,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const login = async () => {
     try {
+      if (isAuthenticated) return;
       await AsyncStorage.setItem("LoginStatus", "true");
       setIsAuthenticated(true);
     } catch (error) {

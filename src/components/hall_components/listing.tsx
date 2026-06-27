@@ -1,31 +1,46 @@
-import React, { useState, useCallback, useMemo, memo, useEffect } from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-} from "react-native";
+import { useState, useCallback, useMemo, memo } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-
 import { useTheme } from "@/context/theme_context";
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import { Image } from "expo-image";
 
 interface Props {
   listings: any[];
   category: string;
-  refresh: number;
 }
 
 const ITEMS_PER_PAGE = 8;
-const INCREMENT = 5;
+const INCREMENT = 3;
 const ITEM_HEIGHT = 105;
 
+const FILTER_CATEGORIES = [
+  { key: "nearby", label: "Nearby" },
+  { key: "top", label: "Top Rated" },
+  { key: "recommended", label: "Recommended" },
+];
+
+// ─── Image Placeholder ─────────────────────────────────────────────────────────
+
+const ImgPlaceholder = memo(({ color }: { color: string }) => (
+  <View style={[s.imgPlaceholder, { backgroundColor: color + "22" }]}>
+    <Ionicons name="business-outline" size={28} color={color} />
+  </View>
+));
+
+// ─── Listing Item ──────────────────────────────────────────────────────────────
+
 const ListingItem = memo(
-  ({ item, onPress }: { item: any; onPress: (id: string) => void }) => {
-    const { colors: C } = useTheme();
+  ({
+    item,
+    onPress,
+    colors,
+  }: {
+    item: any;
+    onPress: (id: string) => void;
+    colors: ReturnType<typeof useTheme>["colors"];
+  }) => {
     const price =
       item.hall_details?.hall_price?.oneHour ??
       item.hall_details?.hall_price?.pcHall?.oneHour;
@@ -35,51 +50,59 @@ const ListingItem = memo(
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={() => onPress(item.sportHallID ?? item.reference_hallId)}
-        style={[s.card, { backgroundColor: C.surface, borderColor: C.border }]}
+        style={[
+          s.card,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
       >
-        <View style={[s.cardAccent, { backgroundColor: C.accentPrimary }]} />
+        <View
+          style={[s.cardAccent, { backgroundColor: colors.accentPrimary }]}
+        />
         {img ? (
-          <View style={[s.imgWrap, { borderColor: C.borderSubtle }]}>
+          <View style={[s.imgWrap, { borderColor: colors.borderSubtle }]}>
             <Image source={{ uri: img }} style={s.img} />
           </View>
         ) : (
-          <View
-            style={[s.imgPlaceholder, { backgroundColor: C.accentPrimaryGlow }]}
-          >
-            <Ionicons
-              name="business-outline"
-              size={28}
-              color={C.accentPrimary}
-            />
-          </View>
+          <ImgPlaceholder color={colors.accentPrimary} />
         )}
         <View style={s.info}>
-          <Text style={[s.name, { color: C.onSurface }]} numberOfLines={1}>
+          <Text style={[s.name, { color: colors.onSurface }]} numberOfLines={1}>
             {item.hall_details?.hall_name ?? "Sports Hall"}
           </Text>
           <View style={s.row}>
-            <Ionicons name="location-outline" size={11} color={C.outline} />
-            <Text style={[s.sub, { color: C.outline }]} numberOfLines={1}>
+            <Ionicons
+              name="location-outline"
+              size={11}
+              color={colors.outline}
+            />
+            <Text style={[s.sub, { color: colors.outline }]} numberOfLines={1}>
               {item.hall_location?.smart_location ??
                 item.hall_details?.hall_address ??
                 "Ulaanbaatar"}
             </Text>
           </View>
           <View style={s.bottomRow}>
-            <Text style={[s.price, { color: C.accentPrimary }]}>
+            <Text style={[s.price, { color: colors.accentPrimary }]}>
               ₮{(price ?? 0).toLocaleString()}
-              <Text style={[s.unit, { color: C.outline }]}> / hr</Text>
+              <Text style={[s.unit, { color: colors.outline }]}> / hr</Text>
             </Text>
-            <View style={[s.badge, { backgroundColor: C.accentPrimaryGlow }]}>
+            <View
+              style={[
+                s.badge,
+                { backgroundColor: colors.accentPrimary + "22" },
+              ]}
+            >
               <Ionicons name="star" size={10} color="#FFD700" />
-              <Text style={[s.badgeText, { color: C.accentPrimary }]}>4.8</Text>
+              <Text style={[s.badgeText, { color: colors.accentPrimary }]}>
+                4.8
+              </Text>
             </View>
           </View>
         </View>
         <Ionicons
           name="chevron-forward"
           size={16}
-          color={C.outline}
+          color={colors.outline}
           style={s.chev}
         />
       </TouchableOpacity>
@@ -87,11 +110,54 @@ const ListingItem = memo(
   },
 );
 
-const categories = [
-  { key: "nearby", label: "Nearby" },
-  { key: "top", label: "Top Rated" },
-  { key: "recommended", label: "Recommended" },
-];
+// ─── Filter Button ─────────────────────────────────────────────────────────────
+
+const FilterBtn = memo(
+  ({
+    cat,
+    active,
+    onPress,
+    colors,
+  }: {
+    cat: (typeof FILTER_CATEGORIES)[number];
+    active: boolean;
+    onPress: () => void;
+    colors: any;
+  }) => (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      style={[
+        s.filterBtn,
+        {
+          backgroundColor: active ? colors.accentPrimary : colors.surface,
+          borderColor: active ? colors.accentPrimary : colors.border,
+        },
+      ]}
+    >
+      <Text
+        style={[
+          s.filterText,
+          { color: active ? "#FFF" : colors.onSurface },
+          active && { fontWeight: "700" },
+        ]}
+      >
+        {cat.label}
+      </Text>
+    </TouchableOpacity>
+  ),
+);
+
+// ─── Empty State ───────────────────────────────────────────────────────────────
+
+const EmptyList = memo(({ color }: { color: string }) => (
+  <View style={s.empty}>
+    <Ionicons name="search-outline" size={40} color={color} />
+    <Text style={[s.emptyText, { color }]}>No halls found</Text>
+  </View>
+));
+
+// ─── Main Component ────────────────────────────────────────────────────────────
 
 const ListingComponent = ({ listings: items }: Props) => {
   const { colors: C } = useTheme();
@@ -103,9 +169,6 @@ const ListingComponent = ({ listings: items }: Props) => {
     () => items.slice(0, visibleCount),
     [items, visibleCount],
   );
-  useEffect(() => {
-    setVisibleCount(ITEMS_PER_PAGE);
-  }, [items]);
 
   const onPress = useCallback(
     (id: string) => router.push(`/listing/${id}`),
@@ -113,8 +176,10 @@ const ListingComponent = ({ listings: items }: Props) => {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: any }) => <ListingItem item={item} onPress={onPress} />,
-    [onPress],
+    ({ item }: { item: any }) => (
+      <ListingItem item={item} onPress={onPress} colors={C} />
+    ),
+    [onPress, C],
   );
 
   const keyExtractor = useCallback(
@@ -138,72 +203,62 @@ const ListingComponent = ({ listings: items }: Props) => {
   );
   const hasMore = visibleCount < items.length;
 
+  const handleFilterPress = useCallback(
+    (key: string) => setSelected((prev) => (prev === key ? null : key)),
+    [],
+  );
+
+  const emptyComponent = useMemo(
+    () => <EmptyList color={C.outline} />,
+    [C.outline],
+  );
+
+  const footerComponent = useMemo(
+    () =>
+      hasMore ? (
+        <View style={s.footer}>
+          <Text style={[s.footerText, { color: C.outline }]}>
+            Loading more...
+          </Text>
+        </View>
+      ) : null,
+    [hasMore, C.outline],
+  );
+
   return (
     <View style={s.container} pointerEvents="box-none">
       <View style={s.filterRow}>
-        {categories.map((cat) => {
-          const active = selected === cat.key;
-          return (
-            <TouchableOpacity
-              key={cat.key}
-              activeOpacity={0.7}
-              onPress={() =>
-                setSelected((prev) => (prev === cat.key ? null : cat.key))
-              }
-              style={[
-                s.filterBtn,
-                {
-                  backgroundColor: active ? C.accentPrimary : C.surface,
-                  borderColor: active ? C.accentPrimary : C.border,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  s.filterText,
-                  { color: active ? "#FFF" : C.onSurface },
-                  active && { fontWeight: "700" },
-                ]}
-              >
-                {cat.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+        {FILTER_CATEGORIES.map((cat) => (
+          <FilterBtn
+            key={cat.key}
+            cat={cat}
+            active={selected === cat.key}
+            onPress={() => handleFilterPress(cat.key)}
+            colors={C}
+          />
+        ))}
       </View>
       <BottomSheetFlatList
         data={displayedItems}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        ListEmptyComponent={
-          <View style={s.empty}>
-            <Text style={[s.emptyText, { color: C.outline }]}>
-              No halls found
-            </Text>
-          </View>
-        }
-        ListFooterComponent={
-          hasMore ? (
-            <View style={s.footer}>
-              <Text style={[s.footerText, { color: C.outline }]}>
-                Loading more...
-              </Text>
-            </View>
-          ) : null
-        }
+        ListEmptyComponent={emptyComponent}
+        ListFooterComponent={footerComponent}
         contentContainerStyle={s.list}
         showsVerticalScrollIndicator={false}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         getItemLayout={getItemLayout}
         initialNumToRender={4}
-        maxToRenderPerBatch={5}
-        windowSize={1}
+        maxToRenderPerBatch={3}
+        windowSize={5}
         removeClippedSubviews={true}
       />
     </View>
   );
 };
+
+// ─── Styles ────────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
   container: { flex: 1 },
@@ -268,7 +323,7 @@ const s = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 60,
   },
-  emptyText: { fontSize: 14 },
+  emptyText: { fontSize: 14, marginTop: 8 },
   filterRow: {
     flexDirection: "row",
     paddingHorizontal: 12,

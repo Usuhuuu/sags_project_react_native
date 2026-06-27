@@ -1,9 +1,8 @@
 import { useTheme } from "@/context/theme_context";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Tabs } from "expo-router";
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 export default function TabLayout() {
   const { colors, theme } = useTheme();
@@ -43,7 +42,6 @@ export default function TabLayout() {
         options={{
           tabBarLabel: "home",
           headerShadowVisible: false,
-
           tabBarIcon: ({ focused }) => {
             return (
               <Ionicons
