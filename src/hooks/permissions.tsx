@@ -8,6 +8,7 @@ import * as Location from "expo-location";
 import * as SecureStorage from "expo-secure-store";
 import * as Notification from "expo-notifications";
 import { axiosInstanceRegular } from "./axiosInstance";
+import Constants from "expo-constants";
 
 export const calendarPermission = async () => {
   try {
@@ -121,11 +122,16 @@ export const notificationPermission = async () => {
     if (token === null) {
       const { status } = await Notification.requestPermissionsAsync();
       if (status === "granted") {
-        const pushToken = await Notification.getExpoPushTokenAsync();
+        const projectId =
+          Constants.easConfig?.projectId ??
+          Constants.expoConfig?.extra?.eas?.projectId;
+        if (!projectId) throw new Error("Project ID not found");
+
+        const pushToken = await Notification.getExpoPushTokenAsync({
+          projectId: projectId,
+        });
         token = pushToken.data;
-
         await SecureStorage.setItemAsync("notificationToken", token);
-
         await axiosInstanceRegular.post("/token-update", {
           token,
         });
