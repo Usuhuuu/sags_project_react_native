@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useAuth } from "@/context/auth_context";
 import { View } from "react-native";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
