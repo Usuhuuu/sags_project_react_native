@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import { EsportHallDataType, SportHallDataType } from "@/types/hall_info_type";
@@ -11,7 +11,7 @@ import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { useHallInfo } from "@/context/hall_info_context";
 
 const DetailsPage = () => {
-  const { sportHallID } = useLocalSearchParams();
+  const { hall_id } = useLocalSearchParams();
   const { getSpecificHall } = useHallInfo();
   const { colors } = useTheme();
 
@@ -19,7 +19,8 @@ const DetailsPage = () => {
   const [hallSeparator, setHallSeparotor] = useState<HallTypesSeparator | null>(
     null,
   );
-  const listing = getSpecificHall(String(sportHallID));
+  const formated_hall_id = Array.isArray(hall_id) ? hall_id[0] : hall_id;
+  const listing = getSpecificHall(formated_hall_id);
   const hallSeparatorFunc = () => {
     const sportSet = new Set(listing?.hall_types.sub);
     if (!sportSet) return;
@@ -49,7 +50,7 @@ const DetailsPage = () => {
     if (hallSeparator !== undefined || null) {
       setLoading(false);
     }
-  }, [sportHallID, hallSeparator]);
+  }, [formated_hall_id, hallSeparator]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -69,18 +70,14 @@ const DetailsPage = () => {
             <SportHall
               listing={listing as unknown as SportHallDataType}
               hallType={hallSeparator}
-              sportHallID={
-                Array.isArray(sportHallID) ? sportHallID[0] : sportHallID
-              }
+              sportHallID={formated_hall_id}
             />
           )}
           {hallSeparator === HallTypesSeparator.COMPUTERGAMESHALL &&
             listing && (
               <Pc_Halls
                 listing={listing as unknown as EsportHallDataType}
-                hallID={
-                  Array.isArray(sportHallID) ? sportHallID[0] : sportHallID
-                }
+                hallID={formated_hall_id}
                 hallType={hallSeparator}
               />
             )}

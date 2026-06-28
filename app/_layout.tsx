@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from "react";
 import { configureReanimatedLogger } from "react-native-reanimated";
 import * as Sentry from "@sentry/react-native";
 import { Stack } from "expo-router";
@@ -12,6 +13,15 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "@/hooks/i18n_instance";
 import { LanguageProvider } from "@/context/language_context";
 import { CalendarProvider } from "@/context/calendar_context";
+import * as SplashScreen from "expo-splash-screen";
+import {
+  notificationPermission,
+  requestLocationPermission,
+  trackingStatusPermission,
+} from "@/hooks/permissions";
+
+// Keep splash visible while app initialises
+SplashScreen.preventAutoHideAsync();
 
 configureReanimatedLogger({
   strict: false,
@@ -24,10 +34,35 @@ Sentry.init({
 });
 
 export function RootLayout() {
-  return <RootLayoutNav />;
+  const [appReady, setAppReady] = useState(false);
+
+  useEffect(() => {
+    // Request permissions while splash is visible (only once per install)
+    notificationPermission();
+    trackingStatusPermission();
+    requestLocationPermission();
+
+    // Wait one frame for contexts (theme, auth, etc.) to mount
+    const frame = requestAnimationFrame(() => {
+      setAppReady(true);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appReady]);
+
+  return <RootLayoutNav onReady={onLayoutRootView} />;
 }
 
-export function RootLayoutNav() {
+export function RootLayoutNav({ onReady }: { onReady: () => void }) {
+  useEffect(() => {
+    onReady();
+  }, [onReady]);
+
   return <Stack screenOptions={{ headerShown: false }}></Stack>;
 }
 

@@ -11,11 +11,12 @@ import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { useHallInfo } from "@/context/hall_info_context";
 
 export default function DetailsPage() {
-  const { sportHallID } = useLocalSearchParams();
+  const { hall_id } = useLocalSearchParams();
   const { getSpecificHall } = useHallInfo();
   const { colors } = useTheme();
+  console.log();
 
-  const hallId = Array.isArray(sportHallID) ? sportHallID[0] : sportHallID;
+  const hallId = Array.isArray(hall_id) ? hall_id[0] : hall_id;
   const listing = useMemo(
     () => getSpecificHall(hallId),
     [getSpecificHall, hallId],

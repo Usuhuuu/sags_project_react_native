@@ -466,9 +466,7 @@ const Pc_Halls = ({ listing }: PC_HallsProps) => {
         </View>
         <TouchableOpacity
           style={[s.bookBtn, { backgroundColor: C.accentPrimary }]}
-          onPress={() =>
-            router.push(`/listing/book/esport/${listing.sportHallID}`)
-          }
+          onPress={() => router.push(`/book/esport/${listing.sportHallID}`)}
         >
           <AppText style={s.bookBtnText}>Book Now →</AppText>
         </TouchableOpacity>

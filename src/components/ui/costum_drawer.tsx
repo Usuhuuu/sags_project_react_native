@@ -13,8 +13,6 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useTranslation } from "react-i18next";
 import { Ionicons, Fontisto, AntDesign } from "@expo/vector-icons";
 import { useAuth } from "@/context/auth_context";
-import { requestTrackingPermission } from "react-native-tracking-transparency";
-import { notificationPermission } from "@/hooks/permissions";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
 import { useAuthQuery } from "@/hooks/useQuery";

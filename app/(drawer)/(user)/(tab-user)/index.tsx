@@ -15,20 +15,39 @@ const Page = () => {
   const [category, setCategory] = useState<HallCategoryValue>(
     HallCategoryValue.BASKET_BALL,
   );
+  const [region, setRegion] = useState<any>(null);
+
   const bottomSheetY = useSharedValue(0);
 
-  const onDataChanged = (c: HallCategoryValue) => {
-    console.log(`Category changed:`, c);
+  const onDataChanged = useCallback((c: HallCategoryValue) => {
     setCategory(c);
-  };
+  }, []);
 
-  const filteredListings = useMemo(
-    () =>
-      Object.values(hallData).filter((item) =>
-        item.hall_types?.sub?.includes(category),
-      ),
-    [category, hallData],
-  );
+  const visibleHalls = useMemo(() => {
+    const temp = Object.values(hallData).filter((item) =>
+      item.hall_types?.sub?.includes(category),
+    );
+    console.log(`Visible halls:`, temp.length);
+    if (!region) return temp;
+    const north = region.latitude + region.latitudeDelta / 2;
+    const south = region.latitude - region.latitudeDelta / 2;
+    const east = region.longitude + region.longitudeDelta / 2;
+    const west = region.longitude - region.longitudeDelta / 2;
+    return temp.filter((hall) => {
+      const lat = parseFloat(hall.hall_locations?.latitude);
+      const lng = parseFloat(hall.hall_locations?.longitude);
+      return lat >= south && lat <= north && lng >= west && lng <= east;
+    });
+  }, [region, category, hallData]);
+
+  const handleRegionChange = useCallback((r: any) => {
+    setRegion({
+      latitude: r.latitude,
+      longitude: r.longitude,
+      latitudeDelta: r.latitudeDelta,
+      longitudeDelta: r.longitudeDelta,
+    });
+  }, []);
 
   const header = useCallback(
     () => (
@@ -46,9 +65,12 @@ const Page = () => {
           header: header,
         }}
       />
-      <ListingsMap listings={filteredListings} selectedCategory={category} />
+      <ListingsMap
+        listings={visibleHalls}
+        onRegionChange={handleRegionChange}
+      />
       <ListingBottomSheet
-        listing={filteredListings}
+        listing={visibleHalls}
         category={category}
         bottomSheetY={bottomSheetY}
       />

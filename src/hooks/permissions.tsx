@@ -8,7 +8,6 @@ import * as Location from "expo-location";
 import * as SecureStorage from "expo-secure-store";
 import * as Notification from "expo-notifications";
 import { axiosInstanceRegular } from "./axiosInstance";
-import Constants from "expo-constants";
 
 export const calendarPermission = async () => {
   try {
@@ -86,6 +85,7 @@ export const trackingStatusPermission = async () => {
     await Settings.setAdvertiserTrackingEnabled(true);
   }
 };
+
 export const requestLocationPermission = async () => {
   try {
     const rawAllPermission = await AsyncStorage.getItem("Permissions");
@@ -115,22 +115,25 @@ export const requestLocationPermission = async () => {
 };
 
 export const notificationPermission = async () => {
-  let token: string | null =
-    await SecureStorage.getItemAsync("notificationToken");
-  if (token === null) {
-    const { status } = await Notification.requestPermissionsAsync();
-    if (status === "granted") {
-      const pushToken = await Notification.getExpoPushTokenAsync();
-      token = pushToken.data;
-      const deviceID = Constants.deviceName;
+  try {
+    let token: string | null =
+      await SecureStorage.getItemAsync("notificationToken");
+    if (token === null) {
+      const { status } = await Notification.requestPermissionsAsync();
+      if (status === "granted") {
+        const pushToken = await Notification.getExpoPushTokenAsync();
+        token = pushToken.data;
 
-      await SecureStorage.setItemAsync("notificationToken", token);
+        await SecureStorage.setItemAsync("notificationToken", token);
 
-      await axiosInstanceRegular.post("/token-update", {
-        token: token,
-      });
-    } else {
-      console.log("Notification permission not granted");
+        await axiosInstanceRegular.post("/token-update", {
+          token,
+        });
+      } else {
+        console.log("Notification permission not granted");
+      }
     }
+  } catch (err) {
+    console.error("Notification permission error:", err);
   }
 };

@@ -171,7 +171,7 @@ const ListingComponent = ({ listings: items }: Props) => {
   );
 
   const onPress = useCallback(
-    (id: string) => router.push(`/listing/${id}`),
+    (id: string) => router.push(`/book/${id}`),
     [router],
   );
 

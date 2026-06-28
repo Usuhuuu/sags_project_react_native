@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "client",
-    "slug": "client",
+    "name": "sags_project",
+    "slug": "sags_project",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "client",
+    "scheme": "sags_project",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.usuhbayr.client",
+      "bundleIdentifier": "com.usuhbayr.sags_project",
       "config": {
         "googleMapsApiKey": "YOUR_KEY"
       },
@@ -68,6 +68,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "dba4003f-454c-4ea3-af94-4328a2d590ac"
+      }
+    },
+    "owner": "usuhbayr"
   }
 }

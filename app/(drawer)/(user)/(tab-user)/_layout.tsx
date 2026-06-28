@@ -6,7 +6,6 @@ import { StyleSheet } from "react-native";
 
 export default function TabLayout() {
   const { colors, theme } = useTheme();
-
   return (
     <Tabs
       screenOptions={{

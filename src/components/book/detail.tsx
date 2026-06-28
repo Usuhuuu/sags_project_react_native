@@ -337,7 +337,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       imageUrls: formData.image,
       price: normalizedPrice,
     });
-    router.push(`/listing/book/sport/${zaal_id}`);
+    router.push(`/book/sport/${zaal_id}`);
   };
 
   const isSelected = selectedTimeSlots.includes("WHOLE_DAY");

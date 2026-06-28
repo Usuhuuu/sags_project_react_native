@@ -140,10 +140,10 @@ const HallMarker = memo(
 const ListingsMap = memo(
   ({
     listings,
-    selectedCategory,
+    onRegionChange,
   }: {
     listings: (SportHallDataType | EsportHallDataType)[];
-    selectedCategory: string;
+    onRegionChange: (r: any) => void;
   }) => {
     const { colors, theme } = useTheme();
 
@@ -151,7 +151,6 @@ const ListingsMap = memo(
     const markerStyles = useMemo(() => createMarkerStyle(colors), [colors]);
 
     const [hasLocationPermission, setHasLocationPermission] = useState(false);
-    const [region, setRegion] = useState<any>(null);
     const [userLocation, setUserLocation] = useState<{
       latitude: number;
       longitude: number;
@@ -159,39 +158,14 @@ const ListingsMap = memo(
 
     const router = useRouter();
     const mapRef = React.useRef<MapView | null>(null);
-
-    const filteredHalls = useMemo(() => {
-      if (selectedCategory === "all") return listings;
-      const key = selectedCategory.toLowerCase() as HallCategoryType;
-      const temp = listings.filter((hall) => hall.hall_types.sub.includes(key));
-      return temp;
-    }, [selectedCategory, listings]);
-
-    // Only render markers within visible bounds
-    const visibleHalls = useMemo(() => {
-      if (!region) return filteredHalls;
-      const north = region.latitude + region.latitudeDelta / 2;
-      const south = region.latitude - region.latitudeDelta / 2;
-      const east = region.longitude + region.longitudeDelta / 2;
-      const west = region.longitude - region.longitudeDelta / 2;
-      return filteredHalls.filter((hall) => {
-        const lat = parseFloat(hall.hall_locations?.latitude);
-        const lng = parseFloat(hall.hall_locations?.longitude);
-        return lat >= south && lat <= north && lng >= west && lng <= east;
-      });
-    }, [region, filteredHalls]);
-
     const isFocused = useIsFocused();
-
-    // ── Stable callbacks ────────────────────────────────────────────────────
-
     const onNavigate = useCallback(
       (id: string, type: string) => {
+        console.log(id);
         router.push(`/book/${id}`);
       },
       [router],
     );
-
     const setMapRef = useCallback((ref: any) => {
       mapRef.current = ref as unknown as MapView;
     }, []);
@@ -219,42 +193,6 @@ const ListingsMap = memo(
       });
     }, [userLocation]);
 
-    // ── Location init (runs once) ───────────────────────────────────────────
-
-    useEffect(() => {
-      const init = async () => {
-        const stored = await SecureStorage.getItemAsync("userLocation");
-        if (stored) {
-          setUserLocation(JSON.parse(stored));
-          return;
-        }
-        try {
-          const { status } = await Location.requestForegroundPermissionsAsync();
-          if (status === "granted") {
-            setHasLocationPermission(true);
-            const loc = await Location.getCurrentPositionAsync();
-            const coords = {
-              latitude: loc.coords.latitude,
-              longitude: loc.coords.longitude,
-            };
-            await SecureStorage.setItemAsync(
-              "userLocation",
-              JSON.stringify(coords),
-            );
-            setUserLocation(coords);
-          } else {
-            setHasLocationPermission(false);
-          }
-        } catch (e) {
-          console.error("Location error:", e);
-        }
-      };
-      init();
-
-      return () => {
-        mapRef.current = null;
-      };
-    }, []);
     const renderCluster = useCallback(
       (cluster: any) => {
         const { id, geometry, onPress, properties } = cluster;
@@ -278,22 +216,7 @@ const ListingsMap = memo(
       },
       [styles],
     );
-    useEffect(() => {
-      console.log("ListingsMap mounted");
 
-      return () => {
-        console.log("ListingsMap unmounted");
-      };
-    }, []);
-
-    const handleRegionChange = useCallback((r: any) => {
-      setRegion({
-        latitude: r.latitude,
-        longitude: r.longitude,
-        latitudeDelta: r.latitudeDelta,
-        longitudeDelta: r.longitudeDelta,
-      });
-    }, []);
     return isFocused ? (
       <View style={styles.container}>
         <MapViewClustering
@@ -315,10 +238,10 @@ const ListingsMap = memo(
           renderCluster={renderCluster}
           mapType="standard"
           userInterfaceStyle={theme}
-          onRegionChangeComplete={handleRegionChange}
+          onRegionChangeComplete={onRegionChange}
           tracksViewChanges={false}
         >
-          {visibleHalls.map((item) => (
+          {listings.map((item) => (
             <HallMarker
               key={item.sportHallID}
               item={item}
