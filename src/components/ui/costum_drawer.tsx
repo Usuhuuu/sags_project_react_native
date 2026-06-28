@@ -101,7 +101,7 @@ export default function CustomDrawerContext(
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerTouchable}
-              onPress={() => router.push("/(modals)/authentication/login")}
+              onPress={() => router.push("/auth/login")}
             >
               <AppText
                 style={[

@@ -3,7 +3,8 @@ import { useAuth } from "@/context/auth_context";
 import { View } from "react-native";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { useAuthQuery } from "@/hooks/useQuery";
-import { Redirect, useSegments } from "expo-router";
+import { Redirect } from "expo-router";
+import type { Href } from "expo-router";
 
 function DrawerLayout() {
   const { LoginStatus, authInitalizing } = useAuth();
@@ -33,16 +34,16 @@ function DrawerLayout() {
   if (!LoginStatus) {
     return <Redirect href={"/(drawer)/(user)/(tab-user)"} />;
   }
-  const redirectTarget = useMemo(() => {
-    if (!data?.role) return "/(drawer)/(user)/(tab-user)";
+  const redirectTarget = useMemo((): Href => {
+    if (!data?.role) return "/(drawer)/(user)/(tab-user)" as Href;
 
     switch (data.role) {
       case "admin":
-        return "/(drawer)/(admin)/(tab-admin)/overview";
+        return "/(drawer)/(user)/(tab-user)" as Href;
       case "contractor":
-        return "/(drawer)/(contractor)/(tab-contractor)/overview";
+        return "/(drawer)/(contractor)/(tab-contractor)" as Href;
       default:
-        return "/(drawer)/(user)/(tab-user)";
+        return "/(drawer)/(user)/(tab-user)" as Href;
     }
   }, [data?.role]);
 

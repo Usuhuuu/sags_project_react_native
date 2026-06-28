@@ -185,7 +185,7 @@ const Confirm_Modal = ({
                   gap: 10,
                 }}
                 onPress={() => {
-                  router.push("/order");
+                  router.push("/(drawer)/(user)/(tab-user)/order");
                   hasScheduled && setConfirmModal(!confirmModal);
                 }}
               >

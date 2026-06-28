@@ -28,6 +28,10 @@ import {
   FontAwesome6,
   MaterialIcons,
 } from "@expo/vector-icons";
+import {
+  DrawerActions,
+  useNavigation,
+} from "expo-router/build/react-navigation";
 
 // Render the right icon component based on the map entry
 const SportIcon = ({
@@ -97,6 +101,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
     (state) => state.loadNotifications,
   );
   const notifications = useNotificationStore((state) => state.notifications);
+  const navigation = useNavigation();
 
   useEffect(() => {
     let mounted = true;
@@ -178,7 +183,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   };
 
   const openMenu = () => {
-    router.push("/(drawer)/(user)/(tab-user)/order" as any);
+    navigation.dispatch(DrawerActions.openDrawer());
   };
 
   return (

@@ -78,6 +78,48 @@ export default function TabLayout() {
           },
         }}
       />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          tabBarLabel: "Favorites",
+          headerTitle: "Favorites",
+          headerTitleAlign: "left",
+          headerTitleStyle: { color: colors.primary, fontSize: 28 },
+          headerShadowVisible: false,
+          tabBarIcon: ({ focused }) => {
+            return (
+              <Ionicons
+                name={focused ? "heart" : "heart-outline"}
+                size={28}
+                color={
+                  focused ? colors.primary : colors.themeColorTextSecondary
+                }
+              />
+            );
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          tabBarLabel: "Profile",
+          headerShown: false,
+          // headerShown: !LoginStatus,
+          // headerTitle: !LoginStatus ? t("aboutUs.login") : t("profile"),
+          headerTitleStyle: { color: colors.primary, fontSize: 24 },
+          tabBarIcon: ({ focused }) => {
+            return (
+              <Ionicons
+                name="person-outline"
+                size={28}
+                color={
+                  focused ? colors.primary : colors.themeColorTextSecondary
+                }
+              />
+            );
+          },
+        }}
+      />
     </Tabs>
   );
 }
