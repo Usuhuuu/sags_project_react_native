@@ -27,7 +27,6 @@ const Page = () => {
     const temp = Object.values(hallData).filter((item) =>
       item.hall_types?.sub?.includes(category),
     );
-    console.log(`Visible halls:`, temp.length);
     if (!region) return temp;
     const north = region.latitude + region.latitudeDelta / 2;
     const south = region.latitude - region.latitudeDelta / 2;
@@ -39,6 +38,7 @@ const Page = () => {
       return lat >= south && lat <= north && lng >= west && lng <= east;
     });
   }, [region, category, hallData]);
+  console.log(`Visible halls:`, visibleHalls.length);
 
   const handleRegionChange = useCallback((r: any) => {
     setRegion({

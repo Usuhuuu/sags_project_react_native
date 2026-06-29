@@ -14,8 +14,8 @@ interface HallInfoType {
   getSpecificHall: (hallId: string) => SportHallDataType | EsportHallDataType;
   getAllHalls: () => Record<string, SportHallDataType | EsportHallDataType>;
   getHallTimeSlots: (hallId: string) => {
-    start_time?: string | undefined;
-    end_time?: string | undefined;
+    start_time?: string;
+    end_time?: string;
   }[];
 }
 

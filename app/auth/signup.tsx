@@ -127,11 +127,15 @@ const SignupModal = ({
 
   // ── Fetch notification token ──
   useEffect(() => {
+    let mounted = true;
     const getToken = async () => {
       const token = await SecureStore.getItemAsync("notificationToken");
-      setNotificationToken(token || "");
+      if (mounted) setNotificationToken(token || "");
     };
     getToken();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // ── Submit handler ──

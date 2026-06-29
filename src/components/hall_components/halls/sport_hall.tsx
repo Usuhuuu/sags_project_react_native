@@ -295,7 +295,9 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
     if (activeTab !== "review" || fetched.current || noMore) return;
     fetched.current = true;
     setLoading(true);
+    let mounted = true;
     fetchZaalReview(listing.sportHallID, page).then((d) => {
+      if (!mounted) return;
       if (!d) {
         setLoading(false);
         return;
@@ -316,6 +318,9 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
       setCount(d.review_count);
       setLoading(false);
     });
+    return () => {
+      mounted = false;
+    };
   }, [page, activeTab]);
 
   const imgs = listing.hall_details.hall_imageURLs;

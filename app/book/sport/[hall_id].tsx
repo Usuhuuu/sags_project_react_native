@@ -68,7 +68,6 @@ const groupConnectedTimeSlots = (slots: string[]) => {
 
 const TransactionPage = () => {
   const { colors: Colors } = useTheme();
-  const navigation = useNavigation();
   const customStyles = useMemo(
     () => ({
       stepIndicatorSize: 30,
@@ -416,7 +415,7 @@ const TransactionPage = () => {
               </View>
               <TouchableOpacity
                 onPress={() => {
-                  navigation.navigate("order");
+                  router.navigate("/(drawer)/(user)/(tab-user)/order.tsx");
                 }}
               >
                 <Feather

@@ -203,9 +203,11 @@ const Pc_Halls = ({ listing }: PC_HallsProps) => {
     if (activeTab !== "review" || fetched.current || noMore) return;
     fetched.current = true;
     setLoading(true);
+    let mounted = true;
     axiosInstanceRegular
       .get(`/zaal-review/${listing.sportHallID}?page=${page}`)
       .then((res) => {
+        if (!mounted) return;
         if (!res.data?.success || !res.data.data) {
           setLoading(false);
           return;
@@ -227,7 +229,12 @@ const Pc_Halls = ({ listing }: PC_HallsProps) => {
         setCount(d.review_count);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
   }, [page, activeTab]);
 
   const priceGen = useCallback(

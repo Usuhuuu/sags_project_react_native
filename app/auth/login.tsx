@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  memo,
+  useMemo,
+  useRef,
+} from "react";
 import {
   View,
   StyleSheet,
@@ -329,6 +336,13 @@ const Page = () => {
 
   const { logIn } = useAuth();
   const router = useRouter();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   // ── Google Sign-In config ──
   useEffect(() => {
@@ -427,7 +441,7 @@ const Page = () => {
             signUpTimer: responseData.data.signUpTimer || "",
           });
           setPath(responseGoogle.path || "");
-          setTimeout(() => setIsModalVisible(true), 500);
+          timeoutRef.current = setTimeout(() => setIsModalVisible(true), 500);
         } else if (
           responseGoogle?.success &&
           responseData?.message === "Successfully logged in with Google"
@@ -460,7 +474,7 @@ const Page = () => {
           signUpTimer: returnData.data.signUpTimer || "",
         });
         setPath(facebookResponse.path || "");
-        setTimeout(() => setIsModalVisible(true), 500);
+        timeoutRef.current = setTimeout(() => setIsModalVisible(true), 500);
       } else if (
         facebookResponse?.data.message ===
         "Successfully logged in with Facebook"

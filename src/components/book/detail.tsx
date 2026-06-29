@@ -6,7 +6,6 @@ import {
   Text,
   Alert,
   Dimensions,
-  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -36,14 +35,14 @@ export type FormData = {
   };
 };
 export type baseTimeSlotType = {
-  start_time: string;
-  end_time: string;
+  start_time?: string;
+  end_time?: string;
 };
 
 type TimeSlotItemProps = {
   timeSlot: {
-    start_time: string;
-    end_time: string;
+    start_time?: string;
+    end_time?: string;
   };
   unavailableTimes: {
     joinable: string[];
@@ -79,7 +78,8 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
     const isSelected = selectedTimeSlots.includes(timeString);
 
     // Combine booking date with timeslot start time
-    const [startHour, startMinute] = timeSlot.start_time.split(":").map(Number);
+    const [startHour = 0, startMinute = 0] =
+      timeSlot?.start_time?.split(":").map(Number) ?? [];
     const slotDate = new Date(today);
     slotDate.setHours(startHour, startMinute, 0, 0);
 
