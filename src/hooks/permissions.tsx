@@ -1,5 +1,5 @@
 import * as Calendar from "expo-calendar";
-import { Camera } from "expo-camera";
+//import { Camera } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import { getTrackingStatus } from "react-native-tracking-transparency";
@@ -52,27 +52,28 @@ export const reminderPermission = async () => {
   }
 };
 
-export const cameraPermission = async () => {
-  try {
-    const permissionsString = await AsyncStorage.getItem("Permissions");
-    const permissions = permissionsString ? JSON.parse(permissionsString) : {};
-    const savedStatus = permissions.camera;
-    if (savedStatus && ["denied", "granted"].includes(savedStatus)) {
-      return;
-    } else {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      if (status === "granted" || status === "denied") {
-        const updatedPermissions = { ...permissions, camera: status };
-        await AsyncStorage.setItem(
-          "Permissions",
-          JSON.stringify(updatedPermissions),
-        );
-      }
-    }
-  } catch (err) {
-    console.log(err);
-  }
-};
+// export const cameraPermission = async () => {
+//   try {
+//     const permissionsString = await AsyncStorage.getItem("Permissions");
+//     const permissions = permissionsString ? JSON.parse(permissionsString) : {};
+//     const savedStatus = permissions.camera;
+//     if (savedStatus && ["denied", "granted"].includes(savedStatus)) {
+//       return;
+//     } else {
+//       const { status } = await Camera.requestCameraPermissionsAsync();
+//       if (status === "granted" || status === "denied") {
+//         const updatedPermissions = { ...permissions, camera: status };
+//         await AsyncStorage.setItem(
+//           "Permissions",
+//           JSON.stringify(updatedPermissions),
+//         );
+//       }
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
+// };
+
 // used for facebook
 export const trackingStatusPermission = async () => {
   if (Platform.OS === "ios") {

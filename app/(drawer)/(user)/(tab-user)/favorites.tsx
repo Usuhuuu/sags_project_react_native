@@ -7,9 +7,9 @@ import {
   StyleSheet,
   Dimensions,
   ListRenderItemInfo,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import Animated, {
@@ -181,10 +181,10 @@ const FavoriteCard = memo(
             <Image
               source={{ uri: img }}
               style={s.cardImg}
-              contentFit="cover"
-              cachePolicy="memory-disk"
-              placeholder={{ blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4" }}
-              transition={200}
+              //contentFit="cover"
+              //cachePolicy="memory-disk"
+              //placeholder={{ blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4" }}
+              //transition={200}
             />
           ) : (
             <View

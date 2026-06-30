@@ -5,7 +5,7 @@ import {
   Text,
   Dimensions,
 } from "react-native";
-import React, { useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import Listings from "@/components/hall_components/listing";
 import BottomSheet from "@gorhom/bottom-sheet";
 import {
@@ -15,6 +15,11 @@ import {
 } from "@/types/hall_info_type";
 import { Ionicons } from "@expo/vector-icons";
 import type { SharedValue } from "react-native-reanimated";
+import {
+  useAnimatedReaction,
+  runOnJS,
+  useSharedValue,
+} from "react-native-reanimated";
 import { useTheme } from "@/context/theme_context";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -32,6 +37,7 @@ const ListingBottomSheet = ({
   const { colors: Colors } = useTheme();
   const { height } = Dimensions.get("window");
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const [isExpanded, setIsExpanded] = React.useState(false);
   const insets = useSafeAreaInsets();
   const unabledHeight = height - insets.bottom - insets.top;
   const snapPoints = useMemo(
@@ -42,12 +48,24 @@ const ListingBottomSheet = ({
   const showMap = () => {
     bottomSheetRef.current?.collapse();
   };
+  const expanded = useSharedValue(false);
+
+  useAnimatedReaction(
+    () => bottomSheetY.value <= unabledHeight * 0.8,
+    (shouldExpand) => {
+      if (expanded.value !== shouldExpand) {
+        expanded.value = shouldExpand;
+        runOnJS(setIsExpanded)(shouldExpand);
+      }
+    },
+  );
 
   return (
     <BottomSheet
       ref={bottomSheetRef}
       snapPoints={snapPoints}
       enableOverDrag={false}
+      index={isExpanded ? 1 : 0}
       animatedPosition={bottomSheetY}
       handleStyle={{
         backgroundColor: Colors.backgroundColor,
@@ -73,7 +91,11 @@ const ListingBottomSheet = ({
           flex: 1,
         }}
       >
-        <Listings listings={listing} category={category} />
+        <Listings
+          listings={listing}
+          category={category}
+          isExpanded={isExpanded}
+        />
 
         <View style={styles.absoluteBtn}>
           <TouchableOpacity

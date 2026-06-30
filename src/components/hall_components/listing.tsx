@@ -1,14 +1,14 @@
 import { useState, useCallback, useMemo, memo } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/context/theme_context";
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
-import { Image } from "expo-image";
 
 interface Props {
   listings: any[];
   category: string;
+  isExpanded: boolean;
 }
 
 const ITEMS_PER_PAGE = 8;
@@ -159,7 +159,7 @@ const EmptyList = memo(({ color }: { color: string }) => (
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
-const ListingComponent = ({ listings: items }: Props) => {
+const ListingComponent = ({ listings: items, isExpanded }: Props) => {
   const { colors: C } = useTheme();
   const router = useRouter();
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
@@ -187,7 +187,6 @@ const ListingComponent = ({ listings: items }: Props) => {
       String(item.sportHallID ?? item.reference_hallId ?? item._id),
     [],
   );
-
   const getItemLayout = useCallback(
     (_: any, index: number) => ({
       length: ITEM_HEIGHT,
@@ -196,7 +195,6 @@ const ListingComponent = ({ listings: items }: Props) => {
     }),
     [],
   );
-
   const loadMore = useCallback(
     () => setVisibleCount((p) => Math.min(p + INCREMENT, items.length)),
     [items.length],
@@ -224,6 +222,10 @@ const ListingComponent = ({ listings: items }: Props) => {
       ) : null,
     [hasMore, C.outline],
   );
+  const data = useMemo(
+    () => (isExpanded ? displayedItems : []),
+    [isExpanded, displayedItems],
+  );
 
   return (
     <View style={s.container} pointerEvents="box-none">
@@ -239,7 +241,7 @@ const ListingComponent = ({ listings: items }: Props) => {
         ))}
       </View>
       <BottomSheetFlatList
-        data={displayedItems}
+        data={data}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={emptyComponent}
