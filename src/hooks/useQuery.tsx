@@ -2,7 +2,6 @@ import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import {
   fetchRoleAndProfile,
   normalFetch,
-  postFetch,
   simple_fetch,
 } from "./util/fetch_function";
 import { queryClient } from "./queryClient";
@@ -141,7 +140,6 @@ export const useSimpleQuery = (
 interface UseAuthQueryProps {
   pathname: string;
   cacheKey: readonly [`auth_status`];
-
   loginStatus: boolean;
 }
 export const useAuthQuery = (

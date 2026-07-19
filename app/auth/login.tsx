@@ -33,7 +33,6 @@ import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
 import { ThemeColors } from "@/theme/colors";
 
-// ── Static styles (no Colors dependency, created once) ─────────────────────
 const sharedStyles = StyleSheet.create({
   socialBtn: {
     flexDirection: "row",
@@ -73,7 +72,6 @@ const sharedStyles = StyleSheet.create({
   },
 });
 
-// ── SocialButton (memoized) ────────────────────────────────────────────────
 const SocialButton = memo(
   ({
     icon,
@@ -107,7 +105,6 @@ const SocialButton = memo(
   ),
 );
 
-// ── InputField (memoized) ──────────────────────────────────────────────────
 const InputField = memo(
   ({
     placeholder,
@@ -191,7 +188,6 @@ const InputField = memo(
   },
 );
 
-// ── Styles (created once per color change via useMemo) ─────────────────────
 const createStyles = (Colors: any) =>
   StyleSheet.create({
     flex: { flex: 1 },
@@ -462,6 +458,7 @@ const Page = () => {
 
   const handleFacebookLogin = useCallback(async () => {
     try {
+      console.log("handleFacebookLogin", )
       const facebookResponse = await loginWithFacebook();
       const returnData = facebookResponse?.data;
       if (facebookResponse?.modalVisible) {

@@ -10,7 +10,6 @@ export const fetchRoleAndProfile = async (
       if (!response.data.success && !response.data.auth) {
         throw new Error(response.data.message);
       }
-
       return {
         role: response.data.role,
         profileData: response.data.formData,

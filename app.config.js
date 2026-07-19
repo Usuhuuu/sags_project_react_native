@@ -61,6 +61,20 @@ export default {
         },
       ],
       "expo-localization",
+      [
+        "react-native-fbsdk-next",
+        {
+          appID: process.env.FACEBOOK_APP_ID || "8534089993319728",
+          clientToken: process.env.FACEBOOK_CLIENT_ID,
+          displayName: "Login with Facebook",
+          scheme: `fb${process.env.FACEBOOK_APP_ID}`,
+          advertiserIDCollectionEnabled: false,
+          autoLogAppEventsEnabled: false,
+          isAutoInitEnabled: true,
+          iosUserTrackingPermission:
+            "This identifier will be used to deliver personalized ads to you.",
+        },
+      ],
     ],
     experiments: {
       reactCompiler: true,
