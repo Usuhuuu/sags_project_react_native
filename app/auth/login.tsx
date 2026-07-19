@@ -27,11 +27,11 @@ import {
   loginWithGoogle,
 } from "@/components/auth/third_party_instance";
 import SignupModal, { LoginInput } from "./signup";
-import { TextInput } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
 import { ThemeColors } from "@/theme/colors";
+import { TextInput } from "react-native";
 
 const sharedStyles = StyleSheet.create({
   socialBtn: {
@@ -458,7 +458,7 @@ const Page = () => {
 
   const handleFacebookLogin = useCallback(async () => {
     try {
-      console.log("handleFacebookLogin", )
+      console.log("handleFacebookLogin");
       const facebookResponse = await loginWithFacebook();
       const returnData = facebookResponse?.data;
       if (facebookResponse?.modalVisible) {

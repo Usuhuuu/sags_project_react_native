@@ -1,5 +1,11 @@
 import React, { useCallback, useRef, useState } from "react";
-import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Pressable,
+} from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTheme } from "@/context/theme_context";
@@ -10,7 +16,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
-import { Checkbox } from "react-native-paper";
+import { Feather } from "@expo/vector-icons";
 import { NotificationItem } from "@/app/notification/notification";
 
 type SwipeableRowProps = {
@@ -22,6 +28,37 @@ type SwipeableRowProps = {
   selectedList: string[];
   setSelectedList: React.Dispatch<React.SetStateAction<string[]>>;
 };
+type CheckboxProps = {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  color: string;
+  uncheckedColor?: string;
+};
+
+export function Checkbox({
+  checked,
+  onChange,
+  color,
+  uncheckedColor = "#9ca3af",
+}: CheckboxProps) {
+  return (
+    <Pressable
+      onPress={() => onChange(!checked)}
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: 5,
+        borderWidth: 2,
+        borderColor: checked ? color : uncheckedColor,
+        backgroundColor: checked ? color : "transparent",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {checked && <Feather name="check" size={15} color="#fff" />}
+    </Pressable>
+  );
+}
 
 // ── Static styles (created once) ───────────────────────────────────────────
 const s = StyleSheet.create({
@@ -176,8 +213,8 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
       <View style={s.row}>
         {selectReady && (
           <Checkbox
-            status={checked ? "checked" : "unchecked"}
-            onPress={toggleSel}
+            checked={checked}
+            onChange={toggleSel}
             color={C.primary}
             uncheckedColor={C.outline}
           />

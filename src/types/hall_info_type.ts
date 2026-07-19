@@ -63,6 +63,7 @@ export interface SportHallDataType {
     longitude: string;
     smart_location?: string;
   };
+  reference_hallId?: string;
 }
 
 export interface EsportHallDataType {
@@ -110,4 +111,5 @@ export interface EsportHallDataType {
     longitude: string;
     smart_location?: string;
   };
+  reference_hallId?: string;
 }

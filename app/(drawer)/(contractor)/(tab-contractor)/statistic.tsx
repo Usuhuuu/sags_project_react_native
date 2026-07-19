@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { LinearGradient } from "expo-linear-gradient";
-import { LineChart } from "react-native-chart-kit";
 import { useTheme } from "@/context/theme_context";
 import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
 import { useAuth } from "@/context/auth_context";
@@ -188,6 +187,16 @@ const ContractorIndex = () => {
     }
   };
   const [start, end] = peekTime.split("-");
+
+  const chartData =
+    trendData.length > 0
+      ? trendData.map((item, index) => ({
+          label: trendType === "week" ? `W${index + 1}` : `D${index + 1}`,
+          value: Number(item.revenue) || 0,
+        }))
+      : [{ label: "", value: 0 }];
+
+  const maxRevenue = Math.max(...chartData.map((item) => item.value), 1);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
       <ScrollView
@@ -403,49 +412,63 @@ const ContractorIndex = () => {
             Booking Trends
           </Text>
 
-          <LineChart
-            data={{
-              labels:
-                trendData.length > 0
-                  ? trendData.map((_, index) =>
-                      trendType === "week"
-                        ? `Week ${index + 1}`
-                        : `Day ${index + 1}`,
-                    )
-                  : [""],
-              datasets: [
-                {
-                  data:
-                    trendData.length > 0
-                      ? trendData.map((item) => Number(item.revenue) || 0)
-                      : [0],
-                },
-              ],
-            }}
-            width={screenWidth - 70}
-            height={220}
-            chartConfig={{
-              backgroundGradientFrom: colors.containerColor,
-              backgroundGradientTo: colors.containerColor,
-              color: (opacity = 1) => `rgba(77, 171, 255, ${opacity})`,
-              labelColor: (opacity = 1) =>
-                theme === "dark"
-                  ? `rgba(255, 255, 255, ${opacity * 0.5})`
-                  : colors.themeColorTextPure,
-              strokeWidth: 3,
-              propsForDots: { r: "4", strokeWidth: "2", stroke: "#4dabff" },
-            }}
-            bezier
-            formatYLabel={(value) => `${Number(value) / 1000}k`}
+          <View
             style={{
+              height: 220,
               marginVertical: 8,
+              padding: 16,
               borderRadius: 16,
-              alignSelf: "center",
+              backgroundColor: colors.containerColor,
             }}
-            withDots={true}
-            withInnerLines={false}
-            withOuterLines={false}
-          />
+          >
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                alignItems: "flex-end",
+                gap: 8,
+              }}
+            >
+              {chartData.map((item) => (
+                <View
+                  key={item.label}
+                  style={{
+                    flex: 1,
+                    height: "100%",
+                    justifyContent: "flex-end",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: 10, color: colors.themeColorTextPure }}
+                  >
+                    {(item.value / 1000).toFixed(1)}k
+                  </Text>
+
+                  <View
+                    style={{
+                      width: "70%",
+                      height: Math.max(4, (item.value / maxRevenue) * 140),
+                      backgroundColor: "#4dabff",
+                      borderRadius: 6,
+                      marginTop: 4,
+                    }}
+                  />
+
+                  <Text
+                    style={{
+                      marginTop: 6,
+                      fontSize: 10,
+                      color:
+                        theme === "dark" ? "#aaa" : colors.themeColorTextPure,
+                    }}
+                  >
+                    {item.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
         </View>
 
         <View

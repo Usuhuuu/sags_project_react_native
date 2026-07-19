@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { router, useNavigation } from "expo-router";
 import StarRating from "@/components/hall_components/review/star_rating";
-import * as Progress from "react-native-progress";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
@@ -170,11 +169,25 @@ const SportHallReviewPage = ({
               >
                 <Entypo name="star" size={18} color={"gold"} />
                 <Text style={{ color: Colors.primary }}>{star}</Text>
-                <Progress.Bar
-                  progress={percentage}
-                  width={100}
-                  color={Colors.primary}
-                />
+                {/* PROGRESS */}
+                <View
+                  style={{
+                    width: 100,
+                    height: 6,
+                    backgroundColor: Colors.borderSubtle,
+                    borderRadius: 999,
+                    overflow: "hidden",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: `${Math.min(Math.max(percentage, 0), 1) * 100}%`,
+                      height: "100%",
+                      backgroundColor: Colors.primary,
+                      borderRadius: 999,
+                    }}
+                  />
+                </View>
                 <Text style={{ marginLeft: 5, color: Colors.secondary }}>
                   {Math.round(percentage * 100)}%
                 </Text>

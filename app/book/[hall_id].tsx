@@ -14,7 +14,6 @@ export default function DetailsPage() {
   const { hall_id } = useLocalSearchParams();
   const { getSpecificHall } = useHallInfo();
   const { colors } = useTheme();
-  console.log();
 
   const hallId = Array.isArray(hall_id) ? hall_id[0] : hall_id;
   const listing = useMemo(
@@ -56,14 +55,14 @@ export default function DetailsPage() {
     >
       {hallSeparator === HallTypesSeparator.SPORTHALL && (
         <SportHall
-          listing={listing as unknown as SportHallDataType}
+          listing={listing as SportHallDataType}
           hallType={hallSeparator}
           sportHallID={hallId}
         />
       )}
       {hallSeparator === HallTypesSeparator.COMPUTERGAMESHALL && (
         <Pc_Halls
-          listing={listing as unknown as EsportHallDataType}
+          listing={listing as EsportHallDataType}
           hallID={hallId}
           hallType={hallSeparator}
         />

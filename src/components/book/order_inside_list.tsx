@@ -16,7 +16,6 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import { format, differenceInSeconds } from "date-fns";
-import { ProgressBar } from "react-native-paper";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { Return_Type } from "@/types/book_type";
 import axiosInstance from "@/hooks/axiosInstance";
@@ -50,6 +49,39 @@ type TC = {
 };
 
 type StatusCfg = { color: string; bg: string; border: string };
+
+type ProgressBarProps = {
+  progress: number; // 0 to 1
+  color: string;
+  trackColor?: string;
+};
+export function ProgressBar({
+  progress,
+  color,
+  trackColor = "#e5e7eb",
+}: ProgressBarProps) {
+  const safeProgress = Math.min(Math.max(progress, 0), 1);
+
+  return (
+    <View
+      style={{
+        height: 4,
+        borderRadius: 4,
+        backgroundColor: trackColor,
+        overflow: "hidden",
+      }}
+    >
+      <View
+        style={{
+          height: "100%",
+          width: `${safeProgress * 100}%`,
+          backgroundColor: color,
+          borderRadius: 4,
+        }}
+      />
+    </View>
+  );
+}
 
 function getStatus(status: string, c: TC): StatusCfg {
   const map: Record<string, StatusCfg> = {
@@ -614,7 +646,6 @@ export const OrderItem = React.memo(
                         color={
                           full ? Colors.successColor : Colors.accentPrimary
                         }
-                        style={S.progressBar}
                       />
                     </View>
                   );

@@ -1,10 +1,10 @@
 import { SportBookingData, useBookingStore } from "@/context/store/book_store";
-import { router, useNavigation } from "expo-router";
+import { router } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, TouchableOpacity, ScrollView } from "react-native";
 import { Feather, FontAwesome, Fontisto, Ionicons } from "@expo/vector-icons";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import StepIndicator from "react-native-step-indicator";
+
 import axiosInstance from "@/hooks/axiosInstance";
 import { AxiosResponse } from "axios";
 import { Notifier, NotifierComponents } from "react-native-notifier";
@@ -68,34 +68,64 @@ const groupConnectedTimeSlots = (slots: string[]) => {
 
 const TransactionPage = () => {
   const { colors: Colors } = useTheme();
-  const customStyles = useMemo(
-    () => ({
-      stepIndicatorSize: 30,
-      currentStepIndicatorSize: 35,
-      separatorStrokeWidth: 2,
-      currentStepStrokeWidth: 3,
-      stepStrokeCurrentColor: Colors.primary,
-      stepStrokeWidth: 2,
-      stepStrokeFinishedColor: Colors.primary,
-      stepStrokeUnFinishedColor: "#aaaaaa",
-      separatorFinishedColor: Colors.primary,
-      separatorUnFinishedColor: "#aaaaaa",
-      stepIndicatorFinishedColor: Colors.primary,
-      stepIndicatorUnFinishedColor: "#ffffff",
-      stepIndicatorCurrentColor: "#ffffff",
-      stepIndicatorLabelFontSize: 13,
-      currentStepIndicatorLabelFontSize: 13,
-      stepIndicatorLabelCurrentColor: Colors.primary,
-      stepIndicatorLabelFinishedColor: Colors.themeColorTextPure,
-      stepIndicatorLabelUnFinishedColor: Colors.darkGrey,
-      labelColor: Colors.darkGrey,
-      labelSize: 13,
-      currentStepLabelColor: Colors.primary,
-    }),
-    [Colors.primary, Colors.themeColorTextPure, Colors.darkGrey],
-  );
 
   const [steps, setSteps] = useState<number>(0);
+  // ── Native step indicator (after state so `steps` is in scope) ─────────
+  const StepIndicator = useMemo(
+    () => (
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 4,
+        }}
+      >
+        {[0, 1, 2].map((i) => (
+          <React.Fragment key={i}>
+            {/* Connecting line */}
+            {i > 0 && (
+              <View
+                style={{
+                  width: 20,
+                  height: 2,
+                  backgroundColor: i <= steps ? Colors.primary : "#aaa",
+                }}
+              />
+            )}
+            {/* Step circle */}
+            <View
+              style={{
+                width: i === steps ? 26 : 22,
+                height: i === steps ? 26 : 22,
+                borderRadius: i === steps ? 13 : 11,
+                backgroundColor: i <= steps ? Colors.primary : "transparent",
+                borderWidth: 2,
+                borderColor: i <= steps ? Colors.primary : "#aaa",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <View
+                style={{
+                  width: i === steps ? 10 : 8,
+                  height: i === steps ? 10 : 8,
+                  borderRadius: i === steps ? 5 : 4,
+                  backgroundColor:
+                    i === steps
+                      ? Colors.themeColorTextPure
+                      : i < steps
+                        ? Colors.themeColorTextPure
+                        : "transparent",
+                }}
+              />
+            </View>
+          </React.Fragment>
+        ))}
+      </View>
+    ),
+    [steps, Colors.primary, Colors.themeColorTextPure],
+  );
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[][]>([]);
   const [playersNeeded, setPlayersNeeded] = useState<{ [key: number]: number }>(
     {},
@@ -401,18 +431,8 @@ const TransactionPage = () => {
                   color={Colors.primary}
                 />
               </TouchableOpacity>
-              {/* Step Indicator */}
-              <View
-                style={{
-                  flex: 1,
-                }}
-              >
-                <StepIndicator
-                  customStyles={customStyles}
-                  currentPosition={steps}
-                  stepCount={3}
-                />
-              </View>
+              {/* Step Indicator — native View, no third-party lib */}
+              <View style={{ flex: 1 }}>{StepIndicator}</View>
               <TouchableOpacity
                 onPress={() => {
                   router.navigate("/(drawer)/(user)/(tab-user)/order.tsx");

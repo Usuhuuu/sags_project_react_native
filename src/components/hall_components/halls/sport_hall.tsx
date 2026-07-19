@@ -253,13 +253,13 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
   const { width } = useWindowDimensions();
   const [isOrderVisible, setOrderVisible] = useState(false);
   const [formData, setFormData] = useState<FormData>({
-    sportHallID: "",
     name: "",
     date: "",
     price: { oneHour: "", wholeDay: "" },
     workTime: "",
     image: [],
     location: { latitude: "", longitude: "", smart_location: "" },
+    reference_hall_id: "",
   });
   const [reviews, setReviews] = useState<Record<string, Review>>({});
   const [rating, setRating] = useState(0);
@@ -288,6 +288,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
       workTime: `${listing?.hall_details.hall_work_time.start_time}~${listing?.hall_details.hall_work_time.end_time}`,
       image: listing?.hall_details.hall_imageURLs,
       location: listing?.hall_locations ?? prev.location,
+      reference_hall_id: listing?.reference_hallId ?? "",
     }));
   }, [sportHallID]);
 
