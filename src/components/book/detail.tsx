@@ -213,9 +213,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   const dateSlotGiver = useCallback(
     async (date: Date) => {
       setSelectedTimeSlots([]);
-      const odor = new Date(date);
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const key = `${sportHallID}T${odor}`;
+      const key = `${sportHallID}T${date}`;
       if (timeslotCache[key]) {
         const cached = timeslotCache[key];
         const isExpired = Date.now() - cached.timestampt > CACHE_TTL;
@@ -239,8 +238,9 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           unavailableWholeDay: false,
           joinableWholeDay: false,
         });
+
         const response = await axiosInstanceRegular.get(
-          `/timeslots/${sportHallID}/${formData.reference_hall_id}/${new Date().toISOString()}/${encodeURIComponent(timezone)}`,
+          `/timeslots/${sportHallID}/${formData.reference_hall_id}/${date.toISOString()}/${encodeURIComponent(timezone)}`,
         );
 
         if (response.status === 200 && response.data.success) {

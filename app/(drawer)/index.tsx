@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useAuth } from "@/context/auth_context";
 import { View } from "react-native";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { useAuthQuery } from "@/hooks/useQuery";
 import { Redirect } from "expo-router";
 import type { Href } from "expo-router";
+import { mqttService } from "@/hooks/mqttInstance";
 
 function DrawerLayout() {
   const { LoginStatus, authInitalizing } = useAuth();
@@ -60,7 +61,7 @@ function DrawerLayout() {
       </View>
     );
   }
-  console.log(redirectTarget);
+
   return <Redirect href={redirectTarget} />;
 }
 

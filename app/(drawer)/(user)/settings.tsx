@@ -25,6 +25,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { flushRegularQuery } from "@/hooks/useQuery";
+import axiosInstance from "@/hooks/axiosInstance";
 
 const ProfileSettings: React.FC = () => {
   const { colors: Colors, theme, changeTheme } = useTheme();
@@ -104,6 +105,9 @@ const ProfileSettings: React.FC = () => {
           label: helpSupport.contractUs,
           iconBg: "#DCFCE7",
           iconColor: "#16A34A",
+          onPress: () => {
+            testadmin();
+          },
         },
         {
           id: "faq",
@@ -190,6 +194,16 @@ const ProfileSettings: React.FC = () => {
     },
   ];
 
+  const testadmin = async () => {
+    try {
+      const response = await axiosInstance.post("/admin/hall", {
+        hall_version: "1.0.0",
+      });
+      console.log(response.status);
+    } catch (err) {
+      console.log(err);
+    }
+  };
   const logoutHandle = async () => {
     Alert.alert(t("userLogout.logoutAlert"), t("userLogout.logoutMessage"), [
       { text: t("userLogout.cancel"), style: "cancel" },
