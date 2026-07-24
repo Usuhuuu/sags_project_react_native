@@ -149,10 +149,7 @@ axiosInstance.interceptors.response.use(
         "hall_version",
         String(hallResponse.data.version),
       );
-      await AsyncStorage.setItem(
-        "hall_infos",
-        JSON.stringify(hallResponse.data.hallData),
-      );
+      await AsyncStorage.setItem("hall_infos", hallResponse.data.hallData);
       return axiosInstance(originalRequest);
     }
     return Promise.reject(error);

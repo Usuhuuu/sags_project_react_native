@@ -54,18 +54,22 @@ export default function CustomDrawerContext(
 
   useEffect(() => {
     if (data) {
-      const parsedData =
-        typeof data.profileData == "string"
-          ? JSON.parse(data.profileData)
-          : data.profileData;
-      const result = Array.isArray(parsedData) ? parsedData[0] : parsedData;
-      setUserData(result);
+      try {
+        const parsedData =
+          typeof data.profileData == "string"
+            ? JSON.parse(data.profileData)
+            : data.profileData;
+        const result = Array.isArray(parsedData) ? parsedData[0] : parsedData;
+        setUserData(result);
+      } catch {
+        console.log("Error parsing profileData");
+      }
     } else if (error) {
-      //logOut();
-      console.log("Error fetching user data: Pisda", error);
+      console.log("Error fetching user data:", error);
     }
   }, [data, error]);
-  const { width, height } = Dimensions.get("screen");
+  const screenDims = useMemo(() => Dimensions.get("screen"), []);
+  const { width, height } = screenDims;
 
   return (
     <View

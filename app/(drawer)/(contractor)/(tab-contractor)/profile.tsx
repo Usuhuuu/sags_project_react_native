@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -28,54 +29,25 @@ interface UserData {
   phoneNumber: string;
   userImage: string;
 }
-interface StatItem {
+// --- Data ---
+const PROFILE_STATS_CONFIG: {
   label: string;
   value: string;
-  icon: React.ReactNode;
-}
-
-interface MenuItem {
-  title: string;
-  icon: React.ReactNode;
-}
-
-// --- Data ---
-const PROFILE_STATS: StatItem[] = [
-  {
-    label: "Total Venues:",
-    value: "3",
-    icon: <Feather name="map-pin" size={18} color={"#4dabff"} />,
-  },
-  {
-    label: "Staff Members:",
-    value: "12",
-    icon: <Feather name="users" size={18} color={"#4dabff"} />,
-  },
-  {
-    label: "Years Active:",
-    value: "5",
-    icon: <Feather name="calendar" size={24} color={"#4dabff"} />,
-  },
+  iconName: string;
+}[] = [
+  { label: "Total Venues:", value: "3", iconName: "map-pin" },
+  { label: "Staff Members:", value: "12", iconName: "users" },
+  { label: "Years Active:", value: "5", iconName: "calendar" },
 ];
 
-const MENU_ITEMS: MenuItem[] = [
-  {
-    title: "Personal Information",
-    icon: <Feather name="user" size={24} color="black" />,
-  },
-  {
-    title: "Business Credentials",
-    icon: <Feather name="briefcase" size={24} color="black" />,
-  },
-  {
-    title: "Payment Methods",
-    icon: <Feather name="credit-card" size={24} color="black" />,
-  },
-  {
-    title: "Security",
-    icon: <Feather name="shield" size={24} color="black" />,
-  },
+const MENU_ITEMS_CONFIG: { title: string; iconName: string }[] = [
+  { title: "Personal Information", iconName: "user" },
+  { title: "Business Credentials", iconName: "briefcase" },
+  { title: "Payment Methods", iconName: "credit-card" },
+  { title: "Security", iconName: "shield" },
 ];
+
+const screenWidth = Dimensions.get("window").width;
 
 const ContractorProfile = () => {
   const { logOut, LoginStatus } = useAuth();
@@ -93,12 +65,7 @@ const ContractorProfile = () => {
   );
   useEffect(() => {
     if (!data?.profileData) return;
-
-    const tempData: UserData = data.profileData;
-    console.log(tempData);
-    setUserData(tempData);
-
-    console.log(tempData.userNames?.firstName);
+    setUserData(data.profileData);
   }, [data]);
   if (isLoading) {
     return <OwnActivaterIndicator />;
@@ -233,9 +200,9 @@ const ContractorProfile = () => {
             shadowOffset: { height: 4, width: 4 },
           }}
         >
-          {PROFILE_STATS.map((item, index) => (
+          {PROFILE_STATS_CONFIG.map((item, index) => (
             <View key={index} style={{ flex: 1, alignItems: "center" }}>
-              {item.icon}
+              <Feather name={item.iconName as any} size={18} color="#4dabff" />
               <Text
                 style={{
                   color: colors.themeColorTextPure,
@@ -271,7 +238,7 @@ const ContractorProfile = () => {
             shadowOpacity: 0.4,
           }}
         >
-          {MENU_ITEMS.map((item, index) => (
+          {MENU_ITEMS_CONFIG.map((item, index) => (
             <TouchableOpacity
               key={index}
               style={[
@@ -283,7 +250,9 @@ const ContractorProfile = () => {
                   borderBottomWidth: 0.2,
                   borderBottomColor: colors.darkGrey,
                 },
-                index === MENU_ITEMS.length - 1 && { borderBottomWidth: 0 },
+                index === MENU_ITEMS_CONFIG.length - 1 && {
+                  borderBottomWidth: 0,
+                },
               ]}
             >
               <View
@@ -292,7 +261,7 @@ const ContractorProfile = () => {
                   alignItems: "center",
                 }}
               >
-                {item.icon}
+                <Feather name={item.iconName as any} size={24} color="black" />
                 <Text
                   style={{
                     color: colors.themeColorTextPure,

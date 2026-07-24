@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -43,156 +43,167 @@ const ProfileSettings: React.FC = () => {
   const accountSupport = settings?.accountDetails[0] || {};
   const socialMedia = settings?.socialMedia[0] || {};
 
-  interface SettingsItem {
-    id: string;
-    icon: any;
-    label: any;
-    value?: string;
-    iconBg: string;
-    iconColor: string;
-    onPress?: () => void;
-    danger?: boolean;
-    component?: React.ReactNode;
-  }
-  const Sections: Array<{ header: string; items: SettingsItem[] }> = [
-    {
-      header: preferences.headerPreferences,
-      items: [
-        {
-          id: "language",
-          icon: preferences.iconLocationSettings,
-          label: preferences.language,
-          value: i18n.language === "en" ? "English" : i18n.language,
-          iconBg: "#E0F2FE",
-          iconColor: "#0284C7",
-        },
-        {
-          id: "theme",
-          icon: preferences.iconLocationTheme,
-          label: preferences.theme,
-          component: (
-            <Theme_Changer_Toggle value={theme} onToggle={changeTheme} />
-          ),
-          iconBg: "#F3E8FF",
-          iconColor: "#7C3AED",
-        },
-        {
-          id: "notifications",
-          icon: "notifications",
-          label: preferences.notification,
-          iconBg: "#FEE2E2",
-          iconColor: "#DC2626",
-          onPress: () =>
-            router.push(
-              "/(drawer)/(user)/(sub_settings)/settings_notification",
-            ),
-        },
-        {
-          id: "about",
-          icon: preferences.iconLocationAbout,
-          label: preferences.about,
-          iconBg: "#E5E7EB",
-          iconColor: "#374151",
-        },
-      ],
-    },
-    {
-      header: helpSupport.helpSupport,
-      items: [
-        {
-          id: "contact",
-          icon: helpSupport.iconLocationContractUs,
-          label: helpSupport.contractUs,
-          iconBg: "#DCFCE7",
-          iconColor: "#16A34A",
-          onPress: () => {
-            testadmin();
+  const Sections = useMemo(() => {
+    interface SettingsItem {
+      id: string;
+      icon: any;
+      label: any;
+      value?: string;
+      iconBg: string;
+      iconColor: string;
+      onPress?: () => void;
+      danger?: boolean;
+      component?: React.ReactNode;
+    }
+    const sections: Array<{ header: string; items: SettingsItem[] }> = [
+      {
+        header: preferences.headerPreferences,
+        items: [
+          {
+            id: "language",
+            icon: preferences.iconLocationSettings,
+            label: preferences.language,
+            value: i18n.language === "en" ? "English" : i18n.language,
+            iconBg: "#E0F2FE",
+            iconColor: "#0284C7",
           },
-        },
-        {
-          id: "faq",
-          icon: helpSupport.iconLocationFAQ,
-          label: helpSupport.FAQ,
-          iconBg: "#FEF9C3",
-          iconColor: "#CA8A04",
-        },
-        {
-          id: "terms",
-          icon: "document",
-          label: helpSupport.termsConditions,
-          iconBg: "#E0E7FF",
-          iconColor: "#4F46E5",
-        },
-        {
-          id: "privacy",
-          icon: helpSupport.iconLocationPrivacyPolicy,
-          label: helpSupport.privacyPolicy,
-          iconBg: "#ECFEFF",
-          iconColor: "#0891B2",
-        },
-      ],
-    },
-    {
-      header: accountSupport.account,
-      items: [
-        {
-          id: "profile",
-          icon: accountSupport.iconLocationProfile,
-          label: accountSupport.profile,
-          iconBg: "#EEF2FF",
-          iconColor: "#4338CA",
-        },
-        {
-          id: "password",
-          icon: accountSupport.iconLocationChangePassword,
-          label: accountSupport.changePassword,
-          iconBg: "#FFF7ED",
-          iconColor: "#EA580C",
-        },
-        {
-          id: "delete",
-          icon: accountSupport.iconLocationdeleteAccount,
-          label: accountSupport.deleteAccount,
-          danger: true,
-          iconBg: "#FEE2E2",
-          iconColor: "#DC2626",
-        },
-        {
-          id: "logout",
-          icon: accountSupport.iconLocationLogout,
-          label: accountSupport.logout,
-          iconBg: "#E5E7EB",
-          iconColor: "#374151",
-        },
-      ],
-    },
-    {
-      header: socialMedia.socialMedia,
-      items: [
-        {
-          id: "facebook",
-          icon: socialMedia.iconLocationFacebook,
-          label: socialMedia.facebook,
-          iconBg: "#DBEAFE",
-          iconColor: "#1877F2",
-        },
-        {
-          id: "twitter",
-          icon: socialMedia.iconLocationTwitter,
-          label: socialMedia.twitter,
-          iconBg: "#E0F2FE",
-          iconColor: "#1DA1F2",
-        },
-        {
-          id: "instagram",
-          icon: socialMedia.iconLocationInstagram,
-          label: socialMedia.instagram,
-          iconBg: "#FCE7F3",
-          iconColor: "#E1306C",
-        },
-      ],
-    },
-  ];
+          {
+            id: "theme",
+            icon: preferences.iconLocationTheme,
+            label: preferences.theme,
+            component: (
+              <Theme_Changer_Toggle value={theme} onToggle={changeTheme} />
+            ),
+            iconBg: "#F3E8FF",
+            iconColor: "#7C3AED",
+          },
+          {
+            id: "notifications",
+            icon: "notifications",
+            label: preferences.notification,
+            iconBg: "#FEE2E2",
+            iconColor: "#DC2626",
+            onPress: () =>
+              router.push(
+                "/(drawer)/(user)/(sub_settings)/settings_notification",
+              ),
+          },
+          {
+            id: "about",
+            icon: preferences.iconLocationAbout,
+            label: preferences.about,
+            iconBg: "#E5E7EB",
+            iconColor: "#374151",
+          },
+        ],
+      },
+      {
+        header: helpSupport.helpSupport,
+        items: [
+          {
+            id: "contact",
+            icon: helpSupport.iconLocationContractUs,
+            label: helpSupport.contractUs,
+            iconBg: "#DCFCE7",
+            iconColor: "#16A34A",
+            onPress: () => {
+              testadmin();
+            },
+          },
+          {
+            id: "faq",
+            icon: helpSupport.iconLocationFAQ,
+            label: helpSupport.FAQ,
+            iconBg: "#FEF9C3",
+            iconColor: "#CA8A04",
+          },
+          {
+            id: "terms",
+            icon: "document",
+            label: helpSupport.termsConditions,
+            iconBg: "#E0E7FF",
+            iconColor: "#4F46E5",
+          },
+          {
+            id: "privacy",
+            icon: helpSupport.iconLocationPrivacyPolicy,
+            label: helpSupport.privacyPolicy,
+            iconBg: "#ECFEFF",
+            iconColor: "#0891B2",
+          },
+        ],
+      },
+      {
+        header: accountSupport.account,
+        items: [
+          {
+            id: "profile",
+            icon: accountSupport.iconLocationProfile,
+            label: accountSupport.profile,
+            iconBg: "#EEF2FF",
+            iconColor: "#4338CA",
+          },
+          {
+            id: "password",
+            icon: accountSupport.iconLocationChangePassword,
+            label: accountSupport.changePassword,
+            iconBg: "#FFF7ED",
+            iconColor: "#EA580C",
+          },
+          {
+            id: "delete",
+            icon: accountSupport.iconLocationdeleteAccount,
+            label: accountSupport.deleteAccount,
+            danger: true,
+            iconBg: "#FEE2E2",
+            iconColor: "#DC2626",
+          },
+          {
+            id: "logout",
+            icon: accountSupport.iconLocationLogout,
+            label: accountSupport.logout,
+            iconBg: "#E5E7EB",
+            iconColor: "#374151",
+          },
+        ],
+      },
+      {
+        header: socialMedia.socialMedia,
+        items: [
+          {
+            id: "facebook",
+            icon: socialMedia.iconLocationFacebook,
+            label: socialMedia.facebook,
+            iconBg: "#DBEAFE",
+            iconColor: "#1877F2",
+          },
+          {
+            id: "twitter",
+            icon: socialMedia.iconLocationTwitter,
+            label: socialMedia.twitter,
+            iconBg: "#E0F2FE",
+            iconColor: "#1DA1F2",
+          },
+          {
+            id: "instagram",
+            icon: socialMedia.iconLocationInstagram,
+            label: socialMedia.instagram,
+            iconBg: "#FCE7F3",
+            iconColor: "#E1306C",
+          },
+        ],
+      },
+    ];
+    return sections;
+  }, [
+    preferences,
+    helpSupport,
+    accountSupport,
+    socialMedia,
+    i18n.language,
+    theme,
+    changeTheme,
+  ]);
 
   const testadmin = async () => {
     try {

@@ -18,6 +18,8 @@ const TabsLayout = () => {
         tabBarActiveTintColor: Colors.themeColorTextPure,
         headerShadowVisible: false,
         headerShown: false,
+        lazy: true,
+        freezeOnBlur: true,
         tabBarStyle: {
           backgroundColor: Colors.containerColor,
           borderTopWidth: theme === "dark" ? 0 : 1,

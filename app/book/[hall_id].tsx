@@ -46,6 +46,7 @@ export default function DetailsPage() {
       </View>
     );
   }
+  console.log("hallSeparator", hallSeparator);
 
   return (
     <Animated.View
