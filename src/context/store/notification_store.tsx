@@ -11,7 +11,8 @@ interface RawNotification {
 
 interface Notification {
   id: string;
-  message: string;
+  title: string;
+  body: string;
   time: string;
   seen: boolean;
 }
@@ -22,6 +23,8 @@ interface NotificationStore {
   addNotification: (notif: RawNotification) => Promise<void>;
   seenNotification: (id: string) => Promise<void>;
   clearNotifications: () => Promise<void>;
+  removeNotification: (id: string) => Promise<void>;
+  removeNotifications: (ids: string[]) => Promise<void>;
 }
 
 export const useNotificationStore = create<NotificationStore>((set) => ({
@@ -32,8 +35,9 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
     const parsed: RawNotification[] = saved ? JSON.parse(saved) : [];
     const transformed = parsed.map((n, index) => ({
       id: String(n.timestamp ?? index),
-      message: `${n.title ?? "Notification"}: ${n.body ?? ""}`,
-      time: new Date(n.timestamp).toLocaleString(),
+      title: n.title ?? "Notification",
+      body: n.body ?? "",
+      time: String(n.timestamp),
       seen: n.seen ?? false,
     }));
     set({ notifications: transformed });
@@ -48,8 +52,9 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
       notifications: [
         {
           id: String(notif.timestamp),
-          message: `${notif.title ?? "Notification"}: ${notif.body ?? ""}`,
-          time: new Date(notif.timestamp).toLocaleString(),
+          title: notif.title ?? "Notification",
+          body: notif.body ?? "",
+          time: String(notif.timestamp),
           seen: notif.seen ?? false,
         },
         ...state.notifications,
@@ -70,6 +75,27 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
       notifications: state.notifications.map((n) =>
         n.id === id ? { ...n, seen: true } : n,
       ),
+    }));
+  },
+
+  removeNotification: async (id: string) => {
+    const saved = await AsyncStorage.getItem("saved_notifications");
+    const parsed: RawNotification[] = saved ? JSON.parse(saved) : [];
+    const updated = parsed.filter((n) => String(n.timestamp) !== id);
+    await AsyncStorage.setItem("saved_notifications", JSON.stringify(updated));
+    set((state) => ({
+      notifications: state.notifications.filter((n) => n.id !== id),
+    }));
+  },
+
+  removeNotifications: async (ids: string[]) => {
+    const idSet = new Set(ids);
+    const saved = await AsyncStorage.getItem("saved_notifications");
+    const parsed: RawNotification[] = saved ? JSON.parse(saved) : [];
+    const updated = parsed.filter((n) => !idSet.has(String(n.timestamp)));
+    await AsyncStorage.setItem("saved_notifications", JSON.stringify(updated));
+    set((state) => ({
+      notifications: state.notifications.filter((n) => !idSet.has(n.id)),
     }));
   },
 

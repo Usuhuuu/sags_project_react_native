@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { router, useNavigation } from "expo-router";
 import StarRating from "@/components/hall_components/review/star_rating";
@@ -278,23 +278,24 @@ const SportHallReviewPage = ({
               </View>
             </View>
           </View>
-          <FlatList
-            data={filteredReviews}
-            keyExtractor={keyExtractor}
-            renderItem={renderItem}
-            style={{ height: "80%" }}
-            scrollEnabled={false}
-            ListEmptyComponent={emptyComponent}
-            onEndReached={() => {
-              if (totalReviews >= 10) {
-                setPage((prev) => prev + 1);
-              }
-            }}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={footerComponent}
-            removeClippedSubviews
-            windowSize={3}
-          />
+          <View>
+            {filteredReviews.length === 0
+              ? emptyComponent()
+              : filteredReviews.map((item) => (
+                  <React.Fragment key={item._id}>
+                    {renderItem({ item })}
+                  </React.Fragment>
+                ))}
+            {footerComponent()}
+            {totalReviews >= 10 && (
+              <TouchableOpacity
+                style={{ alignItems: "center", padding: 12 }}
+                onPress={() => setPage((prev) => prev + 1)}
+              >
+                <AppText style={{ color: Colors.primary }}>Load more</AppText>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
     </View>

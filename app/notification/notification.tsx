@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { FlatList, View, StyleSheet, TouchableOpacity } from "react-native";
 import * as Notifications from "expo-notifications";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import SwipeableRow from "@/components/notification/swipe_remove";
@@ -18,25 +17,12 @@ import { Notifier, NotifierComponents } from "react-native-notifier";
 import { useNotificationStore } from "@/context/store/notification_store";
 import { useNavigation } from "expo-router";
 
-const STORAGE_KEY = "saved_notifications";
-
 export type NotificationItem = {
   id: string;
   message: { title: string; body: string };
   time: string;
   seen: boolean;
 };
-
-// ── Transform raw storage data once ────────────────────────────────────────
-const toNotificationItem = (raw: any, index: number): NotificationItem => ({
-  id: String(raw.timestamp ?? index),
-  message: {
-    title: raw.title ?? "Notification",
-    body: raw.body ?? "",
-  },
-  time: raw.timestamp,
-  seen: raw.seen ?? false,
-});
 
 // ── Styles (created once) ──────────────────────────────────────────────────
 const createStyles = (Colors: any) =>
@@ -70,7 +56,6 @@ const createStyles = (Colors: any) =>
     },
   });
 
-// ── Shared static styles (no Colors dependency) ───────────────────────────
 const sharedStyles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
@@ -86,19 +71,10 @@ const sharedStyles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 20,
   },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: "center",
-  },
+  emptyTitle: { fontSize: 20, fontWeight: "700", marginBottom: 8 },
+  emptySubtitle: { fontSize: 14, lineHeight: 20, textAlign: "center" },
 });
 
-// ── Empty state (memoized) ─────────────────────────────────────────────────
 const EmptyNotificationScreen = React.memo(() => {
   const { colors } = useTheme();
   return (
@@ -126,45 +102,67 @@ const EmptyNotificationScreen = React.memo(() => {
   );
 });
 
-// ── Component ──────────────────────────────────────────────────────────────
 const NotificationScreen = () => {
   const { t } = useTranslation();
   const { colors: Colors } = useTheme();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
-  const { seenNotification } = useNotificationStore();
   const navigation = useNavigation();
 
-  const [savedNotifications, setSavedNotifications] = useState<
-    NotificationItem[]
-  >([]);
+  // ── Single source of truth: Zustand store ─────────────────────────────────
+  const storeNotifications = useNotificationStore((s) => s.notifications);
+  const loadNotifications = useNotificationStore((s) => s.loadNotifications);
+  const addNotification = useNotificationStore((s) => s.addNotification);
+  const seenNotification = useNotificationStore((s) => s.seenNotification);
+  const removeNotification = useNotificationStore((s) => s.removeNotification);
+  const removeNotifications = useNotificationStore(
+    (s) => s.removeNotifications,
+  );
+  const clearNotifications = useNotificationStore((s) => s.clearNotifications);
+
+  // Transform store shape → NotificationItem shape expected by SwipeableRow
+  const savedNotifications = useMemo<NotificationItem[]>(
+    () =>
+      storeNotifications.map((n) => ({
+        id: n.id,
+        message: { title: n.title, body: n.body },
+        time: n.time,
+        seen: n.seen,
+      })),
+    [storeNotifications],
+  );
+
   const [selectReady, setSelectReady] = useState(false);
   const [selectedList, setSelectedList] = useState<string[]>([]);
 
-  // ── Load saved notifications ──
-  const loadNotifications = useCallback(async () => {
-    const saved = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-    try {
-      const parsed = JSON.parse(saved);
-      setSavedNotifications(parsed.map(toNotificationItem));
-    } catch {}
-  }, []);
+  // ── Hydrate store from AsyncStorage once on mount ─────────────────────────
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
 
-  // ── Delete single ──
-  const deleteNotification = useCallback(async (id: string) => {
-    const saved = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-    try {
-      const parsed = JSON.parse(saved);
-      const updated = parsed.filter(
-        (item: any) => String(item.timestamp) !== id,
-      );
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      setSavedNotifications((prev) => prev.filter((item) => item.id !== id));
-    } catch {}
-  }, []);
+  // ── Listen for new foreground notifications; write through the store ───────
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        const { title, body } = notification.request.content;
+        addNotification({
+          title: title ?? "Notification",
+          body: body ?? "",
+          timestamp: Date.now(),
+          seen: false,
+        });
+      },
+    );
+    return () => subscription.remove();
+  }, [addNotification]);
 
-  // ── Delete selected ──
+  // ── Mutations — all go through the store ──────────────────────────────────
+  const deleteNotification = useCallback(
+    async (id: string | number) => {
+      await removeNotification(String(id));
+    },
+    [removeNotification],
+  );
+
   const deleteSelected = useCallback(async () => {
     if (selectedList.length === 0) {
       Notifier.showNotification({
@@ -175,65 +173,18 @@ const NotificationScreen = () => {
       });
       return;
     }
-    const saved = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-    try {
-      const parsed = JSON.parse(saved);
-      const updated = parsed.filter(
-        (item: any) => !selectedList.includes(String(item.timestamp)),
-      );
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      setSavedNotifications((prev) =>
-        prev.filter((item) => !selectedList.includes(item.id)),
-      );
-    } catch {}
+    await removeNotifications(selectedList);
     setSelectedList([]);
     setSelectReady(false);
-  }, [selectedList]);
+  }, [selectedList, removeNotifications]);
 
-  // ── Delete all ──
   const deleteAll = useCallback(async () => {
-    await AsyncStorage.removeItem(STORAGE_KEY);
-    setSavedNotifications([]);
+    await clearNotifications();
     setSelectedList([]);
     setSelectReady(false);
-  }, []);
+  }, [clearNotifications]);
 
-  // ── On mount ──
-  useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
-
-  // ── Listen for new notifications ──
-  useEffect(() => {
-    const subscription = Notifications.addNotificationReceivedListener(
-      async (notification) => {
-        const { title, body } = notification.request.content;
-        const timestamp = Date.now();
-
-        const saved = await AsyncStorage.getItem(STORAGE_KEY);
-        const parsed = saved ? JSON.parse(saved) : [];
-        const newItem = { title, body, timestamp, seen: false };
-        const updated = [newItem, ...parsed].slice(0, 100);
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-
-        setSavedNotifications((prev) =>
-          [
-            {
-              id: String(timestamp),
-              message: { title: title ?? "Notification", body: body ?? "" },
-              time: String(timestamp),
-              seen: false,
-            },
-            ...prev,
-          ].slice(0, 100),
-        );
-      },
-    );
-    return () => subscription.remove();
-  }, []);
-
-  // ── Header right button ──
+  // ── Header ────────────────────────────────────────────────────────────────
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () =>
@@ -255,14 +206,15 @@ const NotificationScreen = () => {
     });
   }, [navigation, selectReady, Colors.primary]);
 
-  // ── FlatList optimizations ──
+  // ── FlatList ──────────────────────────────────────────────────────────────
   const keyExtractor = useCallback((item: NotificationItem) => item.id, []);
+
   const renderItem = useCallback(
     ({ item }: { item: NotificationItem }) => (
       <SwipeableRow
         item={item}
         itemSave={seenNotification}
-        onDelete={() => deleteNotification(item.id)}
+        onDelete={deleteNotification}
         selectReady={selectReady}
         setSelectReady={setSelectReady}
         selectedList={selectedList}
@@ -271,6 +223,7 @@ const NotificationScreen = () => {
     ),
     [seenNotification, deleteNotification, selectReady, selectedList],
   );
+
   const listEmpty = useCallback(() => <EmptyNotificationScreen />, []);
 
   return (

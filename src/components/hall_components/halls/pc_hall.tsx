@@ -207,6 +207,7 @@ const Pc_Halls = ({ listing }: PC_HallsProps) => {
     axiosInstanceRegular
       .get(`/zaal-review/${listing.sportHallID}?page=${page}`)
       .then((res) => {
+        fetched.current = false;
         if (!mounted) return;
         if (!res.data?.success || !res.data.data) {
           setLoading(false);
@@ -222,6 +223,11 @@ const Pc_Halls = ({ listing }: PC_HallsProps) => {
               c = true;
             }
           });
+          // Cap at 50 reviews to bound memory
+          const keys = Object.keys(m);
+          if (keys.length > 50) {
+            keys.slice(0, keys.length - 50).forEach((k) => delete m[k]);
+          }
           return c ? m : prev;
         });
         if (d.reviews.length < 10) setNoMore(true);
@@ -230,12 +236,20 @@ const Pc_Halls = ({ listing }: PC_HallsProps) => {
         setLoading(false);
       })
       .catch(() => {
+        fetched.current = false;
         if (mounted) setLoading(false);
       });
     return () => {
       mounted = false;
     };
   }, [page, activeTab]);
+
+  useEffect(() => {
+    setReviews({});
+    setPage(0);
+    setNoMore(false);
+    fetched.current = false;
+  }, [listing.sportHallID]);
 
   const priceGen = useCallback(
     (t: "hour" | "wholeDay") => {

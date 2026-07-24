@@ -77,6 +77,7 @@ class MQTTService {
   disconnect() {
     if (!this.client) return;
 
+    this.client.removeAllListeners();
     this.client.end();
     this.client = null;
 

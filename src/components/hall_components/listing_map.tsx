@@ -11,18 +11,22 @@ import * as Location from "expo-location";
 import {
   EsportHallDataType,
   EsportHallPrices,
-  HallCategoryType,
   SportHallDataType,
   SportHallPrice,
 } from "@/types/hall_info_type";
 import { useIsFocused, useRouter } from "expo-router";
-import MapViewClustering from "react-native-map-clustering";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import * as SecureStorage from "expo-secure-store";
 import { useTheme } from "@/context/theme_context";
 import { ThemeColors } from "@/theme/colors";
 import OwnActivaterIndicator from "../ui/loader_indicator";
+
+// Guard: both lat and lng must parse to a finite number
+function hasValidCoords(item: SportHallDataType | EsportHallDataType): boolean {
+  const lat = parseFloat(item.hall_locations?.latitude);
+  const lng = parseFloat(item.hall_locations?.longitude);
+  return isFinite(lat) && isFinite(lng);
+}
 
 const INITIAL_REGION = {
   latitude: 47.918873,
@@ -156,12 +160,37 @@ const ListingsMap = memo(
       longitude: number;
     } | null>(null);
 
+    // ── Location: check permission once, fetch position, no continuous watch ──
+    useEffect(() => {
+      let mounted = true;
+      (async () => {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (!mounted) return;
+        if (status !== "granted") return;
+        setHasLocationPermission(true);
+        try {
+          const loc = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          if (!mounted) return;
+          setUserLocation({
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+          });
+        } catch {
+          // Permission granted but position unavailable — leave userLocation null
+        }
+      })();
+      return () => {
+        mounted = false;
+      };
+    }, []);
+
     const router = useRouter();
     const mapRef = React.useRef<MapView | null>(null);
     const isFocused = useIsFocused();
     const onNavigate = useCallback(
-      (id: string, type: string) => {
-        console.log(id);
+      (id: string, _type: string) => {
         router.push(`/book/${id}`);
       },
       [router],
@@ -176,6 +205,26 @@ const ListingsMap = memo(
         { duration: 400 },
       );
     }, []);
+
+    // ── Memoised markers — rebuilt only when listings, styles, or handlers change.
+    // Filters out halls with invalid/missing coordinates before they reach
+    // supercluster's KD-tree (parseFloat("") → NaN would crash the index).
+    const markers = useMemo(
+      () =>
+        listings
+          .filter(hasValidCoords)
+          .map((item) => (
+            <HallMarker
+              key={item.sportHallID}
+              item={item}
+              ms={markerStyles}
+              colors={colors}
+              onNavigate={onNavigate}
+              onFocus={focusMarker}
+            />
+          )),
+      [listings, markerStyles, colors, onNavigate, focusMarker],
+    );
 
     const goToUserLocation = useCallback(() => {
       if (!userLocation) return;
@@ -219,8 +268,8 @@ const ListingsMap = memo(
 
     return isFocused ? (
       <View style={styles.container}>
-        <MapViewClustering
-          mapRef={setMapRef}
+        <MapView
+          ref={setMapRef}
           style={StyleSheet.absoluteFill}
           provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
           showsUserLocation={hasLocationPermission}
@@ -235,23 +284,12 @@ const ListingsMap = memo(
             //   :
             INITIAL_REGION
           }
-          renderCluster={renderCluster}
           mapType="standard"
           userInterfaceStyle={theme}
           onRegionChangeComplete={onRegionChange}
-          tracksViewChanges={false}
         >
-          {listings.map((item) => (
-            <HallMarker
-              key={item.sportHallID}
-              item={item}
-              ms={markerStyles}
-              colors={colors}
-              onNavigate={onNavigate}
-              onFocus={focusMarker}
-            />
-          ))}
-        </MapViewClustering>
+          {markers}
+        </MapView>
 
         <TouchableOpacity style={styles.change} onPress={goToUserLocation}>
           <Ionicons

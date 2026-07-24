@@ -92,7 +92,10 @@ const initHallInfo = async () => {
     const response = await axiosInstanceRegular.get("/api/halls");
     if (response.data) {
       await AsyncStorage.setItem("hall_version", String(response.data.version));
-      await AsyncStorage.setItem("hall_infos", response.data.hallData);
+      await AsyncStorage.setItem(
+        "hall_infos",
+        JSON.stringify(response.data.hallData),
+      );
       return response.data.hallData;
     } else {
       return [];

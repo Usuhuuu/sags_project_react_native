@@ -146,7 +146,6 @@ const InputField = memo(
           style={sharedStyles.inputIcon}
         />
         <TextInput
-          mode="flat"
           autoCapitalize={autoCapitalize ?? "none"}
           placeholder={placeholder}
           placeholderTextColor={colors.outline}
@@ -155,7 +154,6 @@ const InputField = memo(
           secureTextEntry={secureTextEntry}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          underlineStyle={{ display: "none" }}
           style={[
             sharedStyles.input,
             {
@@ -163,12 +161,6 @@ const InputField = memo(
               backgroundColor: "transparent",
             },
           ]}
-          theme={{
-            colors: {
-              onSurface: colors.themeColorTextPure,
-              background: "transparent",
-            },
-          }}
         />
         {rightIcon && (
           <TouchableOpacity

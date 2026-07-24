@@ -104,16 +104,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    let mounted = true;
     loadNotifications();
-    const interval = setInterval(() => {
-      if (!mounted) return;
-      loadNotifications();
-    }, 15000);
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
   }, []);
 
   // Track unread count
@@ -259,9 +250,9 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
             onMomentumScrollEnd={onScrollEnd}
             scrollEventThrottle={16}
           >
-            {sportDetail?.map((item: any, index: number) => {
+            {(() => {
               const itemWidth = width / Object.keys(iconMap).length;
-              return (
+              return sportDetail?.map((item: any, index: number) => (
                 <TouchableOpacity
                   key={item.id ?? index}
                   ref={(el) => {
@@ -307,8 +298,8 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
                     />
                   )}
                 </TouchableOpacity>
-              );
-            })}
+              ));
+            })()}
           </ScrollView>
         </Animated.View>
       </Animated.View>

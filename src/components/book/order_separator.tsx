@@ -226,8 +226,26 @@ const Order_Separator = ({
   const { width } = Dimensions.get("window");
 
   const renderItem = useCallback(
-    ({ item }: { item: Return_Type }) => <OrderItem item={item} />,
-    [],
+    ({ item }: { item: Return_Type }) =>
+      loading ? (
+        <View
+          style={{
+            backgroundColor: Colors.containerColor,
+            shadowColor: Colors.shadowColor,
+            shadowOffset: { width: 1, height: 1 },
+            shadowOpacity: 0.2,
+            shadowRadius: 6,
+            elevation: 4,
+            borderRadius: 10,
+            marginVertical: 10,
+          }}
+        >
+          <BookingSkeleton width={width} theme={theme} color={Colors} />
+        </View>
+      ) : (
+        <OrderItem item={item} />
+      ),
+    [loading, Colors, width, theme],
   );
 
   return (
@@ -239,28 +257,9 @@ const Order_Separator = ({
         onEndReachedThreshold={0.1}
         initialNumToRender={5}
         windowSize={5}
-        removeClippedSubviews={false}
+        removeClippedSubviews
         style={{ flex: 1, backgroundColor: Colors.backgroundColor }}
-        renderItem={(item) =>
-          loading ? (
-            <View
-              style={{
-                backgroundColor: Colors.containerColor,
-                shadowColor: Colors.shadowColor,
-                shadowOffset: { width: 1, height: 1 },
-                shadowOpacity: 0.2,
-                shadowRadius: 6,
-                elevation: 4,
-                borderRadius: 10,
-                marginVertical: 10,
-              }}
-            >
-              <BookingSkeleton width={width} theme={theme} color={Colors} />
-            </View>
-          ) : (
-            renderItem(item)
-          )
-        }
+        renderItem={renderItem}
         ListEmptyComponent={
           listLoading ? (
             <View

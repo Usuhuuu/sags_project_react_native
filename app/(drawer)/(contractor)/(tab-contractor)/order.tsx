@@ -25,6 +25,10 @@ interface TabItem {
   label: string;
 }
 
+const MAX_ITEMS = 100;
+
+const ListEmpty = () => null;
+
 const ContractorBooking = () => {
   const { colors, theme } = useTheme();
   const [activeTab, setActiveTab] = useState<"UPCOMING" | "ACTIVE" | "HISTORY">(
@@ -89,10 +93,11 @@ const ContractorBooking = () => {
           map.set(item._id, item);
         }
 
-        return {
-          ...prev,
-          [activeTab]: Array.from(map.values()),
-        };
+        let values = Array.from(map.values());
+        if (values.length > MAX_ITEMS) {
+          values = values.slice(values.length - MAX_ITEMS);
+        }
+        return { ...prev, [activeTab]: values };
       });
     }
   }, [data, error, activeTab]);
@@ -248,11 +253,13 @@ const ContractorBooking = () => {
       <FlatList
         data={bookingData[activeTab] ?? []}
         keyExtractor={(item, index) => item?._id ?? `${index}`}
-        ListEmptyComponent={() => {
-          return <></>;
-        }}
+        ListEmptyComponent={ListEmpty}
         renderItem={renderBookingItem}
         contentContainerStyle={{ padding: 20 }}
+        windowSize={5}
+        maxToRenderPerBatch={10}
+        initialNumToRender={10}
+        removeClippedSubviews
       />
     </SafeAreaView>
   );

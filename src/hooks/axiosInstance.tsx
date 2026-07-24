@@ -137,19 +137,23 @@ axiosInstance.interceptors.response.use(
       }
     }
     if (
+      error.response &&
       error.response.status === 409 &&
       error.response?.data?.code === "OUTDATED_VERSION" &&
       !originalRequest._versionRetry
     ) {
       originalRequest._versionRetry = true;
       const hallResponse = await axiosInstanceRegular.get("/api/halls");
-      console.log(hallResponse.data.hallData.length);
       originalRequest.headers["x-hall-version"] = hallResponse.data.version;
       await AsyncStorage.setItem(
         "hall_version",
         String(hallResponse.data.version),
       );
-      await AsyncStorage.setItem("hall_infos", hallResponse.data.hallData);
+      await AsyncStorage.setItem(
+        "hall_infos",
+        JSON.stringify(hallResponse.data.hallData),
+      );
+      return axiosInstance(originalRequest);
     }
     return Promise.reject(error);
   },

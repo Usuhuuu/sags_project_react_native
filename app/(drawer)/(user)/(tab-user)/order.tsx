@@ -79,12 +79,25 @@ const OrderScreen = () => {
       });
     }
   }, [LoginStatus]);
+
   const dateString = dayjs(initDate).toISOString().split("T")[0];
   const endDate = endDateValue
     ? dayjs(endDateValue).format("YYYY-MM-DD")
     : null;
 
   const normalizedEndDate = endDate ?? "none";
+
+  useEffect(() => {
+    setBookingData({ today_upcoming: [], history: [] });
+    setPages({
+      [OrderScreenSeparator.TODAY_UPCOMING]: 1,
+      [OrderScreenSeparator.HISTORY]: 1,
+    });
+    setHasMore({
+      [OrderScreenSeparator.TODAY_UPCOMING]: true,
+      [OrderScreenSeparator.HISTORY]: true,
+    });
+  }, [screenSeparator, dateString, normalizedEndDate]);
   const swrKey = [
     "booked_order",
     screenSeparator,
@@ -165,10 +178,24 @@ const OrderScreen = () => {
         },
         { today_upcoming: [] as Return_Type[], history: [] as Return_Type[] },
       );
-      setBookingData((prev) => ({
-        today_upcoming: [...prev.today_upcoming, ...sorted.today_upcoming],
-        history: [...prev.history, ...sorted.history],
-      }));
+      setBookingData((prev) => {
+        const upcomingMap = new Map<string, Return_Type>(
+          prev.today_upcoming.map((item) => [item._id, item]),
+        );
+        sorted.today_upcoming.forEach((item) =>
+          upcomingMap.set(item._id, item),
+        );
+
+        const historyMap = new Map<string, Return_Type>(
+          prev.history.map((item) => [item._id, item]),
+        );
+        sorted.history.forEach((item) => historyMap.set(item._id, item));
+
+        return {
+          today_upcoming: Array.from(upcomingMap.values()),
+          history: Array.from(historyMap.values()),
+        };
+      });
       const PAGE_LIMIT = 10;
       if (data.bookingData.length < PAGE_LIMIT) {
         setHasMore((prev) => ({ ...prev, [screenSeparator]: false }));
@@ -201,7 +228,7 @@ const OrderScreen = () => {
       ...prev,
       [screenSeparator]: prev[screenSeparator] + 1,
     }));
-  }, [loading]);
+  }, [loading, hasMore, screenSeparator, data]);
   const opacity = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({

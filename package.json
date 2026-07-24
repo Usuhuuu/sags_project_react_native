@@ -36,7 +36,6 @@
     "react-native-fbsdk-next": "^13.4.3",
     "react-native-gesture-handler": "~2.31.1",
     "react-native-image-picker": "^8.2.1",
-    "react-native-map-clustering": "^4.0.0",
     "react-native-maps": "^1.27.2",
     "react-native-notifier": "^2.0.0",
     "react-native-reanimated": "4.3.1",

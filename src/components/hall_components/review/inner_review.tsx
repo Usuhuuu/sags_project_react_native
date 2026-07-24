@@ -138,32 +138,29 @@ const Inner_Zaal_Review = () => {
                 justifyContent: "center",
               }}
               onPress={() => {
-                launchImageLibrary(
-                  { mediaType: "mixed", includeBase64: true },
-                  (response) => {
-                    if (imageUrl.length == 10) {
-                      Notifier.showNotification({
-                        title: "Warning",
-                        description: "Only Upload 10 Images",
-                        Component: NotifierComponents.Alert,
-                        componentProps: { alertType: "warn" },
-                      });
-                      return;
-                    }
-                    if (response.assets && response.assets[0].uri) {
-                      setImageUrl((asset) => {
-                        if (response.assets && response.assets[0].uri) {
-                          return [...asset, response.assets[0].uri];
-                        }
-                        return asset;
-                      });
-                    } else if (response.didCancel) {
-                      console.log("user canceled");
-                    } else {
-                      console.warn("invalid response", response.errorCode);
-                    }
-                  },
-                );
+                launchImageLibrary({ mediaType: "mixed" }, (response) => {
+                  if (imageUrl.length == 10) {
+                    Notifier.showNotification({
+                      title: "Warning",
+                      description: "Only Upload 10 Images",
+                      Component: NotifierComponents.Alert,
+                      componentProps: { alertType: "warn" },
+                    });
+                    return;
+                  }
+                  if (response.assets && response.assets[0].uri) {
+                    setImageUrl((asset) => {
+                      if (response.assets && response.assets[0].uri) {
+                        return [...asset, response.assets[0].uri];
+                      }
+                      return asset;
+                    });
+                  } else if (response.didCancel) {
+                    console.log("user canceled");
+                  } else {
+                    console.warn("invalid response", response.errorCode);
+                  }
+                });
               }}
             >
               <Entypo name="camera" size={24} color={Colors.primary} />

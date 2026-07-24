@@ -298,6 +298,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
     setLoading(true);
     let mounted = true;
     fetchZaalReview(listing.sportHallID, page).then((d) => {
+      fetched.current = false;
       if (!mounted) return;
       if (!d) {
         setLoading(false);
@@ -312,6 +313,11 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
             c = true;
           }
         });
+        // Cap at 50 reviews to bound memory
+        const keys = Object.keys(m);
+        if (keys.length > 50) {
+          keys.slice(0, keys.length - 50).forEach((k) => delete m[k]);
+        }
         return c ? m : prev;
       });
       if (d.reviews.length < 10) setNoMore(true);
@@ -323,6 +329,13 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
       mounted = false;
     };
   }, [page, activeTab]);
+
+  useEffect(() => {
+    setReviews({});
+    setPage(0);
+    setNoMore(false);
+    fetched.current = false;
+  }, [sportHallID]);
 
   const imgs = listing.hall_details.hall_imageURLs;
   const det = {

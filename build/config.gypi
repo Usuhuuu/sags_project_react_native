@@ -457,10 +457,10 @@
     "globalconfig": "/Users/damdinsurenusukhbayar/.nvm/versions/node/v22.13.1/etc/npmrc",
     "userconfig": "/Users/damdinsurenusukhbayar/.npmrc",
     "init_module": "/Users/damdinsurenusukhbayar/.npm-init.js",
-    "npm_version": "11.17.0",
+    "npm_version": "11.18.0",
     "node_gyp": "/Users/damdinsurenusukhbayar/.nvm/versions/node/v22.13.1/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js",
     "cache": "/Users/damdinsurenusukhbayar/.npm",
-    "user_agent": "npm/11.17.0 node/v22.13.1 darwin arm64 workspaces/false",
+    "user_agent": "npm/11.18.0 node/v22.13.1 darwin arm64 workspaces/false",
     "prefix": "/Users/damdinsurenusukhbayar/.nvm/versions/node/v22.13.1"
   }
 }
