@@ -20,6 +20,7 @@ import { queryClient } from "@/hooks/queryClient";
 import { useHallInfo } from "@/context/hall_info_context";
 import { useNavigation } from "expo-router";
 import { EsportHallPrices } from "@/types/hall_info_type";
+
 const createStyles = (c: any) =>
   StyleSheet.create({
     flex: { flex: 1, backgroundColor: c.backgroundColor },
@@ -68,30 +69,6 @@ const BookingEsportHall = () => {
   const s = createStyles(colors);
   const navigation = useNavigation();
 
-  const customStyles = {
-    stepIndicatorSize: 30,
-    currentStepIndicatorSize: 35,
-    separatorStrokeWidth: 2,
-    currentStepStrokeWidth: 3,
-    stepStrokeCurrentColor: colors.accentPrimary,
-    stepStrokeWidth: 2,
-    stepStrokeFinishedColor: colors.accentPrimary,
-    stepStrokeUnFinishedColor: colors.outline,
-    separatorFinishedColor: colors.accentPrimary,
-    separatorUnFinishedColor: colors.border,
-    stepIndicatorFinishedColor: colors.accentPrimary,
-    stepIndicatorUnFinishedColor: colors.surface,
-    stepIndicatorCurrentColor: colors.surface,
-    stepIndicatorLabelFontSize: 13,
-    currentStepIndicatorLabelFontSize: 13,
-    stepIndicatorLabelCurrentColor: colors.accentPrimary,
-    stepIndicatorLabelFinishedColor: colors.onSurface,
-    stepIndicatorLabelUnFinishedColor: colors.outline,
-    labelColor: colors.outline,
-    labelSize: 13,
-    currentStepLabelColor: colors.accentPrimary,
-  };
-
   const [step, setStep] = useState(0);
   const [isDataInited, setIsDataInited] = useState(false);
   const [confirmModal, setConfirmModal] = useState(false);
@@ -100,11 +77,10 @@ const BookingEsportHall = () => {
   const [initTime, setInitTime] = useState(false);
   const hasScheduled = useRef(false);
 
-  const { zaal_id } = useLocalSearchParams();
+  const { hall_id } = useLocalSearchParams();
   const { getSpecificHall } = useHallInfo();
 
-  const listing = getSpecificHall(String(zaal_id));
-
+  const listing = getSpecificHall(String(hall_id));
   const StepIndicator = useMemo(
     () => (
       <View
