@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { configureReanimatedLogger } from "react-native-reanimated";
 import * as Sentry from "@sentry/react-native";
-import { Stack } from "expo-router";
-import { ThemeProvider } from "@/context/theme_context";
+import { router, Stack } from "expo-router";
+import { ThemeProvider, useTheme } from "@/context/theme_context";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NotifierRoot } from "react-native-notifier";
@@ -16,9 +16,14 @@ import { CalendarProvider } from "@/context/calendar_context";
 import * as SplashScreen from "expo-splash-screen";
 import {
   notificationPermission,
+  reminderPermission,
   requestLocationPermission,
   trackingStatusPermission,
 } from "@/hooks/permissions";
+import { useNotificationStore } from "@/context/store/notification_store";
+import * as Notifications from "expo-notifications";
+import { TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 // Keep splash visible while app initialises
 SplashScreen.preventAutoHideAsync();
@@ -32,28 +37,74 @@ Sentry.init({
   dsn: "https://c2284e34e20ae8c69ed3d05f8971fbb2@o4508263161856000.ingest.us.sentry.io/4508263165132800",
   tracesSampleRate: __DEV__ ? 1.0 : 0.05,
 });
-
 export function RootLayout() {
   const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    // Request permissions while splash is visible (only once per install)
-    notificationPermission();
-    trackingStatusPermission();
-    requestLocationPermission();
+    let mounted = true;
 
-    // Wait one frame for contexts (theme, auth, etc.) to mount
-    const frame = requestAnimationFrame(() => {
-      setAppReady(true);
-    });
-    return () => cancelAnimationFrame(frame);
+    const initializePermissions = async () => {
+      await Promise.allSettled([
+        notificationPermission(),
+        trackingStatusPermission(),
+        requestLocationPermission(),
+        reminderPermission(),
+      ]);
+
+      if (mounted) {
+        setAppReady(true);
+      }
+    };
+
+    initializePermissions();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const addNotification = useNotificationStore.getState().addNotification;
+
+    const subscription = Notifications.addNotificationReceivedListener(
+      async (notification) => {
+        const { title, body, data } = notification.request.content;
+
+        try {
+          await addNotification({
+            title: typeof title === "string" ? title : "New Notification",
+
+            body:
+              typeof body === "string" ? body : "You have a new notification",
+
+            timestamp: Date.now(),
+          });
+
+          if (data?.success && data?.fetch) {
+            queryClient.invalidateQueries({
+              queryKey: ["auth_friend"],
+            });
+          }
+        } catch (error) {
+          console.error("Failed to process notification", error);
+        }
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   const onLayoutRootView = useCallback(async () => {
-    if (appReady) {
-      await SplashScreen.hideAsync();
-    }
+    if (!appReady) return;
+
+    await SplashScreen.hideAsync();
   }, [appReady]);
+
+  if (!appReady) {
+    return null;
+  }
 
   return <RootLayoutNav onReady={onLayoutRootView} />;
 }
@@ -63,19 +114,48 @@ export function RootLayoutNav({ onReady }: { onReady: () => void }) {
     onReady();
   }, [onReady]);
 
-  return <Stack screenOptions={{ headerShown: false }}></Stack>;
+  const { colors } = useTheme();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen
+        name="notification/notification"
+        options={{
+          headerShown: true,
+          title: "Notifications",
+          headerStyle: {
+            backgroundColor: colors.backgroundColor,
+          },
+          headerTitleStyle: {
+            fontSize: 24,
+            color: colors.primary,
+          },
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
+              <Ionicons name="arrow-back" size={24} color={colors.primary} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+    </Stack>
+  );
 }
 
 export default Sentry.wrap(() => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
           <LanguageProvider>
-            <NotifierRoot useRNScreensOverlay={true} />
             <AuthProvider>
               <CalendarProvider>
                 <HallInfoProvider>
+                  <NotifierRoot useRNScreensOverlay />
                   <RootLayout />
                 </HallInfoProvider>
               </CalendarProvider>

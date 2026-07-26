@@ -119,10 +119,12 @@ export const bookingNotificationSchedule = async ({
 
     for (const n of scheduled) {
       if (n.identifier?.startsWith(`booking-${bookingToken}`)) {
+        console.log("cancelling scheduled notification", n.identifier);
         await Notifications.cancelScheduledNotificationAsync(n.identifier);
       }
     }
     for (const time of [0, 5, 13]) {
+      console.log("scheduling notification", `booking-${bookingToken}-${time}`);
       await Notifications.scheduleNotificationAsync({
         identifier: `booking-${bookingToken}-${time}`,
         content: { title: title, body: body },

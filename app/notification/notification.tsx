@@ -139,22 +139,6 @@ const NotificationScreen = () => {
     loadNotifications();
   }, [loadNotifications]);
 
-  // ── Listen for new foreground notifications; write through the store ───────
-  useEffect(() => {
-    const subscription = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        const { title, body } = notification.request.content;
-        addNotification({
-          title: title ?? "Notification",
-          body: body ?? "",
-          timestamp: Date.now(),
-          seen: false,
-        });
-      },
-    );
-    return () => subscription.remove();
-  }, [addNotification]);
-
   // ── Mutations — all go through the store ──────────────────────────────────
   const deleteNotification = useCallback(
     async (id: string | number) => {
@@ -227,7 +211,7 @@ const NotificationScreen = () => {
   const listEmpty = useCallback(() => <EmptyNotificationScreen />, []);
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={savedNotifications}
         renderItem={renderItem}

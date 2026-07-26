@@ -113,7 +113,7 @@ const s = StyleSheet.create({
 });
 
 function relTime(time: string): string {
-  const d = new Date(time);
+  const d = new Date(Number(time));
   const m = differenceInMinutes(new Date(), d);
   if (m < 1) return "Just now";
   if (m < 60) return `${m}m ago`;

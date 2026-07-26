@@ -1,4 +1,4 @@
-import * as Calendar from "expo-calendar";
+import * as Calendar from "expo-calendar/legacy";
 //import { Camera } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";

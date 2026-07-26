@@ -200,7 +200,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
                 styles.iconButtonCircle,
                 notificationCount > 0 && styles.iconButtonCircleActive,
               ]}
-              onPress={() => router.push("/listing/notification/notification")}
+              onPress={() => router.push("/notification/notification")}
             >
               <View style={styles.notificationIconWrapper}>
                 <Ionicons
