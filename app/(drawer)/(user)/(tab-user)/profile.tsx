@@ -42,7 +42,7 @@ const Profile: React.FC = () => {
     }
     // Set loading state based on isLoading
     setLoading(isLoading);
-    console.log(isLoading, loading, isError);
+    console.log("CHECKING RETURN DATA", isLoading, loading, isError);
   }, [data, error, isLoading]);
 
   if (loading && !isError) {
@@ -64,7 +64,7 @@ const Profile: React.FC = () => {
           backgroundColor: Colors.backgroundColor,
         },
       ]}
-      edges={!LoginStatus ? ["bottom"] : ["top", "left", "right"]}
+      edges={!LoginStatus ? ["top"] : ["top", "left", "right"]}
     >
       {!LoginStatus ? (
         <Page />
