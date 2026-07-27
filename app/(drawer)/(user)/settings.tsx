@@ -360,10 +360,16 @@ const Theme_Changer_Toggle: React.FC<ThemeToggleProps> = ({
 }) => {
   const progress = useSharedValue(value === "dark" ? 1 : 0);
 
+  const knobX = useSharedValue(
+    value === "dark" ? WIDTH - KNOB_SIZE - PADDING * 2 : 0,
+  );
+
   useEffect(() => {
+    const target = value === "dark" ? WIDTH - KNOB_SIZE - PADDING * 2 : 0;
     progress.value = withTiming(value === "dark" ? 1 : 0, {
       duration: 280,
     });
+    knobX.value = withTiming(target, { duration: 280 });
   }, [value]);
 
   const containerStyle = useAnimatedStyle(() => ({
@@ -377,10 +383,7 @@ const Theme_Changer_Toggle: React.FC<ThemeToggleProps> = ({
   const knobStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateX: withTiming(
-          progress.value === 1 ? WIDTH - KNOB_SIZE - PADDING * 2 : 0,
-          { duration: 280 },
-        ),
+        translateX: knobX.value,
       },
     ],
   }));

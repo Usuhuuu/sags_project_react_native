@@ -18,6 +18,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withSequence,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -232,15 +233,14 @@ const OrderScreen = () => {
   const opacity = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(opacity.value, {
-      duration: 1000,
-    }),
+    opacity: opacity.value,
   }));
 
   const handleFade = (fadeDuration = 50, fadeLevel = 0.6) => {
-    opacity.value = withTiming(fadeLevel, { duration: fadeDuration }, () => {
-      opacity.value = withTiming(1, { duration: fadeDuration });
-    });
+    opacity.value = withSequence(
+      withTiming(fadeLevel, { duration: fadeDuration }),
+      withTiming(1, { duration: fadeDuration }),
+    );
   };
 
   const FILTERS = [

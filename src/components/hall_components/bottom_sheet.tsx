@@ -5,7 +5,7 @@ import {
   Text,
   Dimensions,
 } from "react-native";
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import Listings from "@/components/hall_components/listing";
 import BottomSheet from "@gorhom/bottom-sheet";
 import {
@@ -15,13 +15,10 @@ import {
 } from "@/types/hall_info_type";
 import { Ionicons } from "@expo/vector-icons";
 import type { SharedValue } from "react-native-reanimated";
-import {
-  useAnimatedReaction,
-  runOnJS,
-  useSharedValue,
-} from "react-native-reanimated";
+import { useAnimatedReaction } from "react-native-reanimated";
 import { useTheme } from "@/context/theme_context";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { runOnJS } from "react-native-worklets";
 
 interface ListingBottomSheetProps {
   listing: (SportHallDataType | EsportHallDataType)[];
@@ -48,13 +45,11 @@ const ListingBottomSheet = ({
   const showMap = () => {
     bottomSheetRef.current?.collapse();
   };
-  const expanded = useSharedValue(false);
 
   useAnimatedReaction(
     () => bottomSheetY.value <= unabledHeight * 0.8,
-    (shouldExpand) => {
-      if (expanded.value !== shouldExpand) {
-        expanded.value = shouldExpand;
+    (shouldExpand, previous) => {
+      if (shouldExpand !== previous) {
         runOnJS(setIsExpanded)(shouldExpand);
       }
     },

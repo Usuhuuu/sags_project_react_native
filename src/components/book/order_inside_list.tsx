@@ -1,12 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  interpolate,
   Easing,
-  runOnJS,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
 } from "react-native-reanimated";
 import {
   Feather,
@@ -17,11 +17,15 @@ import {
 } from "@expo/vector-icons";
 import { format, differenceInSeconds } from "date-fns";
 import { Notifier, NotifierComponents } from "react-native-notifier";
+import { useTranslation } from "react-i18next";
+
 import { Return_Type } from "@/types/book_type";
 import axiosInstance from "@/hooks/axiosInstance";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "@/context/theme_context";
-import { Skeleton } from "moti/skeleton";
+
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
 
 type TC = {
   surface: string;
@@ -32,29 +36,49 @@ type TC = {
   outline: string;
   border: string;
   borderSubtle: string;
+
   accentPrimary: string;
   accentPrimaryGlow: string;
   accentPrimaryBorder: string;
+
   successColor: string;
   successGlow: string;
   successBorder: string;
+
   warningColor: string;
   warningGlow: string;
   warningBorder: string;
+
   errorColor: string;
   errorGlow: string;
   errorBorder: string;
+
   white: string;
   shadowColor: string;
 };
 
-type StatusCfg = { color: string; bg: string; border: string };
+type StatusCfg = {
+  color: string;
+  bg: string;
+  border: string;
+};
 
 type ProgressBarProps = {
-  progress: number; // 0 to 1
+  progress: number;
   color: string;
   trackColor?: string;
 };
+
+type CountdownResult = {
+  minutes: number;
+  seconds: number;
+  secondsLeft: number;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              PROGRESS BAR                                  */
+/* -------------------------------------------------------------------------- */
+
 export function ProgressBar({
   progress,
   color,
@@ -83,6 +107,10 @@ export function ProgressBar({
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              STATUS CONFIG                                 */
+/* -------------------------------------------------------------------------- */
+
 function getStatus(status: string, c: TC): StatusCfg {
   const map: Record<string, StatusCfg> = {
     confirmed: {
@@ -90,13 +118,20 @@ function getStatus(status: string, c: TC): StatusCfg {
       bg: c.successGlow,
       border: c.successBorder,
     },
+
     waiting: {
       color: c.warningColor,
       bg: c.warningGlow,
       border: c.warningBorder,
     },
-    cancelled: { color: c.errorColor, bg: c.errorGlow, border: c.errorBorder },
+
+    cancelled: {
+      color: c.errorColor,
+      bg: c.errorGlow,
+      border: c.errorBorder,
+    },
   };
+
   return (
     map[status] ?? {
       color: c.accentPrimary,
@@ -106,36 +141,222 @@ function getStatus(status: string, c: TC): StatusCfg {
   );
 }
 
-function useCountdown(expireAt?: string | Date) {
-  const [secondsLeft, setSecondsLeft] = useState(() => {
-    if (expireAt == null) return 0;
-    const d = differenceInSeconds(new Date(expireAt), new Date());
-    return Math.max(isNaN(d) ? 0 : d, 0);
-  });
+/* -------------------------------------------------------------------------- */
+/*                                COUNTDOWN                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * One countdown interval per OrderItem.
+ *
+ * This avoids creating separate intervals inside:
+ * - TimerOrAmountPill
+ * - ContinuePayField
+ */
+function useCountdown(expireAt?: string | Date): CountdownResult {
+  const getSecondsLeft = useCallback(() => {
+    if (!expireAt) return 0;
+
+    const seconds = differenceInSeconds(new Date(expireAt), new Date());
+
+    return Math.max(Number.isNaN(seconds) ? 0 : seconds, 0);
+  }, [expireAt]);
+
+  const [secondsLeft, setSecondsLeft] = useState(getSecondsLeft);
+
   useEffect(() => {
-    if (expireAt == null) {
-      setSecondsLeft(0);
+    setSecondsLeft(getSecondsLeft());
+
+    if (!expireAt) {
       return;
     }
-    const iv = setInterval(() => {
-      const raw = differenceInSeconds(new Date(expireAt), new Date());
-      const sec = Math.max(isNaN(raw) ? 0 : raw, 0);
-      setSecondsLeft(sec);
-      if (sec <= 0) clearInterval(iv);
+
+    const interval = setInterval(() => {
+      const remaining = getSecondsLeft();
+
+      setSecondsLeft(remaining);
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+      }
     }, 1000);
-    return () => clearInterval(iv);
-  }, [expireAt]);
-  return {
-    minutes: Math.floor(secondsLeft / 60),
-    seconds: secondsLeft % 60,
-    secondsLeft,
-  };
+
+    return () => clearInterval(interval);
+  }, [expireAt, getSecondsLeft]);
+
+  return useMemo(
+    () => ({
+      minutes: Math.floor(secondsLeft / 60),
+      seconds: secondsLeft % 60,
+      secondsLeft,
+    }),
+    [secondsLeft],
+  );
 }
 
-// ── Style factory ──────────────────────────────────────────────────────────
+/* -------------------------------------------------------------------------- */
+/*                                  SHIMMER                                   */
+/* -------------------------------------------------------------------------- */
+
+const Shimmer = React.memo(
+  ({
+    width,
+    height,
+    radius = 6,
+  }: {
+    width: number;
+    height: number;
+    radius?: number;
+  }) => {
+    const shimmer = useSharedValue(0);
+
+    useEffect(() => {
+      shimmer.value = withRepeat(
+        withTiming(1, {
+          duration: 1000,
+          easing: Easing.inOut(Easing.cubic),
+        }),
+        -1,
+        true,
+      );
+    }, [shimmer]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+      opacity: interpolate(shimmer.value, [0, 1], [0.3, 0.7]),
+    }));
+
+    return (
+      <Animated.View
+        style={[
+          {
+            width,
+            height,
+            borderRadius: radius,
+            backgroundColor: "#e0e0e0",
+          },
+          animatedStyle,
+        ]}
+      />
+    );
+  },
+);
+
+/* -------------------------------------------------------------------------- */
+/*                         TIMER / AMOUNT PILL                                */
+/* -------------------------------------------------------------------------- */
+
+const TimerOrAmountPill = React.memo(
+  ({
+    secondsLeft,
+    minutes,
+    seconds,
+    errorColor,
+    surfaceHighest,
+    amountText,
+  }: CountdownResult & {
+    errorColor: string;
+    surfaceHighest: string;
+    amountText: string;
+  }) => {
+    if (secondsLeft > 0) {
+      return (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 4,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 12,
+            backgroundColor: surfaceHighest,
+            borderWidth: 1,
+            borderColor: errorColor,
+          }}
+        >
+          <FontAwesome name="clock-o" size={12} color={errorColor} />
+
+          <Text
+            style={{
+              color: errorColor,
+              fontSize: 12,
+              fontWeight: "600",
+              letterSpacing: 0.5,
+            }}
+          >
+            {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View
+        style={{
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+          borderRadius: 12,
+          backgroundColor: surfaceHighest,
+          borderWidth: 1,
+          borderColor: surfaceHighest,
+        }}
+      >
+        <Text
+          style={{
+            color: amountText.startsWith("-") ? errorColor : "#fff",
+            fontSize: 12,
+            fontWeight: "600",
+          }}
+        >
+          {amountText}
+        </Text>
+      </View>
+    );
+  },
+);
+
+/* -------------------------------------------------------------------------- */
+/*                             CONTINUE PAY                                  */
+/* -------------------------------------------------------------------------- */
+
+const ContinuePayField = React.memo(
+  ({
+    session,
+    secondsLeft,
+    payBtnStyle,
+    payBtnTextStyle,
+  }: {
+    session: any;
+    secondsLeft: number;
+    payBtnStyle: any;
+    payBtnTextStyle: any;
+  }) => {
+    if (!session || secondsLeft <= 0) {
+      return null;
+    }
+
+    return (
+      <View style={{ padding: 12 }}>
+        <TouchableOpacity
+          style={payBtnStyle}
+          activeOpacity={0.8}
+          onPress={() => {
+            console.log("Pay:", session.token);
+          }}
+        >
+          <MaterialIcons name="payment" size={16} color="#FFFFFF" />
+
+          <Text style={payBtnTextStyle}>Pay Now</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+);
+
+/* -------------------------------------------------------------------------- */
+/*                              STYLE FACTORY                                 */
+/* -------------------------------------------------------------------------- */
+
 function createStyles(c: TC, theme: "light" | "dark") {
   const isDark = theme === "dark";
-  const overlayBg = isDark ? "rgba(14,16,20,0.88)" : "rgba(240,242,245,0.92)";
 
   return StyleSheet.create({
     wrapper: {
@@ -144,20 +365,21 @@ function createStyles(c: TC, theme: "light" | "dark") {
       paddingHorizontal: 16,
     },
 
-    // ── SHADOW LAYER (no overflow — iOS needs this separate) ──
     cardShadow: {
       borderRadius: 16,
       backgroundColor: c.surface,
-      // iOS — coloured glow in dark, crisp depth in light
+
       shadowColor: c.accentPrimary,
-      shadowOffset: { width: 0, height: isDark ? 6 : 10 },
+      shadowOffset: {
+        width: 0,
+        height: isDark ? 6 : 10,
+      },
       shadowOpacity: isDark ? 0.28 : 0.16,
       shadowRadius: isDark ? 22 : 20,
-      // Android
+
       elevation: 14,
     },
 
-    // ── CLIP LAYER (overflow:hidden for accent bar + border radius) ──
     card: {
       borderRadius: 16,
       borderWidth: 1,
@@ -166,8 +388,14 @@ function createStyles(c: TC, theme: "light" | "dark") {
       backgroundColor: c.surface,
     },
 
-    accentBar: { height: 3, width: "100%" },
-    inner: { padding: 16 },
+    accentBar: {
+      height: 3,
+      width: "100%",
+    },
+
+    inner: {
+      padding: 16,
+    },
 
     header: {
       flexDirection: "row",
@@ -175,6 +403,7 @@ function createStyles(c: TC, theme: "light" | "dark") {
       alignItems: "center",
       marginBottom: 12,
     },
+
     statusPill: {
       flexDirection: "row",
       alignItems: "center",
@@ -184,34 +413,19 @@ function createStyles(c: TC, theme: "light" | "dark") {
       borderRadius: 9999,
       borderWidth: 1,
     },
-    statusDot: { width: 6, height: 6, borderRadius: 3 },
-    statusLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.9 },
-    timerPill: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 5,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 9999,
-      backgroundColor: c.errorGlow,
-      borderWidth: 1,
-      borderColor: c.errorBorder,
+
+    statusDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
     },
-    timerText: {
-      color: c.errorColor,
-      fontSize: 12,
+
+    statusLabel: {
+      fontSize: 10,
       fontWeight: "700",
-      letterSpacing: 0.4,
+      letterSpacing: 0.9,
     },
-    amountPill: {
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 9999,
-      backgroundColor: c.accentPrimaryGlow,
-      borderWidth: 1,
-      borderColor: c.accentPrimaryBorder,
-    },
-    amountText: { color: c.accentPrimary, fontSize: 12, fontWeight: "600" },
+
     hallName: {
       color: c.accentPrimary,
       fontSize: 20,
@@ -219,17 +433,39 @@ function createStyles(c: TC, theme: "light" | "dark") {
       letterSpacing: -0.4,
       marginBottom: 6,
     },
+
     dateRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: 6,
       marginBottom: 14,
     },
-    dateText: { color: c.outline, fontSize: 13 },
-    divider: { height: 1, backgroundColor: c.borderSubtle, marginVertical: 12 },
-    blocks: { gap: 12 },
-    blockItem: { gap: 8 },
-    blockRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+
+    dateText: {
+      color: c.outline,
+      fontSize: 13,
+    },
+
+    divider: {
+      height: 1,
+      backgroundColor: c.borderSubtle,
+      marginVertical: 12,
+    },
+
+    blocks: {
+      gap: 12,
+    },
+
+    blockItem: {
+      gap: 8,
+    },
+
+    blockRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+
     timeChip: {
       flexDirection: "row",
       alignItems: "center",
@@ -241,7 +477,13 @@ function createStyles(c: TC, theme: "light" | "dark") {
       borderWidth: 1,
       borderColor: c.accentPrimaryBorder,
     },
-    timeText: { color: c.onSurfaceVariant, fontSize: 12, fontWeight: "500" },
+
+    timeText: {
+      color: c.onSurfaceVariant,
+      fontSize: 12,
+      fontWeight: "500",
+    },
+
     playerChip: {
       flexDirection: "row",
       alignItems: "center",
@@ -253,12 +495,12 @@ function createStyles(c: TC, theme: "light" | "dark") {
       borderWidth: 1,
       borderColor: c.borderSubtle,
     },
-    playerText: { fontSize: 12, fontWeight: "500" },
-    progressBar: {
-      height: 4,
-      borderRadius: 4,
-      backgroundColor: c.borderSubtle,
+
+    playerText: {
+      fontSize: 12,
+      fontWeight: "500",
     },
+
     confirmedOverlay: {
       position: "absolute",
       top: 0,
@@ -267,9 +509,9 @@ function createStyles(c: TC, theme: "light" | "dark") {
       bottom: 0,
       justifyContent: "flex-end",
       padding: 16,
-      //backgroundColor: overlayBg,
       zIndex: 10,
     },
+
     confirmedViewBtn: {
       flexDirection: "row",
       alignItems: "center",
@@ -281,8 +523,15 @@ function createStyles(c: TC, theme: "light" | "dark") {
       borderWidth: 1,
       borderColor: c.accentPrimaryBorder,
     },
-    expandSection: { overflow: "hidden" },
-    section: { marginBottom: 14 },
+
+    expandSection: {
+      overflow: "hidden",
+    },
+
+    section: {
+      marginBottom: 14,
+    },
+
     sectionLabel: {
       color: c.outline,
       fontSize: 10,
@@ -291,6 +540,7 @@ function createStyles(c: TC, theme: "light" | "dark") {
       textTransform: "uppercase",
       marginBottom: 8,
     },
+
     sectionBox: {
       backgroundColor: c.surfaceHigh,
       borderRadius: 10,
@@ -298,6 +548,7 @@ function createStyles(c: TC, theme: "light" | "dark") {
       borderColor: c.borderSubtle,
       overflow: "hidden",
     },
+
     fieldRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -305,8 +556,17 @@ function createStyles(c: TC, theme: "light" | "dark") {
       paddingHorizontal: 14,
       paddingVertical: 12,
     },
-    fieldRowBorder: { borderBottomWidth: 1, borderBottomColor: c.borderSubtle },
-    fieldLabel: { color: c.outline, fontSize: 13 },
+
+    fieldRowBorder: {
+      borderBottomWidth: 1,
+      borderBottomColor: c.borderSubtle,
+    },
+
+    fieldLabel: {
+      color: c.outline,
+      fontSize: 13,
+    },
+
     fieldValue: {
       color: c.onSurfaceVariant,
       fontSize: 13,
@@ -315,7 +575,13 @@ function createStyles(c: TC, theme: "light" | "dark") {
       flex: 1,
       marginLeft: 12,
     },
-    actions: { gap: 8, marginTop: 4, marginBottom: 8 },
+
+    actions: {
+      gap: 8,
+      marginTop: 4,
+      marginBottom: 8,
+    },
+
     cancelBtn: {
       flexDirection: "row",
       alignItems: "center",
@@ -327,7 +593,13 @@ function createStyles(c: TC, theme: "light" | "dark") {
       borderWidth: 1,
       borderColor: c.errorBorder,
     },
-    cancelBtnText: { color: c.errorColor, fontSize: 14, fontWeight: "600" },
+
+    cancelBtnText: {
+      color: c.errorColor,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+
     supportBtn: {
       flexDirection: "row",
       alignItems: "center",
@@ -339,7 +611,13 @@ function createStyles(c: TC, theme: "light" | "dark") {
       borderWidth: 1,
       borderColor: c.borderSubtle,
     },
-    supportBtnText: { color: c.outline, fontSize: 14, fontWeight: "500" },
+
+    supportBtnText: {
+      color: c.outline,
+      fontSize: 14,
+      fontWeight: "500",
+    },
+
     payBtn: {
       flexDirection: "row",
       alignItems: "center",
@@ -348,13 +626,24 @@ function createStyles(c: TC, theme: "light" | "dark") {
       padding: 13,
       borderRadius: 10,
       backgroundColor: "#007AFF",
+
       shadowColor: "#007AFF",
-      shadowOffset: { width: 0, height: 4 },
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
       shadowOpacity: 0.5,
       shadowRadius: 16,
+
       elevation: 10,
     },
-    payBtnText: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
+
+    payBtnText: {
+      color: "#FFFFFF",
+      fontSize: 14,
+      fontWeight: "700",
+    },
+
     expandBtn: {
       marginTop: 12,
       flexDirection: "row",
@@ -367,292 +656,374 @@ function createStyles(c: TC, theme: "light" | "dark") {
       borderWidth: 1,
       borderColor: c.accentPrimaryBorder,
     },
-    expandBtnText: { color: c.accentPrimary, fontSize: 14, fontWeight: "600" },
+
+    expandBtnText: {
+      color: c.accentPrimary,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+
+    progressBar: {
+      height: 4,
+      borderRadius: 4,
+      backgroundColor: c.borderSubtle,
+    },
   });
 }
 
-// ── OrderItem ──────────────────────────────────────────────────────────────
-export const OrderItem = React.memo(
-  ({ item }: { item: Return_Type }) => {
-    const { t } = useTranslation();
-    const { colors: Colors, theme } = useTheme();
-    const data = item;
+/* -------------------------------------------------------------------------- */
+/*                                ORDER ITEM                                  */
+/* -------------------------------------------------------------------------- */
 
-    const S = useMemo(
-      () => createStyles(Colors as unknown as TC, theme),
-      [theme],
-    );
-    const status = getStatus(
-      data.blocks[0].block_booking_status,
-      Colors as unknown as TC,
-    );
+const OrderItemComponent = ({ item }: { item: Return_Type }) => {
+  const { t, i18n } = useTranslation();
+  const { colors: Colors, theme } = useTheme();
 
-    const expanded = useSharedValue(0);
-    const [isOpen, setIsOpen] = useState(false);
+  const data = item;
 
-    const toggleExpand = () => {
-      const next = isOpen ? 0 : 1;
-      expanded.value = withTiming(next, {
-        duration: 400,
-        easing: Easing.inOut(Easing.cubic),
-      });
-      runOnJS(setIsOpen)(!isOpen);
-    };
+  const S = useMemo(
+    () => createStyles(Colors as unknown as TC, theme),
+    [Colors, theme],
+  );
 
-    const expandedSectionStyle = useAnimatedStyle(() => ({
-      maxHeight: withTiming(expanded.value * 1200, {
-        duration: 420,
-        easing: Easing.inOut(Easing.cubic),
-      }),
-      opacity: withTiming(expanded.value, {
-        duration: 300,
-        easing: Easing.inOut(Easing.cubic),
-      }),
-    }));
+  const firstBlock = data.blocks?.[0];
 
-    const chevronStyle = useAnimatedStyle(() => {
-      const deg = interpolate(expanded.value, [0, 1], [0, 180]);
-      return { transform: [{ rotate: `${deg}deg` }] };
+  const status = getStatus(
+    firstBlock?.block_booking_status ?? "",
+    Colors as unknown as TC,
+  );
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const expanded = useSharedValue(0);
+  const animatedMaxHeight = useSharedValue(0);
+  const animatedOpacity = useSharedValue(0);
+
+  const countdown = useCountdown(data.session_obj?.expireAt);
+
+  const toggleExpand = useCallback(() => {
+    const next = isOpen ? 0 : 1;
+
+    expanded.value = withTiming(next, {
+      duration: 400,
+      easing: Easing.inOut(Easing.cubic),
     });
 
-    const handleCancel = async (id: string) => {
-      try {
-        const res = await axiosInstance.post("/auth/bookcancel", {
-          transaction_ID: id,
-          reason: "Tsag amjihgui bolson",
-        });
-        if (res.status === 200 && res.data.success) {
-          Notifier.showNotification({
-            title: "Booking Canceled",
-            description: "Your booking has been successfully canceled.",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "success" },
-          });
-        } else throw new Error();
-      } catch {
-        Notifier.showNotification({
-          title: "Failed",
-          description: "Could not cancel the booking.",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
-        });
-      }
+    animatedMaxHeight.value = withTiming(next * 1200, {
+      duration: 420,
+      easing: Easing.inOut(Easing.cubic),
+    });
+
+    animatedOpacity.value = withTiming(next, {
+      duration: 300,
+      easing: Easing.inOut(Easing.cubic),
+    });
+
+    setIsOpen((previous) => !previous);
+  }, [isOpen, expanded, animatedMaxHeight, animatedOpacity]);
+
+  const expandedSectionStyle = useAnimatedStyle(
+    () => ({
+      maxHeight: animatedMaxHeight.value,
+      opacity: animatedOpacity.value,
+    }),
+    [],
+  );
+
+  const chevronStyle = useAnimatedStyle(() => {
+    const deg = interpolate(expanded.value, [0, 1], [0, 180]);
+
+    return {
+      transform: [
+        {
+          rotate: `${deg}deg`,
+        },
+      ],
     };
+  }, []);
 
-    const { minutes, seconds, secondsLeft } = useCountdown(
-      data.session_obj?.expireAt,
-    );
-    const orderLangInit: any = t("orderScreen", { returnObjects: true });
-    const isConfirmed = data.blocks[0].block_booking_status === "confirmed";
+  const handleCancel = useCallback(async (id: string) => {
+    try {
+      const res = await axiosInstance.post("/auth/bookcancel", {
+        transaction_ID: id,
+        reason: "Tsag amjihgui bolson",
+      });
 
-    const dataDetails = useMemo(
-      () => ({
-        paymentInfo: [
-          {
-            label: `${orderLangInit.paymentInfo.paymentMethod}`,
-            key: "payment_method",
+      if (res.status === 200 && res.data.success) {
+        Notifier.showNotification({
+          title: "Booking Canceled",
+          description: "Your booking has been successfully canceled.",
+          Component: NotifierComponents.Alert,
+          componentProps: {
+            alertType: "success",
           },
-          {
-            label: `${orderLangInit.paymentInfo.totalAmount}`,
-            key: "total_amount",
-          },
-          {
-            label: `${orderLangInit.paymentInfo.paymentStatusPaid}`,
-            resolve: (d: Return_Type) => (d.full_paid ? "Paid" : "Pending"),
-          },
-          {
-            label: "Continue Pay",
-            resolve: (d: Return_Type) =>
-              !d.session_obj || d.full_paid ? null : d.session_obj,
-          },
-        ],
-        bookingInfo: [
-          {
-            label: `${orderLangInit.bookingInfo.date}`,
-            resolve: (d: Return_Type) =>
-              format(new Date(d.day), "MMMM d, yyyy"),
-          },
-          {
-            label: `${orderLangInit.bookingInfo.time}`,
-            resolve: (d: any) =>
-              `${format(new Date(d.blocks[0].start_time), "HH:mm")} – ${format(new Date(d.blocks[0].end_time), "HH:mm")}`,
-          },
-          {
-            label: "Status",
-            resolve: (d: any) => d.blocks[0].block_booking_status,
-          },
-          {
-            label: `${orderLangInit.bookingInfo.playerNeeded}`,
-            resolve: (d: Return_Type) =>
-              d.blocks[0].num_players > 0
-                ? `${d.blocks[0].current_player} / ${d.blocks[0].num_players}`
-                : "–",
-          },
-        ],
-        playerInfo: [
-          {
-            label: `${orderLangInit.playerInfo.playerName}`,
-            resolve: (d: Return_Type) =>
-              d.paying_peoples[0].paying_user_info[0].unique_user_ID,
-          },
-          {
-            label: `${orderLangInit.playerInfo.playerContact}`,
-            resolve: (d: Return_Type) =>
-              d.paying_peoples[0].paying_user_info[0].phoneNumber,
-          },
-          {
-            label: `${orderLangInit.playerInfo.playerPaymentStatus}`,
-            resolve: (d: Return_Type) => d.paying_peoples[0].payment_status,
-          },
-          {
-            label: `${orderLangInit.playerInfo.playerPaymentAmount}`,
-            resolve: (d: Return_Type) => String(d.paying_peoples[0].amountPaid),
-          },
-        ],
+        });
+      } else {
+        throw new Error("Failed to cancel booking");
+      }
+    } catch {
+      Notifier.showNotification({
+        title: "Failed",
+        description: "Could not cancel the booking.",
+        Component: NotifierComponents.Alert,
+        componentProps: {
+          alertType: "error",
+        },
+      });
+    }
+  }, []);
+
+  const orderLangInit: any = useMemo(
+    () =>
+      t("orderScreen", {
+        returnObjects: true,
       }),
-      [], // eslint-disable-line react-hooks/exhaustive-deps
-    );
+    [t, i18n.language],
+  );
 
-    const ContinuePayButton = ({ session }: { session: any }) => (
-      <TouchableOpacity
-        style={S.payBtn}
-        activeOpacity={0.8}
-        onPress={() => console.log("Pay:", session.token)}
-      >
-        <MaterialIcons name="payment" size={16} color="#FFFFFF" />
-        <Text style={S.payBtnText}>Pay Now</Text>
-      </TouchableOpacity>
-    );
+  const isConfirmed = firstBlock?.block_booking_status === "confirmed";
 
-    return (
-      <View style={S.wrapper}>
-        {/* ── cardShadow: shadow only, no overflow clipping ── */}
-        <View style={S.cardShadow}>
-          {/* ── card: overflow:hidden for accent bar + border ── */}
-          <View style={S.card}>
-            <View style={[S.accentBar, { backgroundColor: status.color }]} />
+  const dataDetails = useMemo(
+    () => ({
+      paymentInfo: [
+        {
+          label: orderLangInit.paymentInfo.paymentMethod,
+          key: "payment_method",
+        },
 
-            <View style={S.inner}>
-              {/* Header */}
-              <View style={S.header}>
+        {
+          label: orderLangInit.paymentInfo.totalAmount,
+          key: "total_amount",
+        },
+
+        {
+          label: orderLangInit.paymentInfo.paymentStatusPaid,
+
+          resolve: (d: Return_Type) => (d.full_paid ? "Paid" : "Pending"),
+        },
+
+        {
+          label: "Continue Pay",
+
+          resolve: (d: Return_Type) =>
+            !d.session_obj || d.full_paid ? null : d.session_obj,
+        },
+      ],
+
+      bookingInfo: [
+        {
+          label: orderLangInit.bookingInfo.date,
+
+          resolve: (d: Return_Type) => format(new Date(d.day), "MMMM d, yyyy"),
+        },
+
+        {
+          label: orderLangInit.bookingInfo.time,
+
+          resolve: (d: Return_Type) =>
+            `${format(new Date(d.blocks[0].start_time), "HH:mm")} – ${format(
+              new Date(d.blocks[0].end_time),
+              "HH:mm",
+            )}`,
+        },
+
+        {
+          label: "Status",
+
+          resolve: (d: Return_Type) => d.blocks[0].block_booking_status,
+        },
+
+        {
+          label: orderLangInit.bookingInfo.playerNeeded,
+
+          resolve: (d: Return_Type) =>
+            d.blocks[0].num_players > 0
+              ? `${d.blocks[0].current_player} / ${d.blocks[0].num_players}`
+              : "–",
+        },
+      ],
+
+      playerInfo: [
+        {
+          label: orderLangInit.playerInfo.playerName,
+
+          resolve: (d: Return_Type) =>
+            d.paying_peoples?.[0]?.paying_user_info?.[0]?.unique_user_ID ?? "–",
+        },
+
+        {
+          label: orderLangInit.playerInfo.playerContact,
+
+          resolve: (d: Return_Type) =>
+            d.paying_peoples?.[0]?.paying_user_info?.[0]?.phoneNumber ?? "–",
+        },
+
+        {
+          label: orderLangInit.playerInfo.playerPaymentStatus,
+
+          resolve: (d: Return_Type) =>
+            d.paying_peoples?.[0]?.payment_status ?? "–",
+        },
+
+        {
+          label: orderLangInit.playerInfo.playerPaymentAmount,
+
+          resolve: (d: Return_Type) =>
+            String(d.paying_peoples?.[0]?.amountPaid ?? "–"),
+        },
+      ],
+    }),
+    [orderLangInit],
+  );
+
+  return (
+    <View style={S.wrapper}>
+      <View style={S.cardShadow}>
+        <View style={S.card}>
+          {/* Accent */}
+          <View
+            style={[
+              S.accentBar,
+              {
+                backgroundColor: status.color,
+              },
+            ]}
+          />
+
+          <View style={S.inner}>
+            {/* Header */}
+            <View style={S.header}>
+              <View
+                style={[
+                  S.statusPill,
+                  {
+                    backgroundColor: status.bg,
+                    borderColor: status.border,
+                  },
+                ]}
+              >
                 <View
                   style={[
-                    S.statusPill,
-                    { backgroundColor: status.bg, borderColor: status.border },
+                    S.statusDot,
+                    {
+                      backgroundColor: status.color,
+                    },
+                  ]}
+                />
+
+                <Text
+                  style={[
+                    S.statusLabel,
+                    {
+                      color: status.color,
+                    },
                   ]}
                 >
-                  <View
-                    style={[S.statusDot, { backgroundColor: status.color }]}
-                  />
-                  <Text style={[S.statusLabel, { color: status.color }]}>
-                    {data.blocks[0].block_booking_status.toUpperCase()}
-                  </Text>
-                </View>
-
-                {data.session_obj && secondsLeft > 0 ? (
-                  <View style={S.timerPill}>
-                    <FontAwesome
-                      name="clock-o"
-                      size={12}
-                      color={Colors.errorColor}
-                    />
-                    <Text style={S.timerText}>
-                      {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={S.amountPill}>
-                    <Text style={S.amountText}>
-                      ₮{Number(data.total_amount).toLocaleString()}
-                    </Text>
-                  </View>
-                )}
-              </View>
-
-              {/* Hall name */}
-              <Text style={S.hallName} numberOfLines={1}>
-                {data.zaal_info?.hall_details.hall_name}
-              </Text>
-
-              {/* Date */}
-              <View style={S.dateRow}>
-                <Feather name="calendar" size={12} color={Colors.outline} />
-                <Text style={S.dateText}>
-                  {format(new Date(data.day), "MMMM d, yyyy")}
+                  {(firstBlock?.block_booking_status ?? "").toUpperCase()}
                 </Text>
               </View>
 
-              <View style={S.divider} />
+              <TimerOrAmountPill
+                {...countdown}
+                errorColor={Colors.errorColor}
+                surfaceHighest={Colors.surfaceHighest}
+                amountText={`₮${Number(data.total_amount).toLocaleString()}`}
+              />
+            </View>
 
-              {/* Blocks */}
-              <View style={S.blocks}>
-                {data.blocks.map((block, index) => {
-                  const numP = block.num_players === 0 ? 1 : block.num_players;
-                  const progress = Math.min(
-                    (Number(block.current_player) || 0) / numP,
-                    1,
-                  );
-                  const full =
-                    block.num_players > 0 &&
-                    block.current_player >= block.num_players;
+            {/* Hall name */}
+            <Text style={S.hallName} numberOfLines={1}>
+              {data.zaal_info?.hall_details?.hall_name}
+            </Text>
 
-                  return (
-                    <View key={index} style={S.blockItem}>
-                      <View style={S.blockRow}>
-                        <View style={S.timeChip}>
-                          <FontAwesome6
-                            name="clock-four"
-                            size={11}
-                            color={Colors.accentPrimary}
-                          />
-                          <Text style={S.timeText}>
-                            {format(new Date(block.start_time), "HH:mm")}
-                            {" – "}
-                            {format(new Date(block.end_time), "kk:mm")}
-                          </Text>
-                        </View>
+            {/* Date */}
+            <View style={S.dateRow}>
+              <Feather name="calendar" size={12} color={Colors.outline} />
 
-                        <View
+              <Text style={S.dateText}>
+                {format(new Date(data.day), "MMMM d, yyyy")}
+              </Text>
+            </View>
+
+            <View style={S.divider} />
+
+            {/* Blocks */}
+            <View style={S.blocks}>
+              {data.blocks.map((block, index) => {
+                const numPlayers =
+                  block.num_players === 0 ? 1 : block.num_players;
+
+                const progress = Math.min(
+                  (Number(block.current_player) || 0) / numPlayers,
+                  1,
+                );
+
+                const full =
+                  block.num_players > 0 &&
+                  block.current_player >= block.num_players;
+
+                return (
+                  <View
+                    key={`${block.start_time}-${index}`}
+                    style={S.blockItem}
+                  >
+                    <View style={S.blockRow}>
+                      <View style={S.timeChip}>
+                        <FontAwesome6
+                          name="clock-four"
+                          size={11}
+                          color={Colors.accentPrimary}
+                        />
+
+                        <Text style={S.timeText}>
+                          {format(new Date(block.start_time), "HH:mm")}
+                          {" – "}
+                          {format(new Date(block.end_time), "kk:mm")}
+                        </Text>
+                      </View>
+
+                      <View
+                        style={[
+                          S.playerChip,
+                          full && {
+                            backgroundColor: Colors.successGlow,
+                            borderColor: Colors.successBorder,
+                          },
+                        ]}
+                      >
+                        <Fontisto
+                          name="persons"
+                          size={11}
+                          color={full ? Colors.successColor : Colors.outline}
+                        />
+
+                        <Text
                           style={[
-                            S.playerChip,
-                            full && {
-                              backgroundColor: Colors.successGlow,
-                              borderColor: Colors.successBorder,
+                            S.playerText,
+                            {
+                              color: full
+                                ? Colors.successColor
+                                : Colors.outline,
                             },
                           ]}
                         >
-                          <Fontisto
-                            name="persons"
-                            size={11}
-                            color={full ? Colors.successColor : Colors.outline}
-                          />
-                          <Text
-                            style={[
-                              S.playerText,
-                              {
-                                color: full
-                                  ? Colors.successColor
-                                  : Colors.outline,
-                              },
-                            ]}
-                          >
-                            {block.current_player} / {numP}
-                          </Text>
-                        </View>
+                          {block.current_player} / {numPlayers}
+                        </Text>
                       </View>
-
-                      <ProgressBar
-                        progress={progress}
-                        color={
-                          full ? Colors.successColor : Colors.accentPrimary
-                        }
-                      />
                     </View>
-                  );
-                })}
-              </View>
 
-              {/* Expandable section */}
+                    <ProgressBar
+                      progress={progress}
+                      color={full ? Colors.successColor : Colors.accentPrimary}
+                      trackColor={Colors.borderSubtle}
+                    />
+                  </View>
+                );
+              })}
+            </View>
+
+            {/* Details are mounted only while open */}
+            {isOpen && (
               <Animated.View style={[S.expandSection, expandedSectionStyle]}>
                 <View style={S.divider} />
 
@@ -667,7 +1038,7 @@ export const OrderItem = React.memo(
                     </Text>
 
                     <View style={S.sectionBox}>
-                      {fields.map((field, fi) => {
+                      {fields.map((field: any, fieldIndex) => {
                         const value =
                           "resolve" in field &&
                           typeof field.resolve === "function"
@@ -675,11 +1046,14 @@ export const OrderItem = React.memo(
                             : ((data as any)?.[field.key] ?? "");
 
                         if (field.label === "Continue Pay") {
-                          if (!value || secondsLeft <= 0) return null;
                           return (
-                            <View key={field.label} style={{ padding: 12 }}>
-                              <ContinuePayButton session={value} />
-                            </View>
+                            <ContinuePayField
+                              key={field.label}
+                              session={value}
+                              secondsLeft={countdown.secondsLeft}
+                              payBtnStyle={S.payBtn}
+                              payBtnTextStyle={S.payBtnText}
+                            />
                           );
                         }
 
@@ -688,10 +1062,12 @@ export const OrderItem = React.memo(
                             key={field.label}
                             style={[
                               S.fieldRow,
-                              fi < fields.length - 1 && S.fieldRowBorder,
+                              fieldIndex < fields.length - 1 &&
+                                S.fieldRowBorder,
                             ]}
                           >
                             <Text style={S.fieldLabel}>{field.label}</Text>
+
                             <Text style={S.fieldValue} numberOfLines={1}>
                               {String(value)}
                             </Text>
@@ -703,7 +1079,7 @@ export const OrderItem = React.memo(
                 ))}
 
                 <View style={S.actions}>
-                  {data.blocks[0].block_booking_status === "waiting" && (
+                  {firstBlock?.block_booking_status === "waiting" && (
                     <TouchableOpacity
                       style={S.cancelBtn}
                       activeOpacity={0.8}
@@ -714,93 +1090,129 @@ export const OrderItem = React.memo(
                         size={15}
                         color={Colors.errorColor}
                       />
+
                       <Text style={S.cancelBtnText}>
                         {orderLangInit.cancelBooking}
                       </Text>
                     </TouchableOpacity>
                   )}
+
                   <TouchableOpacity style={S.supportBtn} activeOpacity={0.8}>
                     <Feather
                       name="message-circle"
                       size={15}
                       color={Colors.outline}
                     />
+
                     <Text style={S.supportBtnText}>
                       {orderLangInit.contactCostumerService}
                     </Text>
                   </TouchableOpacity>
                 </View>
               </Animated.View>
+            )}
 
-              {/* Expand button */}
+            {/* Expand button */}
+            <TouchableOpacity
+              style={S.expandBtn}
+              onPress={toggleExpand}
+              activeOpacity={0.8}
+            >
+              <Text style={S.expandBtnText}>
+                {isOpen ? orderLangInit.close : orderLangInit.viewDetails}
+              </Text>
+
+              <Animated.View style={chevronStyle}>
+                <Feather
+                  name="chevron-down"
+                  size={17}
+                  color={Colors.accentPrimary}
+                />
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Confirmed overlay */}
+          {isConfirmed && !isOpen && (
+            <View style={S.confirmedOverlay}>
               <TouchableOpacity
-                style={S.expandBtn}
+                style={S.confirmedViewBtn}
                 onPress={toggleExpand}
                 activeOpacity={0.8}
               >
-                <Text style={S.expandBtnText}>
-                  {isOpen ? orderLangInit.close : orderLangInit.viewDetails}
-                </Text>
-                <Animated.View style={chevronStyle}>
-                  <Feather
-                    name="chevron-down"
-                    size={17}
-                    color={Colors.accentPrimary}
-                  />
-                </Animated.View>
+                <Text style={S.expandBtnText}>{orderLangInit.viewDetails}</Text>
+
+                <Feather
+                  name="chevron-down"
+                  size={17}
+                  color={Colors.accentPrimary}
+                />
               </TouchableOpacity>
             </View>
-
-            {/* Confirmed overlay — full card */}
-            {isConfirmed && !isOpen && (
-              <View style={S.confirmedOverlay}>
-                <TouchableOpacity
-                  style={S.confirmedViewBtn}
-                  onPress={toggleExpand}
-                  activeOpacity={0.8}
-                >
-                  <Text style={S.expandBtnText}>
-                    {orderLangInit.viewDetails}
-                  </Text>
-                  <Feather
-                    name="chevron-down"
-                    size={17}
-                    color={Colors.accentPrimary}
-                  />
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
+          )}
         </View>
       </View>
-    );
-  },
-  (prev, next) => prev.item._id === next.item._id,
-);
+    </View>
+  );
+};
 
-// ── BookingSkeleton ────────────────────────────────────────────────────────
+/* -------------------------------------------------------------------------- */
+/*                              MEMO COMPARATOR                               */
+/* -------------------------------------------------------------------------- */
+
+export const OrderItem = React.memo(OrderItemComponent, (prev, next) => {
+  const previous = prev.item;
+  const current = next.item;
+
+  return (
+    previous._id === current._id &&
+    previous.total_amount === current.total_amount &&
+    previous.full_paid === current.full_paid &&
+    previous.session_obj?.expireAt === current.session_obj?.expireAt &&
+    previous.blocks?.[0]?.block_booking_status ===
+      current.blocks?.[0]?.block_booking_status &&
+    previous.blocks?.[0]?.current_player === current.blocks?.[0]?.current_player
+  );
+});
+
+/* -------------------------------------------------------------------------- */
+/*                            BOOKING SKELETON                                */
+/* -------------------------------------------------------------------------- */
+
 export function BookingSkeleton({
   width,
   theme,
 }: {
   width: number;
   theme: "light" | "dark";
-  color?: any;
 }) {
   const { colors: Colors } = useTheme();
+
   const S = useMemo(
     () => createStyles(Colors as unknown as TC, theme),
-    [theme],
+    [Colors, theme],
   );
-  const IW = width - 64;
+
+  const innerWidth = width - 64;
 
   return (
-    <View style={{ paddingVertical: 8, paddingHorizontal: 16 }}>
+    <View
+      style={{
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+      }}
+    >
       <View style={S.cardShadow}>
         <View style={S.card}>
           <View
-            style={[S.accentBar, { backgroundColor: Colors.surfaceHighest }]}
+            style={[
+              S.accentBar,
+              {
+                backgroundColor: Colors.surfaceHighest,
+              },
+            ]}
           />
+
           <View style={S.inner}>
             <View
               style={{
@@ -809,15 +1221,13 @@ export function BookingSkeleton({
                 marginBottom: 14,
               }}
             >
-              <Skeleton width={112} height={26} radius={13} colorMode={theme} />
-              <Skeleton width={84} height={26} radius={13} colorMode={theme} />
+              <Shimmer width={112} height={26} radius={13} />
+
+              <Shimmer width={84} height={26} radius={13} />
             </View>
-            <Skeleton
-              width={IW * 0.72}
-              height={22}
-              radius={6}
-              colorMode={theme}
-            />
+
+            <Shimmer width={innerWidth * 0.72} height={22} radius={6} />
+
             <View
               style={{
                 flexDirection: "row",
@@ -827,14 +1237,11 @@ export function BookingSkeleton({
                 marginBottom: 16,
               }}
             >
-              <Skeleton width={12} height={12} radius={6} colorMode={theme} />
-              <Skeleton
-                width={IW * 0.38}
-                height={12}
-                radius={4}
-                colorMode={theme}
-              />
+              <Shimmer width={12} height={12} radius={6} />
+
+              <Shimmer width={innerWidth * 0.38} height={12} radius={4} />
             </View>
+
             <View
               style={{
                 height: 1,
@@ -842,27 +1249,36 @@ export function BookingSkeleton({
                 marginBottom: 14,
               }}
             />
-            {[0, 1].map((i) => (
-              <View key={i} style={{ marginBottom: 14, gap: 8 }}>
-                <View style={{ flexDirection: "row", gap: 8 }}>
-                  <Skeleton
-                    width={IW * 0.46}
-                    height={28}
-                    radius={6}
-                    colorMode={theme}
-                  />
-                  <Skeleton
-                    width={72}
-                    height={28}
-                    radius={6}
-                    colorMode={theme}
-                  />
+
+            {[0, 1].map((index) => (
+              <View
+                key={index}
+                style={{
+                  marginBottom: 14,
+                  gap: 8,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 8,
+                  }}
+                >
+                  <Shimmer width={innerWidth * 0.46} height={28} radius={6} />
+
+                  <Shimmer width={72} height={28} radius={6} />
                 </View>
-                <Skeleton width={IW} height={4} radius={2} colorMode={theme} />
+
+                <Shimmer width={innerWidth} height={4} radius={2} />
               </View>
             ))}
-            <View style={{ marginTop: 6 }}>
-              <Skeleton width={IW} height={46} radius={10} colorMode={theme} />
+
+            <View
+              style={{
+                marginTop: 6,
+              }}
+            >
+              <Shimmer width={innerWidth} height={46} radius={10} />
             </View>
           </View>
         </View>
