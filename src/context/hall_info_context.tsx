@@ -90,6 +90,7 @@ const HallInfoContext = createContext<HallInfoType | undefined>(undefined);
 const initHallInfo = async () => {
   try {
     const response = await axiosInstanceRegular.get("/api/halls");
+    console.log(response);
     if (response.data) {
       await AsyncStorage.setItem("hall_version", String(response.data.version));
       await AsyncStorage.setItem(
@@ -115,14 +116,15 @@ const HallInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     let mounted = true;
     const hallInfoGetter = async () => {
       try {
-        const rawHallInfo = await AsyncStorage.getItem("hall_infos");
+        let hallInfos = JSON.parse(
+          (await AsyncStorage.getItem("hall_infos")) ?? "",
+        );
+        if (typeof hallInfos === "string") hallInfos = JSON.parse(hallInfos);
         if (!mounted) return;
-        const hallInfos = rawHallInfo
-          ? JSON.parse(rawHallInfo)
-          : await initHallInfo();
-        if (!mounted) return;
+
         const hallMap: Record<string, SportHallDataType | EsportHallDataType> =
           {};
+
         for (const hall of hallInfos) {
           hallMap[hall._id] = {
             sportHallID: hall._id,

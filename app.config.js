@@ -7,6 +7,7 @@ export default {
     icon: "./assets/images/icon.png",
     scheme: "projectSags",
     userInterfaceStyle: "automatic",
+    jsEngine: "hermes",
     ios: {
       bundleIdentifier: "com.usuhbayr.projectSags",
       config: {
