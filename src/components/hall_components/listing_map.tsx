@@ -159,6 +159,8 @@ const ListingsMap = memo(
       latitude: number;
       longitude: number;
     } | null>(null);
+    const [visibleRegion, setVisibleRegion] = useState(INITIAL_REGION);
+    const lastCullUpdateRef = React.useRef(0);
 
     // ── Location: check permission once, fetch position, no continuous watch ──
     useEffect(() => {
@@ -206,24 +208,56 @@ const ListingsMap = memo(
       );
     }, []);
 
-    // ── Memoised markers — rebuilt only when listings, styles, or handlers change.
-    // Filters out halls with invalid/missing coordinates before they reach
-    // supercluster's KD-tree (parseFloat("") → NaN would crash the index).
+    const handleRegionChange = useCallback(
+      (region: any) => {
+        onRegionChange(region);
+        const now = Date.now();
+        if (now - lastCullUpdateRef.current < 150) return;
+        lastCullUpdateRef.current = now;
+        setVisibleRegion(region);
+      },
+      [onRegionChange],
+    );
+
+    // Viewport culling — only render markers near the visible area
+    const visibleMarkers = useMemo(() => {
+      const padding = 0.005;
+      const north =
+        visibleRegion.latitude + visibleRegion.latitudeDelta / 2 + padding;
+      const south =
+        visibleRegion.latitude - visibleRegion.latitudeDelta / 2 - padding;
+      const east =
+        visibleRegion.longitude + visibleRegion.longitudeDelta / 2 + padding;
+      const west =
+        visibleRegion.longitude - visibleRegion.longitudeDelta / 2 - padding;
+      return listings.filter((item) => {
+        const lat = parseFloat(item.hall_locations?.latitude);
+        const lng = parseFloat(item.hall_locations?.longitude);
+        return (
+          isFinite(lat) &&
+          isFinite(lng) &&
+          lat >= south &&
+          lat <= north &&
+          lng >= west &&
+          lng <= east
+        );
+      });
+    }, [listings, visibleRegion]);
+
+    // ── Memoised markers — only halls within the visible viewport are rendered.
     const markers = useMemo(
       () =>
-        listings
-          .filter(hasValidCoords)
-          .map((item) => (
-            <HallMarker
-              key={item.sportHallID}
-              item={item}
-              ms={markerStyles}
-              colors={colors}
-              onNavigate={onNavigate}
-              onFocus={focusMarker}
-            />
-          )),
-      [listings, markerStyles, colors, onNavigate, focusMarker],
+        visibleMarkers.map((item) => (
+          <HallMarker
+            key={item.sportHallID}
+            item={item}
+            ms={markerStyles}
+            colors={colors}
+            onNavigate={onNavigate}
+            onFocus={focusMarker}
+          />
+        )),
+      [visibleMarkers, markerStyles, colors, onNavigate, focusMarker],
     );
 
     const goToUserLocation = useCallback(() => {
@@ -286,7 +320,7 @@ const ListingsMap = memo(
           }
           mapType="standard"
           userInterfaceStyle={theme}
-          onRegionChangeComplete={onRegionChange}
+          onRegionChangeComplete={handleRegionChange}
         >
           {markers}
         </MapView>

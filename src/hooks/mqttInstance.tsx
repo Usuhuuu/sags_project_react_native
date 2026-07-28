@@ -1,4 +1,5 @@
 import mqtt, { type MqttClient } from "mqtt";
+import axiosInstance from "./axiosInstance";
 
 class MQTTService {
   private client: MqttClient | null = null;
@@ -28,10 +29,11 @@ class MQTTService {
     });
 
     this.client.on("message", (topic, message) => {
-      console.log("📩 MQTT message:", {
-        topic,
-        message: message.toString(),
-      });
+      console.log("📩 MQTT message:", { topic, message: message.toString() });
+      if (topic === "hall/updated") {
+        const data = JSON.parse(message.toString());
+        console.log("📩 MQTT message:", data);
+      }
     });
 
     this.client.on("error", (error) => {

@@ -24,6 +24,7 @@ import { useNotificationStore } from "@/context/store/notification_store";
 import * as Notifications from "expo-notifications";
 import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { mqttService } from "@/hooks/mqttInstance";
 
 // Keep splash visible while app initialises
 SplashScreen.preventAutoHideAsync();
@@ -49,6 +50,7 @@ export function RootLayout() {
         trackingStatusPermission(),
         requestLocationPermission(),
         reminderPermission(),
+        mqttService.connect(),
       ]);
 
       if (mounted) {
@@ -60,6 +62,7 @@ export function RootLayout() {
 
     return () => {
       mounted = false;
+      mqttService.disconnect();
     };
   }, []);
 
