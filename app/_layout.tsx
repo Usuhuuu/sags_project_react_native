@@ -145,6 +145,13 @@ export function RootLayoutNav({ onReady }: { onReady: () => void }) {
           ),
         }}
       />
+      <Stack.Screen name="auth/login" />
+      <Stack.Screen name="auth/signup" />
+      <Stack.Screen name="book/esport/[hall_id]" />
+      <Stack.Screen name="book/sport/[hall_id]" />
+      <Stack.Screen name="book/[hall_id]" />
+      <Stack.Screen name="review/hall_review" />
+      <Stack.Screen name="server_error" />
     </Stack>
   );
 }

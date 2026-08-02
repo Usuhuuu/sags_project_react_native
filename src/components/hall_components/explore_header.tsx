@@ -7,14 +7,15 @@ import {
   ScrollView,
   Dimensions,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import Animated, {
   useAnimatedStyle,
   interpolate,
-  Extrapolate,
   interpolateColor,
+  Extrapolation,
 } from "react-native-reanimated";
 import { router } from "expo-router";
 import type { SharedValue } from "react-native-reanimated";
@@ -77,9 +78,14 @@ const iconMap: { [key: string]: { family: string; name: string } } = {
 interface Props {
   onCategoryChanged: (category: HallCategoryValue) => void;
   bottomSheetY: SharedValue<number>;
+  isCategoryLoading?: boolean;
 }
 
-const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
+const ExploreHeader = ({
+  onCategoryChanged,
+  bottomSheetY,
+  isCategoryLoading = false,
+}: Props) => {
   const { colors: Colors } = useTheme();
   const screenDims = useMemo(() => Dimensions.get("screen"), []);
   const { width, height } = screenDims;
@@ -119,7 +125,7 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
       bottomSheetY.value,
       [0, height * 0.5],
       [-80, 0],
-      Extrapolate.CLAMP,
+      Extrapolation.CLAMP,
     );
     return {
       transform: [{ translateY: translateYValue }],
@@ -148,29 +154,23 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   });
 
   const itemsRef = useRef<(View | null)[]>([]);
-  const pendingIndex = useRef(0);
-  const scrollEndFired = useRef(false);
 
   const selectCategory = (index: number) => {
     const selected = itemsRef.current[index];
-    pendingIndex.current = index;
-    setActiveIndex(index);
-    scrollEndFired.current = false;
+    const categoryId = sportDetail?.[index]?.id;
 
-    // Scroll first
+    setActiveIndex(index);
+
+    if (categoryId) {
+      // Defer one frame so the chip highlight (and the loading indicator)
+      // paint before the parent runs its — possibly heavy — data filtering.
+      requestAnimationFrame(() => onCategoryChanged(categoryId));
+    }
+
+    // Best-effort visual scroll to bring the selected item into view
     selected?.measure((_fx, _fy, _w, _h, px) => {
       scrollRef.current?.scrollTo({ x: px - 16, animated: true });
     });
-
-    // Do NOT call onCategoryChanged here — wait for scroll to finish
-  };
-
-  const onScrollEnd = () => {
-    // Only fire when scroll animation completes
-    if (!scrollEndFired.current) {
-      scrollEndFired.current = true;
-      onCategoryChanged(sportDetail[pendingIndex.current]?.id);
-    }
   };
 
   const openMenu = () => {
@@ -247,7 +247,6 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={[styles.scrollViewContent]}
-            onMomentumScrollEnd={onScrollEnd}
             scrollEventThrottle={16}
           >
             {(() => {
@@ -285,22 +284,16 @@ const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
                       activeIndex === index ? Colors.primary : Colors.outline
                     }
                   />
-                  {activeIndex === index && (
-                    <View
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
-                        backgroundColor: Colors.primary,
-                        position: "absolute",
-                        bottom: 6,
-                      }}
-                    />
-                  )}
                 </TouchableOpacity>
               ));
             })()}
           </ScrollView>
+          {/* Loading indicator — shown while the new category's data loads */}
+          {isCategoryLoading && (
+            <View style={styles.loadingBadge} pointerEvents="none">
+              <ActivityIndicator size="small" color={Colors.primary} />
+            </View>
+          )}
         </Animated.View>
       </Animated.View>
     </SafeAreaView>
@@ -389,6 +382,18 @@ const createStyles = (Colors: any, height: number) =>
       flexDirection: "row",
       gap: 10,
       paddingLeft: 10,
+    },
+
+    loadingBadge: {
+      position: "absolute",
+      right: 10,
+      top: 8,
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: "rgba(0,0,0,0.55)",
+      justifyContent: "center",
+      alignItems: "center",
     },
 
     iconContainer: {

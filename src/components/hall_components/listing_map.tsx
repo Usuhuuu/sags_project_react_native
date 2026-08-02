@@ -276,30 +276,6 @@ const ListingsMap = memo(
       });
     }, [userLocation]);
 
-    const renderCluster = useCallback(
-      (cluster: any) => {
-        const { id, geometry, onPress, properties } = cluster;
-        return (
-          <Marker
-            key={`cluster-${id}`}
-            tracksViewChanges={false}
-            onPress={onPress}
-            coordinate={{
-              longitude: geometry.coordinates[0],
-              latitude: geometry.coordinates[1],
-            }}
-          >
-            <View style={styles.clusterMarker}>
-              <Text style={styles.clusterText}>
-                {properties.point_count ?? 0}
-              </Text>
-            </View>
-          </Marker>
-        );
-      },
-      [styles],
-    );
-
     return isFocused ? (
       <View style={styles.container}>
         <MapView
@@ -345,7 +321,14 @@ const ListingsMap = memo(
         </TouchableOpacity>
       </View>
     ) : (
-      <OwnActivaterIndicator />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.backgroundColor,
+        }}
+      />
     );
   },
 );
@@ -468,7 +451,7 @@ const createMarkerStyle = (colors: any) =>
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
-    container: { flex: 1 },
+    container: { flex: 1, backgroundColor: colors.backgroundColor },
     clusterMarker: {
       borderRadius: 20,
       backgroundColor: colors.primary,

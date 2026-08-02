@@ -4,11 +4,12 @@ import { View } from "react-native";
 import { EsportHallDataType, SportHallDataType } from "@/types/hall_info_type";
 import { HallTypesSeparator } from "@/types/hall_separator_type";
 import SportHall from "@/components/hall_components/halls/sport_hall";
-import Pc_Halls from "@/components/hall_components/halls/pc_hall";
+import CombinedEsportHall from "./esport/[hall_id]";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useTheme } from "@/context/theme_context";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { useHallInfo } from "@/context/hall_info_context";
+import BookingBoardGame from "./boardGame/[hall_id]";
 
 export default function DetailsPage() {
   const { hall_id } = useLocalSearchParams();
@@ -62,7 +63,14 @@ export default function DetailsPage() {
         />
       )}
       {hallSeparator === HallTypesSeparator.COMPUTERGAMESHALL && (
-        <Pc_Halls
+        <CombinedEsportHall
+          listing={listing as EsportHallDataType}
+          hallID={hallId}
+          hallType={hallSeparator}
+        />
+      )}
+      {hallSeparator === HallTypesSeparator.BILLIARDHALL && (
+        <BookingBoardGame
           listing={listing as EsportHallDataType}
           hallID={hallId}
           hallType={hallSeparator}

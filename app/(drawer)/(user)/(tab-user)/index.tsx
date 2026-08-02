@@ -14,6 +14,13 @@ const Page = () => {
   const [category, setCategory] = useState<HallCategoryValue>(
     HallCategoryValue.BASKET_BALL,
   );
+  // Set while the new category's data is being filtered (blocks the UI thread
+  // on large datasets) so the header can show a loading indicator.
+  const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+  // Deferred category — lets the loading indicator paint before the heavy
+  // useMemo filter below runs.
+  const [pendingCategory, setPendingCategory] =
+    useState<HallCategoryValue | null>(null);
   const [debouncedRegion, setDebouncedRegion] = useState<any>(null);
   const regionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -26,8 +33,20 @@ const Page = () => {
   }, []);
 
   const onDataChanged = useCallback((c: HallCategoryValue) => {
-    setCategory(c);
+    setIsCategoryLoading(true);
+    setPendingCategory(c);
   }, []);
+
+  // Swap the category on the next frame so the loading indicator (and the
+  // newly selected chip) have already painted before the heavy filter blocks.
+  useEffect(() => {
+    if (pendingCategory === null) return;
+    const id = requestAnimationFrame(() => {
+      setCategory(pendingCategory);
+      setPendingCategory(null);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [pendingCategory]);
 
   // All halls in selected category — passed to map for viewport culling
   const categoryHalls = useMemo(() => {
@@ -35,6 +54,11 @@ const Page = () => {
       item.hall_types?.sub?.includes(category),
     );
   }, [category, hallData]);
+
+  // Clear the indicator once the new category's halls have been computed.
+  useEffect(() => {
+    if (isCategoryLoading) setIsCategoryLoading(false);
+  }, [categoryHalls, isCategoryLoading]);
 
   // Region-filtered (debounced) — for bottom sheet list
   const visibleHalls = useMemo(() => {
@@ -67,9 +91,10 @@ const Page = () => {
       <ExploreHeader
         onCategoryChanged={onDataChanged}
         bottomSheetY={bottomSheetY}
+        isCategoryLoading={isCategoryLoading}
       />
     ),
-    [],
+    [onDataChanged, bottomSheetY, isCategoryLoading],
   );
   return (
     <View style={{ flex: 1 }}>
