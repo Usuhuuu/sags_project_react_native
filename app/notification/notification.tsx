@@ -111,7 +111,6 @@ const NotificationScreen = () => {
   // ── Single source of truth: Zustand store ─────────────────────────────────
   const storeNotifications = useNotificationStore((s) => s.notifications);
   const loadNotifications = useNotificationStore((s) => s.loadNotifications);
-  const addNotification = useNotificationStore((s) => s.addNotification);
   const seenNotification = useNotificationStore((s) => s.seenNotification);
   const removeNotification = useNotificationStore((s) => s.removeNotification);
   const removeNotifications = useNotificationStore(
@@ -211,7 +210,7 @@ const NotificationScreen = () => {
   const listEmpty = useCallback(() => <EmptyNotificationScreen />, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
       <FlatList
         data={savedNotifications}
         renderItem={renderItem}

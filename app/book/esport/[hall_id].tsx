@@ -7,6 +7,7 @@ import {
   FontAwesome5,
   Fontisto,
   Ionicons,
+  MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -25,8 +26,11 @@ import {
   StyleSheet,
   useWindowDimensions,
   StatusBar,
+  Text,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { openCheckoutBrowser } from "@/utils/paymentBrowser";
+import { InAppBrowser } from "react-native-inappbrowser-reborn";
 import { LinearGradient } from "expo-linear-gradient";
 import Carousel, {
   ICarouselInstance,
@@ -180,6 +184,7 @@ const CombinedEsportHall = ({
   const [sTime, setSTime] = useState<Date | string>(new Date());
   const [tInit, setTInit] = useState(false);
   const [wait, setWait] = useState(false);
+  const [waitingText, setWaitingText] = useState("");
   const [suc, setSuc] = useState(false);
   const [modal, setModal] = useState(false);
   const sched = useRef(false);
@@ -354,50 +359,228 @@ const CombinedEsportHall = ({
   }, [listing, aFeat, C, rLoad, revs, rRating, rCount, priceGen]);
 
   // ── Booking handler ───────────────────────────────────────────────────────
+  // The server pre-checks the slot (conflict + security) when creating the
+  // payment link, stores the pending booking, and the Wire webhook processes
+  // it via BullMQ after the payment succeeds — the user never waits for the
+  // booking itself, only for the checkout link.
   const handleBook = useCallback(async () => {
     try {
       setWait(true);
       const tz = encodeURIComponent(
         Intl.DateTimeFormat().resolvedOptions().timeZone,
       );
-      const res = await axiosInstance.post(
-        "/auth/book/esport",
-        {
-          sport_hall_id: listing?.sportHallID,
-          date: bookingDetails?.bookingDate ?? sDate,
-          timezone: tz,
-          tier: bookingDetails?.tier ?? sTier,
-          hours: bookingDetails?.hours ?? hours,
-          startTime: bookingDetails?.startTime ?? sTime,
-        },
-        { timeout: 10000 },
-      );
-      if (res.status === 200 && res.data.success) {
-        const token = res.data.session;
-        saveToken(token);
-        Notifier.showNotification({
-          title: "Successfully Booked",
-          description: "Check Booking from Order Section",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
+      let paymentIntentId: string | null = null;
+      let bookingSession: string | null = null;
+
+      // ── 1) Payment — pre-check + create Wire payment intent & open checkout ──
+      setWaitingText("Creating payment…");
+      try {
+        const paymentRes = await axiosInstance.post("/auth/book/intent", {
+          amount: Math.round(grandTotal),
+          booking: {
+            type: "esport",
+            sport_hall_id: listing?.sportHallID,
+            date: bookingDetails?.bookingDate ?? sDate,
+            timezone: tz,
+            tier: bookingDetails?.tier ?? sTier,
+            hours: bookingDetails?.hours ?? hours,
+            startTime: bookingDetails?.startTime ?? sTime,
+          },
         });
+        const session = paymentRes.data?.result;
+        if (session?.error) {
+          setWait(false);
+          Notifier.showNotification({
+            title: "Payment Failed",
+            description: session.error,
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
+          return;
+        }
+        const checkoutUrl = session?.checkout_url ?? session?.url ?? null;
+        paymentIntentId = session?.payment_intent ?? null;
+        if (!paymentIntentId) {
+          setWait(false);
+          Notifier.showNotification({
+            title: "Payment Failed",
+            description: "Could not start payment. Please try again.",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
+          return;
+        }
+        // ── Wait for the user to pay (QPay / bank / …) ──
+        const waitForPayment = async (
+          intentId: string,
+          maxPolls: number,
+        ): Promise<"paid" | "failed" | "timeout"> => {
+          setWaitingText("Confirming payment…");
+          const PAID_STATUSES = ["succeeded", "paid", "Completed"];
+          const FAILED_STATUSES = ["expired", "canceled", "failed", "refunded"];
+          for (let i = 0; i < maxPolls; i++) {
+            try {
+              const stRes = await axiosInstance.get(
+                `/auth/payment/status/${intentId}`,
+              );
+              const status = stRes.data?.status;
+              bookingSession = stRes.data?.session ?? null;
+              if (PAID_STATUSES.includes(status)) return "paid";
+              if (FAILED_STATUSES.includes(status)) return "failed";
+            } catch {}
+            await new Promise((r) => setTimeout(r, 2000));
+          }
+          return "timeout";
+        };
+
+        // Open the checkout page in the system browser. The deep-link
+        // redirect (projectSags://payment-result?payment_intent=...) plus the
+        // app returning to the foreground tells us success vs. cancel. If the
+        // user closes it without paying (pressed Done), treat it as canceled:
+        // stop polling right away and let them re-tap the book button to pay
+        // again.
+        let outcome: "paid" | "failed" | "timeout" = "timeout";
+        if (checkoutUrl) {
+          let maxPolls = 15;
+          try {
+            // Native in-app browser (Chrome Custom Tabs on Android,
+            // ASWebAuthenticationSession on iOS). The redirect
+            // (projectSags://payment-result?payment_intent=...) resolves to
+            // 'success' when the payment completed, 'cancel'/'dismiss' when
+            // the user closed it without paying.
+            let browserResult: "success" | "cancel" | "error" = "error";
+            try {
+              if (await InAppBrowser.isAvailable()) {
+                const res = await InAppBrowser.openAuth(
+                  checkoutUrl,
+                  "projectSags://payment-result",
+                  {
+                    ephemeralWebSession: false,
+                    dismissButtonStyle: "cancel",
+                    showTitle: true,
+                    enableUrlBarHiding: true,
+                    enableDefaultShare: false,
+                    forceCloseOnRedirection: true,
+                  },
+                );
+                browserResult = res?.type === "success" ? "success" : "cancel";
+              }
+            } catch {
+              browserResult = "error";
+            }
+            if (browserResult === "error") {
+              // Native module unavailable (e.g. Expo Go) — fall back to the
+              // system browser with deep-link detection.
+              browserResult = await openCheckoutBrowser(checkoutUrl);
+            }
+            if (browserResult === "success") {
+              // Redirect captured — payment went through; wait briefly for
+              // the webhook/worker to finish and grab the session.
+              maxPolls = 10;
+            } else if (browserResult === "cancel") {
+              // User closed the browser without paying — stop fast.
+              maxPolls = 3;
+            } else {
+              outcome = "failed";
+            }
+          } catch {
+            outcome = "failed";
+          }
+          if (outcome !== "failed") {
+            outcome = await waitForPayment(paymentIntentId, maxPolls);
+          }
+        }
+        if (outcome !== "paid") {
+          setWait(false);
+          Notifier.showNotification({
+            title: "Payment Not Completed",
+            description:
+              outcome === "failed"
+                ? "The payment was canceled or expired. Press book to try again."
+                : outcome === "timeout"
+                  ? "We couldn't confirm the payment yet. Check your orders shortly."
+                  : "Payment canceled. Press book to try again.",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
+          return;
+        }
+      } catch (err: any) {
+        setWait(false);
+        if (err.response?.status === 409) {
+          Notifier.showNotification({
+            title: "Time Slot Taken",
+            description:
+              err.response.data?.message ||
+              "This time slot is no longer available. Please choose another.",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
+          return;
+        }
+        if (err.message === "could't find Token") {
+          Notifier.showNotification({
+            title: "Please Login",
+            description: "Please Login to process to book",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
+          return;
+        }
+        Notifier.showNotification({
+          title: "Payment Failed",
+          description: "Could not start payment. Please try again.",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
+        return;
+      }
+
+      // ── 2) Payment confirmed — the server webhook processes the booking ──
+      setWaitingText("Finalizing…");
+      if (bookingSession) {
+        await saveToken(bookingSession);
         if (!sched.current) {
           await bookingNotificationSchedule({
-            title: `Reminder: Payment Needed for ${hName}`,
-            body: "Please complete the payment to confirm your booking.",
-            bookingToken: token,
+            title: `Booking Confirmed for ${hName}`,
+            body: "Your booking is being confirmed. Check the Order section.",
+            bookingToken: bookingSession,
           });
           sched.current = true;
         }
+      }
+      Notifier.showNotification({
+        title: "Payment Successful",
+        description:
+          "Your booking is being confirmed. Check the Order section shortly.",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "success" },
+      });
+      // Refresh orders once now and again shortly after so webhook-processed
+      // bookings show up in the list.
+      queryClient.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) && q.queryKey[0] === "booked_order",
+      });
+      setTimeout(() => {
         queryClient.invalidateQueries({
           predicate: (q) =>
             Array.isArray(q.queryKey) && q.queryKey[0] === "booked_order",
         });
-        setSuc(true);
-        setModal(true);
-      }
+      }, 8000);
+      setSuc(true);
+      setModal(true);
     } catch (err: any) {
-      if ([409, 401].includes(err.response?.status))
+      if (err.response?.status === 402) {
+        Notifier.showNotification({
+          title: "Payment Not Completed",
+          description:
+            err.response.data?.message ||
+            "Please complete the payment and try again.",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
+      } else if ([409, 401].includes(err.response?.status)) {
         Notifier.showNotification({
           title: "Booking Exists",
           description:
@@ -406,17 +589,18 @@ const CombinedEsportHall = ({
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "warn" },
         });
-      else
+      } else {
         Notifier.showNotification({
           title: "Booking Failed",
           description: "An error occurred. Please try again.",
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "warn" },
         });
+      }
     } finally {
       setWait(false);
     }
-  }, [sDate, sTier, hours, sTime, bookingDetails, listing, hName]);
+  }, [sDate, sTier, hours, sTime, bookingDetails, listing, hName, grandTotal]);
 
   // ── Confirmation details (memoized) ──────────────────────────────────────
   const confirmItems = useMemo(
@@ -453,7 +637,7 @@ const CombinedEsportHall = ({
   const stepDots = useMemo(
     () => (
       <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-        {[0, 1].map((i) => (
+        {[0, 1, 2].map((i) => (
           <React.Fragment key={i}>
             {i > 0 && (
               <View
@@ -499,6 +683,18 @@ const CombinedEsportHall = ({
         style={[dS.flex, dS.center, { backgroundColor: C.backgroundColor }]}
       >
         <OwnActivaterIndicator />
+        {waitingText ? (
+          <Text
+            style={{
+              color: C.themeColorTextSecondary,
+              fontSize: 14,
+              fontWeight: "500",
+              marginTop: 4,
+            }}
+          >
+            {waitingText}
+          </Text>
+        ) : null}
       </View>
     );
   }
@@ -731,7 +927,7 @@ const CombinedEsportHall = ({
       {bkHeader}
       {step === 0 ? (
         <Step_one_pc initTime={tInit} setInitTime={setTInit} />
-      ) : (
+      ) : step === 1 ? (
         <Step_two_pc
           listing={
             bookingDetails
@@ -739,6 +935,152 @@ const CombinedEsportHall = ({
               : undefined
           }
         />
+      ) : (
+        <ScrollView
+          contentContainerStyle={bS.payScroll}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Order summary */}
+          <View
+            style={[
+              bS.payCard,
+              {
+                backgroundColor: C.surface,
+                borderColor: C.border,
+                shadowColor: C.shadowColor,
+              },
+            ]}
+          >
+            <AppText style={[bS.payTitle, { color: C.onSurface }]}>
+              Payment
+            </AppText>
+            <AppText style={[bS.paySub, { color: C.onSurfaceVariant }]}>
+              Complete payment to confirm your booking
+            </AppText>
+            <View style={{ gap: 10 }}>
+              <View style={[bS.payRow, { backgroundColor: C.surfaceHigh }]}>
+                <AppText style={[bS.payLabel, { color: C.onSurfaceVariant }]}>
+                  Venue
+                </AppText>
+                <AppText
+                  style={[bS.payVal, { color: C.onSurface }]}
+                  numberOfLines={1}
+                >
+                  {bookingDetails?.name ?? hName}
+                </AppText>
+              </View>
+              <View style={[bS.payRow, { backgroundColor: C.surfaceHigh }]}>
+                <AppText style={[bS.payLabel, { color: C.onSurfaceVariant }]}>
+                  Date
+                </AppText>
+                <AppText style={[bS.payVal, { color: C.onSurface }]}>
+                  {format(bookingDetails?.bookingDate ?? sDate, "EEE, dd LLL")}
+                </AppText>
+              </View>
+              <View style={[bS.payRow, { backgroundColor: C.surfaceHigh }]}>
+                <AppText style={[bS.payLabel, { color: C.onSurfaceVariant }]}>
+                  Zone
+                </AppText>
+                <AppText style={[bS.payVal, { color: C.onSurface }]}>
+                  {TIERS.find((t) => t.id === (bookingDetails?.tier ?? sTier))
+                    ?.label ?? "Regular Zone"}
+                </AppText>
+              </View>
+              <View style={[bS.payRow, { backgroundColor: C.surfaceHigh }]}>
+                <AppText style={[bS.payLabel, { color: C.onSurfaceVariant }]}>
+                  Duration
+                </AppText>
+                <AppText style={[bS.payVal, { color: C.onSurface }]}>
+                  {String(bookingDetails?.hours ?? hours)} Hour
+                  {Number(bookingDetails?.hours ?? hours) > 1 ? "s" : ""}
+                </AppText>
+              </View>
+            </View>
+          </View>
+
+          {/* Payment method */}
+          <View
+            style={[
+              bS.payCard,
+              {
+                backgroundColor: C.surface,
+                borderColor: C.border,
+                shadowColor: C.shadowColor,
+              },
+            ]}
+          >
+            <AppText
+              style={{ fontSize: 17, fontWeight: "700", color: C.onSurface }}
+            >
+              Payment Method
+            </AppText>
+            <View
+              style={[
+                bS.methodRow,
+                {
+                  borderColor: C.accentPrimaryBorder,
+                  backgroundColor: C.accentPrimaryGlow,
+                },
+              ]}
+            >
+              <View style={[bS.methodIcon, { backgroundColor: C.surface }]}>
+                <MaterialCommunityIcons
+                  name="cellphone-wireless"
+                  size={22}
+                  color={C.accentPrimary}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <AppText style={[bS.methodTitle, { color: C.onSurface }]}>
+                  Wire — Mobile Payment
+                </AppText>
+                <AppText style={[bS.methodDesc, { color: C.onSurfaceVariant }]}>
+                  Bank & mobile operators
+                </AppText>
+              </View>
+              <View
+                style={[
+                  bS.secureChip,
+                  {
+                    backgroundColor: C.successGlow,
+                    borderColor: C.successBorder,
+                  },
+                ]}
+              >
+                <Ionicons name="lock-closed" size={11} color={C.successColor} />
+                <AppText style={[bS.secureText, { color: C.successColor }]}>
+                  Secure
+                </AppText>
+              </View>
+            </View>
+
+            {/* Amount due */}
+            <View style={[bS.amountWrap, { borderTopColor: C.borderSubtle }]}>
+              <AppText style={[bS.amountLabel, { color: C.onSurfaceVariant }]}>
+                TOTAL DUE
+              </AppText>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "baseline",
+                  gap: 4,
+                }}
+              >
+                <AppText style={[bS.amountValue, { color: C.accentPrimary }]}>
+                  ₩{grandTotal.toLocaleString()}
+                </AppText>
+                <AppText style={[bS.amountUnit, { color: C.onSurfaceVariant }]}>
+                  KRW
+                </AppText>
+              </View>
+            </View>
+
+            <AppText style={[bS.payNote, { color: C.onSurfaceVariant }]}>
+              You will be redirected to complete the payment securely. Your
+              booking is confirmed after payment succeeds.
+            </AppText>
+          </View>
+        </ScrollView>
       )}
 
       {/* Footer */}
@@ -772,7 +1114,7 @@ const CombinedEsportHall = ({
               <Ionicons name="arrow-forward" size={18} color={C.white} />
             </TouchableOpacity>
           </>
-        ) : (
+        ) : step === 1 ? (
           <>
             <TouchableOpacity
               style={[bS.btn2, { backgroundColor: C.surfaceHigh }]}
@@ -782,12 +1124,32 @@ const CombinedEsportHall = ({
             </TouchableOpacity>
             <TouchableOpacity
               style={[bS.btn, { backgroundColor: C.accentPrimary }]}
-              onPress={handleBook}
+              onPress={() => setStep(2)}
             >
               <AppText
                 style={{ color: "#FFF", fontSize: 15, fontWeight: "700" }}
               >
-                Confirm Booking
+                Continue to Payment
+              </AppText>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <TouchableOpacity
+              style={[bS.btn2, { backgroundColor: C.surfaceHigh }]}
+              onPress={() => setStep(1)}
+            >
+              <AppText style={[bS.btn2T, { color: C.onSurface }]}>Back</AppText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[bS.btn, { backgroundColor: C.accentPrimary }]}
+              onPress={handleBook}
+            >
+              <Ionicons name="card" size={16} color={C.white} />
+              <AppText
+                style={{ color: "#FFF", fontSize: 15, fontWeight: "700" }}
+              >
+                Pay & Confirm
               </AppText>
             </TouchableOpacity>
           </>
@@ -1116,6 +1478,78 @@ const bS = StyleSheet.create({
   },
   btn2: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
   btn2T: { fontSize: 14, fontWeight: "700" },
+
+  // Payment step
+  payScroll: {
+    flexGrow: 1,
+    padding: 16,
+    paddingBottom: 24,
+    gap: 16,
+  },
+  payCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 16,
+    gap: 14,
+    shadowOpacity: 0.08,
+    shadowOffset: { height: 2, width: 0 },
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  payTitle: { fontSize: 22, fontWeight: "800", letterSpacing: -0.3 },
+  paySub: { fontSize: 14, marginTop: -8 },
+  payRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  payLabel: { fontSize: 15, fontWeight: "500" },
+  payVal: { fontSize: 15, fontWeight: "600", flexShrink: 1, marginLeft: 12 },
+  methodRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  methodIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  methodTitle: { fontSize: 15, fontWeight: "700" },
+  methodDesc: { fontSize: 12, marginTop: 2 },
+  secureChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  secureText: { fontSize: 11, fontWeight: "700" },
+  amountWrap: {
+    alignItems: "center",
+    paddingVertical: 18,
+    gap: 6,
+    borderTopWidth: 1,
+  },
+  amountLabel: { fontSize: 13, fontWeight: "600", letterSpacing: 0.6 },
+  amountValue: { fontSize: 34, fontWeight: "800", letterSpacing: -0.5 },
+  amountUnit: { fontSize: 15, fontWeight: "600" },
+  payNote: {
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center",
+    paddingHorizontal: 8,
+  },
 });
 
 export default CombinedEsportHall;

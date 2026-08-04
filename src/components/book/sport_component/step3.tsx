@@ -5,6 +5,7 @@ import React, { SetStateAction } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { format } from "date-fns";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { groupDurationHours } from "@/utils/bookingTime";
 
 interface Step_Three_Props {
   bookingDetails: SportBookingData | null;
@@ -18,7 +19,6 @@ interface Step_Three_Props {
   totalBookerPaymentArray: number[];
   timeCount: number;
   totalPrice: number;
-  handleOrder: () => void;
 }
 
 // ── Styles ─────────────────────────────────────────────────────────────────
@@ -252,7 +252,6 @@ const Step_Three = ({
   paymentPerPeopleArray,
   timeCount,
   totalPrice,
-  handleOrder,
   playersNeeded,
 }: Step_Three_Props) => {
   const { colors } = useTheme();
@@ -377,17 +376,7 @@ const Step_Three = ({
               </View>
 
               {selectedTimeSlots.map((group, index) => {
-                const startTime = group[0].split("~")[0];
-                const endTime = group[group.length - 1].split("~")[1];
-
-                const getHour = (time: string) => {
-                  const [hourStr] = time.split(":");
-                  return parseInt(hourStr, 10);
-                };
-
-                const startHour = getHour(startTime);
-                const endHour = getHour(endTime);
-                const durationHours = endHour - startHour;
+                const durationHours = groupDurationHours(group);
 
                 const totalPeople = (playersNeeded[index] || 0) + 1;
                 const paymentPerPerson = paymentPerPeopleArray[index] ?? 0;
@@ -441,9 +430,9 @@ const Step_Three = ({
         <TouchableOpacity
           style={s.btnPrimary}
           activeOpacity={0.8}
-          onPress={() => handleOrder()}
+          onPress={() => setSteps(steps + 1)}
         >
-          <AppText style={s.btnPrimaryText}>Book</AppText>
+          <AppText style={s.btnPrimaryText}>Continue to Payment</AppText>
         </TouchableOpacity>
       </View>
     </View>

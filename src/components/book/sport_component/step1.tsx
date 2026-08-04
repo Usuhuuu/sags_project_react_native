@@ -8,6 +8,7 @@ import React, { SetStateAction } from "react";
 import { View, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { format, isValid } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { groupDurationHours } from "@/utils/bookingTime";
 
 interface Step_One_Props {
   bookingDetails: SportBookingData | null;
@@ -203,15 +204,10 @@ const Step_One = ({
   // ── Derived pricing ──────────────────────────────────────────────────
   const timeCount = React.useMemo(() => {
     if (wholeDay) return 24;
-    const getHour = (time: string) => {
-      const [hourStr] = time.split(":");
-      return parseInt(hourStr, 10);
-    };
-    return selectedTimeSlots.reduce((total, group) => {
-      const startTime = group[0].split("~")[0];
-      const endTime = group[group.length - 1].split("~")[1];
-      return total + (getHour(endTime) - getHour(startTime));
-    }, 0);
+    return selectedTimeSlots.reduce(
+      (total, group) => total + groupDurationHours(group),
+      0,
+    );
   }, [selectedTimeSlots, wholeDay]);
 
   const totalPrice = wholeDay

@@ -1,12 +1,13 @@
 import { SportBookingData, useBookingStore } from "@/context/store/book_store";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, TouchableOpacity, ScrollView } from "react-native";
+import { View, TouchableOpacity, ScrollView, Text } from "react-native";
 import { Feather, FontAwesome, Fontisto, Ionicons } from "@expo/vector-icons";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { openCheckoutBrowser } from "@/utils/paymentBrowser";
+import { InAppBrowser } from "react-native-inappbrowser-reborn";
 
 import axiosInstance from "@/hooks/axiosInstance";
-import { AxiosResponse } from "axios";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 import { scheduleNotificationForEvent } from "@/hooks/calendarInstance";
 import { useTheme } from "@/context/theme_context";
@@ -15,11 +16,13 @@ import { addHours, format } from "date-fns";
 import Step_One from "@/components/book/sport_component/step1";
 import Step_Two from "@/components/book/sport_component/step2";
 import Step_Three from "@/components/book/sport_component/step3";
+import Step_Four from "@/components/book/sport_component/step4";
 import { saveToken } from "@/components/book/session";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { bookingNotificationSchedule } from "@/context/store/notification_store";
 import { queryClient } from "@/hooks/queryClient";
 import { useHallInfo } from "@/context/hall_info_context";
+import { groupDurationHours } from "@/utils/bookingTime";
 
 export type ReservationBlock = {
   start_time: string;
@@ -28,6 +31,7 @@ export type ReservationBlock = {
   current_player: number;
   time_slots: string[];
   wholeDay?: boolean;
+  workTime?: string;
 };
 
 const groupConnectedTimeSlots = (slots: string[]) => {
@@ -81,7 +85,7 @@ const TransactionPage = () => {
           gap: 4,
         }}
       >
-        {[0, 1, 2].map((i) => (
+        {[0, 1, 2, 3].map((i) => (
           <React.Fragment key={i}>
             {/* Connecting line */}
             {i > 0 && (
@@ -153,19 +157,15 @@ const TransactionPage = () => {
         );
   }, []);
   const [isOrdering, setIsOrdering] = useState<boolean>(false);
+  const [waitingText, setWaitingText] = useState<string>("");
 
   // ── Derived pricing (computed, readonly — frontend can't edit) ──────────
   const timeCount = useMemo(() => {
     if (wholeDay) return 24;
-    const getHour = (time: string) => {
-      const [hourStr] = time.split(":");
-      return parseInt(hourStr, 10);
-    };
-    return selectedTimeSlots.reduce((total, group) => {
-      const startTime = group[0].split("~")[0];
-      const endTime = group[group.length - 1].split("~")[1];
-      return total + (getHour(endTime) - getHour(startTime));
-    }, 0);
+    return selectedTimeSlots.reduce(
+      (total, group) => total + groupDurationHours(group),
+      0,
+    );
   }, [selectedTimeSlots, wholeDay]);
 
   const totalPrice = useMemo(() => {
@@ -178,14 +178,8 @@ const TransactionPage = () => {
   const paymentPerPeopleArray = useMemo(() => {
     if (wholeDay) return [];
     const hourlyRate = Number(bookingDetails?.price?.oneHour || 0);
-    const getHour = (time: string) => {
-      const [hourStr] = time.split(":");
-      return parseInt(hourStr, 10);
-    };
     return selectedTimeSlots.map((group, index) => {
-      const startTime = group[0].split("~")[0];
-      const endTime = group[group.length - 1].split("~")[1];
-      const durationHours = getHour(endTime) - getHour(startTime);
+      const durationHours = groupDurationHours(group);
       const totalCost = durationHours * hourlyRate;
       const totalPeople = (playersNeeded[index] || 0) + 1;
       return totalPeople > 0 ? totalCost / totalPeople : 0;
@@ -216,104 +210,258 @@ const TransactionPage = () => {
       const timezone = encodeURIComponent(
         Intl.DateTimeFormat().resolvedOptions().timeZone,
       );
-      let response: AxiosResponse;
 
-      setWaiting(!waiting);
-      let reservationBlocks;
-      if (!wholeDay) {
-        reservationBlocks = selectedTimeSlots.map((group, index) => {
-          const [startTime] = group[0].split("~");
-          const [, endTime] = group[group.length - 1].split("~");
-          return {
-            start_time: startTime,
-            end_time: endTime,
-            num_players: playersNeeded[index] ?? 0,
-            current_player: 0,
-            time_slots: group,
-          };
-        });
-        response = await axiosInstance.post(
-          `/auth/book/sport`,
-          {
+      // ── Build reservation blocks first — the server pre-checks them for
+      // conflicts before the payment link is generated ──
+      const reservationBlocks: ReservationBlock[] = !wholeDay
+        ? selectedTimeSlots.map((group, index) => {
+            const [startTime] = group[0].split("~");
+            const [, endTime] = group[group.length - 1].split("~");
+            return {
+              start_time: startTime,
+              end_time: endTime,
+              num_players: playersNeeded[index] ?? 0,
+              current_player: 0,
+              time_slots: group,
+            };
+          })
+        : [
+            {
+              // start/end are recomputed server-side from workTime for whole-day
+              start_time: "",
+              end_time: "",
+              wholeDay: true,
+              workTime: bookingDetails.workTime,
+              num_players: wholeDayPeople,
+              current_player: 1,
+              time_slots: ["wholeDay"],
+            },
+          ];
+      setReserved_times(reservationBlocks);
+
+      // ── 1) Payment — pre-check + create Wire payment intent & open checkout ──
+      setWaiting(true);
+      setWaitingText("Creating payment…");
+      let paymentIntentId: string | null = null;
+      let bookingSession: string | null = null;
+      try {
+        const paymentRes = await axiosInstance.post("/auth/book/intent", {
+          amount: Math.round(totalPrice),
+          booking: {
+            type: "sport",
             sport_hall_id: bookingDetails.sportHallID,
             date: dateOnly,
             timezone,
             reserved_blocks: reservationBlocks,
           },
-          {
-            timeout: 10000,
-          },
-        );
-      } else {
-        console.log(bookingDetails.workTime);
-        response = await axiosInstance.post(
-          `/auth/book/sport`,
-          {
-            sport_hall_id: bookingDetails.sportHallID,
-            date: dateOnly,
-            timezone,
-            reserved_blocks: [
-              {
-                wholeDay: true,
-                workTime: bookingDetails.workTime,
-                num_players: wholeDayPeople,
-                current_player: 1,
-                time_slots: ["wholeDay"],
-              },
-            ],
-          },
-          { timeout: 10000 },
-        );
-      }
-      setReserved_times(reservationBlocks);
-      if (response.status === 200 && response.data.success) {
-        const token = response.data.session;
-        saveToken(token);
+        });
+        const session = paymentRes.data?.result;
+        if (session?.error) {
+          setWaiting(false);
+          Notifier.showNotification({
+            title: "Payment Failed",
+            description: session.error,
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
+          return;
+        }
+        const checkoutUrl = session?.checkout_url ?? session?.url ?? null;
+        paymentIntentId = session?.payment_intent ?? null;
+        if (!paymentIntentId) {
+          setWaiting(false);
+          Notifier.showNotification({
+            title: "Payment Failed",
+            description: "Could not start payment. Please try again.",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
+          return;
+        }
+        // ── Wait for the user to pay (QPay / bank / …) ──
+        const waitForPayment = async (
+          intentId: string,
+          maxPolls: number,
+        ): Promise<"paid" | "failed" | "timeout"> => {
+          setWaitingText("Confirming payment…");
+          const PAID_STATUSES = ["succeeded", "paid", "Completed"];
+          const FAILED_STATUSES = ["expired", "canceled", "failed", "refunded"];
+          for (let i = 0; i < maxPolls; i++) {
+            try {
+              const stRes = await axiosInstance.get(
+                `/auth/payment/status/${intentId}`,
+              );
+              const status = stRes.data?.status;
+              bookingSession = stRes.data?.session ?? null;
+              if (PAID_STATUSES.includes(status)) return "paid";
+              if (FAILED_STATUSES.includes(status)) return "failed";
+            } catch {}
+            await new Promise((r) => setTimeout(r, 2000));
+          }
+          return "timeout";
+        };
 
+        // Open the checkout page in the system browser. The deep-link
+        // redirect (projectSags://payment-result?payment_intent=...) plus the
+        // app returning to the foreground tells us success vs. cancel. If the
+        // user closes it without paying (pressed Done), treat it as canceled:
+        // stop polling right away and let them re-tap the book button to pay
+        // again.
+        let outcome: "paid" | "failed" | "timeout" = "timeout";
+        if (checkoutUrl) {
+          let maxPolls = 15;
+          try {
+            // Native in-app browser (Chrome Custom Tabs on Android,
+            // ASWebAuthenticationSession on iOS). The redirect
+            // (projectSags://payment-result?payment_intent=...) resolves to
+            // 'success' when the payment completed, 'cancel'/'dismiss' when
+            // the user closed it without paying.
+            let browserResult: "cancel" | "error" | "success" = "error";
+            try {
+              if (await InAppBrowser.isAvailable()) {
+                const res = await InAppBrowser.open(checkoutUrl, {
+                  ephemeralWebSession: false,
+                  dismissButtonStyle: "cancel",
+                  showTitle: true,
+                  enableUrlBarHiding: true,
+                  enableDefaultShare: false,
+                  forceCloseOnRedirection: true,
+                });
+                browserResult = "cancel";
+              }
+            } catch {
+              browserResult = "error";
+            }
+            if (browserResult === "error") {
+              // system browser with deep-link detection.
+              browserResult = await openCheckoutBrowser(checkoutUrl);
+            }
+            if (browserResult === "success") {
+              // Redirect captured — payment went through; wait briefly for
+              // the webhook/worker to finish and grab the session.
+              maxPolls = 10;
+            } else if (browserResult === "cancel") {
+              // User closed the browser without paying — stop fast.
+              maxPolls = 3;
+            } else {
+              outcome = "failed";
+            }
+          } catch {
+            outcome = "failed";
+          }
+          if (outcome !== "failed") {
+            outcome = await waitForPayment(paymentIntentId, maxPolls);
+          }
+        }
+        if (outcome !== "paid") {
+          setWaiting(false);
+          Notifier.showNotification({
+            title: "Payment Not Completed",
+            description:
+              outcome === "failed"
+                ? "The payment was canceled or expired. Press book to try again."
+                : outcome === "timeout"
+                  ? "We couldn't confirm the payment yet. Check your orders shortly."
+                  : "Payment canceled. Press book to try again.",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
+          return;
+        }
+      } catch (err: any) {
+        setWaiting(false);
+        if (err.response?.status === 409) {
+          Notifier.showNotification({
+            title: "Time Slot Taken",
+            description:
+              err.response.data?.message ||
+              "This time slot is no longer available. Please choose another.",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
+          return;
+        }
+        if (err.message === "could't find Token") {
+          Notifier.showNotification({
+            title: "Please Login",
+            description: "Please Login to process to book",
+            Component: NotifierComponents.Alert,
+            componentProps: { alertType: "warn" },
+          });
+          return;
+        }
+        Notifier.showNotification({
+          title: "Payment Failed",
+          description: "Could not start payment. Please try again.",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
+        return;
+      }
+
+      // ── 2) Payment confirmed — the server webhook processes the booking ──
+      setWaitingText("Finalizing…");
+      if (bookingSession) {
+        await saveToken(bookingSession);
         if (!hasScheduled.current) {
           await bookingNotificationSchedule({
-            title: `Reminder: Payment Needed for ${bookingDetails.name}`,
-            body: `This is a reminder that your booking requires payment. Please complete the payment to confirm your booking.`,
-            bookingToken: token,
+            title: `Booking Confirmed for ${bookingDetails.name}`,
+            body: "Your booking is being confirmed. Check the Order section.",
+            bookingToken: bookingSession,
           });
           hasScheduled.current = true;
         }
+      }
+      Notifier.showNotification({
+        title: "Payment Successful",
+        description:
+          "Your booking is being confirmed. Check the Order section shortly.",
+        Component: NotifierComponents.Alert,
+        componentProps: { alertType: "success" },
+      });
+      // Refresh orders once now and again shortly after so webhook-processed
+      // bookings show up in the list.
+      queryClient.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) && q.queryKey[0] === "booked_order",
+      });
+      setTimeout(() => {
         queryClient.invalidateQueries({
           predicate: (q) =>
             Array.isArray(q.queryKey) && q.queryKey[0] === "booked_order",
         });
-        setWaiting(!waiting);
-        setConfirmModal(true);
-      } else if (response.status === 400 && !response.data.success) {
-        Notifier.showNotification({
-          title: "Already Booked",
-          description: "Already booked, Book the different time",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
-        });
-      }
-    } catch (err: any) {
+      }, 8000);
       setWaiting(false);
-      if (
-        !err.response.data.success &&
-        [400, 409].includes(err.response.status)
-      ) {
+      setConfirmModal(true);
+    } catch (err: any) {
+      if (err.response?.status === 402) {
         Notifier.showNotification({
-          title: "Failed Booked",
-          description: err.response.data.message,
+          title: "Payment Not Completed",
+          description:
+            err.response.data?.message ||
+            "Please complete the payment and try again.",
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "warn" },
         });
-      }
-      if (err.message === "could't find Token") {
+      } else if ([409, 401].includes(err.response?.status)) {
         Notifier.showNotification({
-          title: "Please Login",
-          description: "Please Login to process to book",
+          title: "Booking Exists",
+          description:
+            err.response.data?.message ||
+            "Conflict. Please choose a different time.",
+          Component: NotifierComponents.Alert,
+          componentProps: { alertType: "warn" },
+        });
+      } else {
+        Notifier.showNotification({
+          title: "Booking Failed",
+          description: "An error occurred. Please try again.",
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "warn" },
         });
       }
     } finally {
+      setWaiting(false);
       setIsOrdering(false);
     }
   };
@@ -405,6 +553,18 @@ const TransactionPage = () => {
           }}
         >
           <OwnActivaterIndicator />
+          {waitingText ? (
+            <Text
+              style={{
+                color: Colors.themeColorTextSecondary,
+                fontSize: 14,
+                fontWeight: "500",
+                marginTop: 4,
+              }}
+            >
+              {waitingText}
+            </Text>
+          ) : null}
         </View>
       ) : (
         <SafeAreaView style={{ backgroundColor: Colors.backgroundColor }}>
@@ -488,6 +648,16 @@ const TransactionPage = () => {
                   totalBookerPaymentArray={totalBookerPaymentArray}
                   timeCount={timeCount}
                   totalPrice={totalPrice}
+                />
+              )}
+              {steps === 3 && (
+                <Step_Four
+                  bookingDetails={bookingDetails}
+                  wholeDay={wholeDay}
+                  timeCount={timeCount}
+                  totalPrice={totalPrice}
+                  steps={steps}
+                  setSteps={setSteps}
                   handleOrder={handleOrder}
                 />
               )}
