@@ -125,7 +125,12 @@ export function RootLayoutNav({ onReady }: { onReady: () => void }) {
         headerShown: false,
       }}
     >
-      <Stack.Screen name="(drawer)/(user)/(tab-user)/index" />
+      <Stack.Screen
+        name="(drawer)/(user)/(tab-user)/index"
+        options={{
+          headerShown: false,
+        }}
+      />
       <Stack.Screen
         name="notification/notification"
         options={{

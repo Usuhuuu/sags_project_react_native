@@ -5,7 +5,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const apiUrl = process.env.EXPO_PUBLIC_BASE_URL ?? "http://localhost:3000"; //"https://8f9e-118-176-174-110.ngrok-free.app";
 
-console.log(apiUrl);
 const tokenWithRetry = async (
   maxRetry: number = 3,
   maxInterval: number = 300,
@@ -145,7 +144,7 @@ axiosInstance.interceptors.response.use(
     ) {
       originalRequest._versionRetry = true;
       const hallResponse = await axiosInstanceRegular.get("/api/halls");
-      console.log(hallResponse.data);
+      console.log(hallResponse.data.length);
       originalRequest.headers["x-hall-version"] = hallResponse.data.version;
       await AsyncStorage.setItem(
         "hall_version",

@@ -40,10 +40,6 @@ export default {
         "expo-splash-screen",
         {
           backgroundColor: "#208AEF",
-          android: {
-            image: "./assets/images/adaptive-icon1.png",
-            imageWidth: 76,
-          },
         },
       ],
       "expo-secure-store",
