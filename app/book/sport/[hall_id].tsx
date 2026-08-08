@@ -311,15 +311,10 @@ const TransactionPage = () => {
         if (checkoutUrl) {
           let maxPolls = 15;
           try {
-            // Native in-app browser (Chrome Custom Tabs on Android,
-            // ASWebAuthenticationSession on iOS). The redirect
-            // (projectSags://payment-result?payment_intent=...) resolves to
-            // 'success' when the payment completed, 'cancel'/'dismiss' when
-            // the user closed it without paying.
             let browserResult: "cancel" | "error" | "success" = "error";
             try {
               if (await InAppBrowser.isAvailable()) {
-                const res = await InAppBrowser.open(checkoutUrl, {
+                await InAppBrowser.open(checkoutUrl, {
                   ephemeralWebSession: false,
                   dismissButtonStyle: "cancel",
                   showTitle: true,
@@ -328,16 +323,13 @@ const TransactionPage = () => {
                   forceCloseOnRedirection: true,
                 });
                 browserResult = "cancel";
+              } else {
+                browserResult = await openCheckoutBrowser(checkoutUrl);
               }
             } catch {
-              browserResult = "error";
-            }
-            if (browserResult === "error") {
-              // system browser with deep-link detection.
               browserResult = await openCheckoutBrowser(checkoutUrl);
             }
             if (browserResult === "success") {
-              // Redirect captured — payment went through; wait briefly for
               // the webhook/worker to finish and grab the session.
               maxPolls = 10;
             } else if (browserResult === "cancel") {

@@ -39,7 +39,11 @@ yarn-error.*
 example
 
 # generated native folders
-/ios
+/ios/Pods
+/ios/build
+/ios/DerivedData
+
+
 /android
 
 .env.local

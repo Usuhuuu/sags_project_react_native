@@ -451,30 +451,22 @@ const CombinedEsportHall = ({
             let browserResult: "success" | "cancel" | "error" = "error";
             try {
               if (await InAppBrowser.isAvailable()) {
-                const res = await InAppBrowser.openAuth(
-                  checkoutUrl,
-                  "projectSags://payment-result",
-                  {
-                    ephemeralWebSession: false,
-                    dismissButtonStyle: "cancel",
-                    showTitle: true,
-                    enableUrlBarHiding: true,
-                    enableDefaultShare: false,
-                    forceCloseOnRedirection: true,
-                  },
-                );
-                browserResult = res?.type === "success" ? "success" : "cancel";
+                await InAppBrowser.open(checkoutUrl, {
+                  ephemeralWebSession: false,
+                  dismissButtonStyle: "cancel",
+                  showTitle: true,
+                  enableUrlBarHiding: true,
+                  enableDefaultShare: false,
+                  forceCloseOnRedirection: true,
+                });
+                browserResult = "cancel";
+              } else {
+                browserResult = await openCheckoutBrowser(checkoutUrl);
               }
             } catch {
-              browserResult = "error";
-            }
-            if (browserResult === "error") {
-              // Native module unavailable (e.g. Expo Go) — fall back to the
-              // system browser with deep-link detection.
               browserResult = await openCheckoutBrowser(checkoutUrl);
             }
             if (browserResult === "success") {
-              // Redirect captured — payment went through; wait briefly for
               // the webhook/worker to finish and grab the session.
               maxPolls = 10;
             } else if (browserResult === "cancel") {
