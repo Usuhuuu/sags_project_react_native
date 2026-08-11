@@ -1,6 +1,6 @@
 import React from "react";
 import Drawer from "expo-router/drawer";
-import { Ionicons } from "@expo/vector-icons";
+import { Entypo, Ionicons } from "@expo/vector-icons";
 import { TouchableOpacity, Image, View } from "react-native";
 import { router } from "expo-router";
 
@@ -72,9 +72,11 @@ export function renderDrawerScreens({
               ? () => (
                   <TouchableOpacity onPress={triggerCalendar}>
                     <View>
-                      <Image
-                        source={require("@/assets/sport-icons/calendar.png")}
-                        style={{ width: 24, height: 24, marginRight: 15 }}
+                      <Entypo
+                        name="calendar"
+                        size={24}
+                        color={colors.primary}
+                        style={{ marginRight: 15 }}
                       />
                     </View>
                   </TouchableOpacity>
