@@ -17,7 +17,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import * as Sentry from "@sentry/react-native";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -401,7 +400,6 @@ const Page = () => {
         Component: NotifierComponents.Alert,
         componentProps: { alertType: "error" },
       });
-      Sentry.captureException(err);
     } finally {
       setLoading(false);
     }

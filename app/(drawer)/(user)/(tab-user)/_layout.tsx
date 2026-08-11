@@ -15,6 +15,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.themeColorTextPure,
 
         lazy: true,
+
         headerShadowVisible: false,
         tabBarStyle: {
           backgroundColor: colors.containerColor,

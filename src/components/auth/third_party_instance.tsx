@@ -7,7 +7,6 @@ import {
   AccessToken,
 } from "react-native-fbsdk-next";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
-import * as Sentry from "@sentry/react-native";
 import {
   isErrorWithCode,
   statusCodes,
@@ -114,7 +113,6 @@ export const loginWithFacebook = async () => {
           });
           break;
         default:
-          Sentry.captureException(error);
           Notifier.showNotification({
             title: "Facebook Login Failed",
             description: "Something went wrong. Try again later.",
@@ -129,7 +127,6 @@ export const loginWithFacebook = async () => {
         Component: NotifierComponents.Alert,
         componentProps: { alertType: "error" },
       });
-      Sentry.captureException(error);
     }
 
     return { modalVisible: false, data: null };
@@ -198,8 +195,6 @@ export const loginWithGoogle = async (googleAccessToken: string) => {
             componentProps: { alertType: "error" },
           });
       }
-    } else {
-      Sentry.captureException("Server Has Problem Try Again Later ");
     }
   }
 };

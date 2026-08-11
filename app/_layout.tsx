@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { configureReanimatedLogger } from "react-native-reanimated";
-import * as Sentry from "@sentry/react-native";
 import { router, Stack } from "expo-router";
 import { ThemeProvider, useTheme } from "@/context/theme_context";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -34,10 +33,6 @@ configureReanimatedLogger({
   level: 1,
 });
 
-Sentry.init({
-  dsn: "https://c2284e34e20ae8c69ed3d05f8971fbb2@o4508263161856000.ingest.us.sentry.io/4508263165132800",
-  tracesSampleRate: __DEV__ ? 1.0 : 0.05,
-});
 export function RootLayout() {
   const [appReady, setAppReady] = useState(false);
 
@@ -156,7 +151,7 @@ export function RootLayoutNav({ onReady }: { onReady: () => void }) {
   );
 }
 
-export default Sentry.wrap(() => (
+export default () => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -175,4 +170,4 @@ export default Sentry.wrap(() => (
       </GestureHandlerRootView>
     </QueryClientProvider>
   </ThemeProvider>
-));
+);

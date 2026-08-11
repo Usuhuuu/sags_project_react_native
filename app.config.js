@@ -43,14 +43,6 @@ export default {
         },
       ],
       "expo-secure-store",
-      [
-        "@sentry/react-native/expo",
-        {
-          url: "https://sentry.io/",
-          project: "react-native",
-          organization: "zaalproject",
-        },
-      ],
       "expo-dev-client",
       [
         "expo-build-properties",

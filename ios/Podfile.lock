@@ -35,12 +35,12 @@ PODS:
     - Yoga
   - EXApplication (56.0.3):
     - ExpoModulesCore
-  - EXConstants (56.0.22):
+  - EXConstants (56.0.23):
     - ExpoModulesCore
   - EXJSONUtils (56.0.0)
   - EXManifests (56.0.4):
     - ExpoModulesCore
-  - Expo (56.0.17):
+  - Expo (56.0.19):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -66,15 +66,15 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - expo-dev-client (56.0.20):
+  - expo-dev-client (56.0.24):
     - EXManifests
     - expo-dev-launcher
     - expo-dev-menu
     - expo-dev-menu-interface
     - EXUpdatesInterface
-  - expo-dev-launcher (56.0.20):
+  - expo-dev-launcher (56.0.25):
     - EXManifests
-    - expo-dev-launcher/Main (= 56.0.20)
+    - expo-dev-launcher/Main (= 56.0.25)
     - expo-dev-menu
     - expo-dev-menu-interface
     - ExpoModulesCore
@@ -103,7 +103,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - expo-dev-launcher/Main (56.0.20):
+  - expo-dev-launcher/Main (56.0.25):
     - EXManifests
     - expo-dev-launcher/Unsafe
     - expo-dev-menu
@@ -134,7 +134,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - expo-dev-launcher/Unsafe (56.0.20):
+  - expo-dev-launcher/Unsafe (56.0.25):
     - EXManifests
     - expo-dev-menu
     - expo-dev-menu-interface
@@ -164,8 +164,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - expo-dev-menu (56.0.17):
-    - expo-dev-menu/Main (= 56.0.17)
+  - expo-dev-menu (56.0.21):
+    - expo-dev-menu/Main (= 56.0.21)
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -188,7 +188,7 @@ PODS:
     - ReactNativeDependencies
     - Yoga
   - expo-dev-menu-interface (56.0.1)
-  - expo-dev-menu/Main (56.0.17):
+  - expo-dev-menu/Main (56.0.21):
     - EXManifests
     - expo-dev-menu-interface
     - ExpoModulesCore
@@ -218,17 +218,20 @@ PODS:
     - ExpoModulesCore
     - FBSDKCoreKit
     - React-Core
-  - ExpoAdapterGoogleSignIn (16.1.2):
+  - ExpoAdapterGoogleSignIn (16.1.4):
     - ExpoModulesCore
     - GoogleSignIn (~> 9.0)
+    - GoogleUtilities/Environment
+    - GoogleUtilities/UserDefaults
     - React-Core
-  - ExpoAsset (56.0.21):
+    - RecaptchaInterop
+  - ExpoAsset (56.0.22):
     - ExpoModulesCore
-  - ExpoCalendar (56.0.8):
+  - ExpoCalendar (56.0.9):
     - ExpoModulesCore
   - ExpoDomWebView (56.0.6):
     - ExpoModulesCore
-  - ExpoFileSystem (56.0.8):
+  - ExpoFileSystem (56.0.9):
     - ExpoModulesCore
   - ExpoFont (56.0.7):
     - ExpoModulesCore
@@ -238,15 +241,15 @@ PODS:
     - ExpoModulesCore
   - ExpoLinearGradient (56.0.4):
     - ExpoModulesCore
-  - ExpoLinking (56.0.14):
+  - ExpoLinking (56.0.16):
     - ExpoModulesCore
   - ExpoLocalization (56.0.6):
     - ExpoModulesCore
-  - ExpoLocation (56.0.18):
+  - ExpoLocation (56.0.23):
     - ExpoModulesCore
   - ExpoLogBox (56.0.14):
     - React-Core
-  - ExpoModulesCore (56.0.22):
+  - ExpoModulesCore (56.0.23):
     - ExpoModulesJSI
     - hermes-engine
     - RCTRequired
@@ -273,26 +276,26 @@ PODS:
   - ExpoModulesJSI (56.0.12):
     - React-Core
     - ReactCommon
-  - ExpoModulesWorklets (56.0.22):
+  - ExpoModulesWorklets (56.0.23):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (56.0.22):
+  - ExpoModulesWorkletsAdapter (56.0.23):
     - ExpoModulesCore
     - ExpoModulesJSI
     - ExpoModulesWorklets
     - RNWorklets
-  - ExpoNotifications (56.0.18):
+  - ExpoNotifications (56.0.23):
     - ExpoModulesCore
-  - ExpoRouter (56.2.11):
+  - ExpoRouter (56.2.18):
     - ExpoModulesCore
     - RNScreens
   - ExpoSecureStore (56.0.4):
     - ExpoModulesCore
   - ExpoSplashScreen (56.0.14):
     - ExpoModulesCore
-  - ExpoSymbols (56.0.6):
+  - ExpoSymbols (56.0.7):
     - ExpoModulesCore
-  - ExpoUI (56.0.18):
+  - ExpoUI (56.0.25):
     - ExpoModulesCore
     - ExpoModulesWorklets
     - React-RCTFabric
@@ -366,7 +369,7 @@ PODS:
     - hermes-engine/Pre-built (= 250829098.0.10)
   - hermes-engine/Pre-built (250829098.0.10)
   - lottie-ios (4.6.0)
-  - lottie-react-native (7.3.8):
+  - lottie-react-native (7.4.0):
     - hermes-engine
     - lottie-ios (= 4.6.0)
     - RCTRequired
@@ -1828,9 +1831,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-maps (1.27.2):
-    - react-native-maps/Maps (= 1.27.2)
-  - react-native-maps/Generated (1.27.2):
+  - react-native-maps (1.29.0):
+    - react-native-maps/Maps (= 1.29.0)
+  - react-native-maps/Generated (1.29.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1852,7 +1855,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-maps/Maps (1.27.2):
+  - react-native-maps/Maps (1.29.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2376,7 +2379,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNGoogleSignin (16.1.2):
+  - RNGoogleSignin (16.1.4):
     - GoogleSignIn (~> 9.0)
     - hermes-engine
     - RCTRequired
@@ -2500,7 +2503,7 @@ PODS:
     - ReactNativeDependencies
     - RNWorklets
     - Yoga
-  - RNScreens (4.25.2):
+  - RNScreens (4.27.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2522,9 +2525,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - RNScreens/common (= 4.25.2)
+    - RNScreens/common (= 4.27.0)
     - Yoga
-  - RNScreens/common (4.25.2):
+  - RNScreens/common (4.27.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2546,30 +2549,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - Yoga
-  - RNSentry (8.15.1):
-    - hermes-engine
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-Core-prebuilt
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - ReactNativeDependencies
-    - Sentry (= 9.18.0)
     - Yoga
   - RNSVG (15.15.5):
     - hermes-engine
@@ -2687,9 +2666,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - Sentry (9.18.0):
-    - Sentry/Core (= 9.18.0)
-  - Sentry/Core (9.18.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2816,7 +2792,6 @@ DEPENDENCIES:
   - RNInAppBrowser (from `../node_modules/react-native-inappbrowser-reborn`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
-  - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNWorklets (from `../node_modules/react-native-worklets`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -2839,7 +2814,6 @@ SPEC REPOS:
     - PromisesObjC
     - PromisesSwift
     - RecaptchaInterop
-    - Sentry
 
 EXTERNAL SOURCES:
   AsyncStorage:
@@ -3083,8 +3057,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
-  RNSentry:
-    :path: "../node_modules/@sentry/react-native"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   RNWorklets:
@@ -3097,38 +3069,38 @@ SPEC CHECKSUMS:
   AppCheckCore: e215d35177a9cf469927863e69c13e220df32a8b
   AsyncStorage: 163ab23f6aa37a58b7f2379d0b4ee7ac84d6655c
   EXApplication: e6040c92edc5522accd62852342e6b14742d42c0
-  EXConstants: 9fff81852f1d2e72502786a66f5ddb6d0eb76436
+  EXConstants: 6bcea1db4d1215969dc3409dfe33d94a5bfe50ca
   EXJSONUtils: dba2755f4e24009eaf87a876b2d615ea06c16e42
   EXManifests: 7e19be8df665a338493060a419847dae76ffcd43
-  Expo: d61d808084d52a00653a95fa47e861b5c67826a0
-  expo-dev-client: 75bdde127a9032ac60c3e4ca6231b552073bdf0c
-  expo-dev-launcher: 7456ef9089162b6f0f98c4bd5a9990ccb91d156c
-  expo-dev-menu: 50612b5950e0086853dd030cbc9694c7c0dfd1d0
+  Expo: b06a9178293f86989516ee226c240605fb307d12
+  expo-dev-client: b06707e53822c2da7304ad132afcdedd27607baa
+  expo-dev-launcher: 1cbefd6f8e7fcb39c7ed22e054792473440e6455
+  expo-dev-menu: 5e13cae291667277a740487cc9896c364c57ec13
   expo-dev-menu-interface: 65402d4affb8b418aa6cec29b3abb0e313c8f443
   ExpoAdapterFBSDKNext: 49ecf2414e4787250b0ed1faae99d1295dee674e
-  ExpoAdapterGoogleSignIn: ab4d9fc38cb91077a4138d178395525ec65d0c2e
-  ExpoAsset: 26f77f0cdaffe419b80e86f02cc5365722bc135e
-  ExpoCalendar: abe02062604dad8fac03539ea769e29870d4feee
+  ExpoAdapterGoogleSignIn: cfc75819d7d2490488250ce5634f57f92c60a2b8
+  ExpoAsset: 87b14d63c50edc7a07f6e99128c0832c03ef2bad
+  ExpoCalendar: eb85085f63dd2c6e8ea07ea25f02abd1040f1137
   ExpoDomWebView: 4e53b05879dc73ba374f76bff93dd64c8a0d91b3
-  ExpoFileSystem: 9dc04ec1e11bc3c7b965d7feb2de12c789755c7b
+  ExpoFileSystem: fcd66cde377289cd8eeade5b307f742bd1d6bdfa
   ExpoFont: 274487aa78f8c65d6551e2558eca3ec6ce3432ce
   ExpoGlassEffect: 7d4233dc0727ee2b28dd757eda70e1b6abf662fd
   ExpoKeepAwake: 359c47a1d9ccc3a3c519bca6e39562cce230c5bb
   ExpoLinearGradient: 16c2b9c6105444883d34958d573725de1293b8d0
-  ExpoLinking: f3d1883179d784e3d74c0eaf6ae8b03ec3571da3
+  ExpoLinking: 58d1cc05b96ead9e921353464ad03651eeb71ab9
   ExpoLocalization: cf50efc436b2ec313510131c1ee0e778366d64b0
-  ExpoLocation: d47116c4daea734eea77648c36503a52b4ed63fc
+  ExpoLocation: 91767066d799150edd734b453bd801c7b4769107
   ExpoLogBox: cdad5c9402a186574fb5924ea91df1f08ba9a98a
-  ExpoModulesCore: 1efe5e9275b6c7f316a5fd10a749b8edcb4c5a3d
+  ExpoModulesCore: d8ce253ca23151d51a5b3602b20c2a14e303af7d
   ExpoModulesJSI: e62656cfaffb5aeb3fdc1dd2bc49f77e87ed2261
-  ExpoModulesWorklets: 3aaf91bb08abf910858592221480d6519f0daa1e
-  ExpoModulesWorkletsAdapter: e306a37d93a7312d73bb8c3695a98228d3a749fa
-  ExpoNotifications: 87875dae0faded5284004bc1204990947d3f64e0
-  ExpoRouter: 5539806fcab8d38c639c9c255a6d73caa839436a
+  ExpoModulesWorklets: 40fe3862230a3d967899ff29211480efc5daf4e2
+  ExpoModulesWorkletsAdapter: 036c0be70f07d6fff89023f33da6e28556a85838
+  ExpoNotifications: 0b1d20c332a90db507a3e50076e7e756a56f2951
+  ExpoRouter: fc7a05eee579d54869806f9f95c799020c7800fc
   ExpoSecureStore: f1bd083c1b7b8d4142013ffcc0082d377d9f49f4
   ExpoSplashScreen: 0c06099febe733279021ca62b0b7534005a43c93
-  ExpoSymbols: 377747de25bcb1ab68ec68f23d81fb81d43eae83
-  ExpoUI: cb2928f5537135cff59e7b84b4adbeb72355f9fd
+  ExpoSymbols: 37e96a38eed3fb50af4b7c86b8a80ed3054a0a01
+  ExpoUI: 664174621222257d368cfd3c5e68b9ed1d4cb165
   EXUpdatesInterface: 25408a97d682355eb9fb37e5aa6e22caece1881f
   FBAEMKit: 64088ff0380f50e4a56e2ee07d984f7f1aef7595
   FBLazyVector: 24e62c765683b8d89006a88a2c8f5cf019f0074d
@@ -3143,7 +3115,7 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   hermes-engine: ca82c04700b6badeeb1a0cb0409747c4adaf81da
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
-  lottie-react-native: ee142214581f3bb68fbda7efcf07b835a189eeda
+  lottie-react-native: f1ba9e6ea9a6053700eb60dbb9c45bfa5779c11f
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
   RCTDeprecation: a4c521821fab57cbb125b36effe84d897d0dfa12
@@ -3185,7 +3157,7 @@ SPEC CHECKSUMS:
   React-mutationobservernativemodule: a42d1626651ccd7d0dc02a56e69d4ec77c248893
   react-native-fbsdk-next: 325e4973a478f098bb9406fb2a13fa2e1f5dffeb
   react-native-image-picker: 23540feacc79c63c60857f318fdfa8477c26e70a
-  react-native-maps: cb32168a32e30f83beb08198325ff96b70dd5c9f
+  react-native-maps: 7e3af023b773d6670e3c07e9c8170af842b243e0
   react-native-safe-area-context: 6b4966397ada0f7dd481e4486a2ef936834861a1
   react-native-tracking-transparency: 15eb319f2b982070eb9831582af27d87badfa624
   React-NativeModulesApple: deba264b03bd79c6bd61014fa30e40321b5e443a
@@ -3225,16 +3197,14 @@ SPEC CHECKSUMS:
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   RNCMaskedView: eb2b2e538afa907f05a5848a1a1ac26092e6fec9
   RNGestureHandler: 2ff61eac036eaf89f6818bf4ed9c39771a17d134
-  RNGoogleSignin: 0d72ae233fe10522497424748acf00fcc1ed2ee7
+  RNGoogleSignin: 3877e3613380fab0ca9112c1abbb19d876ec6751
   RNInAppBrowser: 904d24dc75e8e6c6c98a3160329192608946f9df
   RNReanimated: 5aa9e73d0f8d3c40d5c9bec396d6a61098db31f0
-  RNScreens: f94000b3cb1eb14cbb8d08dd6074fdd6ccf0e6b0
-  RNSentry: f7085cbaea907cd9caa6b5fe519ddab249ce9302
+  RNScreens: 9d0218f57a19d2c9f1cfe45683aae5ad8f6bdf82
   RNSVG: 0e52210d4d43165e7e2cf9c890a9848b27e513ac
   RNWorklets: 9052122d7f98de547d247e775ea2069839236d38
-  Sentry: 84407b02cd318a63ef0345ad51eaaee555028723
   Yoga: 77dfa8673de2874e1855002ae59c68b8be9b007b
 
-PODFILE CHECKSUM: 7cb0c2d589fdd3433b5d58c1cf0361abb2de98da
+PODFILE CHECKSUM: f53528436228973282b133e794116cc9f0e8a543
 
 COCOAPODS: 1.16.2
