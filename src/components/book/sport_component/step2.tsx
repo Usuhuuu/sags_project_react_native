@@ -2,7 +2,7 @@ import { SportBookingData } from "@/context/store/book_store";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
-import React, { SetStateAction } from "react";
+import React, { SetStateAction, useMemo } from "react";
 import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { Notifier, NotifierComponents } from "react-native-notifier";
 
@@ -135,7 +135,7 @@ const Step_Two = ({
   setPlayersNeeded,
 }: Step_Two_Props) => {
   const { colors } = useTheme();
-  const s = createStyles(colors);
+  const s = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View style={s.root}>

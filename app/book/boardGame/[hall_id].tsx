@@ -7,6 +7,7 @@ import {
   FontAwesome5,
   Fontisto,
   Ionicons,
+  MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -372,7 +373,7 @@ const BookingBoardGame = ({
         Intl.DateTimeFormat().resolvedOptions().timeZone,
       );
       const response = await axiosInstance.post(
-        "/auth/book/esport",
+        "/auth/book/intent",
         {
           sport_hall_id: listing?.sportHallID,
           date: selectedDate,
@@ -380,6 +381,7 @@ const BookingBoardGame = ({
           tier: selectedTier,
           hours,
           startTime,
+          type: "boardGame",
         },
         { timeout: 10000 },
       );
@@ -982,6 +984,88 @@ const BookingBoardGame = ({
           </View>
         </View>
 
+        {/* Wire Payment Method */}
+        <View style={bkS.confirmSection}>
+          <AppText style={[bkS.confirmSectionLabel, { color: C.outline }]}>
+            PAYMENT METHOD
+          </AppText>
+        </View>
+        <View
+          style={[
+            bkS.confirmCard,
+            { backgroundColor: C.surface, borderColor: C.border },
+          ]}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              padding: 14,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: C.accentPrimaryBorder,
+              backgroundColor: C.accentPrimaryGlow,
+            }}
+          >
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                backgroundColor: C.surface,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <MaterialCommunityIcons
+                name="cellphone-wireless"
+                size={22}
+                color={C.accentPrimary}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <AppText
+                style={[
+                  bkS.confirmRowLabel,
+                  { color: C.onSurface, fontWeight: "700", marginBottom: 0 },
+                ]}
+              >
+                Wire — Mobile Payment
+              </AppText>
+              <AppText
+                style={[bkS.confirmRowSub, { color: C.onSurfaceVariant }]}
+              >
+                Bank & mobile operators
+              </AppText>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 999,
+                backgroundColor: C.successGlow,
+                borderWidth: 1,
+                borderColor: C.successBorder,
+              }}
+            >
+              <Ionicons name="lock-closed" size={11} color={C.successColor} />
+              <AppText
+                style={{
+                  fontSize: 11,
+                  fontWeight: "700",
+                  color: C.successColor,
+                }}
+              >
+                Secure
+              </AppText>
+            </View>
+          </View>
+        </View>
+
         <AppText style={[bkS.confirmTerms, { color: C.outline }]}>
           By confirming you accept the facility{"'"}s terms and conditions.
         </AppText>
@@ -1007,6 +1091,10 @@ const BookingBoardGame = ({
     totalPrice,
     serviceFee,
     grandTotal,
+    C.accentPrimaryBorder,
+    C.successColor,
+    C.successGlow,
+    C.successBorder,
   ]);
 
   if (!listing) {

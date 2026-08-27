@@ -10,6 +10,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/context/theme_context";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import {
+  DrawerActions,
+  useNavigation,
+} from "expo-router/build/react-navigation";
 
 // --- TypeScript Types ---
 interface ActivityItem {
@@ -27,7 +31,9 @@ const LIVE_ACTIVITY_DATA: ActivityItem[] = [
 ];
 
 const ContractorOverview = () => {
-  const { colors, theme } = useTheme();
+  const { colors } = useTheme();
+  const navigation = useNavigation();
+
   const [activities, setActivities] = useState(LIVE_ACTIVITY_DATA);
 
   const toggleActivity = (id: string) => {
@@ -77,8 +83,11 @@ const ContractorOverview = () => {
               justifyContent: "center",
               alignItems: "center",
             }}
+            onPress={() => {
+              navigation.dispatch(DrawerActions.openDrawer());
+            }}
           >
-            <Ionicons name="person" size={24} color={colors.darkGrey} />
+            <Ionicons name="menu-outline" size={24} color={colors.darkGrey} />
           </TouchableOpacity>
         </View>
 

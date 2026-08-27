@@ -34,7 +34,7 @@ export function renderDrawerScreens({
         drawerLabel: screen.label ?? screen.name,
         headerShown: screen.headerShown ?? true,
         drawerItemStyle: {
-          display: screen?.hidden === false ? "none" : "flex",
+          display: screen?.hidden ? "none" : "flex",
         },
         drawerIcon: () =>
           screen.icon ? (

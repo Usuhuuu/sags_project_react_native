@@ -16,13 +16,14 @@ import { addHours, format } from "date-fns";
 import Step_One from "@/components/book/sport_component/step1";
 import Step_Two from "@/components/book/sport_component/step2";
 import Step_Three from "@/components/book/sport_component/step3";
-import Step_Four from "@/components/book/sport_component/step4";
+
 import { saveToken } from "@/components/book/session";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { bookingNotificationSchedule } from "@/context/store/notification_store";
 import { queryClient } from "@/hooks/queryClient";
 import { useHallInfo } from "@/context/hall_info_context";
 import { groupDurationHours } from "@/utils/bookingTime";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type ReservationBlock = {
   start_time: string;
@@ -85,7 +86,7 @@ const TransactionPage = () => {
           gap: 4,
         }}
       >
-        {[0, 1, 2, 3].map((i) => (
+        {[0, 1, 2].map((i) => (
           <React.Fragment key={i}>
             {/* Connecting line */}
             {i > 0 && (
@@ -245,6 +246,15 @@ const TransactionPage = () => {
       let paymentIntentId: string | null = null;
       let bookingSession: string | null = null;
       try {
+        const sessionId = `intent_sessions`;
+        const sessions = await AsyncStorage.getItem(sessionId);
+        const parsedSessions: any[] = sessions ? JSON.parse(sessions) : [];
+        // Drop expired sessions (local cleanup only — server handles reuse via fingerprint).
+        let activeSessions: any[] = parsedSessions.filter(
+          (i: any) => Date.now() < i.expiresAt,
+        );
+        console.log("activeSession", activeSessions.length);
+
         const paymentRes = await axiosInstance.post("/auth/book/intent", {
           amount: Math.round(totalPrice),
           booking: {
@@ -254,7 +264,10 @@ const TransactionPage = () => {
             timezone,
             reserved_blocks: reservationBlocks,
           },
+          // No need to send stored intent IDs — the server fingerprints the
+          // booking params and does a single Redis lookup to find any prior intent.
         });
+
         const session = paymentRes.data?.result;
         if (session?.error) {
           setWaiting(false);
@@ -266,6 +279,7 @@ const TransactionPage = () => {
           });
           return;
         }
+
         const checkoutUrl = session?.checkout_url ?? session?.url ?? null;
         paymentIntentId = session?.payment_intent ?? null;
         if (!paymentIntentId) {
@@ -277,15 +291,52 @@ const TransactionPage = () => {
             componentProps: { alertType: "warn" },
           });
           return;
+        } else {
+          // identifier encodes which booking this intent belongs to so the
+          // frontend can match it back without hitting the server.
+          const identifier = `${bookingDetails.sportHallID}_${dateOnly}`;
+          if (session.reused) {
+            // Server reused an existing intent — refresh its TTL in the list.
+            const exists = activeSessions.some(
+              (s: any) => s.intentId === paymentIntentId,
+            );
+            if (exists) {
+              activeSessions = activeSessions.map((s: any) =>
+                s.intentId === paymentIntentId
+                  ? { ...s, expiresAt: Date.now() + 10 * 60 * 1000, identifier }
+                  : s,
+              );
+            } else {
+              // Reused an intent not in our local list (e.g. other device) — add it.
+              activeSessions.push({
+                intentId: paymentIntentId,
+                expiresAt: Date.now() + 10 * 60 * 1000,
+                identifier,
+              });
+            }
+          } else {
+            // Brand-new intent — append it.
+            activeSessions.push({
+              intentId: paymentIntentId,
+              expiresAt: Date.now() + 10 * 60 * 1000,
+              identifier,
+            });
+          }
+          if (activeSessions.length > 0) {
+            await AsyncStorage.setItem(
+              sessionId,
+              JSON.stringify(activeSessions),
+            );
+          } else {
+            await AsyncStorage.removeItem(sessionId);
+          }
         }
+
         // ── Wait for the user to pay (QPay / bank / …) ──
         const waitForPayment = async (
           intentId: string,
           maxPolls: number,
         ): Promise<"paid" | "failed" | "timeout"> => {
-          setWaitingText("Confirming payment…");
-          const PAID_STATUSES = ["succeeded", "paid", "Completed"];
-          const FAILED_STATUSES = ["expired", "canceled", "failed", "refunded"];
           for (let i = 0; i < maxPolls; i++) {
             try {
               const stRes = await axiosInstance.get(
@@ -293,9 +344,33 @@ const TransactionPage = () => {
               );
               const status = stRes.data?.status;
               bookingSession = stRes.data?.session ?? null;
-              if (PAID_STATUSES.includes(status)) return "paid";
-              if (FAILED_STATUSES.includes(status)) return "failed";
-            } catch {}
+              switch (status) {
+                case "succeeded":
+                  return "paid";
+
+                case "canceled":
+                  return "failed";
+
+                case "requires_action":
+                  return "failed";
+
+                case "new":
+                case "processing":
+                case "requires_capture":
+                  // Not finished yet → continue polling
+                  break;
+                case "requires_payment_method":
+                  // Payment wasn't successfully completed.
+                  return "failed";
+                default:
+                  // Unknown status → don't incorrectly mark payment as failed.
+                  console.warn("Unknown payment status:", status);
+                  break;
+              }
+            } catch (err) {
+              console.log("Payment status request failed", err);
+              return "failed";
+            }
             await new Promise((r) => setTimeout(r, 2000));
           }
           return "timeout";
@@ -388,6 +463,7 @@ const TransactionPage = () => {
           Component: NotifierComponents.Alert,
           componentProps: { alertType: "warn" },
         });
+        console.log(err);
         return;
       }
 
@@ -559,8 +635,10 @@ const TransactionPage = () => {
           ) : null}
         </View>
       ) : (
-        <SafeAreaView style={{ backgroundColor: Colors.backgroundColor }}>
-          <View style={{ height: "100%" }}>
+        <SafeAreaView
+          style={{ backgroundColor: Colors.backgroundColor, flex: 1 }}
+        >
+          <View style={{ flex: 1 }}>
             {/* Header */}
             <View
               style={{
@@ -602,8 +680,9 @@ const TransactionPage = () => {
               style={{
                 backgroundColor: Colors.backgroundColor,
                 width: "100%",
-                height: "90%",
+                flex: 1,
               }}
+              scrollEventThrottle={16}
             >
               {steps === 0 && (
                 <Step_One
@@ -640,16 +719,6 @@ const TransactionPage = () => {
                   totalBookerPaymentArray={totalBookerPaymentArray}
                   timeCount={timeCount}
                   totalPrice={totalPrice}
-                />
-              )}
-              {steps === 3 && (
-                <Step_Four
-                  bookingDetails={bookingDetails}
-                  wholeDay={wholeDay}
-                  timeCount={timeCount}
-                  totalPrice={totalPrice}
-                  steps={steps}
-                  setSteps={setSteps}
                   handleOrder={handleOrder}
                 />
               )}

@@ -90,7 +90,7 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="orders"
+        name="order"
         options={{
           tabBarLabel: "Booking",
           tabBarIcon: ({ focused }) => (

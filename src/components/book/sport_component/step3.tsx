@@ -1,10 +1,14 @@
 import { SportBookingData } from "@/context/store/book_store";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
-import React, { SetStateAction } from "react";
+import React, { SetStateAction, useMemo } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { format } from "date-fns";
-import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import {
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import { groupDurationHours } from "@/utils/bookingTime";
 
 interface Step_Three_Props {
@@ -19,6 +23,7 @@ interface Step_Three_Props {
   totalBookerPaymentArray: number[];
   timeCount: number;
   totalPrice: number;
+  handleOrder: () => void;
 }
 
 // ── Styles ─────────────────────────────────────────────────────────────────
@@ -239,6 +244,79 @@ const createStyles = (c: any) =>
       fontSize: 15,
       fontWeight: "700",
     },
+    methodRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      padding: 14,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: c.accentPrimaryBorder,
+      backgroundColor: c.accentPrimaryGlow,
+    },
+    methodIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: c.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    methodTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: c.onSurface,
+    },
+    methodDesc: {
+      fontSize: 12,
+      color: c.onSurfaceVariant,
+      marginTop: 2,
+    },
+    secureChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 999,
+      backgroundColor: c.successGlow,
+      borderWidth: 1,
+      borderColor: c.successBorder,
+    },
+    secureText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: c.successColor,
+    },
+    amountWrap: {
+      alignItems: "center",
+      paddingVertical: 18,
+      gap: 6,
+    },
+    amountLabel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: c.onSurfaceVariant,
+      letterSpacing: 0.6,
+    },
+    amountValue: {
+      fontSize: 34,
+      fontWeight: "800",
+      color: c.accentPrimary,
+      letterSpacing: -0.5,
+    },
+    amountUnit: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: c.onSurfaceVariant,
+    },
+    payNote: {
+      fontSize: 12,
+      lineHeight: 18,
+      color: c.onSurfaceVariant,
+      textAlign: "center",
+      paddingHorizontal: 8,
+    },
   });
 
 const Step_Three = ({
@@ -253,9 +331,10 @@ const Step_Three = ({
   timeCount,
   totalPrice,
   playersNeeded,
+  handleOrder,
 }: Step_Three_Props) => {
   const { colors } = useTheme();
-  const s = createStyles(colors);
+  const s = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View style={s.root}>
@@ -419,6 +498,56 @@ const Step_Three = ({
         )}
       </View>
 
+      {/* Wire Payment Method */}
+      <View style={s.card}>
+        <AppText
+          style={{ fontSize: 17, fontWeight: "700", color: colors.onSurface }}
+        >
+          Payment Method
+        </AppText>
+        <View style={s.methodRow}>
+          <View style={s.methodIcon}>
+            <MaterialCommunityIcons
+              name="cellphone-wireless"
+              size={22}
+              color={colors.accentPrimary}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <AppText style={s.methodTitle}>Wire — Mobile Payment</AppText>
+            <AppText style={s.methodDesc}>Bank & mobile operators</AppText>
+          </View>
+          <View style={s.secureChip}>
+            <Ionicons
+              name="lock-closed"
+              size={11}
+              color={colors.successColor}
+            />
+            <AppText style={s.secureText}>Secure</AppText>
+          </View>
+        </View>
+        <View
+          style={[
+            s.amountWrap,
+            { borderTopWidth: 1, borderTopColor: colors.borderSubtle },
+          ]}
+        >
+          <AppText style={s.amountLabel}>TOTAL DUE</AppText>
+          <View
+            style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}
+          >
+            <AppText style={s.amountValue}>
+              ₮{totalPrice.toLocaleString()}
+            </AppText>
+            <AppText style={s.amountUnit}>MNT</AppText>
+          </View>
+        </View>
+        <AppText style={s.payNote}>
+          You will be redirected to complete the payment securely. Your booking
+          is confirmed after payment succeeds.
+        </AppText>
+      </View>
+
       <View style={s.btnRow}>
         <TouchableOpacity
           style={s.btnOutline}
@@ -428,11 +557,15 @@ const Step_Three = ({
           <AppText style={s.btnOutlineText}>Back</AppText>
         </TouchableOpacity>
         <TouchableOpacity
-          style={s.btnPrimary}
+          style={[
+            s.btnPrimary,
+            { flexDirection: "row", gap: 8, justifyContent: "center" },
+          ]}
           activeOpacity={0.8}
-          onPress={() => setSteps(steps + 1)}
+          onPress={handleOrder}
         >
-          <AppText style={s.btnPrimaryText}>Continue to Payment</AppText>
+          <Ionicons name="card" size={16} color="#FFFFFF" />
+          <AppText style={s.btnPrimaryText}>Pay & Confirm</AppText>
         </TouchableOpacity>
       </View>
     </View>

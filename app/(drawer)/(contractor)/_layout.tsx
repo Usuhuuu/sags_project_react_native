@@ -1,4 +1,4 @@
-import React from "react";
+import { useCallback, useMemo } from "react";
 import { Drawer } from "expo-router/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -8,36 +8,33 @@ import {
 import { useTheme } from "@/context/theme_context";
 import { useCalendar } from "@/context/calendar_context";
 import CustomDrawerContent from "@/components/ui/costum_drawer";
+import type { DrawerContentComponentProps } from "expo-router/drawer";
 
 export default function ContractorLayout() {
   const { colors: Colors } = useTheme();
   const { triggerCalendar } = useCalendar();
-  const contractorScreens: DrawerScreenConfig[] = [
-    {
-      name: "booking_check",
-      label: "Booking Check",
-      icon: "calendar",
-    },
-    {
-      name: "register_zaal",
-      label: "Register Zaal",
-      icon: "add",
-    },
-    {
-      name: "statistical",
-      label: "Stats",
-      icon: "checkmark-circle",
-    },
-  ];
+  const contractorScreens = useMemo<DrawerScreenConfig[]>(
+    () => [
+      { name: "booking_check", label: "Booking Check", icon: "calendar" },
+      { name: "register_zaal", label: "Register Zaal", icon: "add" },
+      { name: "statistical", label: "Stats", icon: "checkmark-circle" },
+    ],
+    [],
+  );
+  const renderDrawerContent = useCallback(
+    (props: DrawerContentComponentProps) => <CustomDrawerContent {...props} />,
+    [],
+  );
+
   return (
     <Drawer
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
       }}
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      drawerContent={renderDrawerContent}
     >
       <Drawer.Screen
-        name="(tabs-contractor)"
+        name="(tab-contractor)"
         options={{
           drawerActiveTintColor: Colors.primary,
           drawerInactiveTintColor: Colors.themeColorTextPure,

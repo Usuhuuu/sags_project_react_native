@@ -17,6 +17,7 @@ import { useTheme } from "@/context/theme_context";
 import { useAuthQuery } from "@/hooks/useQuery";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 // --- Types ---
 interface UserData {
@@ -40,14 +41,28 @@ const PROFILE_STATS_CONFIG: {
   { label: "Years Active:", value: "5", iconName: "calendar" },
 ];
 
-const MENU_ITEMS_CONFIG: { title: string; iconName: string }[] = [
-  { title: "Personal Information", iconName: "user" },
-  { title: "Business Credentials", iconName: "briefcase" },
-  { title: "Payment Methods", iconName: "credit-card" },
-  { title: "Security", iconName: "shield" },
+const MENU_ITEMS_CONFIG: { title: string; iconName: string; route: string }[] = [
+  {
+    title: "Personal Information",
+    iconName: "user",
+    route: "/contractor_personal_information",
+  },
+  {
+    title: "Business Credentials",
+    iconName: "briefcase",
+    route: "/contractor_business_credentials",
+  },
+  {
+    title: "Payment Methods",
+    iconName: "credit-card",
+    route: "/contractor_payment_methods",
+  },
+  {
+    title: "Security",
+    iconName: "shield",
+    route: "/contractor_security",
+  },
 ];
-
-const screenWidth = Dimensions.get("window").width;
 
 const ContractorProfile = () => {
   const { logOut, LoginStatus } = useAuth();
@@ -241,6 +256,7 @@ const ContractorProfile = () => {
           {MENU_ITEMS_CONFIG.map((item, index) => (
             <TouchableOpacity
               key={index}
+              onPress={() => router.push(item.route as any)}
               style={[
                 {
                   flexDirection: "row",

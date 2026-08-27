@@ -7,6 +7,7 @@ import ListingBottomSheet from "@/components/hall_components/bottom_sheet";
 import { useSharedValue } from "react-native-reanimated";
 import { HallCategoryValue } from "@/types/hall_info_type";
 import { useHallInfo } from "@/context/hall_info_context";
+import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 
 const Page = () => {
   const { getAllHalls } = useHallInfo();

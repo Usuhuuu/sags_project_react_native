@@ -15,6 +15,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.themeColorTextPure,
 
         lazy: true,
+        freezeOnBlur: true,
 
         headerShadowVisible: false,
         tabBarStyle: {

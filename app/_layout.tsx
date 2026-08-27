@@ -140,6 +140,7 @@ export function RootLayoutNav({ onReady }: { onReady: () => void }) {
           ),
         }}
       />
+      <Stack.Screen name="auth/forgot-password" />
       <Stack.Screen name="auth/login" />
       <Stack.Screen name="auth/signup" />
       <Stack.Screen name="book/esport/[hall_id]" />

@@ -55,6 +55,7 @@ import SportHallReviewPage, { Review } from "@/app/review/hall_review";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import Step_one_pc from "@/components/book/esport_component.tsx/step1_pc";
 import Step_two_pc from "@/components/book/esport_component.tsx/step2_pc";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 export interface CombinedEsportHallProps {
@@ -82,7 +83,7 @@ const FEATURE_ICONS: Record<string, { label: string; icon: React.ReactNode }> =
 
 const TIERS = [
   {
-    id: "regular" as const,
+    id: "hall" as const,
     label: "Regular Zone",
     icon: "🖥️",
     desc: "Social & Energetic",
@@ -113,20 +114,6 @@ const PACKAGES = [
     night: "10PM-6AM",
   },
 ];
-
-const getTierPrice = (prices: any, tier: string) => {
-  if (!prices) return null;
-  switch (tier) {
-    case "regular":
-      return prices.pcHall;
-    case "vip":
-      return prices.pcVipHall;
-    case "stage":
-      return prices.pcStageHall;
-    default:
-      return null;
-  }
-};
 
 const fmtP = (p: string) => {
   const n = parseInt(p, 10);
@@ -375,6 +362,15 @@ const CombinedEsportHall = ({
       // ── 1) Payment — pre-check + create Wire payment intent & open checkout ──
       setWaitingText("Creating payment…");
       try {
+        const sessionId = `intent_sessions`;
+        const sessions = await AsyncStorage.getItem(sessionId);
+        const parsedSessions: any = sessions ? JSON.parse(sessions) : [];
+        let activeSessions: any[] = parsedSessions.filter(
+          (i: any) => Date.now() < i.expiresAt,
+        );
+
+        console.log("activeSession", activeSessions.length);
+
         const paymentRes = await axiosInstance.post("/auth/book/intent", {
           amount: Math.round(grandTotal),
           booking: {
@@ -409,6 +405,41 @@ const CombinedEsportHall = ({
             componentProps: { alertType: "warn" },
           });
           return;
+        } else {
+          const identifier = `${bookingDetails?.sportHallID}_${bookingDetails?.date}`;
+          if (session.reused) {
+            const exists = activeSessions.some(
+              (s) => s.intentId === paymentIntentId,
+            );
+            if (exists) {
+              activeSessions = activeSessions.map((s) =>
+                s.intentId === paymentIntentId
+                  ? { ...s, expiresAt: Date.now() + 10 * 60 * 1000, identifier }
+                  : s,
+              );
+            } else {
+              activeSessions.push({
+                intentId: paymentIntentId,
+                expiresAt: Date.now() + 10 * 60 * 1000,
+                identifier,
+              });
+            }
+          } else {
+            activeSessions.push({
+              intentId: paymentIntentId,
+              expiresAt: Date.now() + 10 * 60 * 1000,
+              identifier,
+            });
+          }
+
+          if (activeSessions.length > 0) {
+            await AsyncStorage.setItem(
+              sessionId,
+              JSON.stringify(activeSessions),
+            );
+          } else {
+            await AsyncStorage.removeItem(sessionId);
+          }
         }
         // ── Wait for the user to pay (QPay / bank / …) ──
         const waitForPayment = async (
@@ -416,8 +447,6 @@ const CombinedEsportHall = ({
           maxPolls: number,
         ): Promise<"paid" | "failed" | "timeout"> => {
           setWaitingText("Confirming payment…");
-          const PAID_STATUSES = ["succeeded", "paid", "Completed"];
-          const FAILED_STATUSES = ["expired", "canceled", "failed", "refunded"];
           for (let i = 0; i < maxPolls; i++) {
             try {
               const stRes = await axiosInstance.get(
@@ -425,9 +454,33 @@ const CombinedEsportHall = ({
               );
               const status = stRes.data?.status;
               bookingSession = stRes.data?.session ?? null;
-              if (PAID_STATUSES.includes(status)) return "paid";
-              if (FAILED_STATUSES.includes(status)) return "failed";
-            } catch {}
+              switch (status) {
+                case "succeeded":
+                  return "paid";
+
+                case "canceled":
+                  return "failed";
+
+                case "requires_action":
+                  return "failed";
+
+                case "new":
+                case "processing":
+                case "requires_capture":
+                  // Not finished yet → continue polling
+                  break;
+                case "requires_payment_method":
+                  // Payment wasn't successfully completed.
+                  return "failed";
+                default:
+                  // Unknown status → don't incorrectly mark payment as failed.
+                  console.warn("Unknown payment status:", status);
+                  break;
+              }
+            } catch (err) {
+              console.log("Payment status request failed", err);
+              return "failed";
+            }
             await new Promise((r) => setTimeout(r, 2000));
           }
           return "timeout";
@@ -443,11 +496,6 @@ const CombinedEsportHall = ({
         if (checkoutUrl) {
           let maxPolls = 15;
           try {
-            // Native in-app browser (Chrome Custom Tabs on Android,
-            // ASWebAuthenticationSession on iOS). The redirect
-            // (projectSags://payment-result?payment_intent=...) resolves to
-            // 'success' when the payment completed, 'cancel'/'dismiss' when
-            // the user closed it without paying.
             let browserResult: "success" | "cancel" | "error" = "error";
             try {
               if (await InAppBrowser.isAvailable()) {
@@ -629,7 +677,7 @@ const CombinedEsportHall = ({
   const stepDots = useMemo(
     () => (
       <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-        {[0, 1, 2].map((i) => (
+        {[0, 1].map((i) => (
           <React.Fragment key={i}>
             {i > 0 && (
               <View
@@ -919,160 +967,15 @@ const CombinedEsportHall = ({
       {bkHeader}
       {step === 0 ? (
         <Step_one_pc initTime={tInit} setInitTime={setTInit} />
-      ) : step === 1 ? (
+      ) : (
         <Step_two_pc
           listing={
             bookingDetails
               ? (bookingDetails as unknown as EsportBookingData)
               : undefined
           }
+          grandTotal={grandTotal}
         />
-      ) : (
-        <ScrollView
-          contentContainerStyle={bS.payScroll}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Order summary */}
-          <View
-            style={[
-              bS.payCard,
-              {
-                backgroundColor: C.surface,
-                borderColor: C.border,
-                shadowColor: C.shadowColor,
-              },
-            ]}
-          >
-            <AppText style={[bS.payTitle, { color: C.onSurface }]}>
-              Payment
-            </AppText>
-            <AppText style={[bS.paySub, { color: C.onSurfaceVariant }]}>
-              Complete payment to confirm your booking
-            </AppText>
-            <View style={{ gap: 10 }}>
-              <View style={[bS.payRow, { backgroundColor: C.surfaceHigh }]}>
-                <AppText style={[bS.payLabel, { color: C.onSurfaceVariant }]}>
-                  Venue
-                </AppText>
-                <AppText
-                  style={[bS.payVal, { color: C.onSurface }]}
-                  numberOfLines={1}
-                >
-                  {bookingDetails?.name ?? hName}
-                </AppText>
-              </View>
-              <View style={[bS.payRow, { backgroundColor: C.surfaceHigh }]}>
-                <AppText style={[bS.payLabel, { color: C.onSurfaceVariant }]}>
-                  Date
-                </AppText>
-                <AppText style={[bS.payVal, { color: C.onSurface }]}>
-                  {format(bookingDetails?.bookingDate ?? sDate, "EEE, dd LLL")}
-                </AppText>
-              </View>
-              <View style={[bS.payRow, { backgroundColor: C.surfaceHigh }]}>
-                <AppText style={[bS.payLabel, { color: C.onSurfaceVariant }]}>
-                  Zone
-                </AppText>
-                <AppText style={[bS.payVal, { color: C.onSurface }]}>
-                  {TIERS.find((t) => t.id === (bookingDetails?.tier ?? sTier))
-                    ?.label ?? "Regular Zone"}
-                </AppText>
-              </View>
-              <View style={[bS.payRow, { backgroundColor: C.surfaceHigh }]}>
-                <AppText style={[bS.payLabel, { color: C.onSurfaceVariant }]}>
-                  Duration
-                </AppText>
-                <AppText style={[bS.payVal, { color: C.onSurface }]}>
-                  {String(bookingDetails?.hours ?? hours)} Hour
-                  {Number(bookingDetails?.hours ?? hours) > 1 ? "s" : ""}
-                </AppText>
-              </View>
-            </View>
-          </View>
-
-          {/* Payment method */}
-          <View
-            style={[
-              bS.payCard,
-              {
-                backgroundColor: C.surface,
-                borderColor: C.border,
-                shadowColor: C.shadowColor,
-              },
-            ]}
-          >
-            <AppText
-              style={{ fontSize: 17, fontWeight: "700", color: C.onSurface }}
-            >
-              Payment Method
-            </AppText>
-            <View
-              style={[
-                bS.methodRow,
-                {
-                  borderColor: C.accentPrimaryBorder,
-                  backgroundColor: C.accentPrimaryGlow,
-                },
-              ]}
-            >
-              <View style={[bS.methodIcon, { backgroundColor: C.surface }]}>
-                <MaterialCommunityIcons
-                  name="cellphone-wireless"
-                  size={22}
-                  color={C.accentPrimary}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <AppText style={[bS.methodTitle, { color: C.onSurface }]}>
-                  Wire — Mobile Payment
-                </AppText>
-                <AppText style={[bS.methodDesc, { color: C.onSurfaceVariant }]}>
-                  Bank & mobile operators
-                </AppText>
-              </View>
-              <View
-                style={[
-                  bS.secureChip,
-                  {
-                    backgroundColor: C.successGlow,
-                    borderColor: C.successBorder,
-                  },
-                ]}
-              >
-                <Ionicons name="lock-closed" size={11} color={C.successColor} />
-                <AppText style={[bS.secureText, { color: C.successColor }]}>
-                  Secure
-                </AppText>
-              </View>
-            </View>
-
-            {/* Amount due */}
-            <View style={[bS.amountWrap, { borderTopColor: C.borderSubtle }]}>
-              <AppText style={[bS.amountLabel, { color: C.onSurfaceVariant }]}>
-                TOTAL DUE
-              </AppText>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "baseline",
-                  gap: 4,
-                }}
-              >
-                <AppText style={[bS.amountValue, { color: C.accentPrimary }]}>
-                  ₩{grandTotal.toLocaleString()}
-                </AppText>
-                <AppText style={[bS.amountUnit, { color: C.onSurfaceVariant }]}>
-                  KRW
-                </AppText>
-              </View>
-            </View>
-
-            <AppText style={[bS.payNote, { color: C.onSurfaceVariant }]}>
-              You will be redirected to complete the payment securely. Your
-              booking is confirmed after payment succeeds.
-            </AppText>
-          </View>
-        </ScrollView>
       )}
 
       {/* Footer */}
@@ -1106,30 +1009,11 @@ const CombinedEsportHall = ({
               <Ionicons name="arrow-forward" size={18} color={C.white} />
             </TouchableOpacity>
           </>
-        ) : step === 1 ? (
-          <>
-            <TouchableOpacity
-              style={[bS.btn2, { backgroundColor: C.surfaceHigh }]}
-              onPress={() => setStep(0)}
-            >
-              <AppText style={[bS.btn2T, { color: C.onSurface }]}>Back</AppText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[bS.btn, { backgroundColor: C.accentPrimary }]}
-              onPress={() => setStep(2)}
-            >
-              <AppText
-                style={{ color: "#FFF", fontSize: 15, fontWeight: "700" }}
-              >
-                Continue to Payment
-              </AppText>
-            </TouchableOpacity>
-          </>
         ) : (
           <>
             <TouchableOpacity
               style={[bS.btn2, { backgroundColor: C.surfaceHigh }]}
-              onPress={() => setStep(1)}
+              onPress={() => setStep(0)}
             >
               <AppText style={[bS.btn2T, { color: C.onSurface }]}>Back</AppText>
             </TouchableOpacity>

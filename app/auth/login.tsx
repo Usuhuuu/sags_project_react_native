@@ -372,9 +372,7 @@ const Page = () => {
           case "admin":
             return router.replace("/(drawer)/(admin)");
           case "contractor":
-            return router.replace(
-              "/(drawer)/(contractor)/(tabs-contractor)/overview",
-            );
+            return router.replace("/(drawer)/(tab-contractor)");
           default:
             return router.replace("/(drawer)/(user)");
         }
@@ -560,7 +558,10 @@ const Page = () => {
 
               {/* Forgot password */}
               <View style={styles.forgotRow}>
-                <TouchableOpacity hitSlop={{ top: 8, bottom: 8 }}>
+                <TouchableOpacity
+                  onPress={() => router.push("/auth/forgot-password")}
+                  hitSlop={{ top: 8, bottom: 8 }}
+                >
                   <AppText style={styles.forgotText}>Forgot password?</AppText>
                 </TouchableOpacity>
               </View>

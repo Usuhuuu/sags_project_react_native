@@ -14,30 +14,14 @@ function DrawerLayout() {
       cacheKey: ["auth_status"] as const,
       loginStatus: LoginStatus,
     },
-    {
-      enabled: LoginStatus,
-    },
+    { enabled: LoginStatus },
   );
-  if (authInitalizing) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <OwnActivaterIndicator />
-      </View>
-    );
-  }
-  if (!LoginStatus) {
-    return <Redirect href={"/(drawer)/(user)/(tab-user)"} />;
-  }
+
+  // ── All hooks before any conditional return ─────────────────────────────
   const redirectTarget = useMemo((): Href => {
     if (!data?.role) return "/(drawer)/(user)/(tab-user)" as Href;
-
     switch (data.role) {
+      case "user":
       case "admin":
         return "/(drawer)/(user)/(tab-user)" as Href;
       case "contractor":
@@ -47,18 +31,17 @@ function DrawerLayout() {
     }
   }, [data?.role]);
 
-  if (isLoading || isFetching) {
+  // ── Single loading guard ────────────────────────────────────────────────
+  if (authInitalizing || isLoading || isFetching) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <OwnActivaterIndicator />
       </View>
     );
+  }
+
+  if (!LoginStatus) {
+    return <Redirect href={"/(drawer)/(user)/(tab-user)"} />;
   }
 
   return <Redirect href={redirectTarget} />;

@@ -4,9 +4,9 @@ import {
 } from "@/context/store/book_store";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
-import React, { SetStateAction } from "react";
+import React, { SetStateAction, useMemo } from "react";
 import { View, TouchableOpacity, Image, StyleSheet } from "react-native";
-import { format, isValid } from "date-fns";
+import { format } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { groupDurationHours } from "@/utils/bookingTime";
 
@@ -199,10 +199,10 @@ const Step_One = ({
   setSteps,
 }: Step_One_Props) => {
   const { colors } = useTheme();
-  const s = createStyles(colors);
+  const s = useMemo(() => createStyles(colors), [colors]);
 
   // ── Derived pricing ──────────────────────────────────────────────────
-  const timeCount = React.useMemo(() => {
+  const timeCount = useMemo(() => {
     if (wholeDay) return 24;
     return selectedTimeSlots.reduce(
       (total, group) => total + groupDurationHours(group),
@@ -214,39 +214,15 @@ const Step_One = ({
     ? Number(bookingDetails?.price?.wholeDay || 0)
     : timeCount * Number(bookingDetails?.price?.oneHour || 0);
 
-  const updateSessions = {
-    booking_summary: [
-      {
-        label: "Sport Hall",
-        value: bookingDetails?.name,
-      },
-      { label: "Location", value: bookingDetails?.location.smart_location },
-    ],
-    booking_summary_second: [
-      {
-        label: "Date",
-        value: bookingDetails?.date,
-      },
-      {
-        label: "Time",
-        value: bookingDetails?.selectedTimeSlots,
-      },
-    ],
-  };
-  const renderValue = (value: any) => {
-    const formatDate = (v: any) => {
-      const d = new Date(v);
-      console.log(d);
-      return isValid(d) ? format(d, "EEE, dd MMMM") : String(v);
-    };
-
-    if (Array.isArray(value)) {
-      const flatValues = value.flat();
-      return flatValues.map(formatDate).join(", ");
-    } else {
-      return formatDate(value);
-    }
-  };
+  const updateSessions = useMemo(
+    () => ({
+      booking_summary: [
+        { label: "Sport Hall", value: bookingDetails?.name },
+        { label: "Location", value: bookingDetails?.location.smart_location },
+      ],
+    }),
+    [bookingDetails?.name, bookingDetails?.location.smart_location],
+  );
   return (
     <View style={s.root}>
       <View style={s.header}>
@@ -262,7 +238,7 @@ const Step_One = ({
               />
               <View style={s.infoCol}>
                 {updateSessions.booking_summary.map((item) => (
-                  <View style={s.infoRow} key={Math.random()}>
+                  <View style={s.infoRow} key={item.label}>
                     {item.label !== "Location" ? (
                       <AppText style={s.labelText}>{item.label}</AppText>
                     ) : null}

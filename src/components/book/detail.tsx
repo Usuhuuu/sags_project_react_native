@@ -186,6 +186,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
 }) => {
   const { colors: Colors, theme } = useTheme();
   const [today, setToday] = useState<Date>(new Date());
+  console.log("TODAY", today);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [unavailableTimes, setUnavailableTimes] = useState<{
     joinable: string[];

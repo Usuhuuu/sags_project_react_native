@@ -6,7 +6,13 @@ import {
   TouchableOpacity,
 } from "react-native";
 import React from "react";
-import { Entypo, Feather, MaterialIcons } from "@expo/vector-icons";
+import {
+  Entypo,
+  Feather,
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import Carousel from "react-native-reanimated-carousel";
 import { EsportBookingData, useBookingStore } from "@/context/store/book_store";
 import { format } from "date-fns";
@@ -17,6 +23,7 @@ import { useWindowDimensions } from "react-native";
 
 interface Step_two_pc_props {
   listing: EsportBookingData | undefined;
+  grandTotal?: number;
   step?: number;
   setStep?: React.Dispatch<React.SetStateAction<number>>;
 }
@@ -40,7 +47,7 @@ const SummaryRow = ({
   </View>
 );
 
-const Step_two_pc = ({ listing }: Step_two_pc_props) => {
+const Step_two_pc = ({ listing, grandTotal }: Step_two_pc_props) => {
   const { width } = useWindowDimensions();
   const { colors } = useTheme();
   const bookingDetails = useBookingStore((state) => state.esportBookingDetails);
@@ -234,6 +241,93 @@ const Step_two_pc = ({ listing }: Step_two_pc_props) => {
           </View>
         </View>
 
+        {/* Wire Payment Method */}
+        <AppText style={[s.sectionTitle, { color: colors.outline }]}>
+          PAYMENT METHOD
+        </AppText>
+        <View
+          style={[
+            s.detailsCard,
+            {
+              backgroundColor: colors.surface,
+              shadowColor: colors.shadowColor,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <View
+            style={[
+              s.methodRow,
+              {
+                borderColor: colors.accentPrimaryBorder,
+                backgroundColor: colors.accentPrimaryGlow,
+              },
+            ]}
+          >
+            <View style={[s.methodIcon, { backgroundColor: colors.surface }]}>
+              <MaterialCommunityIcons
+                name="cellphone-wireless"
+                size={22}
+                color={colors.accentPrimary}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <AppText style={[s.methodTitle, { color: colors.onSurface }]}>
+                Wire — Mobile Payment
+              </AppText>
+              <AppText
+                style={[s.methodDesc, { color: colors.onSurfaceVariant }]}
+              >
+                Bank & mobile operators
+              </AppText>
+            </View>
+            <View
+              style={[
+                s.secureChip,
+                {
+                  backgroundColor: colors.successGlow,
+                  borderColor: colors.successBorder,
+                },
+              ]}
+            >
+              <Ionicons
+                name="lock-closed"
+                size={11}
+                color={colors.successColor}
+              />
+              <AppText style={[s.secureText, { color: colors.successColor }]}>
+                Secure
+              </AppText>
+            </View>
+          </View>
+
+          {grandTotal !== undefined && (
+            <View
+              style={[s.amountWrap, { borderTopColor: colors.borderSubtle }]}
+            >
+              <AppText
+                style={[s.amountLabel, { color: colors.onSurfaceVariant }]}
+              >
+                TOTAL DUE
+              </AppText>
+              <View
+                style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}
+              >
+                <AppText
+                  style={[s.amountValue, { color: colors.accentPrimary }]}
+                >
+                  ₩{grandTotal.toLocaleString()}
+                </AppText>
+                <AppText
+                  style={[s.amountUnit, { color: colors.onSurfaceVariant }]}
+                >
+                  KRW
+                </AppText>
+              </View>
+            </View>
+          )}
+        </View>
+
         <AppText style={[s.footerTerms, { color: colors.outline }]}>
           By clicking "Confirm & Pay", you agree to our booking terms and house
           rules.
@@ -327,6 +421,62 @@ const s = StyleSheet.create({
     lineHeight: 18,
     paddingHorizontal: 20,
     marginBottom: 100,
+  },
+  methodRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  methodIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  methodTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  methodDesc: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  secureChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  secureText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  amountWrap: {
+    alignItems: "center",
+    paddingVertical: 14,
+    gap: 6,
+    borderTopWidth: 1,
+  },
+  amountLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.6,
+  },
+  amountValue: {
+    fontSize: 28,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  amountUnit: {
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 

@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   Image,
-  Dimensions,
+  useWindowDimensions,
 } from "react-native";
 
 import { router } from "expo-router";
@@ -32,16 +32,14 @@ interface UserData {
   userImage: string | null;
 }
 
-export default function CustomDrawerContext(
-  props: DrawerContentComponentProps,
-) {
+function CustomDrawerContext(props: DrawerContentComponentProps) {
   const { colors: Colors, theme } = useTheme();
-  const [userData, setUserData] = useState<UserData | null>(null);
   const { bottom } = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { LoginStatus, logIn } = useAuth();
+  const { LoginStatus } = useAuth();
+  const { width } = useWindowDimensions();
 
-  const { data, error } = useAuthQuery(
+  const { data } = useAuthQuery(
     {
       pathname: "main",
       cacheKey: ["auth_status"] as const,
@@ -52,24 +50,18 @@ export default function CustomDrawerContext(
     },
   );
 
-  useEffect(() => {
-    if (data) {
-      try {
-        const parsedData =
-          typeof data.profileData == "string"
-            ? JSON.parse(data.profileData)
-            : data.profileData;
-        const result = Array.isArray(parsedData) ? parsedData[0] : parsedData;
-        setUserData(result);
-      } catch {
-        console.log("Error parsing profileData");
-      }
-    } else if (error) {
-      console.log("Error fetching user data:", error);
+  const userData = useMemo<UserData | null>(() => {
+    if (!data?.profileData) return null;
+    try {
+      const parsed =
+        typeof data.profileData === "string"
+          ? JSON.parse(data.profileData)
+          : data.profileData;
+      return Array.isArray(parsed) ? parsed[0] : parsed;
+    } catch {
+      return null;
     }
-  }, [data, error]);
-  const screenDims = useMemo(() => Dimensions.get("screen"), []);
-  const { width, height } = screenDims;
+  }, [data?.profileData]);
 
   return (
     <View
@@ -85,15 +77,13 @@ export default function CustomDrawerContext(
       >
         {!LoginStatus ? (
           <View
-            style={{
-              padding: 10,
-              borderBottomWidth: 1,
-              borderBottomColor: Colors.primary,
-              alignItems: "center",
-              flexDirection: "row",
-              backgroundColor: Colors.backgroundColor,
-              maxWidth: "100%",
-            }}
+            style={[
+              styles.headerSection,
+              {
+                borderBottomColor: Colors.primary,
+                backgroundColor: Colors.backgroundColor,
+              },
+            ]}
           >
             <TouchableOpacity style={styles.headerTouchable}>
               <Image
@@ -143,15 +133,13 @@ export default function CustomDrawerContext(
           </View>
         ) : (
           <View
-            style={{
-              padding: 10,
-              borderBottomWidth: 1,
-              borderBottomColor: Colors.primary,
-              alignItems: "center",
-              flexDirection: "row",
-              backgroundColor: Colors.backgroundColor,
-              maxWidth: "100%",
-            }}
+            style={[
+              styles.headerSection,
+              {
+                borderBottomColor: Colors.primary,
+                backgroundColor: Colors.backgroundColor,
+              },
+            ]}
           >
             <TouchableOpacity style={styles.headerTouchable}>
               <ProfileAvatar
@@ -240,14 +228,13 @@ export default function CustomDrawerContext(
           </View>
         </View>
         <View
-          style={{
-            padding: 20,
-            backgroundColor:
-              theme === "dark" ? Colors.containerLittleGrey : Colors.grey,
-            flexDirection: "row",
-            justifyContent: "center",
-            gap: 30,
-          }}
+          style={[
+            styles.socialRow,
+            {
+              backgroundColor:
+                theme === "dark" ? Colors.containerLittleGrey : Colors.grey,
+            },
+          ]}
         >
           <TouchableOpacity>
             <FontAwesome
@@ -281,8 +268,24 @@ export default function CustomDrawerContext(
   );
 }
 
+export default React.memo(CustomDrawerContext);
+
 const styles = StyleSheet.create({
   container: {},
+
+  headerSection: {
+    padding: 10,
+    borderBottomWidth: 1,
+    alignItems: "center",
+    flexDirection: "row",
+    maxWidth: "100%",
+  },
+  socialRow: {
+    padding: 20,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 30,
+  },
 
   headerTouchable: {
     padding: 4,

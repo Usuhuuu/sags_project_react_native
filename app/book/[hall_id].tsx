@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import { EsportHallDataType, SportHallDataType } from "@/types/hall_info_type";
