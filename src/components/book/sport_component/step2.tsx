@@ -4,7 +4,7 @@ import AppText from "@/components/ui/app_text";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import React, { SetStateAction, useMemo } from "react";
 import { TouchableOpacity, View, StyleSheet } from "react-native";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 
 interface Step_Two_Props {
   wholeDay: boolean;
@@ -158,11 +158,10 @@ const Step_Two = ({
                   if (wholeDayPeople < 20) {
                     setWholeDayPeople(wholeDayPeople + 1);
                   } else {
-                    Notifier.showNotification({
+                    showToast({
                       title: "Oops",
                       description: "Needed people must be below 20",
-                      Component: NotifierComponents.Alert,
-                      componentProps: { alertType: "warn" },
+          alertType: "warn",
                     });
                   }
                 }}
@@ -218,11 +217,10 @@ const Step_Two = ({
                             [index]: (prev[index] || 0) + 1,
                           }));
                         } else {
-                          Notifier.showNotification({
+                          showToast({
                             title: "Oops",
                             description: "Needed people must be below 20",
-                            Component: NotifierComponents.Alert,
-                            componentProps: { alertType: "warn" },
+          alertType: "warn",
                           });
                         }
                       }}

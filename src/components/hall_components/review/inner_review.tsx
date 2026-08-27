@@ -13,7 +13,7 @@ import { Entypo } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import axiosInstance from "@/hooks/axiosInstance";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 import { useTheme } from "@/context/theme_context";
 import { useHallInfo } from "@/context/hall_info_context";
 
@@ -37,21 +37,19 @@ const Inner_Zaal_Review = () => {
         },
       );
       if (response.status === 200 && response.data.success) {
-        Notifier.showNotification({
+        showToast({
           title: "Successfully Submitted",
           description: "Review submitted successfully",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
+          alertType: "success",
         });
         setText("");
         setRating(0);
         setImageUrl([]);
       } else if (!response.data.success && response.status === 400) {
-        Notifier.showNotification({
+        showToast({
           title: "Error on submitting",
           description: "Error submitting review",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
+          alertType: "error",
         });
       }
     } catch (err) {
@@ -140,11 +138,10 @@ const Inner_Zaal_Review = () => {
               onPress={() => {
                 launchImageLibrary({ mediaType: "mixed" }, (response) => {
                   if (imageUrl.length == 10) {
-                    Notifier.showNotification({
+                    showToast({
                       title: "Warning",
                       description: "Only Upload 10 Images",
-                      Component: NotifierComponents.Alert,
-                      componentProps: { alertType: "warn" },
+          alertType: "warn",
                     });
                     return;
                   }

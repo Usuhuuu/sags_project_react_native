@@ -48,7 +48,7 @@ import {
   HallTypesSeparator,
 } from "@/types/hall_separator_type";
 import axiosInstance from "@/hooks/axiosInstance";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 import { saveToken } from "@/components/book/session";
 import Confirm_Modal from "@/components/book/confirmation";
 import { format } from "date-fns";
@@ -388,11 +388,10 @@ const BookingBoardGame = ({
       if (response.status === 200 && response.data.success) {
         const token = response.data.session;
         saveToken(token);
-        Notifier.showNotification({
+        showToast({
           title: "Successfully Booked",
           description: "Check Booking from Order Section",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
+          alertType: "success",
         });
         if (!hasScheduled.current) {
           await bookingNotificationSchedule({
@@ -411,20 +410,18 @@ const BookingBoardGame = ({
       }
     } catch (err: any) {
       if ([409, 401].includes(err.response?.status)) {
-        Notifier.showNotification({
+        showToast({
           title: "Booking Exists",
           description:
             err.response.data.message ||
             "Conflict in booking. Please choose a different time.",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
+          alertType: "warn",
         });
       } else {
-        Notifier.showNotification({
+        showToast({
           title: "Booking Failed",
           description: "An error occurred. Please try again.",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
+          alertType: "warn",
         });
       }
     } finally {

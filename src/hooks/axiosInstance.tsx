@@ -1,6 +1,6 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const apiUrl = process.env.EXPO_PUBLIC_BASE_URL ?? "http://localhost:3000"; //"https://8f9e-118-176-174-110.ngrok-free.app";
@@ -20,11 +20,10 @@ const tokenWithRetry = async (
     }
   }
   if (!token) {
-    Notifier.showNotification({
+    showToast({
       title: "Oops",
       description: "Please login in to process",
-      Component: NotifierComponents.Alert,
-      componentProps: { alertType: "warn" },
+      alertType: "warn",
     });
     throw new Error("could't find Token");
   }
@@ -61,11 +60,10 @@ axiosInstance.interceptors.request.use(
     }
 
     if (!token) {
-      Notifier.showNotification({
+      showToast({
         title: "Oops",
         description: "Please login in to process",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "warn" },
+        alertType: "warn",
       });
       config.headers.Authorization = null;
 

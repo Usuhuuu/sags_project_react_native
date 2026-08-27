@@ -13,7 +13,7 @@ import SwipeableRow from "@/components/notification/swipe_remove";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 import { useNotificationStore } from "@/context/store/notification_store";
 import { useNavigation } from "expo-router";
 
@@ -148,11 +148,10 @@ const NotificationScreen = () => {
 
   const deleteSelected = useCallback(async () => {
     if (selectedList.length === 0) {
-      Notifier.showNotification({
+      showToast({
         title: "No notifications selected",
         description: "Please select notifications to delete.",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "warn" },
+          alertType: "warn",
       });
       return;
     }

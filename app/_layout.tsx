@@ -4,7 +4,8 @@ import { router, Stack } from "expo-router";
 import { ThemeProvider, useTheme } from "@/context/theme_context";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { NotifierRoot } from "react-native-notifier";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "@/components/ui/app_toast";
 import { AuthProvider } from "@/context/auth_context";
 import HallInfoProvider from "@/context/hall_info_context";
 import { queryClient } from "@/hooks/queryClient";
@@ -161,8 +162,8 @@ export default () => (
             <AuthProvider>
               <CalendarProvider>
                 <HallInfoProvider>
-                  <NotifierRoot useRNScreensOverlay />
                   <RootLayout />
+                  <Toast config={toastConfig} position="top" topOffset={60} />
                 </HallInfoProvider>
               </CalendarProvider>
             </AuthProvider>

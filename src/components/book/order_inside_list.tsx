@@ -16,7 +16,7 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import { format, differenceInSeconds } from "date-fns";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 import { useTranslation } from "react-i18next";
 
 import { Return_Type } from "@/types/book_type";
@@ -750,25 +750,19 @@ const OrderItemComponent = ({ item }: { item: Return_Type }) => {
       });
 
       if (res.status === 200 && res.data.success) {
-        Notifier.showNotification({
+        showToast({
           title: "Booking Canceled",
           description: "Your booking has been successfully canceled.",
-          Component: NotifierComponents.Alert,
-          componentProps: {
-            alertType: "success",
-          },
+          alertType: "success",
         });
       } else {
         throw new Error("Failed to cancel booking");
       }
     } catch {
-      Notifier.showNotification({
+      showToast({
         title: "Failed",
         description: "Could not cancel the booking.",
-        Component: NotifierComponents.Alert,
-        componentProps: {
-          alertType: "error",
-        },
+        alertType: "error",
       });
     }
   }, []);

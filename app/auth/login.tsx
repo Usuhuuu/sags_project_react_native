@@ -26,7 +26,7 @@ import {
   loginWithGoogle,
 } from "@/components/auth/third_party_instance";
 import SignupModal, { LoginInput } from "./signup";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
 import { ThemeColors } from "@/theme/colors";
@@ -361,11 +361,10 @@ const Page = () => {
             refreshToken: response.data.refreshToken,
           }),
         );
-        Notifier.showNotification({
+        showToast({
           title: "Login Success",
           description: response.data.message,
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
+          alertType: "success",
         });
         logIn();
         switch (response.data.role) {
@@ -377,26 +376,23 @@ const Page = () => {
             return router.replace("/(drawer)/(user)");
         }
       } else if (!response.data.userNotFound && !response.data.success) {
-        Notifier.showNotification({
+        showToast({
           title: "Login Failed",
           description: response.data.message,
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
+          alertType: "error",
         });
       } else if (response.status === 404) {
-        Notifier.showNotification({
+        showToast({
           title: "Login Failed",
           description: "Check your internet connection",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
+          alertType: "error",
         });
       }
     } catch (err: any) {
-      Notifier.showNotification({
+      showToast({
         title: "Login Failed",
         description: "Please Try Again",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "error" },
+          alertType: "error",
       });
     } finally {
       setLoading(false);
@@ -431,11 +427,10 @@ const Page = () => {
           responseData?.message === "Successfully logged in with Google"
         ) {
           logIn();
-          Notifier.showNotification({
+          showToast({
             title: "Google Login",
             description: responseData.message,
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "success" },
+          alertType: "success",
           });
         }
       }
@@ -465,11 +460,10 @@ const Page = () => {
         "Successfully logged in with Facebook"
       ) {
         logIn();
-        Notifier.showNotification({
+        showToast({
           title: "Facebook Login",
           description: facebookResponse.data.message,
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
+          alertType: "success",
         });
       }
     } catch (err: any) {

@@ -5,7 +5,7 @@ import { useAuth } from "@/context/auth_context";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import * as SecureStore from "expo-secure-store";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 import { useTheme } from "@/context/theme_context";
 import { useRouter } from "expo-router";
 import AppText from "@/components/ui/app_text";
@@ -180,11 +180,10 @@ const SignupModal = ({
           }),
         );
         setModalVisible(false);
-        Notifier.showNotification({
+        showToast({
           title: "Success",
           description: "Account Created Successfully",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
+          alertType: "success",
         });
         logIn();
         switch (response.data.role) {
@@ -204,11 +203,10 @@ const SignupModal = ({
         (err.response?.status === 409
           ? "This email or username already exists"
           : "Something went wrong. Please try again.");
-      Notifier.showNotification({
+      showToast({
         title: "Signup failed",
         description: message,
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "error" },
+          alertType: "error",
       });
     }
   }, [path, formData, notificationToken, logIn, setModalVisible, router]);

@@ -2,7 +2,7 @@ import * as Notifications from "expo-notifications";
 import * as Calendar from "expo-calendar";
 import { Platform } from "react-native";
 import { useTheme } from "@/context/theme_context";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 
 const getDefaultCalendarSource = async () => {
   const defaultCalendar = await Calendar.getDefaultCalendarAsync();
@@ -78,11 +78,10 @@ export const scheduleNotificationForEvent = async ({
   });
   if (eventId) {
     console.log("success");
-    Notifier.showNotification({
+    showToast({
       title: "Successfully Added to Calendar",
       description: "You can check",
-      Component: NotifierComponents.Alert,
-      componentProps: { alertType: "success" },
+          alertType: "success",
     });
   }
   await notificationCalendarEvent(startDate);

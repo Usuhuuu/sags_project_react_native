@@ -12,7 +12,7 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 import { trackingStatusPermission } from "@/hooks/permissions";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 
 export const loginWithFacebook = async () => {
   try {
@@ -27,11 +27,10 @@ export const loginWithFacebook = async () => {
     console.log(result);
 
     if (result.isCancelled) {
-      Notifier.showNotification({
+      showToast({
         title: "Login Cancelled",
         description: "Try again later",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "warn" },
+          alertType: "warn",
       });
       return { modalVisible: false, data: null };
     }
@@ -81,51 +80,45 @@ export const loginWithFacebook = async () => {
     if (error.code) {
       switch (error.code) {
         case 1:
-          Notifier.showNotification({
+          showToast({
             title: "Facebook Login Failed",
             description: "Network Error",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "error" },
+          alertType: "error",
           });
           break;
         case 190:
-          Notifier.showNotification({
+          showToast({
             title: "Facebook Login Failed",
             description: "Invalid Token",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "error" },
+          alertType: "error",
           });
           break;
         case 10:
-          Notifier.showNotification({
+          showToast({
             title: "Facebook Login Failed",
             description: "App not set up correctly",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "error" },
+          alertType: "error",
           });
           break;
         case 429:
-          Notifier.showNotification({
+          showToast({
             title: "Facebook Login Failed",
             description: "Too Many Requests",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "error" },
+          alertType: "error",
           });
           break;
         default:
-          Notifier.showNotification({
+          showToast({
             title: "Facebook Login Failed",
             description: "Something went wrong. Try again later.",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "error" },
+          alertType: "error",
           });
       }
     } else {
-      Notifier.showNotification({
+      showToast({
         title: "Login failed",
         description: "Please try again later",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "error" },
+          alertType: "error",
       });
     }
 
@@ -174,25 +167,22 @@ export const loginWithGoogle = async (googleAccessToken: string) => {
     if (isErrorWithCode(err)) {
       switch (err.code) {
         case statusCodes.IN_PROGRESS:
-          Notifier.showNotification({
+          showToast({
             title: "Login progressing",
             description: "Please Wait a few minut",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "warn" },
+          alertType: "warn",
           });
         case statusCodes.SIGN_IN_CANCELLED:
-          Notifier.showNotification({
+          showToast({
             title: "Login Cancelled",
             description: "Try again later",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "warn" },
+          alertType: "warn",
           });
         case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-          Notifier.showNotification({
+          showToast({
             title: "Login Failed",
             description: "Serves has problem, try again later",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "error" },
+          alertType: "error",
           });
       }
     }

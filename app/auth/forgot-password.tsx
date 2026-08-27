@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppText from "@/components/ui/app_text";
 import { useTheme } from "@/context/theme_context";
@@ -139,9 +139,8 @@ const ForgotPasswordScreen = () => {
       const normalizedEmail = email.trim();
 
       if (!normalizedEmail || !/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
-        Notifier.showNotification({
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
+        showToast({
+          alertType: "warn",
           title: "Oops!",
           description: "Please enter a valid email address.",
         });
@@ -153,9 +152,8 @@ const ForgotPasswordScreen = () => {
         email: normalizedEmail,
       });
       if (response.status === 200 && response.data.success) {
-        Notifier.showNotification({
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "success" },
+        showToast({
+          alertType: "success",
           title: "Success!",
           description: "Please check your email for a reset link.",
         });
@@ -164,17 +162,15 @@ const ForgotPasswordScreen = () => {
     } catch (err) {
       console.log(err);
       if (err instanceof AxiosError) {
-        Notifier.showNotification({
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
+        showToast({
+          alertType: "warn",
           title: "Oops!",
           description: "Something went wrong. Please try again later.",
         });
         return;
       }
-      Notifier.showNotification({
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "warn" },
+      showToast({
+          alertType: "warn",
         title: "Oops!",
         description: "Something went wrong. Please try again later.",
       });

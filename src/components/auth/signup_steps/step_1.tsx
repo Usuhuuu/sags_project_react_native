@@ -14,7 +14,7 @@ import { useTheme } from "@/context/theme_context";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { LoginInput } from "@/app/auth/signup";
 import AppText from "@/components/ui/app_text";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 
 // ── Props ──────────────────────────────────────────────────────────────────
@@ -275,51 +275,45 @@ const SignupOne = ({
   const handleContinue = useCallback(() => {
     const username = formData.userName?.trim();
     if (!username) {
-      Notifier.showNotification({
+      showToast({
         title: "Username required",
         description: "Please enter a username to continue",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "error" },
+          alertType: "error",
       });
       return;
     }
     if (username.length < 3) {
-      Notifier.showNotification({
+      showToast({
         title: "Username too short",
         description: "Username must be at least 3 characters",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "error" },
+          alertType: "error",
       });
       return;
     }
     if (usernameStatus !== "available") {
       if (usernameStatus === "checking") {
-        Notifier.showNotification({
+        showToast({
           title: "Still checking",
           description: "Please wait while we verify your username",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
+          alertType: "error",
         });
       } else if (usernameStatus === "taken") {
-        Notifier.showNotification({
+        showToast({
           title: "Username taken",
           description: "Please choose a different username",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
+          alertType: "error",
         });
       } else if (usernameStatus === "error") {
-        Notifier.showNotification({
+        showToast({
           title: "Verification failed",
           description: "Could not verify username. Try again later.",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
+          alertType: "error",
         });
       } else {
-        Notifier.showNotification({
+        showToast({
           title: "Username not verified",
           description: "Enter a username and wait for verification",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "error" },
+          alertType: "error",
         });
       }
       return;

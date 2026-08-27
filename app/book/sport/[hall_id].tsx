@@ -8,7 +8,7 @@ import { openCheckoutBrowser } from "@/utils/paymentBrowser";
 import { InAppBrowser } from "react-native-inappbrowser-reborn";
 
 import axiosInstance from "@/hooks/axiosInstance";
-import { Notifier, NotifierComponents } from "react-native-notifier";
+import { showToast } from "@/utils/toast";
 import { scheduleNotificationForEvent } from "@/hooks/calendarInstance";
 import { useTheme } from "@/context/theme_context";
 import Confirm_Modal from "@/components/book/confirmation";
@@ -199,11 +199,10 @@ const TransactionPage = () => {
       if (isOrdering) return;
       setIsOrdering(true);
       if (!bookingDetails) {
-        Notifier.showNotification({
+        showToast({
           title: "Booking Failed",
           description: "Missing booking details.",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
+          alertType: "warn",
         });
         return;
       }
@@ -271,11 +270,10 @@ const TransactionPage = () => {
         const session = paymentRes.data?.result;
         if (session?.error) {
           setWaiting(false);
-          Notifier.showNotification({
+          showToast({
             title: "Payment Failed",
             description: session.error,
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "warn" },
+          alertType: "warn",
           });
           return;
         }
@@ -284,11 +282,10 @@ const TransactionPage = () => {
         paymentIntentId = session?.payment_intent ?? null;
         if (!paymentIntentId) {
           setWaiting(false);
-          Notifier.showNotification({
+          showToast({
             title: "Payment Failed",
             description: "Could not start payment. Please try again.",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "warn" },
+          alertType: "warn",
           });
           return;
         } else {
@@ -422,7 +419,7 @@ const TransactionPage = () => {
         }
         if (outcome !== "paid") {
           setWaiting(false);
-          Notifier.showNotification({
+          showToast({
             title: "Payment Not Completed",
             description:
               outcome === "failed"
@@ -430,38 +427,34 @@ const TransactionPage = () => {
                 : outcome === "timeout"
                   ? "We couldn't confirm the payment yet. Check your orders shortly."
                   : "Payment canceled. Press book to try again.",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "warn" },
+          alertType: "warn",
           });
           return;
         }
       } catch (err: any) {
         setWaiting(false);
         if (err.response?.status === 409) {
-          Notifier.showNotification({
+          showToast({
             title: "Time Slot Taken",
             description:
               err.response.data?.message ||
               "This time slot is no longer available. Please choose another.",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "warn" },
+          alertType: "warn",
           });
           return;
         }
         if (err.message === "could't find Token") {
-          Notifier.showNotification({
+          showToast({
             title: "Please Login",
             description: "Please Login to process to book",
-            Component: NotifierComponents.Alert,
-            componentProps: { alertType: "warn" },
+          alertType: "warn",
           });
           return;
         }
-        Notifier.showNotification({
+        showToast({
           title: "Payment Failed",
           description: "Could not start payment. Please try again.",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
+          alertType: "warn",
         });
         console.log(err);
         return;
@@ -480,12 +473,11 @@ const TransactionPage = () => {
           hasScheduled.current = true;
         }
       }
-      Notifier.showNotification({
+      showToast({
         title: "Payment Successful",
         description:
           "Your booking is being confirmed. Check the Order section shortly.",
-        Component: NotifierComponents.Alert,
-        componentProps: { alertType: "success" },
+          alertType: "success",
       });
       // Refresh orders once now and again shortly after so webhook-processed
       // bookings show up in the list.
@@ -503,29 +495,26 @@ const TransactionPage = () => {
       setConfirmModal(true);
     } catch (err: any) {
       if (err.response?.status === 402) {
-        Notifier.showNotification({
+        showToast({
           title: "Payment Not Completed",
           description:
             err.response.data?.message ||
             "Please complete the payment and try again.",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
+          alertType: "warn",
         });
       } else if ([409, 401].includes(err.response?.status)) {
-        Notifier.showNotification({
+        showToast({
           title: "Booking Exists",
           description:
             err.response.data?.message ||
             "Conflict. Please choose a different time.",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
+          alertType: "warn",
         });
       } else {
-        Notifier.showNotification({
+        showToast({
           title: "Booking Failed",
           description: "An error occurred. Please try again.",
-          Component: NotifierComponents.Alert,
-          componentProps: { alertType: "warn" },
+          alertType: "warn",
         });
       }
     } finally {
