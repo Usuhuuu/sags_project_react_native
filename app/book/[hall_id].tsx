@@ -47,8 +47,6 @@ export default function DetailsPage() {
       </View>
     );
   }
-  console.log("hallSeparator", hallSeparator);
-
   return (
     <Animated.View
       style={{ flex: 1, backgroundColor: colors.backgroundColor }}

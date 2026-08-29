@@ -200,11 +200,14 @@ const BookingBoardGame = ({
   const [loading, setLoading] = useState(false);
   const fetched = useRef(false);
 
-  const tabs = [
-    { key: HallDetailSeparator.DETAILS, label: "Details" },
-    { key: HallDetailSeparator.AMENTITIES, label: "Amenities" },
-    { key: HallDetailSeparator.REVIEW, label: "Review" },
-  ];
+  const tabs = useMemo(
+    () => [
+      { key: HallDetailSeparator.DETAILS, label: "Details" },
+      { key: HallDetailSeparator.AMENTITIES, label: "Amenities" },
+      { key: HallDetailSeparator.REVIEW, label: "Review" },
+    ],
+    [],
+  );
 
   // ── Pricing ────────────────────────────────────────────────────────────────
   const tierPrice = getTierPrice(hallPrices, selectedTier);
@@ -1859,4 +1862,4 @@ const bkS = StyleSheet.create({
   secondaryBtnText: { fontSize: 15, fontWeight: "700" },
 });
 
-export default BookingBoardGame;
+export default React.memo(BookingBoardGame);
