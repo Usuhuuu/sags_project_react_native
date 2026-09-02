@@ -16,8 +16,33 @@ export default function ContractorLayout() {
   const contractorScreens = useMemo<DrawerScreenConfig[]>(
     () => [
       { name: "booking_check", label: "Booking Check", icon: "calendar" },
-      { name: "register_zaal", label: "Register Zaal", icon: "add" },
+      {
+        name: "register_zaal",
+        label: "Manage Zaal",
+        icon: "business",
+        headerShown: false,
+      },
       { name: "statistical", label: "Stats", icon: "checkmark-circle" },
+      {
+        name: "(profile-settings)/contractor_personal_information",
+        label: "Personal Information",
+        hidden: true,
+      },
+      {
+        name: "(profile-settings)/contractor_business_credentials",
+        label: "Business Credentials",
+        hidden: true,
+      },
+      {
+        name: "(profile-settings)/contractor_payment_methods",
+        label: "Payment Methods",
+        hidden: true,
+      },
+      {
+        name: "(profile-settings)/contractor_security",
+        label: "Security",
+        hidden: true,
+      },
     ],
     [],
   );

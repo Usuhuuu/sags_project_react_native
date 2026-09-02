@@ -2,8 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/context/theme_context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Tabs } from "expo-router";
-
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
