@@ -2,15 +2,13 @@ import { useHallInfo } from "@/context/hall_info_context";
 import { EsportBookingData, useBookingStore } from "@/context/store/book_store";
 import { useTheme } from "@/context/theme_context";
 import {
-  AntDesign,
   Feather,
   FontAwesome5,
   Fontisto,
   Ionicons,
-  MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, {
   useCallback,
   useEffect,
@@ -20,28 +18,17 @@ import React, {
 } from "react";
 import {
   View,
-  ScrollView,
-  Image,
   TouchableOpacity,
   StyleSheet,
-  useWindowDimensions,
   StatusBar,
   Text,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { openCheckoutBrowser } from "@/utils/paymentBrowser";
 import { InAppBrowser } from "react-native-inappbrowser-reborn";
-import { LinearGradient } from "expo-linear-gradient";
-import Carousel, {
-  ICarouselInstance,
-  Pagination,
-} from "react-native-reanimated-carousel";
 import AppText from "@/components/ui/app_text";
 import { EsportHallDataType } from "@/types/hall_info_type";
-import {
-  HallDetailSeparator,
-  HallTypesSeparator,
-} from "@/types/hall_separator_type";
+import { HallTypesSeparator } from "@/types/hall_separator_type";
 import axiosInstance from "@/hooks/axiosInstance";
 import { showToast } from "@/utils/toast";
 import { saveToken } from "@/components/book/session";
@@ -50,12 +37,10 @@ import { format } from "date-fns";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { bookingNotificationSchedule } from "@/context/store/notification_store";
 import { queryClient } from "@/hooks/queryClient";
-import Animated, { useSharedValue } from "react-native-reanimated";
-import SportHallReviewPage, { Review } from "@/app/review/hall_review";
-import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import Step_one_pc from "@/components/book/esport_component.tsx/step1_pc";
 import Step_two_pc from "@/components/book/esport_component.tsx/step2_pc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { calculateDurationPrice } from "@/utils/duration_price";
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 export interface CombinedEsportHallProps {
@@ -65,22 +50,6 @@ export interface CombinedEsportHallProps {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const FEATURE_ICONS: Record<string, { label: string; icon: React.ReactNode }> =
-  {
-    wifi: {
-      label: "Wi-Fi",
-      icon: <Feather name="wifi" size={18} color="#FFF" />,
-    },
-    parking: {
-      label: "Parking",
-      icon: <FontAwesome5 name="parking" size={18} color="#FFF" />,
-    },
-    free_wifi: {
-      label: "Free Wi-Fi",
-      icon: <Feather name="wifi" size={18} color="#FFF" />,
-    },
-  };
-
 const TIERS = [
   {
     id: "hall" as const,
@@ -102,26 +71,6 @@ const TIERS = [
   },
 ];
 
-const PACKAGES = [
-  { label: "1 Hour", value: 1, price: 1200 },
-  { label: "3 Hours", value: 3, price: 3000, popular: true },
-  { label: "5 Hours", value: 5, price: 9000 },
-  {
-    label: "Night Pass",
-    value: 8,
-    price: 12000,
-    isSpecial: true,
-    night: "10PM-6AM",
-  },
-];
-
-const fmtP = (p: string) => {
-  const n = parseInt(p, 10);
-  return isNaN(n) ? "0" : n.toLocaleString();
-};
-const fmtK = (k: string) =>
-  k.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
-
 const dFmt = "MMM d, yyyy";
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -130,7 +79,6 @@ const CombinedEsportHall = ({
   hallID: pHID,
 }: CombinedEsportHallProps) => {
   const { colors: C } = useTheme();
-  const { width } = useWindowDimensions();
   const { hall_id: routeId } = useLocalSearchParams();
   const { getSpecificHall } = useHallInfo();
 
@@ -139,36 +87,10 @@ const CombinedEsportHall = ({
     pList ?? (getSpecificHall(hid) as EsportHallDataType | undefined);
   const imgs = listing?.hall_details?.hall_imageURLs ?? [];
   const hName = listing?.hall_details?.hall_name ?? "PC Bang";
-  const hAddr = listing?.hall_details?.hall_address ?? "";
   const hPrices = listing?.hall_details?.hall_price;
-  const hWork = listing?.hall_details?.hall_work_time;
-  const hFeat = listing?.hall_details?.hall_feature;
-
-  // ── Detail state ───────────────────────────────────────────────────────────
-  const imgRef = useRef<ICarouselInstance>(null);
-  const prog = useSharedValue(0);
-  const rFetched = useRef(false);
-  const [tab, setTab] = useState(HallDetailSeparator.DETAILS);
-  const [revs, setRevs] = useState<Record<string, Review>>({});
-  const [rRating, setRRating] = useState(0);
-  const [rCount, setRCount] = useState(0);
-  const [rPage, setRPage] = useState(0);
-  const [rEnd, setREnd] = useState(false);
-  const [rLoad, setRLoad] = useState(false);
-
-  const tabs = [
-    { key: HallDetailSeparator.DETAILS, label: "Details" },
-    { key: HallDetailSeparator.AMENTITIES, label: "Amenities" },
-    { key: HallDetailSeparator.REVIEW, label: "Review" },
-  ];
 
   // ── Booking state ──────────────────────────────────────────────────────────
-  const [book, setBook] = useState(false);
   const [step, setStep] = useState(0);
-  const [sDate, setSDate] = useState(new Date());
-  const [sTier, setSTier] = useState<"regular" | "vip" | "stage">("regular");
-  const [hours, setHours] = useState(1);
-  const [sTime, setSTime] = useState<Date | string>(new Date());
   const [tInit, setTInit] = useState(false);
   const [wait, setWait] = useState(false);
   const [waitingText, setWaitingText] = useState("");
@@ -176,174 +98,51 @@ const CombinedEsportHall = ({
   const [modal, setModal] = useState(false);
   const sched = useRef(false);
 
-  // ── Derived pricing ────────────────────────────────────────────────────────
-  const totalPrice = PACKAGES.find((p) => p.value === hours)?.price ?? 0;
-  const serviceFee = Math.round(totalPrice * 0.05);
-  const grandTotal = totalPrice + serviceFee;
-
   // ── Zustand store for step components ──────────────────────────────────
   const bookingDetails = useBookingStore((s) => s.esportBookingDetails);
   const setBookingDetails = useBookingStore((s) => s.setEsportBookingDetails);
   const initRef = useRef(false);
 
+  const selectedDate =
+    bookingDetails?.bookingDate ?? bookingDetails?.date ?? new Date();
+  const selectedTier = bookingDetails?.tier ?? "regular";
+  const apiTier = selectedTier === "regular" ? "hall" : selectedTier;
+  const selectedHours = Number(bookingDetails?.hours ?? 1);
+  const selectedStartTime = bookingDetails?.startTime ?? new Date();
+
+  // ── Derived pricing ────────────────────────────────────────────────────────
+  const totalPrice =
+    calculateDurationPrice(hPrices?.esport, selectedHours * 60) ?? 0;
+  const serviceFee = Math.round(totalPrice * 0.05);
+  const grandTotal = totalPrice + serviceFee;
+
   useEffect(() => {
-    if (initRef.current || !listing) return;
+    if (initRef.current || !listing || bookingDetails) return;
     initRef.current = true;
     setBookingDetails({
       name: hName,
-      date: sDate,
+      date: selectedDate as Date,
       sportHallID: listing?.sportHallID ?? "",
-      price: hPrices ?? {
-        pcHall: { oneHour: "0", wholeDay: "0" },
-        pcVipHall: { oneHour: "0", wholeDay: "0" },
-        pcStageHall: { oneHour: "0", wholeDay: "0" },
-      },
+      price: hPrices?.esport,
       imageUrls: imgs,
       location: listing?.hall_locations ?? { latitude: "", longitude: "" },
-      tier: sTier,
-      hours: 1,
-      startTime: sTime,
-      bookingDate: sDate,
+      tier: selectedTier,
+      hours: selectedHours,
+      startTime: selectedStartTime,
+      bookingDate: selectedDate,
     } as EsportBookingData);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ── Review fetch ───────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (tab !== "review" || rFetched.current || rEnd || !listing) return;
-    rFetched.current = true;
-    setRLoad(true);
-    let mounted = true;
-    axiosInstanceRegular
-      .get(`/zaal-review/${listing.sportHallID}?page=${rPage}`)
-      .then((res) => {
-        rFetched.current = false;
-        if (!mounted) return;
-        if (!res.data?.success || !res.data.data) {
-          setRLoad(false);
-          return;
-        }
-        const d = res.data.data;
-        setRevs((prev) => {
-          const m = { ...prev };
-          d.reviews.forEach((r: Review) => {
-            if (!prev[r._id]) m[r._id] = r;
-          });
-          const keys = Object.keys(m);
-          if (keys.length > 50)
-            keys.slice(0, keys.length - 50).forEach((k) => delete m[k]);
-          return m;
-        });
-        if (d.reviews.length < 10) setREnd(true);
-        setRRating(d.avg_rating);
-        setRCount(d.review_count);
-        setRLoad(false);
-      })
-      .catch(() => {
-        rFetched.current = false;
-        if (mounted) setRLoad(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, [rPage, tab, listing]);
-
-  useEffect(() => {
-    setRevs({});
-    setRPage(0);
-    setREnd(false);
-    rFetched.current = false;
-  }, [listing?.sportHallID]);
-
-  // ── Detail price gen ───────────────────────────────────────────────────────
-  const priceGen = useCallback(
-    (t: "hour" | "wholeDay") => {
-      if (!hPrices) return null;
-      return Object.entries(hPrices).map(([k, v]: [string, any], i) => (
-        <View key={i} style={dS.priceRow}>
-          <AppText style={[dS.priceLabel, { color: C.onSurface }]}>
-            {fmtK(k)}
-          </AppText>
-          <AppText style={[dS.priceValue, { color: C.accentPrimary }]}>
-            ₩{t === "hour" ? fmtP(v.oneHour) : fmtP(v.wholeDay)}
-          </AppText>
-        </View>
-      ));
-    },
-    [hPrices, C],
-  );
-
-  // ── Detail content ─────────────────────────────────────────────────────────
-  const aFeat = hFeat
-    ? Object.entries(FEATURE_ICONS).filter(
-        ([k]) => hFeat[k as keyof typeof hFeat],
-      )
-    : [];
-  const detContent = useMemo(() => {
-    if (!listing) return {};
-    return {
-      [HallDetailSeparator.DETAILS]: [
-        {
-          label: "About",
-          value: `Premium gaming center with high-spec PCs, ergonomic chairs, and a competitive atmosphere. ${hName} offers the ultimate experience for gamers.`,
-        },
-        {
-          label: "Opening Hours",
-          value: `${hWork?.start_time ?? "00:00"} - ${hWork?.end_time ?? "23:59"}`,
-        },
-        {
-          label: "Phone",
-          value: listing.hall_details.hall_phone_number ?? "N/A",
-        },
-        ...(aFeat.length > 0
-          ? [
-              {
-                label: "Facilities",
-                resolve: aFeat.map(([, v], i) => (
-                  <View style={dS.facItem} key={i}>
-                    <View
-                      style={[dS.facIcon, { backgroundColor: C.accentPrimary }]}
-                    >
-                      {v.icon}
-                    </View>
-                    <AppText style={[dS.facLabel, { color: C.outline }]}>
-                      {v.label}
-                    </AppText>
-                  </View>
-                )),
-              },
-            ]
-          : []),
-        { label: "Prices Per Hour", component: <>{priceGen("hour")}</> },
-        { label: "Whole Day Rates", component: <>{priceGen("wholeDay")}</> },
-      ],
-      [HallDetailSeparator.AMENTITIES]: [
-        {
-          label: "Amenities",
-          value:
-            "High-speed fiber internet, free coffee & snacks, comfortable seating, air conditioning, and 24/7 operation.",
-        },
-      ],
-      [HallDetailSeparator.REVIEW]: [
-        {
-          label: undefined,
-          component: rLoad ? (
-            <View style={dS.loading}>
-              <OwnActivaterIndicator />
-            </View>
-          ) : (
-            <SportHallReviewPage
-              sport_hall_id={listing.sportHallID}
-              reviews={revs}
-              rating={rRating}
-              count={rCount}
-              setPage={setRPage}
-            />
-          ),
-        },
-      ],
-    };
-  }, [listing, aFeat, C, rLoad, revs, rRating, rCount, priceGen]);
+  }, [
+    listing,
+    hName,
+    hPrices,
+    imgs,
+    bookingDetails,
+    selectedDate,
+    selectedTier,
+    selectedHours,
+    selectedStartTime,
+    setBookingDetails,
+  ]);
 
   // ── Booking handler ───────────────────────────────────────────────────────
   // The server pre-checks the slot (conflict + security) when creating the
@@ -376,11 +175,11 @@ const CombinedEsportHall = ({
           booking: {
             type: "esport",
             sport_hall_id: listing?.sportHallID,
-            date: bookingDetails?.bookingDate ?? sDate,
+            date: selectedDate,
             timezone: tz,
-            tier: bookingDetails?.tier ?? sTier,
-            hours: bookingDetails?.hours ?? hours,
-            startTime: bookingDetails?.startTime ?? sTime,
+            tier: apiTier,
+            hours: selectedHours,
+            startTime: selectedStartTime,
           },
         });
         const session = paymentRes.data?.result;
@@ -630,7 +429,16 @@ const CombinedEsportHall = ({
     } finally {
       setWait(false);
     }
-  }, [sDate, sTier, hours, sTime, bookingDetails, listing, hName, grandTotal]);
+  }, [
+    selectedDate,
+    selectedTier,
+    selectedHours,
+    selectedStartTime,
+    bookingDetails,
+    listing,
+    hName,
+    grandTotal,
+  ]);
 
   // ── Confirmation details (memoized) ──────────────────────────────────────
   const confirmItems = useMemo(
@@ -642,75 +450,77 @@ const CombinedEsportHall = ({
       },
       {
         label: "Date",
-        value: format(sDate, dFmt),
+        value: format(new Date(selectedDate), dFmt),
         icon: <Fontisto name="date" size={22} color={C.accentPrimary} />,
       },
       {
         label: "Zone",
-        value: TIERS.find((t) => t.id === sTier)?.label ?? sTier,
+        value: TIERS.find((t) => t.id === selectedTier)?.label ?? selectedTier,
         icon: (
           <MaterialIcons name="monitor" size={22} color={C.accentPrimary} />
         ),
       },
       {
         label: "Duration",
-        value: `${hours} Hour${hours > 1 ? "s" : ""}`,
+        value: `${selectedHours} Hour${selectedHours > 1 ? "s" : ""}`,
         icon: (
           <Ionicons name="time-outline" size={22} color={C.accentPrimary} />
         ),
       },
     ],
-    [hName, sDate, sTier, hours, C.accentPrimary],
+    [hName, selectedDate, selectedTier, selectedHours, C.accentPrimary],
   );
 
-  // ── Step indicator (memoized, tiny) ──────────────────────────────────────
-  const stepDots = useMemo(
-    () => (
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-        {[0, 1].map((i) => (
-          <React.Fragment key={i}>
-            {i > 0 && (
-              <View
-                style={{
-                  width: 24,
-                  height: 2,
-                  backgroundColor: i <= step ? C.accentPrimary : C.border,
-                }}
-              />
-            )}
+  // ── Step indicator ───────────────────────────────────────────────────────
+  const stepDots = (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+      {[0, 1].map((i) => (
+        <React.Fragment key={i}>
+          {i > 0 && (
             <View
               style={{
-                width: i === step ? 26 : 22,
-                height: i === step ? 26 : 22,
-                borderRadius: i === step ? 13 : 11,
-                backgroundColor: i <= step ? C.accentPrimary : "transparent",
-                borderWidth: 2,
-                borderColor: i <= step ? C.accentPrimary : C.outline,
-                alignItems: "center",
-                justifyContent: "center",
+                width: 24,
+                height: 2,
+                backgroundColor: i <= step ? C.accentPrimary : C.border,
               }}
-            >
-              <View
-                style={{
-                  width: i === step ? 10 : 8,
-                  height: i === step ? 10 : 8,
-                  borderRadius: i === step ? 5 : 4,
-                  backgroundColor: i <= step ? C.white : "transparent",
-                }}
-              />
-            </View>
-          </React.Fragment>
-        ))}
-      </View>
-    ),
-    [step, C],
+            />
+          )}
+          <View
+            style={{
+              width: i === step ? 26 : 22,
+              height: i === step ? 26 : 22,
+              borderRadius: i === step ? 13 : 11,
+              backgroundColor: i <= step ? C.accentPrimary : "transparent",
+              borderWidth: 2,
+              borderColor: i <= step ? C.accentPrimary : C.outline,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <View
+              style={{
+                width: i === step ? 10 : 8,
+                height: i === step ? 10 : 8,
+                borderRadius: i === step ? 5 : 4,
+                backgroundColor: i <= step ? C.white : "transparent",
+              }}
+            />
+          </View>
+        </React.Fragment>
+      ))}
+    </View>
   );
 
   // ── Loading / no listing ────────────────────────────────────────────────
   if (wait || !listing) {
     return (
       <View
-        style={[dS.flex, dS.center, { backgroundColor: C.backgroundColor }]}
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: C.backgroundColor,
+        }}
       >
         <OwnActivaterIndicator />
         {waitingText ? (
@@ -729,219 +539,12 @@ const CombinedEsportHall = ({
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  //  DETAIL MODE
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (!book) {
-    return (
-      <View style={[dS.flex, { backgroundColor: C.backgroundColor }]}>
-        <StatusBar
-          translucent
-          backgroundColor="transparent"
-          barStyle="light-content"
-        />
-        <Animated.ScrollView
-          style={{ backgroundColor: C.backgroundColor }}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
-        >
-          <View style={[dS.cWrap, { backgroundColor: C.surfaceHigh }]}>
-            <Carousel
-              ref={imgRef}
-              width={width}
-              height={400}
-              loop={false}
-              data={imgs.length > 0 ? imgs : [""]}
-              scrollAnimationDuration={500}
-              onProgressChange={(p) => {
-                prog.value = p;
-              }}
-              renderItem={({ item }) => (
-                <Image
-                  source={
-                    item
-                      ? { uri: item }
-                      : require("@/assets/images/computerImage/regular.png")
-                  }
-                  style={dS.cImg}
-                />
-              )}
-            />
-            <Pagination.Custom
-              progress={prog}
-              data={imgs.length > 0 ? imgs : [""]}
-              dotStyle={{ width: 25, height: 4, backgroundColor: C.onSurface }}
-              activeDotStyle={{
-                width: 25,
-                height: 4,
-                overflow: "hidden",
-                backgroundColor: C.accentPrimary,
-              }}
-              containerStyle={dS.dots}
-              horizontal
-              onPress={(i) =>
-                imgRef.current?.scrollTo({
-                  count: i - prog.value,
-                  animated: true,
-                })
-              }
-            />
-            <View style={dS.iconRow}>
-              <TouchableOpacity
-                style={[dS.iconBtn, { backgroundColor: "rgba(0,0,0,0.4)" }]}
-                onPress={() => router.back()}
-              >
-                <Feather name="arrow-left" size={22} color="#FFF" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[dS.iconBtn, { backgroundColor: "rgba(0,0,0,0.4)" }]}
-              >
-                <AntDesign name="heart" size={22} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-            <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.6)"]}
-              style={dS.imgGrad}
-            />
-          </View>
-
-          <View
-            style={[
-              dS.titleCard,
-              { backgroundColor: C.surfaceHighest, shadowColor: C.shadowColor },
-            ]}
-          >
-            <LinearGradient
-              colors={[C.accentPrimary, C.accentPrimaryBorder]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={dS.accent}
-            />
-            <AppText style={[dS.hName, { color: C.onSurface }]}>
-              {hName}
-            </AppText>
-            <View style={dS.ratingRow}>
-              <AntDesign name="star" size={14} color="#FFD700" />
-              <AppText style={[dS.ratingTxt, { color: C.onSurfaceVariant }]}>
-                {rRating > 0 ? rRating.toFixed(1) : "4.8"}{" "}
-                <AppText style={{ color: C.outline }}>
-                  ({rCount > 0 ? rCount : 124} reviews)
-                </AppText>
-              </AppText>
-            </View>
-            <View style={dS.addrRow}>
-              <Ionicons name="location-sharp" size={14} color={C.outline} />
-              <AppText
-                style={[dS.addrTxt, { color: C.outline }]}
-                numberOfLines={1}
-              >
-                {hAddr}
-              </AppText>
-            </View>
-          </View>
-
-          <LinearGradient
-            colors={[C.backgroundColor, C.surfaceHigh]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={dS.gWrap}
-          >
-            <View style={dS.cPad}>
-              <View style={[dS.tabRow, { borderBottomColor: C.border }]}>
-                {tabs.map((t) => (
-                  <TouchableOpacity
-                    key={t.key}
-                    onPress={() => setTab(t.key as HallDetailSeparator)}
-                    style={[
-                      dS.tabItem,
-                      tab === t.key && {
-                        borderBottomWidth: 2,
-                        borderBottomColor: C.accentPrimary,
-                      },
-                    ]}
-                  >
-                    <AppText
-                      style={[
-                        dS.tabLabel,
-                        { color: tab === t.key ? C.accentPrimary : C.outline },
-                        tab === t.key && { fontWeight: "700" },
-                      ]}
-                    >
-                      {t.label}
-                    </AppText>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              {(detContent[tab] as any[])?.map((item: any, i: number) => (
-                <View style={dS.sBlock} key={i}>
-                  {item.label && (
-                    <AppText style={[dS.sTitle, { color: C.onSurface }]}>
-                      {item.label}
-                    </AppText>
-                  )}
-                  {"component" in item ? (
-                    <View style={dS.sCont}>{item.component}</View>
-                  ) : "resolve" in item ? (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      style={dS.sCont}
-                    >
-                      {item.resolve}
-                    </ScrollView>
-                  ) : (
-                    <AppText style={[dS.sVal, { color: C.onSurfaceVariant }]}>
-                      {item.value}
-                    </AppText>
-                  )}
-                </View>
-              ))}
-            </View>
-          </LinearGradient>
-        </Animated.ScrollView>
-
-        <View
-          style={[
-            dS.bBar,
-            {
-              backgroundColor: C.surfaceHighest,
-              borderTopColor: C.accentPrimary,
-              borderTopWidth: 2,
-            },
-          ]}
-        >
-          <View>
-            <AppText style={[dS.priceS, { color: C.outline }]}>
-              Starting from
-            </AppText>
-            <View style={{ flexDirection: "row", alignItems: "baseline" }}>
-              <AppText style={[dS.priceB, { color: C.accentPrimary }]}>
-                ₩{hPrices ? fmtP(hPrices.pcHall.oneHour) : "0"}
-              </AppText>
-              <AppText style={[dS.priceU, { color: C.outline }]}>
-                {" "}
-                / hour
-              </AppText>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={[dS.bookBtn, { backgroundColor: C.accentPrimary }]}
-            onPress={() => setBook(true)}
-          >
-            <AppText style={{ color: "#FFF", fontWeight: "700", fontSize: 15 }}>
-              Book Now →
-            </AppText>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
   // ── Common booking header ───────────────────────────────────────────────
   const bkHeader = (
     <View style={[bS.header, { borderBottomColor: C.border }]}>
       <TouchableOpacity
         onPress={() => {
-          step > 0 ? setStep(step - 1) : setBook(false);
+          setStep(step - 1);
         }}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
@@ -965,6 +568,8 @@ const CombinedEsportHall = ({
               : undefined
           }
           grandTotal={grandTotal}
+          subtotal={totalPrice}
+          serviceFee={serviceFee}
         />
       )}
 
@@ -980,8 +585,7 @@ const CombinedEsportHall = ({
             <View>
               <AppText style={[bS.fFootLabel, { color: C.outline }]}>
                 Total for{" "}
-                {TIERS.find((t) => t.id === (bookingDetails?.tier ?? sTier))
-                  ?.label ?? "Zone"}
+                {TIERS.find((t) => t.id === selectedTier)?.label ?? "Zone"}
               </AppText>
               <AppText style={[bS.fFootPrice, { color: C.onSurface }]}>
                 ₩{totalPrice.toLocaleString()}
@@ -1037,94 +641,6 @@ const CombinedEsportHall = ({
     </SafeAreaView>
   );
 };
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  DETAIL STYLES
-// ══════════════════════════════════════════════════════════════════════════════
-const dS = StyleSheet.create({
-  flex: { flex: 1 },
-  center: { justifyContent: "center", alignItems: "center" },
-  cWrap: {
-    height: 350,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    overflow: "hidden",
-  },
-  cImg: { width: "100%", height: "100%" },
-  iconRow: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    right: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  iconBtn: { padding: 10, borderRadius: 25 },
-  imgGrad: { position: "absolute", bottom: 0, left: 0, right: 0, height: 120 },
-  dots: { gap: 12, bottom: 120 },
-  titleCard: {
-    marginHorizontal: 20,
-    marginTop: -60,
-    borderRadius: 30,
-    padding: 22,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  accent: { width: "30%", height: 3, borderRadius: 2, marginBottom: 14 },
-  hName: { fontSize: 20, fontWeight: "700", marginBottom: 6 },
-  ratingRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  ratingTxt: { fontSize: 13, fontWeight: "600" },
-  addrRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6 },
-  addrTxt: { fontSize: 13, flex: 1 },
-  gWrap: { flex: 1 },
-  cPad: { marginHorizontal: 16, flex: 1 },
-  tabRow: {
-    flexDirection: "row",
-    marginTop: 16,
-    marginBottom: 8,
-    borderBottomWidth: 1,
-  },
-  tabItem: { flex: 1, alignItems: "center", paddingVertical: 10 },
-  tabLabel: { fontSize: 14 },
-  sBlock: { paddingVertical: 10 },
-  sTitle: { fontSize: 17, fontWeight: "700", marginBottom: 2 },
-  sCont: { paddingVertical: 6 },
-  sVal: { fontSize: 14, lineHeight: 20 },
-  priceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 4,
-  },
-  priceLabel: { fontWeight: "500", fontSize: 13 },
-  priceValue: { fontWeight: "600", fontSize: 13 },
-  facItem: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    gap: 3,
-  },
-  facIcon: { borderRadius: 22, padding: 8 },
-  facLabel: { textAlign: "center", fontSize: 11 },
-  loading: { justifyContent: "center", alignItems: "center", height: 180 },
-  bBar: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-    elevation: 8,
-  },
-  priceS: { fontSize: 11 },
-  priceB: { fontSize: 22, fontWeight: "800" },
-  priceU: { fontSize: 13, fontWeight: "400" },
-  bookBtn: { paddingVertical: 12, paddingHorizontal: 28, borderRadius: 22 },
-});
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  BOOKING STYLES

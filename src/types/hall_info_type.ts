@@ -1,12 +1,26 @@
+import { HallTypesSeparator } from "./hall_separator_type";
+
+export interface DurationPrice {
+  name: string;
+  durationMinutes: number;
+  price: number | string;
+}
+
+export interface HallPrice {
+  sport?: DurationPrice[];
+  esport?: DurationPrice[];
+}
+
 export interface SportHallPrice {
   oneHour: string;
   wholeDay: string;
+  sport?: DurationPrice[];
+  esport?: DurationPrice[];
 }
 
 export interface EsportHallPrices {
-  pcHall: SportHallPrice;
-  pcVipHall: SportHallPrice;
-  pcStageHall: SportHallPrice;
+  sport: DurationPrice[];
+  esport: DurationPrice[];
 }
 
 export type HallCategoryType = `${HallCategoryValue}`;

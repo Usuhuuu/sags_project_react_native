@@ -23,6 +23,8 @@ import { useWindowDimensions } from "react-native";
 
 interface Step_two_pc_props {
   listing: EsportBookingData | undefined;
+  subtotal?: number;
+  serviceFee?: number;
   grandTotal?: number;
   step?: number;
   setStep?: React.Dispatch<React.SetStateAction<number>>;
@@ -47,7 +49,12 @@ const SummaryRow = ({
   </View>
 );
 
-const Step_two_pc = ({ listing, grandTotal }: Step_two_pc_props) => {
+const Step_two_pc = ({
+  listing,
+  subtotal = 0,
+  serviceFee = 0,
+  grandTotal,
+}: Step_two_pc_props) => {
   const { width } = useWindowDimensions();
   const { colors } = useTheme();
   const bookingDetails = useBookingStore((state) => state.esportBookingDetails);
@@ -225,18 +232,22 @@ const Step_two_pc = ({ listing, grandTotal }: Step_two_pc_props) => {
           ]}
         >
           <SummaryRow
-            label={`${listing?.tier} zone rate (3 Hours)`}
-            value="₩3,000"
+            label={`${bookingDetails.tier ?? "regular"} zone rate (${bookingDetails.hours ?? 0} Hours)`}
+            value={`₩${subtotal.toLocaleString()}`}
             colors={colors}
           />
-          <SummaryRow label="Service Fee" value="₩200" colors={colors} />
+          <SummaryRow
+            label="Service Fee"
+            value={`₩${serviceFee.toLocaleString()}`}
+            colors={colors}
+          />
           <View style={[s.divider, { backgroundColor: colors.borderSubtle }]} />
           <View style={s.totalRow}>
             <AppText style={[s.totalLabel, { color: colors.onSurface }]}>
               Total Amount
             </AppText>
             <AppText style={[s.totalValue, { color: colors.accentPrimary }]}>
-              ₩3,200
+              ₩{(grandTotal ?? subtotal + serviceFee).toLocaleString()}
             </AppText>
           </View>
         </View>

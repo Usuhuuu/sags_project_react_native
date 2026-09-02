@@ -130,7 +130,7 @@ axiosInstance.interceptors.response.use(
               break;
           }
         } catch (refreshError) {
-          console.log("Try again later sda");
+          console.log("refresh error");
         }
       }
     }
@@ -142,13 +142,16 @@ axiosInstance.interceptors.response.use(
     ) {
       originalRequest._versionRetry = true;
       const hallResponse = await axiosInstanceRegular.get("/api/halls");
-      console.log(hallResponse.data.length);
+      console.log("HALL_LENGHT", JSON.parse(hallResponse.data.hallData).length);
       originalRequest.headers["x-hall-version"] = hallResponse.data.version;
       await AsyncStorage.setItem(
         "hall_version",
         String(hallResponse.data.version),
       );
-      await AsyncStorage.setItem("hall_infos", hallResponse.data.hallData);
+      await AsyncStorage.setItem(
+        "hall_infos",
+        JSON.parse(hallResponse.data.hallData),
+      );
       return axiosInstance(originalRequest);
     }
     return Promise.reject(error);

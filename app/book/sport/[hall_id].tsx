@@ -21,9 +21,9 @@ import { saveToken } from "@/components/book/session";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { bookingNotificationSchedule } from "@/context/store/notification_store";
 import { queryClient } from "@/hooks/queryClient";
-import { useHallInfo } from "@/context/hall_info_context";
 import { groupDurationHours } from "@/utils/bookingTime";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { calculateDurationPrice } from "@/utils/duration_price";
 
 export type ReservationBlock = {
   start_time: string;
@@ -144,7 +144,6 @@ const TransactionPage = () => {
   const [reserved_times, setReserved_times] = useState<
     ReservationBlock[] | undefined
   >(undefined);
-  const { getSpecificHall } = useHallInfo();
 
   const bookingDetails = useBookingStore(
     (state) => state.sportBookingDetails,
@@ -171,26 +170,30 @@ const TransactionPage = () => {
 
   const totalPrice = useMemo(() => {
     if (!bookingDetails?.price) return 0;
-    if (wholeDay) return Number(bookingDetails.price.wholeDay);
-    const hourlyRate = Number(bookingDetails.price.oneHour);
-    return timeCount * hourlyRate;
-  }, [bookingDetails?.price, wholeDay, timeCount]);
+    if (wholeDay) {
+      return calculateDurationPrice(bookingDetails.price, 24 * 60) ?? 0;
+    }
+    return selectedTimeSlots.reduce(
+      (total, group) =>
+        total +
+        (calculateDurationPrice(
+          bookingDetails.price,
+          groupDurationHours(group) * 60,
+        ) ?? 0),
+      0,
+    );
+  }, [bookingDetails?.price, wholeDay, selectedTimeSlots]);
 
   const paymentPerPeopleArray = useMemo(() => {
     if (wholeDay) return [];
-    const hourlyRate = Number(bookingDetails?.price?.oneHour || 0);
     return selectedTimeSlots.map((group, index) => {
       const durationHours = groupDurationHours(group);
-      const totalCost = durationHours * hourlyRate;
+      const totalCost =
+        calculateDurationPrice(bookingDetails?.price, durationHours * 60) ?? 0;
       const totalPeople = (playersNeeded[index] || 0) + 1;
       return totalPeople > 0 ? totalCost / totalPeople : 0;
     });
-  }, [
-    selectedTimeSlots,
-    bookingDetails?.price?.oneHour,
-    wholeDay,
-    playersNeeded,
-  ]);
+  }, [selectedTimeSlots, bookingDetails?.price, wholeDay, playersNeeded]);
 
   const totalBookerPaymentArray = paymentPerPeopleArray;
 
@@ -273,7 +276,7 @@ const TransactionPage = () => {
           showToast({
             title: "Payment Failed",
             description: session.error,
-          alertType: "warn",
+            alertType: "warn",
           });
           return;
         }
@@ -285,7 +288,7 @@ const TransactionPage = () => {
           showToast({
             title: "Payment Failed",
             description: "Could not start payment. Please try again.",
-          alertType: "warn",
+            alertType: "warn",
           });
           return;
         } else {
@@ -427,7 +430,7 @@ const TransactionPage = () => {
                 : outcome === "timeout"
                   ? "We couldn't confirm the payment yet. Check your orders shortly."
                   : "Payment canceled. Press book to try again.",
-          alertType: "warn",
+            alertType: "warn",
           });
           return;
         }
@@ -439,7 +442,7 @@ const TransactionPage = () => {
             description:
               err.response.data?.message ||
               "This time slot is no longer available. Please choose another.",
-          alertType: "warn",
+            alertType: "warn",
           });
           return;
         }
@@ -447,7 +450,7 @@ const TransactionPage = () => {
           showToast({
             title: "Please Login",
             description: "Please Login to process to book",
-          alertType: "warn",
+            alertType: "warn",
           });
           return;
         }
@@ -477,7 +480,7 @@ const TransactionPage = () => {
         title: "Payment Successful",
         description:
           "Your booking is being confirmed. Check the Order section shortly.",
-          alertType: "success",
+        alertType: "success",
       });
       // Refresh orders once now and again shortly after so webhook-processed
       // bookings show up in the list.

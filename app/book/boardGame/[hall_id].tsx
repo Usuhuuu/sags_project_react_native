@@ -39,9 +39,9 @@ import {
 } from "@/components/book/strip_calendar";
 import AppText from "@/components/ui/app_text";
 import {
+  DurationPrice,
   EsportHallDataType,
   EsportHallPrices,
-  SportHallPrice,
 } from "@/types/hall_info_type";
 import {
   HallDetailSeparator,
@@ -110,7 +110,7 @@ const formatPrice = (price: string) => {
 const getTierPrice = (
   prices: EsportHallPrices | undefined,
   tier: string,
-): SportHallPrice | null => {
+): DurationPrice | null => {
   if (!prices) return null;
   switch (tier) {
     case "regular":

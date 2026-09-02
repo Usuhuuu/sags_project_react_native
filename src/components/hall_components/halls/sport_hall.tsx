@@ -271,14 +271,11 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
   const imageRef = useRef<ICarouselInstance>(null);
   const progress = useSharedValue(0);
   const [activeTab, setActiveTab] = useState(HallDetailSeparator.DETAILS);
-  const tabs = React.useMemo(
-    () => [
-      { key: HallDetailSeparator.DETAILS, label: "Details" },
-      { key: HallDetailSeparator.AMENTITIES, label: "Amenities" },
-      { key: HallDetailSeparator.REVIEW, label: "Review" },
-    ],
-    [],
-  );
+  const tabs = [
+    { key: HallDetailSeparator.DETAILS, label: "Details" },
+    { key: HallDetailSeparator.AMENTITIES, label: "Amenities" },
+    { key: HallDetailSeparator.REVIEW, label: "Review" },
+  ];
 
   const { getHallTimeSlots } = useHallInfo();
 
@@ -582,4 +579,4 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
   );
 };
 
-export default memo(SportHall);
+export default SportHall;

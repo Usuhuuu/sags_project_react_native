@@ -17,6 +17,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { DurationPrice } from "@/types/hall_info_type";
 
 const PC_BANG_BLUE = "#00d2ff";
 const PC_BANG_PURPLE = "#9d50bb";
@@ -63,25 +64,23 @@ const Step_one_pc = ({
 
   const [selectedData, setSelectedDate] = useState(new Date());
 
-  const packages = [
-    { label: "1 Hour", value: 1, price: 1200 },
-    { label: "3 Hours", value: 3, price: 3000 },
-    { label: "5 Hours", value: 5, price: 9000 },
-    {
-      label: "Night Pass",
-      value: 8,
-      price: 12000,
-      isSpecial: true,
-      night_time: "10PM - 6AM",
-    },
-  ];
-
   const bookingDetails = useBookingStore(
     (state) => state.esportBookingDetails,
   ) as EsportBookingData;
 
   const setBookingDetails = useBookingStore(
     (state) => state.setEsportBookingDetails,
+  );
+
+  const packages = (bookingDetails?.price?.esport ?? []).map(
+    (item: DurationPrice) => ({
+      ...item,
+      label: item.name,
+      value: item.durationMinutes / 60,
+      price: Number(item.price),
+      isSpecial: /night/i.test(item.name),
+      night_time: /night/i.test(item.name) ? item.name : undefined,
+    }),
   );
 
   const updateBookingDetails = useCallback(

@@ -17,14 +17,12 @@ import WeekCalendar from "@/components/book/strip_calendar";
 import { useTheme } from "@/context/theme_context";
 import { HallTypesSeparator } from "@/types/hall_separator_type";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
+import { DurationPrice } from "@/types/hall_info_type";
 
 export type FormData = {
   name: string;
   date: string;
-  price: {
-    oneHour: string;
-    wholeDay: string;
-  };
+  price: DurationPrice[];
   workTime?: string;
   image?: string[];
   location: {
@@ -319,13 +317,6 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   const handleOrder = () => {
     const zaal_id = sportHallID;
     setIsOrderScreenVisible(false);
-    const normalizedPrice = {
-      oneHour: formData.price.oneHour,
-      wholeDay: formData.price.wholeDay,
-      regularPc: (formData as any).price?.regularPc ?? "0",
-      vipPc: (formData as any).price?.vipPc ?? "0",
-      stagePc: (formData as any).price?.stagePc ?? "0",
-    };
 
     useBookingStore.getState().setSportBookingDetails({
       ...formData,
@@ -335,7 +326,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       workTime: formData.workTime,
       baseTime_startAndEnd: `${baseTime_start}~${baseTime_end}`,
       imageUrls: formData.image,
-      price: normalizedPrice,
+      price: formData.price,
     });
     router.push(`/book/sport/${zaal_id}`);
   };

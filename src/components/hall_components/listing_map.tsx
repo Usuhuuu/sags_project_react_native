@@ -19,14 +19,10 @@ import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useTheme } from "@/context/theme_context";
 import { ThemeColors } from "@/theme/colors";
-import OwnActivaterIndicator from "../ui/loader_indicator";
-
-// Guard: both lat and lng must parse to a finite number
-function hasValidCoords(item: SportHallDataType | EsportHallDataType): boolean {
-  const lat = parseFloat(item.hall_locations?.latitude);
-  const lng = parseFloat(item.hall_locations?.longitude);
-  return isFinite(lat) && isFinite(lng);
-}
+import {
+  getHallTypeFromCategories,
+  hallPriceMap,
+} from "@/utils/duration_price";
 
 const INITIAL_REGION = {
   latitude: 47.918873,
@@ -50,9 +46,12 @@ const HallMarker = memo(
     const subtitle =
       item?.hall_locations?.smart_location ?? item.hall_details.hall_address;
     const workTime = `${item.hall_details.hall_work_time.start_time} – ${item.hall_details.hall_work_time.end_time}`;
-    const pricePerHour =
-      (item.hall_details?.hall_price as SportHallPrice)?.oneHour ??
-      (item?.hall_details.hall_price as EsportHallPrices)?.pcHall?.oneHour;
+
+    const separated = getHallTypeFromCategories(item?.hall_types?.sub);
+    if (!separated) return "UNKNOWN";
+    const pricePerHour = item.hall_details?.hall_price?.[
+      hallPriceMap[separated]
+    ]?.find((p) => p.durationMinutes === 60)?.price;
 
     // Stable handlers – recreated only when item location or callbacks change.
     const handleMarkerPress = useCallback(() => {

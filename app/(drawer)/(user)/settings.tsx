@@ -208,7 +208,7 @@ const ProfileSettings: React.FC = () => {
   const testadmin = async () => {
     try {
       const response = await axiosInstance.post("/admin/hall", {
-        hall_version: "1.0.0",
+        hall_version: 10,
       });
       console.log(response.status);
     } catch (err) {

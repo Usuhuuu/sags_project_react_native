@@ -210,9 +210,13 @@ const Step_One = ({
     );
   }, [selectedTimeSlots, wholeDay]);
 
-  const totalPrice = wholeDay
-    ? Number(bookingDetails?.price?.wholeDay || 0)
-    : timeCount * Number(bookingDetails?.price?.oneHour || 0);
+  const oneHour = Number(
+    bookingDetails?.price.find((p) => p.durationMinutes === 60)?.price || 0,
+  );
+  const oneDay = Number(
+    bookingDetails?.price.find((p) => p.durationMinutes === 1440)?.price || 0,
+  );
+  const totalPrice = wholeDay ? oneDay : timeCount * oneHour;
 
   const updateSessions = useMemo(
     () => ({
@@ -263,9 +267,7 @@ const Step_One = ({
                   />
                   <AppText style={s.durationLabel}>1 Hour</AppText>
                 </View>
-                <AppText style={s.priceLabel}>
-                  ₮{bookingDetails?.price.oneHour}
-                </AppText>
+                <AppText style={s.priceLabel}>₮{oneHour}</AppText>
               </View>
             )}
           </View>
