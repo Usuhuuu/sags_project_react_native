@@ -7,7 +7,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/components/ui/app_toast";
 import { AuthProvider } from "@/context/auth_context";
-import HallInfoProvider from "@/context/hall_info_context";
+import HallInfoProvider, { initHallInfo } from "@/context/hall_info_context";
 import { queryClient } from "@/hooks/queryClient";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "@/hooks/i18n_instance";
@@ -25,6 +25,7 @@ import * as Notifications from "expo-notifications";
 import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { mqttService } from "@/hooks/mqttInstance";
+import { useFavoritesStore } from "@/context/store/favorites_store";
 
 // Keep splash visible while app initialises
 SplashScreen.preventAutoHideAsync();
@@ -47,6 +48,7 @@ export function RootLayout() {
         requestLocationPermission(),
         reminderPermission(),
         mqttService.connect(),
+        useFavoritesStore.getState().load(),
       ]);
 
       if (mounted) {
@@ -55,6 +57,7 @@ export function RootLayout() {
     };
 
     initializePermissions();
+    initHallInfo();
 
     return () => {
       mounted = false;

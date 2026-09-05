@@ -31,7 +31,7 @@ import {
 import Animated, { useSharedValue } from "react-native-reanimated";
 import OrderScreen, { FormData } from "@/components/book/detail";
 import SportHallReviewPage, { Review } from "@/app/review/hall_review";
-import { axiosInstanceRegular } from "@/hooks/axiosInstance";
+import axiosInstance, { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import {
   HallDetailSeparator,
   HallTypesSeparator,
@@ -40,6 +40,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { useHallInfo } from "@/context/hall_info_context";
 import { hallPriceMap } from "@/utils/duration_price";
+import { useFavoritesStore } from "@/context/store/favorites_store";
 
 const TabBar = memo(
   ({
@@ -180,7 +181,6 @@ const MainHallComponent = ({
   const { colors: C } = useTheme();
   const { width } = useWindowDimensions();
   const [isOrderVisible, setOrderVisible] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     date: "",
@@ -200,6 +200,11 @@ const MainHallComponent = ({
   const imageRef = useRef<ICarouselInstance>(null);
   const progress = useSharedValue(0);
   const [activeTab, setActiveTab] = useState(HallDetailSeparator.DETAILS);
+
+  const isFavorite = useFavoritesStore((state) =>
+    state.favoriteIds.has(sportHallID),
+  );
+  const toggleFavorite = useFavoritesStore((state) => state.toggle);
 
   const tabs = React.useMemo(
     () => [
@@ -323,6 +328,7 @@ const MainHallComponent = ({
   const dynamicPrice = listing?.hall_details?.hall_price?.[hallMapValue]?.find(
     (p) => p.durationMinutes === 60,
   )?.price;
+
   return (
     <View style={s.flex}>
       <StatusBar
@@ -394,12 +400,14 @@ const MainHallComponent = ({
             </TouchableOpacity>
             <TouchableOpacity
               style={s.iconCircle}
-              onPress={() => setIsLiked(!isLiked)}
+              onPress={() => {
+                toggleFavorite(sportHallID);
+              }}
             >
               <AntDesign
-                name={isLiked ? "heart" : "heart"}
+                name={isFavorite ? "heart" : "heart"}
                 size={20}
-                color={isLiked ? "#FF5A5F" : "#FFF"}
+                color={isFavorite ? "#FF5A5F" : "#FFF"}
               />
             </TouchableOpacity>
           </View>

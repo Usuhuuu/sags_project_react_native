@@ -87,17 +87,20 @@ const HALL_DEFAULT_TIME_SLOTS = [
 ];
 const HallInfoContext = createContext<HallInfoType | undefined>(undefined);
 
-const initHallInfo = async () => {
+export const initHallInfo = async () => {
   try {
-    const response = await axiosInstanceRegular.get("/api/halls");
-    console.log(response);
+    const isExist = await AsyncStorage.getItem("hall_infos");
+    console.log("[HALL] isExist", JSON.parse(isExist ?? "").length);
+    if (isExist) return JSON.parse(isExist);
+    const response = await axiosInstanceRegular.get("/api/hall");
+    console.log("[HALL] response", response.data.hall.length);
     if (response.data) {
       await AsyncStorage.setItem("hall_version", String(response.data.version));
       await AsyncStorage.setItem(
         "hall_infos",
-        JSON.stringify(response.data.hallData),
+        JSON.stringify(response.data.hall),
       );
-      return response.data.hallData;
+      return response.data.hall;
     } else {
       return [];
     }

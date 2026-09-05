@@ -2,6 +2,7 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { showToast } from "@/utils/toast";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFavoritesStore } from "@/context/store/favorites_store";
 
 const apiUrl = process.env.EXPO_PUBLIC_BASE_URL ?? "http://localhost:3000"; //"https://8f9e-118-176-174-110.ngrok-free.app";
 
@@ -133,16 +134,15 @@ axiosInstance.interceptors.response.use(
           console.log("refresh error");
         }
       }
-    }
-    if (
+    } else if (
       error.response &&
       error.response.status === 409 &&
       error.response?.data?.code === "OUTDATED_VERSION" &&
       !originalRequest._versionRetry
     ) {
       originalRequest._versionRetry = true;
-      const hallResponse = await axiosInstanceRegular.get("/api/halls");
-      console.log("HALL_LENGHT", JSON.parse(hallResponse.data.hallData).length);
+      const hallResponse = await axiosInstanceRegular.get("/api/hall");
+      console.log("HALL_LENGHT", hallResponse.data.hall.length);
       originalRequest.headers["x-hall-version"] = hallResponse.data.version;
       await AsyncStorage.setItem(
         "hall_version",
@@ -150,7 +150,7 @@ axiosInstance.interceptors.response.use(
       );
       await AsyncStorage.setItem(
         "hall_infos",
-        JSON.parse(hallResponse.data.hallData),
+        JSON.stringify(hallResponse.data.hall),
       );
       return axiosInstance(originalRequest);
     }

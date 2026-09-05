@@ -56,6 +56,7 @@ export type HallFormValues = {
   prices: { label: string; durationMinutes: number; price: string }[];
   esportAvailability: string[];
   esportPrices: Record<string, string>;
+  esportPackages: Record<string, { name: string; durationMinutes: number; price: string }[]>;
 };
 
 export const emptyHallValues = (): HallFormValues => ({
@@ -87,6 +88,7 @@ export const emptyHallValues = (): HallFormValues => ({
   ],
   esportAvailability: [],
   esportPrices: {},
+  esportPackages: {},
 });
 
 export async function loadSavedHall(): Promise<HallFormValues | null> {
@@ -495,6 +497,9 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
   const [esportPrices, setEsportPrices] = useState<Record<string, string>>(
     initialData?.esportPrices ?? emptyHallValues().esportPrices,
   );
+  const [esportPackages, setEsportPackages] = useState<
+    Record<string, { name: string; durationMinutes: number; price: string }[]>
+  >(initialData?.esportPackages ?? emptyHallValues().esportPackages);
   const [images, setImages] = useState<string[]>(initialData?.imageURIs ?? []);
   const [saving, setSaving] = useState(false);
 
@@ -549,6 +554,35 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
     setEsportPrices((prev) => ({ ...prev, [tier]: v }));
   }, []);
 
+  const updateEsportPackage = useCallback(
+    (tier: string, idx: number, field: "name" | "durationMinutes" | "price", v: string) => {
+      setEsportPackages((prev) => {
+        const list = prev[tier] ?? [];
+        const next = list.map((p, i) =>
+          i === idx
+            ? { ...p, [field]: field === "durationMinutes" ? Number(v) || 0 : v }
+            : p,
+        );
+        return { ...prev, [tier]: next };
+      });
+    },
+    [],
+  );
+
+  const addEsportPackage = useCallback((tier: string) => {
+    setEsportPackages((prev) => ({
+      ...prev,
+      [tier]: [...(prev[tier] ?? []), { name: "", durationMinutes: 60, price: "" }],
+    }));
+  }, []);
+
+  const removeEsportPackage = useCallback((tier: string, idx: number) => {
+    setEsportPackages((prev) => ({
+      ...prev,
+      [tier]: (prev[tier] ?? []).filter((_, i) => i !== idx),
+    }));
+  }, []);
+
   const canSubmit = useCallback(
     () => hallName.trim().length > 0 && subCategories.length > 0 && phone.trim().length > 0,
     [hallName, subCategories, phone],
@@ -577,6 +611,7 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
     prices,
     esportAvailability,
     esportPrices,
+    esportPackages,
   };
 
   const handleSave = useCallback(async () => {
@@ -928,6 +963,24 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                     </View>
                   );
                 })}
+
+                <TouchableOpacity
+                  style={[
+                    styles.cta,
+                    { marginTop: 8, backgroundColor: Colors.surfaceHigh, borderWidth: 1, borderColor: Colors.accentPrimaryBorder },
+                  ]}
+                  activeOpacity={0.85}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(drawer)/(contractor)/esport_packages",
+                    })
+                  }
+                >
+                  <Ionicons name="layers-outline" size={20} color={Colors.accentPrimary} />
+                  <AppText style={{ color: Colors.accentPrimary, fontSize: 16, fontWeight: "700" }}>
+                    Manage Esport Packages
+                  </AppText>
+                </TouchableOpacity>
               </>
             ) : (
               <>

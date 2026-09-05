@@ -41,9 +41,12 @@ const ListingItem = memo(
     onPress: (id: string) => void;
     colors: ReturnType<typeof useTheme>["colors"];
   }) => {
-    const price =
-      item.hall_details?.hall_price?.oneHour ??
-      item.hall_details?.hall_price?.pcHall?.oneHour;
+    const hallPrices = [
+      ...(item.hall_details?.hall_price?.sport ?? []),
+      ...(item.hall_details?.hall_price?.esport ?? []),
+    ];
+    const price = hallPrices.find((p: any) => p.durationMinutes === 60)?.price;
+
     const img = item.hall_details?.hall_imageURLs?.[0];
 
     return (
