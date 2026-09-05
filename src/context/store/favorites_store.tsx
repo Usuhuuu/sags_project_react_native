@@ -48,7 +48,6 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
 
       // Cache exists → use it
       const parsed: unknown = JSON.parse(raw);
-      console.log("PARSED FAV", parsed);
 
       if (Array.isArray(parsed)) {
         const ids = parsed.filter((id): id is string => typeof id === "string");
@@ -60,7 +59,6 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
       }
     } catch (error) {
       console.error("Failed to load favorites:", error);
-
       set({
         isLoaded: true,
       });

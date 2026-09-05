@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ListRenderItemInfo,
   Image,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -52,7 +53,7 @@ const FilterChips = memo(
     onSelect: (f: string) => void;
     colors: any;
   }) => (
-    <View style={s.filterRow}>
+    <ScrollView style={s.filterRow} horizontal>
       {FILTERS.map((f) => {
         const isActive = active === f;
         return (
@@ -84,7 +85,7 @@ const FilterChips = memo(
           </TouchableOpacity>
         );
       })}
-    </View>
+    </ScrollView>
   ),
 );
 

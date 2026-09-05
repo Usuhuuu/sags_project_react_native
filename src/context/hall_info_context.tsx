@@ -90,7 +90,6 @@ const HallInfoContext = createContext<HallInfoType | undefined>(undefined);
 export const initHallInfo = async () => {
   try {
     const isExist = await AsyncStorage.getItem("hall_infos");
-    console.log("[HALL] isExist", JSON.parse(isExist ?? "").length);
     if (isExist) return JSON.parse(isExist);
     const response = await axiosInstanceRegular.get("/api/hall");
     console.log("[HALL] response", response.data.hall.length);
