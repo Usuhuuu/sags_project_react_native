@@ -1,4 +1,10 @@
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
+import {
+  useQuery,
+  useInfiniteQuery,
+  UseQueryOptions,
+  UseInfiniteQueryOptions,
+  QueryFunction,
+} from "@tanstack/react-query";
 import {
   fetchRoleAndProfile,
   normalFetch,
@@ -97,6 +103,13 @@ interface UseRegularQueryProps {
   cacheKey: RQ_regular_cache_key;
   loginStatus: boolean;
 }
+
+export type RQ_infinite_cache_key = readonly [
+  "booked_order",
+  string, // screenSeparator
+  string, // startTime
+  string | null, // endTime
+];
 export const useRegularQuery = (
   props: UseRegularQueryProps,
   options?: Omit<
@@ -115,6 +128,71 @@ export const useRegularQuery = (
     refetchOnMount: options?.refetchOnMount ?? false,
   });
 };
+
+type RegularQueryData = RQ_QUERY_RETURN_TYPE<any>;
+interface UseRegularInfiniteQueryProps {
+  pathname: (page: number) => string;
+  cacheKey: RQ_infinite_cache_key;
+  loginStatus: boolean;
+}
+export function useRegularInfiniteQuery(
+  props: UseRegularInfiniteQueryProps,
+  options?: Omit<
+    UseInfiniteQueryOptions<
+      RegularQueryData,
+      Error,
+      RegularQueryData,
+      RQ_infinite_cache_key,
+      number
+    >,
+    "queryKey" | "queryFn" | "initialPageParam" | "getNextPageParam"
+  >,
+) {
+  const { pathname, cacheKey, loginStatus } = props;
+
+  const queryFn: QueryFunction<
+    RegularQueryData,
+    RQ_infinite_cache_key,
+    number
+  > = async ({ pageParam }) => {
+    try {
+      return (await normalFetch(pathname(pageParam))) as RegularQueryData;
+    } catch (err: any) {
+      console.log(err);
+      const res = err?.response;
+      if (
+        res?.status === 400 &&
+        res?.data?.success === false &&
+        res?.data?.message === "NO MORE"
+      )
+        return {
+          success: true,
+          bookingData: [],
+          noBookingData: [],
+        };
+
+      throw err;
+    }
+  };
+
+  return useInfiniteQuery({
+    queryKey: cacheKey,
+    queryFn,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const bookingData = lastPage?.bookingData;
+      if (!Array.isArray(bookingData)) return undefined;
+      if (bookingData.length < 10) return undefined;
+      return allPages.length + 1;
+    },
+    ...options,
+    enabled: loginStatus && (options?.enabled ?? true),
+    staleTime: options?.staleTime ?? 1000 * 10,
+    refetchOnReconnect: options?.refetchOnReconnect ?? false,
+    refetchOnMount: options?.refetchOnMount ?? false,
+  });
+}
+
 interface UseSimpleQueryProps {
   pathname: string;
   cacheKey: RQ_simple_cache_key;

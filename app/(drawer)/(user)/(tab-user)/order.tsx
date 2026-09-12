@@ -26,28 +26,40 @@ import { useTheme } from "@/context/theme_context";
 import { differenceInMinutes } from "date-fns";
 import { MonthCalendar } from "@/components/book/strip_calendar";
 import dayjs from "dayjs";
-import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
+import {
+  RQ_infinite_cache_key,
+  useRegularInfiniteQuery,
+} from "@/hooks/useQuery";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { useHallInfo } from "@/context/hall_info_context";
 import { useIsFocused } from "expo-router";
 
+const FILTERS = [
+  {
+    label: "All",
+    value: "all",
+  },
+  {
+    label: "Waiting To Play",
+    value: "waiting",
+  },
+  {
+    label: "Confirmed Payments",
+    value: "confirmed",
+  },
+  {
+    label: "Pending Payments",
+    value: "pending",
+  },
+  {
+    label: "Cancelled",
+    value: "cancelled",
+  },
+];
+
 const OrderScreen = () => {
   const { colors: Colors, theme } = useTheme();
-  const [bookingData, setBookingData] = useState<OrderDataTypes>({
-    today_upcoming: [],
-    history: [],
-  });
-  const [loading, setLoading] = useState<boolean>(true);
-  const [page, setPages] = useState<Record<OrderScreenSeparator, number>>({
-    [OrderScreenSeparator.TODAY_UPCOMING]: 1,
-    [OrderScreenSeparator.HISTORY]: 1,
-  });
-  const [hasMore, setHasMore] = useState<Record<OrderScreenSeparator, boolean>>(
-    {
-      [OrderScreenSeparator.TODAY_UPCOMING]: true,
-      [OrderScreenSeparator.HISTORY]: true,
-    },
-  );
+
   const [screenSeparator, setScreenSeparator] = useState<OrderScreenSeparator>(
     OrderScreenSeparator.TODAY_UPCOMING,
   );
@@ -58,28 +70,12 @@ const OrderScreen = () => {
   const [calendarModalVisible, setCalendarModalVisible] = useState(false);
   const [initDate, setInitDate] = useState(dayjs().toDate());
   const [endDateValue, setEndDateValue] = useState<string | null>(null);
+  const [active, setActive] = useState("all");
 
   const { getSpecificHall } = useHallInfo();
   const timezone = encodeURIComponent(
     Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
-
-  useEffect(() => {
-    if (!LoginStatus) {
-      setBookingData({
-        today_upcoming: [],
-        history: [],
-      });
-      setPages({
-        [OrderScreenSeparator.TODAY_UPCOMING]: 1,
-        [OrderScreenSeparator.HISTORY]: 1,
-      });
-      setHasMore({
-        [OrderScreenSeparator.TODAY_UPCOMING]: true,
-        [OrderScreenSeparator.HISTORY]: true,
-      });
-    }
-  }, [LoginStatus]);
 
   const dateString = dayjs(initDate).toISOString().split("T")[0];
   const endDate = endDateValue
@@ -88,184 +84,115 @@ const OrderScreen = () => {
 
   const normalizedEndDate = endDate ?? "none";
 
-  useEffect(() => {
-    setBookingData({ today_upcoming: [], history: [] });
-    setPages({
-      [OrderScreenSeparator.TODAY_UPCOMING]: 1,
-      [OrderScreenSeparator.HISTORY]: 1,
-    });
-    setHasMore({
-      [OrderScreenSeparator.TODAY_UPCOMING]: true,
-      [OrderScreenSeparator.HISTORY]: true,
-    });
-  }, [screenSeparator, dateString, normalizedEndDate]);
   const swrKey = [
     "booked_order",
     screenSeparator,
-    page[screenSeparator],
     dateString,
     normalizedEndDate,
-  ] as const satisfies RQ_regular_cache_key;
+  ] as const satisfies RQ_infinite_cache_key;
   const endDateParam = endDate ? `&endDate=${endDate}` : "";
 
   const isFocused = useIsFocused();
-  const { data, error, isLoading } = useRegularQuery(
+  const {
+    data,
+    error,
+    isLoading,
+    isFetchNextPageError,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useRegularInfiniteQuery(
     {
-      pathname: `/auth/book/${dateString}/${timezone}?page=${page[screenSeparator]}&limit=10&type=${screenSeparator}${endDateParam}`,
       cacheKey: swrKey,
       loginStatus: LoginStatus,
+      pathname: (page) =>
+        `/auth/book/${dateString}/${timezone}?page=${page}&limit=10&type=${screenSeparator}${endDateParam}`,
     },
     {
       enabled: LoginStatus && isFocused,
-      refetchOnMount: true,
-      retry: 3,
     },
   );
 
-  useEffect(() => {
-    if (isLoading) {
-      setLoading(true);
-      return;
-    } else {
-      setLoading(false);
+  const bookingData = useMemo<OrderDataTypes>(() => {
+    if (!data?.success || !Array.isArray(data.bookingData)) {
+      return {
+        today_upcoming: [],
+        history: [],
+      };
     }
-    if (
-      data?.success &&
-      Array.isArray(data.bookingData) &&
-      data.bookingData.length >= 0
-    ) {
-      const seen = new Set();
-      const unique: Return_Type[] = [];
 
-      for (const item of data.bookingData) {
-        if (!seen.has(item._id)) {
-          seen.add(item._id);
-          unique.push({ ...item, zaal_info: getSpecificHall(item.zaal_ID) });
-        }
-      }
-      if (unique.length === 0) return;
-      const sorted = unique.reduce(
-        (acc, booking, index) => {
-          const historyBlocks: Booking_Block_Type[] = [];
-          const upcomingBlocks: Booking_Block_Type[] = [];
+    const seen = new Set<string>();
+    const unique: Return_Type[] = [];
 
-          booking.blocks.forEach((block) => {
-            const startTime = new Date(block.start_time);
-            const blockTime = new Date();
-            const diff = differenceInMinutes(startTime, blockTime);
-            if (diff < 15) {
-              historyBlocks.push(block);
-            } else {
-              upcomingBlocks.push(block);
-            }
-          });
-          // If expired blocks exist → push history booking
-          if (historyBlocks.length > 0) {
-            acc.history.push({
-              ...booking,
-              blocks: historyBlocks,
-            });
-          }
+    for (const item of data.bookingData) {
+      if (seen.has(item._id)) continue;
 
-          // If future blocks exist → push upcoming booking
-          if (upcomingBlocks.length > 0) {
-            acc.today_upcoming.push({
-              ...booking,
-              blocks: upcomingBlocks,
-            });
-          }
+      seen.add(item._id);
 
-          return acc;
-        },
-        { today_upcoming: [] as Return_Type[], history: [] as Return_Type[] },
-      );
-      setBookingData((prev) => {
-        const upcomingMap = new Map<string, Return_Type>(
-          prev.today_upcoming.map((item) => [item._id, item]),
-        );
-        sorted.today_upcoming.forEach((item) =>
-          upcomingMap.set(item._id, item),
-        );
-
-        const historyMap = new Map<string, Return_Type>(
-          prev.history.map((item) => [item._id, item]),
-        );
-        sorted.history.forEach((item) => historyMap.set(item._id, item));
-
-        return {
-          today_upcoming: Array.from(upcomingMap.values()),
-          history: Array.from(historyMap.values()),
-        };
+      unique.push({
+        ...item,
+        zaal_info: getSpecificHall(item.zaal_ID),
       });
-      const PAGE_LIMIT = 10;
-      if (data.bookingData.length < PAGE_LIMIT) {
-        setHasMore((prev) => ({ ...prev, [screenSeparator]: false }));
-      }
     }
-    if (data?.success && data.noBookingData?.length === 0) {
-      setHasMore((prev) => ({
-        ...prev,
-        [screenSeparator]: false,
-      }));
-    }
-    if (error) {
-      const resp = (error as any)?.response;
-      if (
-        resp?.status === 400 &&
-        resp.data?.success === false &&
-        resp.data?.message === "NO MORE"
-      ) {
-        const typeKey = resp.data.type as OrderScreenSeparator;
-        setHasMore((prev) => ({ ...prev, [typeKey]: false }));
-        return;
-      }
-    }
-  }, [data, error, isLoading, screenSeparator]);
+
+    return unique.reduce(
+      (acc, booking) => {
+        const historyBlocks: Booking_Block_Type[] = [];
+        const upcomingBlocks: Booking_Block_Type[] = [];
+
+        booking.blocks.forEach((block) => {
+          const startTime = new Date(block.start_time);
+          const diff = differenceInMinutes(startTime, new Date());
+
+          if (diff < 15) {
+            historyBlocks.push(block);
+          } else {
+            upcomingBlocks.push(block);
+          }
+        });
+
+        if (historyBlocks.length) {
+          acc.history.push({
+            ...booking,
+            blocks: historyBlocks,
+          });
+        }
+
+        if (upcomingBlocks.length) {
+          acc.today_upcoming.push({
+            ...booking,
+            blocks: upcomingBlocks,
+          });
+        }
+
+        return acc;
+      },
+      {
+        today_upcoming: [] as Return_Type[],
+        history: [] as Return_Type[],
+      },
+    );
+  }, [data, getSpecificHall]);
+  console.log(hasNextPage);
 
   const loadMore = useCallback(() => {
-    if (loading || !hasMore[screenSeparator] || !data?.bookingData.length)
-      return;
-    setPages((prev) => ({
-      ...prev,
-      [screenSeparator]: prev[screenSeparator] + 1,
-    }));
-  }, [loading, hasMore, screenSeparator, data]);
+    if (isFetchingNextPage && !hasNextPage) return;
+    fetchNextPage();
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
   const opacity = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
+    opacity: opacity.get(),
   }));
 
   const handleFade = (fadeDuration = 50, fadeLevel = 0.6) => {
-    opacity.value = withSequence(
-      withTiming(fadeLevel, { duration: fadeDuration }),
-      withTiming(1, { duration: fadeDuration }),
+    opacity.set(
+      withSequence(
+        withTiming(fadeLevel, { duration: fadeDuration }),
+        withTiming(1, { duration: fadeDuration }),
+      ),
     );
   };
-
-  const FILTERS = [
-    {
-      label: "All",
-      value: "all",
-    },
-    {
-      label: "Waiting To Play",
-      value: "waiting",
-    },
-    {
-      label: "Confirmed Payments",
-      value: "confirmed",
-    },
-    {
-      label: "Pending Payments",
-      value: "pending",
-    },
-    {
-      label: "Cancelled",
-      value: "cancelled",
-    },
-  ];
-  const [active, setActive] = useState("all");
 
   const handleMonthFilter = ({
     startDate,
@@ -306,15 +233,26 @@ const OrderScreen = () => {
             ),
           };
     return result;
-  }, [active, bookingData]);
+  }, [active, bookingData, screenSeparator]);
 
-  if (isLoading) {
+  if (isLoading && isFetchingNextPage) {
     return (
       <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
         <OwnActivaterIndicator />
       </View>
     );
   }
+  if ((error && !data) || isFetchNextPageError)
+    return (
+      <View>
+        <Text>Something went wrong</Text>
+      </View>
+    );
+
+  const handleSeparatorChange = (separator: OrderScreenSeparator) => {
+    if (separator === screenSeparator) return;
+    setScreenSeparator(separator);
+  };
 
   return (
     <Animated.View
@@ -355,7 +293,7 @@ const OrderScreen = () => {
               onPress={() => {
                 handleFade();
                 //setLoading(true);
-                setScreenSeparator(OrderScreenSeparator.TODAY_UPCOMING);
+                handleSeparatorChange(OrderScreenSeparator.TODAY_UPCOMING);
               }}
               style={[
                 style.separator,
@@ -393,7 +331,7 @@ const OrderScreen = () => {
               onPress={() => {
                 handleFade();
                 //setLoading(true);
-                setScreenSeparator(OrderScreenSeparator.HISTORY);
+                handleSeparatorChange(OrderScreenSeparator.HISTORY);
               }}
               disabled={screenSeparator === OrderScreenSeparator.HISTORY}
             >
@@ -538,20 +476,21 @@ const OrderScreen = () => {
             </ScrollView>
           </View>
 
-          <MonthCalendar
-            calendarModalVisible={calendarModalVisible}
-            setCalendarModalVisible={setCalendarModalVisible}
-            initDate={initDate}
-            handleMonthFilter={handleMonthFilter}
-          />
+          {calendarModalVisible && (
+            <MonthCalendar
+              calendarModalVisible={calendarModalVisible}
+              setCalendarModalVisible={setCalendarModalVisible}
+              initDate={initDate}
+              handleMonthFilter={handleMonthFilter}
+            />
+          )}
 
           <View style={{ flex: 1 }}>
             <Order_Separator
               data={filteredBookingData}
               screen_type={screenSeparator}
-              loading={loading}
+              loading={isLoading}
               loadMore={loadMore}
-              page={page}
             />
           </View>
         </View>

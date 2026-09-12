@@ -8,13 +8,19 @@ import {
   ListRenderItemInfo,
   Image,
   ScrollView,
+  useWindowDimensions,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Animated, {
   useAnimatedStyle,
-  withSpring,
   useSharedValue,
+  withSpring,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
 } from "react-native-reanimated";
 import { useTheme } from "@/context/theme_context";
 import { useHallInfo } from "@/context/hall_info_context";
@@ -27,9 +33,12 @@ import type {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 type HallItem = SportHallDataType | EsportHallDataType;
-const ITEM_HEIGHT = 128;
 const FILTERS = ["All", "Sports", "Esports", "Nearby", "Top Rated"] as const;
 const PAGE_SIZE = 10;
+const MIN_CARD_IMG_W = 96;
+const MAX_CARD_IMG_W = 150;
+const responsiveHeight = (h: number) =>
+  Math.round(Math.min(178, Math.max(132, h * 0.18)));
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -41,7 +50,15 @@ const getPrice = (item: HallItem): string => {
   return "0";
 };
 
-// ─── Filter C hips ──────────────────────────────────────────────────────────────
+const formatSubType = (t: string) =>
+  t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+const isSport = (item: HallItem) => item.hall_types?.main === "sport_hall";
+
+const ItemSeparator = memo(() => <View style={s.separator} />);
+ItemSeparator.displayName = "ItemSeparator";
+
+// ─── Filter Chips ─────────────────────────────────────────────────────────────
 
 const FilterChips = memo(
   ({
@@ -53,21 +70,28 @@ const FilterChips = memo(
     onSelect: (f: string) => void;
     colors: any;
   }) => (
-    <ScrollView style={s.filterRow} horizontal>
+    <ScrollView
+      style={s.filterRow}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={s.filterRowContent}
+    >
       {FILTERS.map((f) => {
         const isActive = active === f;
         return (
           <TouchableOpacity
             key={f}
-            activeOpacity={0.7}
+            activeOpacity={0.75}
             onPress={() => onSelect(f)}
             style={[
               s.chip,
               {
                 backgroundColor: isActive
                   ? colors.accentPrimary
-                  : colors.surface,
-                borderColor: isActive ? colors.accentPrimary : colors.border,
+                  : colors.surfaceHigh,
+                borderColor: isActive
+                  ? colors.accentPrimary
+                  : colors.borderSubtle,
               },
             ]}
           >
@@ -75,8 +99,8 @@ const FilterChips = memo(
               style={[
                 s.chipLabel,
                 {
-                  color: isActive ? "#FFF" : colors.onSurface,
-                  fontWeight: isActive ? "700" : "500",
+                  color: isActive ? "#FFF" : colors.onSurfaceVariant,
+                  fontWeight: isActive ? "700" : "600",
                 },
               ]}
             >
@@ -88,34 +112,89 @@ const FilterChips = memo(
     </ScrollView>
   ),
 );
+FilterChips.displayName = "FilterChips";
 
 // ─── Empty State ───────────────────────────────────────────────────────────────
 
 const EmptyState = memo(
-  ({ colors, onExplore }: { colors: any; onExplore: () => void }) => (
-    <View style={s.emptyWrap}>
+  ({
+    colors,
+    onExplore,
+    containerH,
+  }: {
+    colors: any;
+    onExplore: () => void;
+    containerH: number;
+  }) => {
+    const pulse = useSharedValue(1);
+
+    useEffect(() => {
+      pulse.value = withRepeat(
+        withSequence(
+          withTiming(1.12, {
+            duration: 900,
+            easing: Easing.inOut(Easing.ease),
+          }),
+          withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+        ),
+        -1,
+        true,
+      );
+    }, [pulse]);
+
+    const iconStyle = useAnimatedStyle(
+      () => ({ transform: [{ scale: pulse.value }] }),
+      [],
+    );
+
+    return (
       <View
-        style={[s.emptyIconWrap, { backgroundColor: colors.accentPrimaryGlow }]}
+        style={[
+          s.emptyCard,
+          {
+            minHeight: Math.max(220, containerH * 0.34),
+            backgroundColor: colors.surface,
+          },
+        ]}
       >
-        <Ionicons name="heart-outline" size={52} color={colors.accentPrimary} />
+        <Animated.View
+          style={[
+            s.emptyIconWrap,
+            { backgroundColor: colors.accentPrimaryGlow },
+            iconStyle,
+          ]}
+        >
+          <Ionicons name="heart" size={46} color={colors.accentPrimary} />
+        </Animated.View>
+
+        <View style={s.emptyTextWrap}>
+          <Text style={[s.emptyTitle, { color: colors.onSurface }]}>
+            No favorites yet
+          </Text>
+          <Text style={[s.emptySub, { color: colors.onSurfaceVariant }]}>
+            Tap the heart on any hall to save it here for quick access.
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={onExplore}
+          style={[
+            s.exploreBtn,
+            {
+              backgroundColor: colors.accentPrimary,
+              shadowColor: colors.shadowColor,
+            },
+          ]}
+        >
+          <Ionicons name="compass-outline" size={18} color="#FFF" />
+          <Text style={s.exploreBtnText}>Explore Halls</Text>
+        </TouchableOpacity>
       </View>
-      <Text style={[s.emptyTitle, { color: colors.onSurface }]}>
-        No favorites yet
-      </Text>
-      <Text style={[s.emptySub, { color: colors.outline }]}>
-        Start exploring and save the halls you love
-      </Text>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={onExplore}
-        style={[s.exploreBtn, { backgroundColor: colors.accentPrimary }]}
-      >
-        <Ionicons name="search" size={18} color="#FFF" />
-        <Text style={s.exploreBtnText}>Explore Halls</Text>
-      </TouchableOpacity>
-    </View>
-  ),
+    );
+  },
 );
+EmptyState.displayName = "EmptyState";
 
 // ─── Favorite Card ─────────────────────────────────────────────────────────────
 
@@ -124,12 +203,16 @@ const FavoriteCard = memo(
     item,
     isFav,
     colors,
+    imgWidth,
+    cardH,
     onToggleFav,
     onBook,
   }: {
     item: HallItem;
     isFav: boolean;
     colors: any;
+    imgWidth: number;
+    cardH: number;
     onToggleFav: (id: string) => void;
     onBook: (id: string) => void;
   }) => {
@@ -141,8 +224,9 @@ const FavoriteCard = memo(
       "";
     const price = getPrice(item);
     const subTypes = item.hall_types?.sub ?? [];
-    const heartScale = useSharedValue(isFav ? 1 : 0.85);
+    const wearable = isSport(item);
 
+    const heartScale = useSharedValue(isFav ? 1 : 0.85);
     useEffect(() => {
       heartScale.value = withSpring(isFav ? 1 : 0.85, {
         damping: 8,
@@ -151,9 +235,7 @@ const FavoriteCard = memo(
     }, [isFav, heartScale]);
 
     const heartStyle = useAnimatedStyle(
-      () => ({
-        transform: [{ scale: heartScale.value }],
-      }),
+      () => ({ transform: [{ scale: heartScale.value }] }),
       [],
     );
 
@@ -161,7 +243,6 @@ const FavoriteCard = memo(
       () => onToggleFav(item.sportHallID),
       [item.sportHallID, onToggleFav],
     );
-
     const handleBook = useCallback(
       () => onBook(item.sportHallID),
       [item.sportHallID, onBook],
@@ -171,20 +252,17 @@ const FavoriteCard = memo(
       <View
         style={[
           s.card,
-          { backgroundColor: colors.surface, borderColor: colors.border },
+          {
+            height: cardH,
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+            shadowColor: colors.shadowColor,
+          },
         ]}
       >
-        {/* Image */}
-        <View style={s.cardImgWrap}>
+        <View style={[s.cardImgWrap, { width: imgWidth }]}>
           {img ? (
-            <Image
-              source={{ uri: img }}
-              style={s.cardImg}
-              //contentFit="cover"
-              //cachePolicy="memory-disk"
-              //placeholder={{ blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4" }}
-              //transition={200}
-            />
+            <Image source={{ uri: img }} style={s.cardImg} />
           ) : (
             <View
               style={[
@@ -199,26 +277,29 @@ const FavoriteCard = memo(
               />
             </View>
           )}
-          {/* Favorite toggle */}
+
+          <View style={s.imgFade} pointerEvents="none" />
+
           <Animated.View style={[s.favBtn, heartStyle]}>
             <TouchableOpacity onPress={handleFav} hitSlop={8}>
               <Ionicons
                 name={isFav ? "heart" : "heart-outline"}
-                size={22}
-                color={isFav ? "#FF3B30" : "#FFF"}
+                size={20}
+                color={isFav ? "#FF453A" : "#FFF"}
               />
             </TouchableOpacity>
           </Animated.View>
-          {/* Distance badge */}
-          <View style={[s.distBadge, { backgroundColor: "rgba(0,0,0,0.55)" }]}>
-            <Ionicons name="location" size={10} color="#FFF" />
-            <Text style={s.distText}>
-              {(Math.random() * 5 + 0.5).toFixed(1)} km
-            </Text>
-          </View>
+
+          {wearable && (
+            <View style={s.distBadge}>
+              <Ionicons name="location" size={10} color="#FFF" />
+              <Text style={s.distText}>
+                {(item.hall_locations?.distanceKm ?? 1.2).toFixed(1)} km
+              </Text>
+            </View>
+          )}
         </View>
 
-        {/* Info */}
         <View style={s.cardInfo}>
           <Text
             style={[s.cardName, { color: colors.onSurface }]}
@@ -226,22 +307,22 @@ const FavoriteCard = memo(
           >
             {name}
           </Text>
+
           <View style={s.addressRow}>
             <Ionicons
               name="location-outline"
               size={11}
-              color={colors.outline}
+              color={colors.onSurfaceVariant}
             />
             <Text
-              style={[s.addressText, { color: colors.outline }]}
+              style={[s.addressText, { color: colors.onSurfaceVariant }]}
               numberOfLines={1}
             >
-              {address}
+              {address || "Location coming soon"}
             </Text>
           </View>
 
-          {/* Sport badges */}
-          {subTypes.length > 0 && (
+          {subTypes.length > 0 ? (
             <View style={s.badgeRow}>
               {subTypes.slice(0, 3).map((t) => (
                 <View
@@ -252,29 +333,49 @@ const FavoriteCard = memo(
                   ]}
                 >
                   <Text style={[s.badgeLabel, { color: colors.accentPrimary }]}>
-                    {t.replace(/_/g, " ")}
+                    {formatSubType(t)}
                   </Text>
                 </View>
               ))}
             </View>
+          ) : (
+            <View style={[s.badge, { backgroundColor: colors.surfaceHigh }]}>
+              <Text style={[s.badgeLabel, { color: colors.onSurfaceVariant }]}>
+                {wearable ? "Sport Hall" : "Esports Hall"}
+              </Text>
+            </View>
           )}
 
-          {/* Bottom row: price + rating + book */}
           <View style={s.bottomRow}>
-            <Text style={[s.price, { color: colors.accentPrimary }]}>
-              ₮{Number(price).toLocaleString()}
-              <Text style={[s.unit, { color: colors.outline }]}> / hr</Text>
-            </Text>
-            <View style={s.ratingWrap}>
-              <Ionicons name="star" size={12} color="#FFD700" />
-              <Text style={[s.ratingText, { color: colors.outline }]}>4.8</Text>
+            <View style={s.priceWrap}>
+              <Text style={[s.price, { color: colors.accentPrimary }]}>
+                ₮{Number(price).toLocaleString()}
+                <Text style={[s.unit, { color: colors.outline }]}> /hr</Text>
+              </Text>
             </View>
+
+            <View
+              style={[s.ratingWrap, { backgroundColor: colors.surfaceHigh }]}
+            >
+              <Ionicons name="star" size={11} color="#F5B301" />
+              <Text style={[s.ratingText, { color: colors.onSurfaceVariant }]}>
+                {"4.8"}
+              </Text>
+            </View>
+
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={handleBook}
-              style={[s.bookBtn, { backgroundColor: colors.accentPrimary }]}
+              style={[
+                s.bookBtn,
+                {
+                  backgroundColor: colors.accentPrimary,
+                  shadowColor: colors.shadowColor,
+                },
+              ]}
             >
-              <Text style={s.bookBtnText}>Book Now</Text>
+              <Ionicons name="calendar-outline" size={13} color="#FFF" />
+              <Text style={s.bookBtnText}>Book</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -282,8 +383,7 @@ const FavoriteCard = memo(
     );
   },
 );
-
-// ─── Main Screen ───────────────────────────────────────────────────────────────
+FavoriteCard.displayName = "FavoriteCard";
 
 export default function FavoritesScreen() {
   const { colors: C } = useTheme();
@@ -299,6 +399,18 @@ export default function FavoritesScreen() {
   const [page, setPage] = useState(1);
   const mountedRef = useRef(true);
 
+  const { width, height } = useWindowDimensions();
+
+  const cardImgWidth = useMemo(
+    () =>
+      Math.max(
+        MIN_CARD_IMG_W,
+        Math.min(MAX_CARD_IMG_W, Math.round(width * 0.3)),
+      ),
+    [width],
+  );
+  const cardHeight = useMemo(() => responsiveHeight(height), [height]);
+
   useEffect(() => {
     loadFavs();
     return () => {
@@ -306,7 +418,6 @@ export default function FavoritesScreen() {
     };
   }, [loadFavs]);
 
-  // Get all halls and filter by favorites
   const allHalls = useMemo(() => Object.values(getAllHalls()), [getAllHalls]);
 
   const favoriteHalls = useMemo(
@@ -314,7 +425,6 @@ export default function FavoritesScreen() {
     [allHalls, favoriteIds],
   );
 
-  // Search + filter
   const filtered = useMemo(() => {
     let result = favoriteHalls;
 
@@ -332,12 +442,10 @@ export default function FavoritesScreen() {
     } else if (filter === "Esports") {
       result = result.filter((h) => h.hall_types?.main === "esport_hall");
     }
-    // "Nearby" and "Top Rated" are placeholders for future geo/rating sort
 
     return result;
   }, [favoriteHalls, search, filter]);
 
-  // Pagination
   const displayed = useMemo(
     () => filtered.slice(0, page * PAGE_SIZE),
     [filtered, page],
@@ -349,9 +457,7 @@ export default function FavoritesScreen() {
   }, [hasMore]);
 
   const handleToggleFav = useCallback(
-    (id: string) => {
-      toggleFav(id);
-    },
+    (id: string) => toggleFav(id),
     [toggleFav],
   );
 
@@ -369,11 +475,11 @@ export default function FavoritesScreen() {
 
   const getItemLayout = useCallback(
     (_: any, index: number) => ({
-      length: ITEM_HEIGHT,
-      offset: ITEM_HEIGHT * index,
+      length: cardHeight + 12,
+      offset: (cardHeight + 12) * index,
       index,
     }),
-    [],
+    [cardHeight],
   );
 
   const renderItem = useCallback(
@@ -382,24 +488,43 @@ export default function FavoritesScreen() {
         item={item}
         isFav={favoriteIds.has(item.sportHallID)}
         colors={C}
+        imgWidth={cardImgWidth}
+        cardH={cardHeight}
         onToggleFav={handleToggleFav}
         onBook={handleBook}
       />
     ),
-    [favoriteIds, C, handleToggleFav, handleBook],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [C, cardImgWidth, cardHeight, handleToggleFav, handleBook],
   );
 
   const listHeader = useMemo(
     () => (
       <>
-        {/* Search bar */}
+        <View style={s.titleRow}>
+          <Text style={[s.title, { color: C.onSurface }]}>Favorites</Text>
+          {favoriteHalls.length > 0 && (
+            <View
+              style={[s.countBadge, { backgroundColor: C.accentPrimaryGlow }]}
+            >
+              <Text style={[s.countText, { color: C.accentPrimary }]}>
+                {favoriteHalls.length}
+              </Text>
+            </View>
+          )}
+        </View>
+
         <View
           style={[
             s.searchWrap,
-            { backgroundColor: C.surface, borderColor: C.border },
+            {
+              backgroundColor: C.surface,
+              borderColor: C.borderSubtle,
+              shadowColor: C.shadowColor,
+            },
           ]}
         >
-          <Ionicons name="search" size={18} color={C.outline} />
+          <Ionicons name="search" size={18} color={C.onSurfaceVariant} />
           <TextInput
             placeholder="Search favorites..."
             placeholderTextColor={C.outline}
@@ -415,54 +540,75 @@ export default function FavoritesScreen() {
             </TouchableOpacity>
           )}
         </View>
-        {/* Filter chips */}
+
         <FilterChips active={filter} onSelect={setFilter} colors={C} />
       </>
     ),
-    [C, search, filter],
+    [C, search, filter, favoriteHalls.length],
   );
 
-  const emptyComponent = useMemo(
-    () => <EmptyState colors={C} onExplore={handleExplore} />,
-    [C, handleExplore],
+  const EmptyComponent = useMemo(
+    () => (
+      <EmptyState
+        colors={C}
+        onExplore={handleExplore}
+        containerH={height * 0.4}
+      />
+    ),
+    [C, handleExplore, height],
   );
 
   const footerComponent = useMemo(
     () =>
       hasMore ? (
         <View style={s.footer}>
+          <View
+            style={[
+              s.footerSpinner,
+              { borderTopColor: C.accentPrimary, borderColor: C.borderSubtle },
+            ]}
+          />
           <Text style={[s.footerText, { color: C.outline }]}>
             Loading more...
           </Text>
         </View>
+      ) : displayed.length > 0 ? (
+        <View style={s.footer}>
+          <Text style={[s.footerEndText, { color: C.outline }]}>
+            {"You're all caught up"}
+          </Text>
+        </View>
       ) : null,
-    [hasMore, C.outline],
+    [hasMore, displayed.length, C],
   );
 
   if (!isLoaded) return null;
 
   return (
     <View style={[s.screen, { backgroundColor: C.backgroundColor }]}>
-      {favoriteHalls.length === 0 ? (
-        emptyComponent
-      ) : (
-        <Animated.FlatList
-          data={displayed}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          ListHeaderComponent={listHeader}
-          ListFooterComponent={footerComponent}
-          contentContainerStyle={s.listContent}
-          showsVerticalScrollIndicator={false}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
-          getItemLayout={getItemLayout}
-          initialNumToRender={6}
-          maxToRenderPerBatch={5}
-          windowSize={5}
-          removeClippedSubviews={true}
-        />
-      )}
+      <Animated.FlatList
+        data={displayed}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        ListHeaderComponent={listHeader}
+        ListFooterComponent={footerComponent}
+        ListEmptyComponent={EmptyComponent}
+        contentContainerStyle={[
+          s.listContent,
+          { paddingBottom: Platform.OS === "ios" ? 40 : 32 },
+          displayed.length === 0 && s.emptyListContent,
+        ]}
+        showsVerticalScrollIndicator={false}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.4}
+        getItemLayout={getItemLayout}
+        initialNumToRender={5}
+        maxToRenderPerBatch={4}
+        windowSize={5}
+        removeClippedSubviews={true}
+        updateCellsBatchingPeriod={40}
+        ItemSeparatorComponent={ItemSeparator}
+      />
     </View>
   );
 }
@@ -471,58 +617,91 @@ export default function FavoritesScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
+
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 32,
   },
+  separator: { height: 12 },
+  emptyListContent: {
+    flexGrow: 1,
+  },
+
+  // Header
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
+  title: { fontSize: 28, fontWeight: "800", letterSpacing: -0.5 },
+  countBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  countText: { fontSize: 13, fontWeight: "700" },
+
   // Search
   searchWrap: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    height: 44,
-    borderRadius: 22,
+    height: 46,
+    borderRadius: 23,
     borderWidth: 1,
     paddingHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 2,
   },
   searchInput: {
     flex: 1,
     fontSize: 15,
     paddingVertical: 0,
   },
+
   // Filter chips
   filterRow: {
-    flexDirection: "row",
+    flexGrow: 0,
+    paddingVertical: 12,
+  },
+  filterRowContent: {
     gap: 8,
-    paddingVertical: 8,
-    marginBottom: 4,
+    paddingHorizontal: 1,
   },
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 22,
     borderWidth: 1,
   },
   chipLabel: { fontSize: 13 },
+
   // Card
   card: {
     flexDirection: "row",
-    height: ITEM_HEIGHT,
-    marginBottom: 12,
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
     overflow: "hidden",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardImgWrap: {
-    width: 120,
     height: "100%",
     position: "relative",
   },
   cardImg: {
     width: "100%",
     height: "100%",
+  },
+  imgFade: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0,0,0,0.18)",
   },
   imgPlaceholder: {
     width: "100%",
@@ -532,109 +711,152 @@ const s = StyleSheet.create({
   },
   favBtn: {
     position: "absolute",
-    top: 6,
-    right: 6,
+    top: 8,
+    right: 8,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.32)",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(255,255,255,0.25)",
   },
   distBadge: {
     position: "absolute",
-    bottom: 6,
-    left: 6,
+    bottom: 8,
+    left: 8,
     flexDirection: "row",
     alignItems: "center",
     gap: 3,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 9,
+    backgroundColor: "rgba(0,0,0,0.55)",
   },
   distText: { color: "#FFF", fontSize: 10, fontWeight: "600" },
   cardInfo: {
     flex: 1,
-    padding: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     justifyContent: "space-between",
   },
-  cardName: { fontSize: 14, fontWeight: "700" },
+  cardName: { fontSize: 15, fontWeight: "800", letterSpacing: -0.2 },
   addressRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 3,
-    marginTop: 2,
+    gap: 4,
+    marginTop: 3,
   },
   addressText: { fontSize: 11, flex: 1 },
   badgeRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 4,
-    marginTop: 4,
+    gap: 5,
+    marginTop: 6,
   },
   badge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
-  badgeLabel: { fontSize: 9, fontWeight: "600", textTransform: "capitalize" },
+  badgeLabel: { fontSize: 9, fontWeight: "700", textTransform: "capitalize" },
   bottomRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    marginTop: 6,
+    gap: 8,
+    marginTop: 8,
   },
-  price: { fontSize: 13, fontWeight: "800" },
+  priceWrap: { flex: 1 },
+  price: { fontSize: 14, fontWeight: "800" },
   unit: { fontSize: 10, fontWeight: "400" },
   ratingWrap: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
-  },
-  ratingText: { fontSize: 11, fontWeight: "600" },
-  bookBtn: {
-    marginLeft: "auto",
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
     borderRadius: 8,
   },
+  ratingText: { fontSize: 10, fontWeight: "700" },
+  bookBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 13,
+    paddingVertical: 7,
+    borderRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   bookBtnText: { color: "#FFF", fontSize: 11, fontWeight: "700" },
+
   // Empty
-  emptyWrap: {
-    flex: 1,
+  emptyCard: {
+    marginTop: 8,
+    borderRadius: 22,
+    paddingHorizontal: 28,
+    paddingVertical: 36,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 40,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
   },
   emptyIconWrap: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 92,
+    height: 92,
+    borderRadius: 46,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 22,
+  },
+  emptyTextWrap: {
+    alignItems: "center",
+    marginBottom: 26,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 21,
+    fontWeight: "800",
     marginBottom: 8,
+    letterSpacing: -0.3,
   },
   emptySub: {
     fontSize: 14,
     textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
+    lineHeight: 21,
   },
   exploreBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
+    paddingHorizontal: 26,
+    paddingVertical: 13,
+    borderRadius: 26,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   exploreBtnText: { color: "#FFF", fontSize: 15, fontWeight: "700" },
+
   // Footer
-  footer: { paddingVertical: 16, alignItems: "center" },
+  footer: {
+    paddingVertical: 18,
+    alignItems: "center",
+    gap: 8,
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  footerSpinner: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+  },
   footerText: { fontSize: 12, fontWeight: "600" },
+  footerEndText: { fontSize: 12, fontWeight: "600", opacity: 0.6 },
 });

@@ -3,7 +3,7 @@ import {
   OrderScreenSeparator,
   OrderDataTypes,
 } from "@/types/book_type";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   View,
   FlatList,
@@ -16,7 +16,7 @@ import {
   BookingSkeleton,
   OrderItem,
 } from "@/components/book/order_inside_list";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useTheme } from "@/context/theme_context";
 import * as SecureStorage from "expo-secure-store";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
@@ -37,8 +37,108 @@ interface Order_Separator_props {
   screen_type: OrderScreenSeparator;
   loadMore: () => void;
   loading: boolean;
-  page: Record<OrderScreenSeparator, number>;
 }
+
+const getUniqueListWithSessions = async (
+  orderList: Return_Type[],
+  loadValidSessions: () => Promise<string[]>,
+): Promise<Return_Type[]> => {
+  if (!orderList || orderList.length === 0) return [];
+  let updatedList = [...orderList];
+  try {
+    const validSessions = await loadValidSessions();
+    validSessions.forEach((session) => {
+      try {
+        const decoded = atob(session);
+        const parsed = JSON.parse(decoded) as Booking_Time_Validation_payload;
+        updatedList = updatedList.map((hall) => {
+          let parsed_start_time = "",
+            parsed_end_time = "";
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          if (parsed.type === "esport" && parsed.startTime !== undefined) {
+            [parsed_start_time] = new Date(parsed.startTime)
+              .toLocaleTimeString("en-US", {
+                timeZone: tz,
+                hour12: false,
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+              .split(" - ");
+            [parsed_end_time] = new Date(
+              new Date(parsed.startTime).getTime() +
+                (parsed.timePackage ?? 0) * 60000,
+            )
+              .toLocaleTimeString("en-US", {
+                timeZone: tz,
+                hour12: false,
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+              .split(" - ");
+          } else if (parsed.type === "sport") {
+            [parsed_start_time, parsed_end_time] = parsed.time_slots.split("~");
+          }
+          console.log("endTime work needed");
+
+          const sameSportHall =
+            hall.zaal_ID.toString() === parsed.sport_hall_id.toString();
+          const sameDay =
+            new Date(hall.day).getTime() === new Date(parsed.date).getTime();
+
+          let sameTimeSlots =
+            parsed.type === "esport"
+              ? true
+              : hall.blocks.some(
+                  (block) =>
+                    new Date(block.start_time).getTime() ===
+                      new Date(parsed_start_time).getTime() &&
+                    new Date(block.end_time).getTime() ===
+                      new Date(parsed_end_time).getTime(),
+                );
+
+          if (sameSportHall && sameDay && sameTimeSlots) {
+            return {
+              ...hall,
+              session_obj: {
+                time_slots: parsed.time_slots,
+                date: parsed.date,
+                token: parsed.token,
+                sport_hall_id: parsed.sport_hall_id,
+                expireAt: parsed.expireAt,
+                createdAt: parsed.createdAt,
+                type: parsed.type,
+              },
+            };
+          }
+          return hall;
+        });
+      } catch (err) {
+        console.log("Error on validation session", err);
+      }
+    });
+  } catch (err) {
+    console.warn("Failed to parse paymentSession:", err);
+  }
+
+  const seen = new Set<string>();
+  const filtered = updatedList.filter((hall) => {
+    if (seen.has(hall._id)) return false;
+    seen.add(hall._id);
+    return true;
+  });
+  // Sort by day
+  return filtered.sort((a, b) => {
+    const aHasSession = Boolean(a.session_obj);
+    const bHasSession = Boolean(b.session_obj);
+    if (aHasSession !== bHasSession) {
+      return aHasSession ? -1 : 1;
+    }
+
+    const dayA = new Date(Array.isArray(a.day) ? a.day[0] : a.day).getTime();
+    const dayB = new Date(Array.isArray(b.day) ? b.day[0] : b.day).getTime();
+    return dayA - dayB;
+  });
+};
 
 const Order_Separator = ({
   data,
@@ -47,7 +147,6 @@ const Order_Separator = ({
   loading,
 }: Order_Separator_props) => {
   const { colors: Colors, theme } = useTheme();
-  const [orderList, setOrderList] = useState<Return_Type[]>();
   const [uniqueList, setUniqueList] = useState<Return_Type[]>([]);
   const [listLoading, setListLoading] = useState(true);
   const sessionCacheRef = useRef<{
@@ -59,20 +158,12 @@ const Order_Separator = ({
   });
   const { height } = Dimensions.get("screen");
   const { height: windowHeight } = Dimensions.get("window");
-
-  useEffect(() => {
-    //setUniqueList([]);
-    if (screen_type === OrderScreenSeparator.TODAY_UPCOMING) {
-      setOrderList(data?.today_upcoming);
-    } else if (screen_type === OrderScreenSeparator.HISTORY) {
-      setOrderList(data?.history);
-    }
-  }, [screen_type, data]);
-
-  const loadValidSessions = async (): Promise<string[]> => {
+  const loadValidSessions = useCallback(async (): Promise<string[]> => {
     try {
       const indexStr = await SecureStorage.getItemAsync("paymentSessionIndex");
+
       const index = indexStr ? parseInt(indexStr, 10) : 0;
+
       if (
         sessionCacheRef.current.lastIndex === index &&
         sessionCacheRef.current.tokens.length
@@ -82,146 +173,72 @@ const Order_Separator = ({
 
       const now = Date.now();
       const valid: string[] = [];
+
       for (let i = 1; i <= index; i++) {
         const dataStr = await SecureStorage.getItemAsync(`paymentSession_${i}`);
+
         if (!dataStr) continue;
+
         const { token, expireAt } = JSON.parse(dataStr);
-        if (expireAt > now) valid.push(token);
-        else {
+
+        if (expireAt > now) {
+          valid.push(token);
+        } else {
           await SecureStorage.deleteItemAsync(`paymentSession_${i}`);
         }
       }
-      sessionCacheRef.current = { tokens: valid, lastIndex: index };
+
+      sessionCacheRef.current = {
+        tokens: valid,
+        lastIndex: index,
+      };
+
       return valid;
     } catch (err) {
       console.warn("session load failed", err);
       return [];
     }
-  };
+  }, []);
 
-  const getUniqueListWithSessions = async (
-    orderList: Return_Type[],
-  ): Promise<Return_Type[]> => {
-    if (!orderList || orderList.length === 0) return [];
-    let updatedList = [...orderList];
-    try {
-      const validSessions = await loadValidSessions();
-      validSessions.forEach((session) => {
-        try {
-          const decoded = atob(session);
-          const parsed = JSON.parse(decoded) as Booking_Time_Validation_payload;
-          updatedList = updatedList.map((hall) => {
-            let parsed_start_time = "",
-              parsed_end_time = "";
-            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            if (parsed.type === "esport" && parsed.startTime !== undefined) {
-              [parsed_start_time] = new Date(parsed.startTime)
-                .toLocaleTimeString("en-US", {
-                  timeZone: tz,
-                  hour12: false,
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-                .split(" - ");
-              [parsed_end_time] = new Date(
-                new Date(parsed.startTime).getTime() +
-                  (parsed.timePackage ?? 0) * 60000,
-              )
-                .toLocaleTimeString("en-US", {
-                  timeZone: tz,
-                  hour12: false,
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-                .split(" - ");
-            } else if (parsed.type === "sport") {
-              [parsed_start_time, parsed_end_time] =
-                parsed.time_slots.split("~");
-            }
-            console.log("endTime work needed");
-
-            const sameSportHall =
-              hall.zaal_ID.toString() === parsed.sport_hall_id.toString();
-            const sameDay =
-              new Date(hall.day).getTime() === new Date(parsed.date).getTime();
-
-            let sameTimeSlots =
-              parsed.type === "esport"
-                ? true
-                : hall.blocks.some(
-                    (block) =>
-                      new Date(block.start_time).getTime() ===
-                        new Date(parsed_start_time).getTime() &&
-                      new Date(block.end_time).getTime() ===
-                        new Date(parsed_end_time).getTime(),
-                  );
-
-            if (sameSportHall && sameDay && sameTimeSlots) {
-              return {
-                ...hall,
-                session_obj: {
-                  time_slots: parsed.time_slots,
-                  date: parsed.date,
-                  token: parsed.token,
-                  sport_hall_id: parsed.sport_hall_id,
-                  expireAt: parsed.expireAt,
-                  createdAt: parsed.createdAt,
-                  type: parsed.type,
-                },
-              };
-            }
-            return hall;
-          });
-        } catch (err) {
-          console.log("Error on validation session", err);
-        }
-      });
-    } catch (err) {
-      console.warn("Failed to parse paymentSession:", err);
+  const orderList: Return_Type[] = useMemo(() => {
+    if (screen_type === OrderScreenSeparator.TODAY_UPCOMING) {
+      return data?.today_upcoming ?? [];
+    } else if (screen_type === OrderScreenSeparator.HISTORY) {
+      return data?.history ?? [];
     }
-
-    const seen = new Set<string>();
-    const filtered = updatedList.filter((hall) => {
-      if (seen.has(hall._id)) return false;
-      seen.add(hall._id);
-      return true;
-    });
-    // Sort by day
-    return filtered.sort((a, b) => {
-      const aHasSession = Boolean(a.session_obj);
-      const bHasSession = Boolean(b.session_obj);
-      if (aHasSession !== bHasSession) {
-        return aHasSession ? -1 : 1;
-      }
-
-      const dayA = new Date(Array.isArray(a.day) ? a.day[0] : a.day).getTime();
-      const dayB = new Date(Array.isArray(b.day) ? b.day[0] : b.day).getTime();
-      return dayA - dayB;
-    });
-  };
+    return [];
+  }, [data, screen_type]);
 
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
 
       const load = async () => {
+        if (!isActive) return;
         setListLoading(true);
         if (!orderList || orderList.length === 0) {
           setUniqueList([]);
           setListLoading(false);
           return;
         }
-        const list = await getUniqueListWithSessions(orderList);
-        if (isActive) {
-          setUniqueList(list);
-          setListLoading(false);
+        try {
+          const list = await getUniqueListWithSessions(
+            orderList,
+            loadValidSessions,
+          );
+          if (isActive) setUniqueList(list);
+        } catch (err) {
+          console.log(err);
+          if (isActive) setUniqueList([]);
+        } finally {
+          if (isActive) setListLoading(false);
         }
       };
       load();
       return () => {
         isActive = false;
       };
-    }, [orderList]),
+    }, [orderList, loadValidSessions]),
   );
   const { width } = Dimensions.get("window");
 
@@ -240,7 +257,7 @@ const Order_Separator = ({
             marginVertical: 10,
           }}
         >
-          <BookingSkeleton width={width} theme={theme} color={Colors} />
+          <BookingSkeleton width={width} theme={theme} />
         </View>
       ) : (
         <OrderItem item={item} />
