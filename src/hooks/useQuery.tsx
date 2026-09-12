@@ -158,7 +158,6 @@ export function useRegularInfiniteQuery(
     try {
       return (await normalFetch(pathname(pageParam))) as RegularQueryData;
     } catch (err: any) {
-      console.log(err);
       const res = err?.response;
       if (
         res?.status === 400 &&

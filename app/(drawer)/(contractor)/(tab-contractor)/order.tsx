@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  StyleSheet,
   View,
   Text,
   TextInput,
@@ -30,7 +29,7 @@ const MAX_ITEMS = 100;
 const ListEmpty = () => null;
 
 const ContractorBooking = () => {
-  const { colors, theme } = useTheme();
+  const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<"UPCOMING" | "ACTIVE" | "HISTORY">(
     "UPCOMING",
   );

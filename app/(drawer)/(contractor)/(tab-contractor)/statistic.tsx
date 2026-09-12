@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -91,18 +91,6 @@ const ContractorIndex = () => {
     end: Date | null;
   }>(filterDetails["30d"].getRange());
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [kpiData, setKpiData] = useState<
-    Record<KPIKey, { value: number; change: string }>
-  >({
-    totalRevenue: { value: 0, change: "0%" },
-    totalBookings: { value: 0, change: "0%" },
-    activeUsers: { value: 0, change: "0%" },
-  });
-  const [trendType, setTrendType] = useState<"week" | "day">("week");
-  const [trendData, setTrendData] = useState<
-    { label: string; revenue: number }[]
-  >([]);
-  const [peekTime, setPeekTime] = useState<string>("");
 
   const cacheKey = ["contractor_main"] as const satisfies RQ_regular_cache_key;
   const query =
@@ -111,7 +99,7 @@ const ContractorIndex = () => {
       : "";
 
   const isfocused = useIsFocused();
-  const { data, error, isLoading } = useRegularQuery(
+  const { data } = useRegularQuery(
     {
       pathname: `/auth/contractor/kpi${query}`,
       cacheKey: cacheKey,
@@ -122,33 +110,37 @@ const ContractorIndex = () => {
     },
   );
 
-  useEffect(() => {
-    if (data && data.success) {
-      const returnData = data.contractorData;
-      setKpiData({
-        totalRevenue: {
-          value: returnData?.statistic.totalRevenue?.value ?? 0,
-          change: returnData?.statistic.totalRevenue?.change ?? "",
-        },
-        totalBookings: {
-          value: returnData?.statistic.totalBookings?.value ?? 0,
-          change: returnData?.statistic.totalBookings?.change ?? "",
-        },
-        activeUsers: {
-          value: returnData?.statistic.averageBookingValue?.value ?? 0,
-          change: returnData?.statistic.averageBookingValue?.change ?? "",
-        },
-      });
-      const chartData = returnData?.statistic.trend?.map((item: any) => ({
-        label: new Date(item._id).toLocaleDateString(),
-        revenue: item.revenue,
-      }));
-      setTrendData(chartData ?? []);
-      const formatted = `${(returnData?.statistic.peakHour ?? 0)?.toString().padStart(2, "0")}:00 - ${(returnData?.statistic.peakHour ?? 0 + 1).toString().padStart(2, "0")}:00`;
-      setPeekTime(formatted);
-      setTrendType(returnData?.statistic.trendType ?? "week");
-    }
-  }, [data, error, isLoading]);
+  const kpiData: Record<KPIKey, { value: number; change: string }> = {
+    totalRevenue: {
+      value: data?.contractorData?.statistic.totalRevenue?.value ?? 0,
+      change: data?.contractorData?.statistic.totalRevenue?.change ?? "0%",
+    },
+    totalBookings: {
+      value: data?.contractorData?.statistic.totalBookings?.value ?? 0,
+      change: data?.contractorData?.statistic.totalBookings?.change ?? "0%",
+    },
+    activeUsers: {
+      value: data?.contractorData?.statistic.averageBookingValue?.value ?? 0,
+      change:
+        data?.contractorData?.statistic.averageBookingValue?.change ?? "0%",
+    },
+  };
+  const trendData =
+    data?.contractorData?.trend?.map((item: any) => ({
+      label: item.label,
+      value: item.value,
+    })) ?? [];
+
+  const peakHour = data?.contractorData?.statistic?.peakHour ?? 0;
+
+  const peekTime = `${peakHour.toString().padStart(2, "0")}:00 - ${(
+    peakHour + 1
+  )
+    .toString()
+    .padStart(2, "0")}:00`;
+
+  const trendType = data?.contractorData?.statistic?.trendType ?? "week";
+
   const screenWidth = Dimensions.get("window").width;
 
   const filterOptions: TimeFilter[] = [
@@ -190,13 +182,13 @@ const ContractorIndex = () => {
 
   const chartData =
     trendData.length > 0
-      ? trendData.map((item, index) => ({
+      ? trendData.map((item: any, index: number) => ({
           label: trendType === "week" ? `W${index + 1}` : `D${index + 1}`,
           value: Number(item.revenue) || 0,
         }))
       : [{ label: "", value: 0 }];
 
-  const maxRevenue = Math.max(...chartData.map((item) => item.value), 1);
+  const maxRevenue = Math.max(...chartData.map((item: any) => item.value), 1);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
       <ScrollView
@@ -429,7 +421,7 @@ const ContractorIndex = () => {
                 gap: 8,
               }}
             >
-              {chartData.map((item) => (
+              {chartData.map((item: any) => (
                 <View
                   key={item.label}
                   style={{

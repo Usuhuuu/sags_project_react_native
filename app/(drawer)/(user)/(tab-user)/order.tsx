@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "@/context/auth_context";
 import Order_Separator from "@/components/book/order_separator";
 import {
@@ -173,7 +173,6 @@ const OrderScreen = () => {
       },
     );
   }, [data, getSpecificHall]);
-  console.log(hasNextPage);
 
   const loadMore = useCallback(() => {
     if (isFetchingNextPage && !hasNextPage) return;

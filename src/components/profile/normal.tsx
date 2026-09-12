@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -19,23 +19,23 @@ interface NormalUserProps {
   formData: any;
   copyToClipboard: () => void;
 }
+type NormalUserState = {
+  email: string;
+  phoneNumber: string;
+  unique_user_ID: string;
+  userImage: string | null;
+  userNames: {
+    firstName: string;
+    lastName: string;
+  };
+};
 
 const NormalUser: React.FC<NormalUserProps> = ({ formData }) => {
-  const { colors, theme } = useTheme();
+  const { colors } = useTheme();
   const { LoginStatus } = useAuth();
   const { width } = Dimensions.get("screen");
-  const [userData, setUserData] = useState<{
-    email: string;
-    phoneNumber: string;
-    unique_user_ID: string;
-    userImage: string | null;
-    userNames: {
-      firstName: string;
-      lastName: string;
-    };
-  }>();
 
-  const { data, error, isLoading, isError } = useAuthQuery(
+  const { data, isLoading } = useAuthQuery(
     {
       pathname: "main",
       cacheKey: [`auth_status`] as const,
@@ -60,12 +60,9 @@ const NormalUser: React.FC<NormalUserProps> = ({ formData }) => {
     },
     {},
   );
-  useEffect(() => {
-    if (data) {
-      setUserData(data.profileData);
-    }
-  }, [data, error]);
-
+  const userData: NormalUserState = useMemo(() => {
+    return data?.profileData;
+  }, [data]);
   const stats = [
     { label: "WINS", value: "1,284" },
     { label: "HOURS", value: "4.2k" },

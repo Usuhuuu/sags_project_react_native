@@ -1,9 +1,8 @@
-import axiosInstance from "@/hooks/axiosInstance";
+import { axiosInstance } from "@/hooks/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 
 const STORAGE_KEY = "hall_fav";
-
 interface FavoriteResponse {
   favData: {
     hallId: string;
