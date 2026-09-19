@@ -1,11 +1,11 @@
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { useState } from "react";
 import { View, ScrollView, Text, Switch } from "react-native";
 
 const NotificationSettingsComponent = () => {
-  const { colors, theme } = useTheme();
+  const { colors } = useTheme();
 
   const NotificationSections = [
     {

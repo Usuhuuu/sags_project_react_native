@@ -16,6 +16,7 @@ function DrawerLayout() {
     },
     { enabled: LoginStatus },
   );
+  console.log("MAIN_INDEX", isLoading, isFetching);
 
   // ── All hooks before any conditional return ─────────────────────────────
   const redirectTarget = useMemo((): Href => {

@@ -47,3 +47,5 @@ example
 /android
 
 .env.local
+
+build/

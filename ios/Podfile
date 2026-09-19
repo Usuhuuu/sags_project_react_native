@@ -1,10 +1,15 @@
 # Set by expo-router. This enables Fabric-only features from react-native-screens
 ENV['RNS_GAMMA_ENABLED'] ||= '1'
-require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
-require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
+require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), 'scripts/autolinking')
+require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`),
+                  'scripts/react_native_pods')
 
 require 'json'
-podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
+podfile_properties = begin
+  JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json')))
+rescue StandardError
+  {}
+end
 
 def ccache_enabled?(podfile_properties)
   # Environment variable takes precedence
@@ -29,44 +34,51 @@ prepare_react_native_project!
 target 'projectSags' do
   use_expo_modules!
 
-  if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
-    config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
-  else
-    config_command = [
-      'node',
-      '--no-warnings',
-      '--eval',
-      'require(\'expo/bin/autolinking\')',
-      'expo-modules-autolinking',
-      'react-native-config',
-      '--json',
-      '--platform',
-      'ios'
-    ]
-  end
+  config_command = if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
+                     ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"]
+                   else
+                     [
+                       'node',
+                       '--no-warnings',
+                       '--eval',
+                       'require(\'expo/bin/autolinking\')',
+                       'expo-modules-autolinking',
+                       'react-native-config',
+                       '--json',
+                       '--platform',
+                       'ios'
+                     ]
+                   end
 
-# @generated begin react-native-maps - expo prebuild (DO NOT MODIFY) sync-e9cc66c360abe50bc66d89fffb3c55b034d7d369
-# @generated end react-native-maps
+  # @generated begin react-native-maps - expo prebuild (DO NOT MODIFY) sync-e9cc66c360abe50bc66d89fffb3c55b034d7d369
+  # @generated end react-native-maps
   config = use_native_modules!(config_command)
 
-  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
-  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
-  pod 'GoogleUtilities', :modular_headers => true
-  pod 'RecaptchaInterop', :modular_headers => true
+  use_frameworks! linkage: podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
+  use_frameworks! linkage: ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
+
   use_react_native!(
-    :path => config[:reactNativePath],
-    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
+    path: config[:reactNativePath],
+    hermes_enabled: [nil, 'hermes'].include?(podfile_properties['expo.jsEngine']),
     # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/..",
-    :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
+    app_path: "#{Pod::Config.instance.installation_root}/..",
+    privacy_file_aggregation_enabled: podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false'
   )
 
   post_install do |installer|
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false,
-      :ccache_enabled => ccache_enabled?(podfile_properties),
+      mac_catalyst_enabled: false,
+      ccache_enabled: ccache_enabled?(podfile_properties)
     )
+
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |build_config|
+        build_config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.4'
+      end
+    end
+
+    installer.pods_project.save
   end
 end

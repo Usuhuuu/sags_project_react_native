@@ -6,7 +6,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/components/ui/app_toast";
-import { AuthProvider } from "@/context/auth_context";
+import { AuthProvider, useAuth } from "@/context/auth_context";
 import HallInfoProvider, { initHallInfo } from "@/context/hall_info_context";
 import { queryClient } from "@/hooks/queryClient";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -22,10 +22,11 @@ import {
 } from "@/hooks/permissions";
 import { useNotificationStore } from "@/context/store/notification_store";
 import * as Notifications from "expo-notifications";
-import { TouchableOpacity } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { mqttService } from "@/hooks/mqttInstance";
 import { useFavoritesStore } from "@/context/store/favorites_store";
+import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 
 // Keep splash visible while app initialises
 SplashScreen.preventAutoHideAsync();
@@ -37,30 +38,30 @@ configureReanimatedLogger({
 
 export function RootLayout() {
   const [appReady, setAppReady] = useState(false);
+  const { colors } = useTheme();
+  const { LoginStatus } = useAuth();
 
   useEffect(() => {
-    let mounted = true;
+    // Mark the app ready immediately so the UI renders without delay.
+    // Permissions and network tasks all run in the background — none of
+    // them need to finish before the first frame is visible to the user.
+    setAppReady(true);
 
-    const initializePermissions = async () => {
-      await Promise.allSettled([
-        notificationPermission(),
-        trackingStatusPermission(),
-        requestLocationPermission(),
-        reminderPermission(),
-        mqttService.connect(),
-        useFavoritesStore.getState().load(),
-      ]);
+    // Fire-and-forget: permissions, favorites, hall data, MQTT.
+    // Promise.allSettled ensures individual failures don't surface as
+    // unhandled rejections.
+    Promise.allSettled([
+      notificationPermission(),
+      trackingStatusPermission(),
+      requestLocationPermission(),
+      reminderPermission(),
+      LoginStatus && useFavoritesStore.getState().load(),
+    ]);
 
-      if (mounted) {
-        setAppReady(true);
-      }
-    };
-
-    initializePermissions();
     initHallInfo();
+    mqttService.connect();
 
     return () => {
-      mounted = false;
       mqttService.disconnect();
     };
   }, []);
@@ -104,9 +105,12 @@ export function RootLayout() {
     await SplashScreen.hideAsync();
   }, [appReady]);
 
-  if (!appReady) {
-    return null;
-  }
+  if (!appReady)
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
+        <OwnActivaterIndicator />
+      </View>
+    );
 
   return <RootLayoutNav onReady={onLayoutRootView} />;
 }

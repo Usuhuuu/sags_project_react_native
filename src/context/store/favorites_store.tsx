@@ -57,9 +57,11 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
         });
       }
     } catch (error) {
-      console.error("Failed to load favorites:", error);
+      console.log("Failed to load favorites:", error);
       set({
-        isLoaded: true,
+        isLoaded: false,
+        isSyncing: false,
+        favoriteIds: new Set(),
       });
     } finally {
       set({
