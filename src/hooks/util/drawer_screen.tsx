@@ -1,7 +1,7 @@
 import React from "react";
 import Drawer from "expo-router/drawer";
 import { Entypo, Ionicons } from "@expo/vector-icons";
-import { TouchableOpacity, Image, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 
 export type DrawerScreenConfig = {

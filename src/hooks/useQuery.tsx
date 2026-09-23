@@ -104,12 +104,18 @@ interface UseRegularQueryProps {
   loginStatus: boolean;
 }
 
-export type RQ_infinite_cache_key = readonly [
-  "booked_order",
-  string, // screenSeparator
-  string, // startTime
-  string | null, // endTime
-];
+export type RQ_infinite_cache_key =
+  | readonly [
+      "booked_order",
+      string, // screenSeparator
+      string, // startTime
+      string | null, // endTime
+    ]
+  | readonly [
+      "contractor_order",
+      string, // Booking type
+      string, //Date.string EncodedURI
+    ];
 export const useRegularQuery = (
   props: UseRegularQueryProps,
   options?: Omit<

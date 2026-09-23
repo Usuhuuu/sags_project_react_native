@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -8,13 +8,18 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { RQ_regular_cache_key, useRegularQuery } from "@/hooks/useQuery";
+import {
+  RQ_infinite_cache_key,
+  useRegularInfiniteQuery,
+} from "@/hooks/useQuery";
 import { useAuth } from "@/context/auth_context";
 import { ContractorBookingType } from "@/types/contractor_response_type";
 import { format } from "date-fns";
 import { useTheme } from "@/context/theme_context";
 import { useIsFocused } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import OwnActivaterIndicator from "@/components/ui/loader_indicator";
+import { showToast } from "@/utils/toast";
 
 // --- Types ---
 type BookingType = "UPCOMING" | "ACTIVE" | "HISTORY";
@@ -36,70 +41,55 @@ const ContractorBooking = () => {
   const [search, setSearch] = useState("");
   const { LoginStatus } = useAuth();
   const [bookingType, setBookingType] = useState<BookingType>("UPCOMING");
-  const [page, setPages] = useState<Record<BookingType, number>>({
-    ["UPCOMING"]: 1,
-    ["HISTORY"]: 1,
-    ["ACTIVE"]: 1,
-  });
-  const [bookingData, setBookingData] = useState<{
-    UPCOMING: ContractorBookingType[];
-    HISTORY: ContractorBookingType[];
-    ACTIVE: ContractorBookingType[];
-  }>({
-    UPCOMING: [],
-    HISTORY: [],
-    ACTIVE: [],
-  });
 
   const dayString = new Date().toISOString().split("T")[0];
-
-  const cacheKey = [
+  const isFocused = useIsFocused();
+  const startTime = encodeURI(new Date().toISOString());
+  const cacheKey2 = [
     "contractor_order",
     bookingType,
-    page[bookingType],
     dayString,
-  ] as const satisfies RQ_regular_cache_key;
-
-  const isFocused = useIsFocused();
-  const { data, error, isLoading } = useRegularQuery(
+  ] as const satisfies RQ_infinite_cache_key;
+  const {
+    data,
+    error,
+    isLoading,
+    isFetchNextPageError,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useRegularInfiniteQuery(
     {
-      pathname: `/auth/contractor/book/${bookingType}?startTime=${encodeURI(new Date().toISOString())}&page=${page[bookingType]}`,
-      cacheKey: cacheKey,
+      cacheKey: cacheKey2,
       loginStatus: LoginStatus,
+      pathname: (page) =>
+        `/auth/contractor/book/${bookingType}/?startTime=${startTime}&page=${page}`,
     },
     {
-      enabled: isFocused,
+      enabled: LoginStatus && isFocused,
       refetchInterval: false,
     },
   );
 
-  useEffect(() => {
-    if (data?.success && data.contractorData) {
-      const incoming = data.contractorData?.book ?? [];
-      if (!incoming.length) return;
+  const bookings = useMemo(() => {
+    const map = new Map<string, ContractorBookingType>();
 
-      setBookingData((prev) => {
-        const existing = prev[activeTab];
-        const map = new Map<string, ContractorBookingType>();
+    for (const page of data?.pages ?? []) {
+      for (const item of page.contractorData?.book ?? []) {
+        if (!item._id) continue;
 
-        for (const item of existing) {
-          if (!item._id) continue;
-          map.set(item._id, item);
-        }
-
-        for (const item of incoming) {
-          if (!item._id) continue;
-          map.set(item._id, item);
-        }
-
-        let values = Array.from(map.values());
-        if (values.length > MAX_ITEMS) {
-          values = values.slice(values.length - MAX_ITEMS);
-        }
-        return { ...prev, [activeTab]: values };
-      });
+        map.set(item._id, item);
+      }
     }
-  }, [data, error, activeTab]);
+
+    let values = Array.from(map.values());
+
+    if (values.length > MAX_ITEMS) {
+      values = values.slice(-MAX_ITEMS);
+    }
+
+    return values;
+  }, [data]);
 
   const bookingStatusDetail: TabItem[] = [
     {
@@ -120,6 +110,15 @@ const ContractorBooking = () => {
     ({ item }: { item: ContractorBookingType }) => <BookingCard item={item} />,
     [],
   );
+
+  if (isLoading)
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <OwnActivaterIndicator />
+      </View>
+    );
+  if (error || isFetchNextPageError)
+    return showToast({ title: "Oops", description: "Something went wrong." });
   return (
     <SafeAreaView
       style={{
@@ -250,7 +249,7 @@ const ContractorBooking = () => {
 
       {/* Bookings List */}
       <FlatList
-        data={bookingData[activeTab] ?? []}
+        data={bookings}
         keyExtractor={(item, index) => item?._id ?? `${index}`}
         ListEmptyComponent={ListEmpty}
         renderItem={renderBookingItem}
@@ -259,6 +258,12 @@ const ContractorBooking = () => {
         maxToRenderPerBatch={10}
         initialNumToRender={10}
         removeClippedSubviews
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.4}
       />
     </SafeAreaView>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   StyleSheet,
   View,
@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -41,34 +40,34 @@ const PROFILE_STATS_CONFIG: {
   { label: "Years Active:", value: "5", iconName: "calendar" },
 ];
 
-const MENU_ITEMS_CONFIG: { title: string; iconName: string; route: string }[] = [
-  {
-    title: "Personal Information",
-    iconName: "user",
-    route: "/contractor_personal_information",
-  },
-  {
-    title: "Business Credentials",
-    iconName: "briefcase",
-    route: "/contractor_business_credentials",
-  },
-  {
-    title: "Payment Methods",
-    iconName: "credit-card",
-    route: "/contractor_payment_methods",
-  },
-  {
-    title: "Security",
-    iconName: "shield",
-    route: "/contractor_security",
-  },
-];
+const MENU_ITEMS_CONFIG: { title: string; iconName: string; route: string }[] =
+  [
+    {
+      title: "Personal Information",
+      iconName: "user",
+      route: "/contractor_personal_information",
+    },
+    {
+      title: "Business Credentials",
+      iconName: "briefcase",
+      route: "/contractor_business_credentials",
+    },
+    {
+      title: "Payment Methods",
+      iconName: "credit-card",
+      route: "/contractor_payment_methods",
+    },
+    {
+      title: "Security",
+      iconName: "shield",
+      route: "/contractor_security",
+    },
+  ];
 
 const ContractorProfile = () => {
   const { logOut, LoginStatus } = useAuth();
-  const { colors, theme } = useTheme();
-  const [userData, setUserData] = useState<UserData>();
-  const { data, error, isLoading, isFetching } = useAuthQuery(
+  const { colors } = useTheme();
+  const { data, isLoading } = useAuthQuery(
     {
       pathname: "main",
       cacheKey: ["auth_status"],
@@ -78,10 +77,8 @@ const ContractorProfile = () => {
       enabled: LoginStatus,
     },
   );
-  useEffect(() => {
-    if (!data?.profileData) return;
-    setUserData(data.profileData);
-  }, [data]);
+  const userData: UserData = useMemo(() => data.profileData, [data]);
+
   if (isLoading) {
     return <OwnActivaterIndicator />;
   }

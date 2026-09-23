@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
   View,
   StyleSheet,
@@ -49,19 +49,13 @@ function CustomDrawerContext(props: DrawerContentComponentProps) {
       enabled: LoginStatus,
     },
   );
-
-  const userData = useMemo<UserData | null>(() => {
-    if (!data?.profileData) return null;
-    try {
-      const parsed =
-        typeof data.profileData === "string"
-          ? JSON.parse(data.profileData)
-          : data.profileData;
-      return Array.isArray(parsed) ? parsed[0] : parsed;
-    } catch {
-      return null;
-    }
-  }, [data?.profileData]);
+  const parsedData =
+    typeof data?.profileData === "string"
+      ? JSON.parse(data?.profileData)
+      : data?.profileData;
+  const userData: UserData = Array.isArray(parsedData)
+    ? parsedData[0]
+    : parsedData;
 
   return (
     <View
