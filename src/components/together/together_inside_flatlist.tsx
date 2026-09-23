@@ -20,12 +20,25 @@ interface TogetherInsideFlatListProps {
 const TogetherInsideFlatList = ({
   data,
   loading,
-  setLoading,
 }: TogetherInsideFlatListProps) => {
   const { colors, theme } = useTheme();
   const { setPostDetails } = usePostStore();
 
   const width = Dimensions.get("screen").width;
+  const { height } = Dimensions.get("window");
+  const handleCommentPress = useCallback(
+    (post: PostTypes) => {
+      setPostDetails(post);
+      router.push({
+        pathname: "/(modals)/together/comment",
+        params: {
+          post_id: post.block?.post._id,
+        },
+      });
+    },
+    [setPostDetails],
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: PostTypes }) => (
       <View
@@ -173,19 +186,9 @@ const TogetherInsideFlatList = ({
         </View>
       </View>
     ),
-    [data, colors],
+    [colors, handleCommentPress, theme, width],
   );
 
-  const handleCommentPress = (post: PostTypes) => {
-    setPostDetails(post);
-    router.push({
-      pathname: "/(modals)/together/comment",
-      params: {
-        post_id: post.block?.post._id,
-      },
-    });
-  };
-  const { height } = Dimensions.get("window");
   return (
     <View style={{ backgroundColor: colors.backgroundColor, flex: 1 }}>
       <FlatList

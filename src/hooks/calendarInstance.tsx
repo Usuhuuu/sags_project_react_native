@@ -1,7 +1,6 @@
 import * as Notifications from "expo-notifications";
 import * as Calendar from "expo-calendar";
 import { Platform } from "react-native";
-import { useTheme } from "@/context/theme_context";
 import { showToast } from "@/utils/toast";
 
 const getDefaultCalendarSource = async () => {
@@ -81,7 +80,7 @@ export const scheduleNotificationForEvent = async ({
     showToast({
       title: "Successfully Added to Calendar",
       description: "You can check",
-          alertType: "success",
+      alertType: "success",
     });
   }
   await notificationCalendarEvent(startDate);

@@ -6,9 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { FlatList, View, StyleSheet, TouchableOpacity } from "react-native";
-import * as Notifications from "expo-notifications";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
 import SwipeableRow from "@/components/notification/swipe_remove";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
@@ -103,7 +101,6 @@ const EmptyNotificationScreen = React.memo(() => {
 });
 
 const NotificationScreen = () => {
-  const { t } = useTranslation();
   const { colors: Colors } = useTheme();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
   const navigation = useNavigation();
@@ -151,7 +148,7 @@ const NotificationScreen = () => {
       showToast({
         title: "No notifications selected",
         description: "Please select notifications to delete.",
-          alertType: "warn",
+        alertType: "warn",
       });
       return;
     }

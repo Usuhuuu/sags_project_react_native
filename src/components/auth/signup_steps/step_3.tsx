@@ -17,7 +17,6 @@ import AppText from "@/components/ui/app_text";
 // ── Props ──────────────────────────────────────────────────────────────────
 interface SignupStepThreeProps {
   steps: number;
-  setSteps: React.Dispatch<React.SetStateAction<number>>;
   formData: Pick<LoginInput, "password" | "userAgreeTerms">;
   setFormData: React.Dispatch<React.SetStateAction<LoginInput>>;
   onSubmit?: () => Promise<void>;
@@ -250,7 +249,6 @@ const createStyles = (Colors: any) =>
 
 // ── Component ──────────────────────────────────────────────────────────────
 const SignupStepThree = ({
-  setSteps,
   formData,
   setFormData,
   onSubmit,

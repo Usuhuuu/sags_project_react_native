@@ -93,8 +93,7 @@ const ExploreHeader = ({
   const expandedY = height * 0.1;
   const fadeStart = height * 0.28;
 
-  const styles = useMemo(() => createStyles(Colors, height), [Colors]);
-  const [notificationCount, setNotificationCount] = useState<number>(0);
+  const styles = useMemo(() => createStyles(Colors, height), [Colors, height]);
   const scrollRef = useRef<ScrollView>(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const { t } = useTranslation();
@@ -111,13 +110,13 @@ const ExploreHeader = ({
 
   useEffect(() => {
     loadNotifications();
-  }, []);
+  }, [loadNotifications]);
 
   // Track unread count
-  useEffect(() => {
-    const tempCount = notifications.filter((n) => n.seen !== true);
-    setNotificationCount(tempCount.length);
-  }, [notifications]);
+  const notificationCount = useMemo(
+    () => notifications.filter((n) => n.seen !== true).length,
+    [notifications],
+  );
 
   // Animate icons wrapper up as sheet moves
   const animatedIconAction = useAnimatedStyle(() => {

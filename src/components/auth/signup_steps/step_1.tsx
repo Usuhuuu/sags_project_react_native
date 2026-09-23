@@ -19,7 +19,6 @@ import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 
 // ── Props ──────────────────────────────────────────────────────────────────
 interface SignupOneProps {
-  steps: number;
   setSteps: React.Dispatch<React.SetStateAction<number>>;
   formData: Pick<LoginInput, "userName" | "firstName" | "lastName">;
   setFormData: React.Dispatch<React.SetStateAction<LoginInput>>;
@@ -222,18 +221,14 @@ const createStyles = (Colors: any) =>
   });
 
 // ── Component ──────────────────────────────────────────────────────────────
-const SignupOne = ({
-  setSteps,
-  steps,
-  formData,
-  setFormData,
-}: SignupOneProps) => {
+const SignupOne = ({ setSteps, formData, setFormData }: SignupOneProps) => {
   const { colors: Colors } = useTheme();
   const styles = createStyles(Colors);
 
   const [usernameStatus, setUsernameStatus] = useState<
     "idle" | "checking" | "available" | "taken" | "error"
   >("idle");
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Check username availability ──
@@ -253,24 +248,28 @@ const SignupOne = ({
     }
   }, []);
 
-  // ── Debounced username check ──
+  const name = formData.userName?.trim() ?? "";
+  const hasValidUsername = name.length >= 3;
+
   useEffect(() => {
-    const name = formData.userName?.trim();
-    if (!name || name.length < 3) {
-      setUsernameStatus("idle");
+    if (!hasValidUsername) {
       return;
     }
 
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
 
     debounceRef.current = setTimeout(() => {
-      checkUsername(name);
+      void checkUsername(name);
     }, 600);
 
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
     };
-  }, [formData.userName, checkUsername]);
+  }, [name, hasValidUsername, checkUsername]);
 
   const handleContinue = useCallback(() => {
     const username = formData.userName?.trim();
@@ -278,7 +277,7 @@ const SignupOne = ({
       showToast({
         title: "Username required",
         description: "Please enter a username to continue",
-          alertType: "error",
+        alertType: "error",
       });
       return;
     }
@@ -286,7 +285,7 @@ const SignupOne = ({
       showToast({
         title: "Username too short",
         description: "Username must be at least 3 characters",
-          alertType: "error",
+        alertType: "error",
       });
       return;
     }

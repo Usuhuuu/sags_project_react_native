@@ -164,12 +164,9 @@ function useCountdown(expireAt?: string | Date): CountdownResult {
   const [secondsLeft, setSecondsLeft] = useState(getSecondsLeft);
 
   useEffect(() => {
-    setSecondsLeft(getSecondsLeft());
-
     if (!expireAt) {
       return;
     }
-
     const interval = setInterval(() => {
       const remaining = getSecondsLeft();
 
@@ -676,7 +673,7 @@ function createStyles(c: TC, theme: "light" | "dark") {
 /* -------------------------------------------------------------------------- */
 
 const OrderItemComponent = ({ item }: { item: Return_Type }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { colors: Colors, theme } = useTheme();
 
   const data = item;
@@ -701,7 +698,7 @@ const OrderItemComponent = ({ item }: { item: Return_Type }) => {
 
   const countdown = useCountdown(data.session_obj?.expireAt);
 
-  const toggleExpand = useCallback(() => {
+  const toggleExpand = () => {
     const next = isOpen ? 0 : 1;
 
     expanded.value = withTiming(next, {
@@ -720,7 +717,7 @@ const OrderItemComponent = ({ item }: { item: Return_Type }) => {
     });
 
     setIsOpen((previous) => !previous);
-  }, [isOpen, expanded, animatedMaxHeight, animatedOpacity]);
+  };
 
   const expandedSectionStyle = useAnimatedStyle(
     () => ({
@@ -772,7 +769,7 @@ const OrderItemComponent = ({ item }: { item: Return_Type }) => {
       t("orderScreen", {
         returnObjects: true,
       }),
-    [t, i18n.language],
+    [t],
   );
 
   const isConfirmed = firstBlock?.block_booking_status === "confirmed";

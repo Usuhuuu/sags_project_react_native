@@ -1,15 +1,15 @@
-import {
-  DurationPrice,
-  EsportHallPrices,
-  SportHallPrice,
-} from "@/types/hall_info_type";
+import { DurationPrice } from "@/types/hall_info_type";
 import { create } from "zustand";
 
+type HallPrice = {
+  esport?: DurationPrice[];
+  sport?: DurationPrice[];
+};
 export type SportBookingData = {
   name: string;
   date: Date;
   sportHallID: string;
-  price: DurationPrice[];
+  price: HallPrice;
   selectedTimeSlots?: string[];
   workTime?: string;
   baseTime_startAndEnd?: string;
@@ -24,7 +24,7 @@ export type EsportBookingData = {
   name: string;
   date: Date;
   sportHallID: string;
-  price: DurationPrice[];
+  price: HallPrice;
   workTime?: string;
   imageUrls: string[] | undefined;
   location: {

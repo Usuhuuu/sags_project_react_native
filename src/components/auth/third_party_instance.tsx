@@ -1,4 +1,4 @@
-import { Alert, Platform } from "react-native";
+import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import {
   LoginManager,
@@ -30,7 +30,7 @@ export const loginWithFacebook = async () => {
       showToast({
         title: "Login Cancelled",
         description: "Try again later",
-          alertType: "warn",
+        alertType: "warn",
       });
       return { modalVisible: false, data: null };
     }
@@ -83,42 +83,42 @@ export const loginWithFacebook = async () => {
           showToast({
             title: "Facebook Login Failed",
             description: "Network Error",
-          alertType: "error",
+            alertType: "error",
           });
           break;
         case 190:
           showToast({
             title: "Facebook Login Failed",
             description: "Invalid Token",
-          alertType: "error",
+            alertType: "error",
           });
           break;
         case 10:
           showToast({
             title: "Facebook Login Failed",
             description: "App not set up correctly",
-          alertType: "error",
+            alertType: "error",
           });
           break;
         case 429:
           showToast({
             title: "Facebook Login Failed",
             description: "Too Many Requests",
-          alertType: "error",
+            alertType: "error",
           });
           break;
         default:
           showToast({
             title: "Facebook Login Failed",
             description: "Something went wrong. Try again later.",
-          alertType: "error",
+            alertType: "error",
           });
       }
     } else {
       showToast({
         title: "Login failed",
         description: "Please try again later",
-          alertType: "error",
+        alertType: "error",
       });
     }
 
@@ -170,20 +170,31 @@ export const loginWithGoogle = async (googleAccessToken: string) => {
           showToast({
             title: "Login progressing",
             description: "Please Wait a few minut",
-          alertType: "warn",
+            alertType: "warn",
           });
+          break;
         case statusCodes.SIGN_IN_CANCELLED:
           showToast({
             title: "Login Cancelled",
             description: "Try again later",
-          alertType: "warn",
+            alertType: "warn",
           });
+          break;
         case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
           showToast({
             title: "Login Failed",
             description: "Serves has problem, try again later",
-          alertType: "error",
+            alertType: "error",
           });
+          break;
+
+        default:
+          showToast({
+            title: "Login Failed",
+            description: "Something went wrong. Try again later.",
+            alertType: "error",
+          });
+          break;
       }
     }
   }

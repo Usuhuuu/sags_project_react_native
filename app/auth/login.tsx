@@ -388,11 +388,12 @@ const Page = () => {
           alertType: "error",
         });
       }
-    } catch (err: any) {
+    } catch (err) {
+      console.error(err);
       showToast({
         title: "Login Failed",
         description: "Please Try Again",
-          alertType: "error",
+        alertType: "error",
       });
     } finally {
       setLoading(false);
@@ -430,7 +431,7 @@ const Page = () => {
           showToast({
             title: "Google Login",
             description: responseData.message,
-          alertType: "success",
+            alertType: "success",
           });
         }
       }

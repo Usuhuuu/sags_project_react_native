@@ -1,6 +1,6 @@
 import { SportBookingData, useBookingStore } from "@/context/store/book_store";
 import { router } from "expo-router";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { View, TouchableOpacity, ScrollView, Text } from "react-native";
 import { Feather, FontAwesome, Fontisto, Ionicons } from "@expo/vector-icons";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -34,6 +34,8 @@ export type ReservationBlock = {
   wholeDay?: boolean;
   workTime?: string;
 };
+
+const WHOLEDAY_DURATION = 1440;
 
 const groupConnectedTimeSlots = (slots: string[]) => {
   if (slots.includes("WHOLE_DAY")) return [["WHOLE_DAY"]];
@@ -131,16 +133,14 @@ const TransactionPage = () => {
     ),
     [steps, Colors.primary, Colors.themeColorTextPure],
   );
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[][]>([]);
   const [playersNeeded, setPlayersNeeded] = useState<{ [key: number]: number }>(
     {},
   );
   const [wholeDayPeople, setWholeDayPeople] = useState<number>(0);
-  const [wholeDay, setWholeDay] = useState<boolean>(false);
 
   const [waiting, setWaiting] = useState<boolean>(false);
   const [confirmModal, setConfirmModal] = useState<boolean>(false);
-  const hasScheduled = useRef<boolean>(false);
+  const hasScheduled = useRef(false);
   const [reserved_times, setReserved_times] = useState<
     ReservationBlock[] | undefined
   >(undefined);
@@ -149,13 +149,16 @@ const TransactionPage = () => {
     (state) => state.sportBookingDetails,
   ) as SportBookingData;
 
-  useEffect(() => {
-    bookingDetails?.selectedTimeSlots?.includes("WHOLE_DAY")
-      ? setWholeDay(true)
-      : setSelectedTimeSlots(() =>
-          groupConnectedTimeSlots(bookingDetails?.selectedTimeSlots ?? []),
-        );
-  }, []);
+  const wholeDay =
+    bookingDetails?.selectedTimeSlots?.includes("WHOLE_DAY") ?? false;
+  const selectedTimeSlots = useMemo(
+    () =>
+      wholeDay
+        ? []
+        : groupConnectedTimeSlots(bookingDetails?.selectedTimeSlots ?? []),
+    [wholeDay, bookingDetails?.selectedTimeSlots],
+  );
+
   const [isOrdering, setIsOrdering] = useState<boolean>(false);
   const [waitingText, setWaitingText] = useState<string>("");
 
@@ -168,32 +171,36 @@ const TransactionPage = () => {
     );
   }, [selectedTimeSlots, wholeDay]);
 
+  const price = bookingDetails?.price.sport;
   const totalPrice = useMemo(() => {
-    if (!bookingDetails?.price) return 0;
+    if (!price) return 0;
     if (wholeDay) {
-      return calculateDurationPrice(bookingDetails.price, 24 * 60) ?? 0;
+      return calculateDurationPrice(price, 24 * 60) ?? 0;
     }
     return selectedTimeSlots.reduce(
       (total, group) =>
         total +
-        (calculateDurationPrice(
-          bookingDetails.price,
-          groupDurationHours(group) * 60,
-        ) ?? 0),
+        (calculateDurationPrice(price, groupDurationHours(group) * 60) ?? 0),
       0,
     );
-  }, [bookingDetails?.price, wholeDay, selectedTimeSlots]);
+  }, [price, wholeDay, selectedTimeSlots]);
+
+  const oneHourPrice = Number(
+    price?.find((d) => d.durationMinutes === 60)?.price || 0,
+  );
+  const oneDayPrice = Number(
+    price?.find((d) => d.durationMinutes === WHOLEDAY_DURATION)?.price || 0,
+  );
 
   const paymentPerPeopleArray = useMemo(() => {
     if (wholeDay) return [];
     return selectedTimeSlots.map((group, index) => {
       const durationHours = groupDurationHours(group);
-      const totalCost =
-        calculateDurationPrice(bookingDetails?.price, durationHours * 60) ?? 0;
+      const totalCost = calculateDurationPrice(price, durationHours * 60) ?? 0;
       const totalPeople = (playersNeeded[index] || 0) + 1;
       return totalPeople > 0 ? totalCost / totalPeople : 0;
     });
-  }, [selectedTimeSlots, bookingDetails?.price, wholeDay, playersNeeded]);
+  }, [selectedTimeSlots, price, wholeDay, playersNeeded]);
 
   const totalBookerPaymentArray = paymentPerPeopleArray;
 
@@ -657,7 +664,7 @@ const TransactionPage = () => {
               <View style={{ flex: 1 }}>{StepIndicator}</View>
               <TouchableOpacity
                 onPress={() => {
-                  router.navigate("/(drawer)/(user)/(tab-user)/order.tsx");
+                  router.navigate("/(drawer)/(user)/(tab-user)/order");
                 }}
               >
                 <Feather
@@ -683,6 +690,8 @@ const TransactionPage = () => {
                   selectedTimeSlots={selectedTimeSlots}
                   steps={steps}
                   setSteps={setSteps}
+                  oneDayPrice={oneDayPrice}
+                  oneHourPrice={oneHourPrice}
                 />
               )}
               {steps === 1 && (
@@ -712,6 +721,8 @@ const TransactionPage = () => {
                   timeCount={timeCount}
                   totalPrice={totalPrice}
                   handleOrder={handleOrder}
+                  oneHourPrice={oneHourPrice}
+                  oneDayPrice={oneDayPrice}
                 />
               )}
             </ScrollView>
@@ -723,7 +734,7 @@ const TransactionPage = () => {
         setConfirmModal={setConfirmModal}
         confirmationDetails={confirmationDetails}
         addToCalendar={addToCalendar}
-        hasScheduled={hasScheduled.current}
+        hasScheduled={hasScheduled}
       />
     </SafeAreaProvider>
   );

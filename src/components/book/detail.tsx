@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   View,
   TouchableOpacity,
@@ -20,6 +20,7 @@ import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { DurationPrice } from "@/types/hall_info_type";
 
 export type FormData = {
+  sport_hall_id?: string;
   name: string;
   date: string;
   price: DurationPrice[];
@@ -167,6 +168,7 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
     prevProps.unavailableTimes === nextProps.unavailableTimes &&
     prevProps.wholeDayBooked === nextProps.wholeDayBooked,
 );
+const CACHE_TTL = 10 * 60 * 1000;
 
 interface OrderScreenProps {
   formData: FormData;
@@ -186,6 +188,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
   const [today, setToday] = useState<Date>(new Date());
   console.log("TODAY", today);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const referenceHallID = formData.reference_hall_id;
   const [unavailableTimes, setUnavailableTimes] = useState<{
     joinable: string[];
     unavailable: string[];
@@ -199,8 +202,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
     unavailableWholeDay: false,
     joinableWholeDay: false,
   });
-  const CACHE_TTL = 10 * 60 * 1000;
-  const [timeslotCache] = useState<{
+  const timeslotCache = useRef<{
     [key: string]: {
       joinable: string[];
       unavailable: string[];
@@ -214,8 +216,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       setSelectedTimeSlots([]);
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const key = `${sportHallID}T${date}`;
-      if (timeslotCache[key]) {
-        const cached = timeslotCache[key];
+      if (timeslotCache.current[key]) {
+        const cached = timeslotCache.current[key];
         const isExpired = Date.now() - cached.timestampt > CACHE_TTL;
         if (!isExpired) {
           setUnavailableTimes({
@@ -225,7 +227,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           setWholeDayBooked(cached.wholeDay);
           return;
         }
-        delete timeslotCache[key];
+        delete timeslotCache.current[key];
       }
 
       setIsLoading(true);
@@ -239,7 +241,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
         });
 
         const response = await axiosInstanceRegular.get(
-          `/timeslots/${sportHallID}/${formData.reference_hall_id}/${date.toISOString()}/${encodeURIComponent(timezone)}`,
+          `/timeslots/${sportHallID}/${referenceHallID}/${date.toISOString()}/${encodeURIComponent(timezone)}`,
         );
 
         if (response.status === 200 && response.data.success) {
@@ -263,7 +265,6 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           if (unavailableWholeDay || joinableWholeDay) {
             setWholeDayBooked({ unavailableWholeDay, joinableWholeDay });
           } else {
-            const now = new Date();
             results = flat.reduce(
               (
                 acc: any,
@@ -281,14 +282,14 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
             setUnavailableTimes(results);
           }
 
-          timeslotCache[key] = {
+          timeslotCache.current[key] = {
             joinable: results.joinable,
             unavailable: results.unavailable,
             wholeDay: { unavailableWholeDay, joinableWholeDay },
             timestampt: Date.now(),
           };
         } else {
-          timeslotCache[key] = {
+          timeslotCache.current[key] = {
             joinable: [],
             unavailable: [],
             wholeDay: { unavailableWholeDay: false, joinableWholeDay: false },
@@ -303,14 +304,9 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
         setIsLoading(false);
       }
     },
-    [sportHallID],
+    [sportHallID, referenceHallID],
   );
 
-  useEffect(() => {
-    if (today) {
-      dateSlotGiver(today);
-    }
-  }, [today]);
   const baseTime_start = baseTimeSlot[0]?.start_time;
   const baseTime_end = baseTimeSlot[baseTimeSlot.length - 1]?.end_time;
 
@@ -326,7 +322,9 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       workTime: formData.workTime,
       baseTime_startAndEnd: `${baseTime_start}~${baseTime_end}`,
       imageUrls: formData.image,
-      price: formData.price,
+      price: {
+        sport: formData.price,
+      },
     });
     router.push(`/book/sport/${zaal_id}`);
   };
@@ -373,8 +371,8 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
                 selectedDayNumberStyle={{ color: Colors.white }}
                 selectedContainerStyle={{ backgroundColor: Colors.primary }}
                 onDateSelect={(date: Date) => {
-                  dateSlotGiver(date);
                   setToday(date);
+                  dateSlotGiver(date);
                 }}
                 selectedDay={today}
                 setSelectedDay={setToday}

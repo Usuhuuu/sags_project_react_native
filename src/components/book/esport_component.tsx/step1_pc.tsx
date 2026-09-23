@@ -19,7 +19,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { DurationPrice } from "@/types/hall_info_type";
 
-const PC_BANG_BLUE = "#00d2ff";
 const PC_BANG_PURPLE = "#9d50bb";
 
 type FieldType = {
@@ -229,7 +228,7 @@ const Step_one_pc = ({
           Choose Time Package
         </AppText>
         <View style={s.pkgGrid}>
-          {packages.map((pkg, index) => {
+          {packages.map((pkg: any, index: any) => {
             const isSelected = bookingDetails.hours === pkg.value;
             return (
               <TouchableOpacity

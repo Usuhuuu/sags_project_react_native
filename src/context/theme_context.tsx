@@ -1,6 +1,5 @@
 import { LightTheme, DarkTheme, ThemeColors } from "@/theme/colors";
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface ThemeProps {
@@ -16,8 +15,6 @@ const THEME_STORAGE_KEY = "user_theme_preference";
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const deviceTheme = useColorScheme();
-  //  (deviceTheme as "light" | "dark") ??
   const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   useEffect(() => {

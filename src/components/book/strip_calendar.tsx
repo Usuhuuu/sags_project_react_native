@@ -95,21 +95,16 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   // selection
   const handleSelect = (item: (typeof weekDays)[0]) => {
     if (!item?.formatted || item.isDisabled) return;
-    setSelectedDay(new Date(item.formatted));
-    onDateSelect?.(new Date(item.formatted));
+    const date = new Date(item.formatted);
+    const newWeekStart = dayjs(date).startOf("isoWeek");
+
+    setSelectedDay(new Date(date));
+    onDateSelect?.(new Date(date));
+    if (!newWeekStart.isSame(currentWeekStart, "week")) {
+      setCurrentWeekStart(newWeekStart);
+    }
     return item.formatted;
   };
-
-  useEffect(() => {
-    if (selectedDay) {
-      const selectedDayjs = dayjs(selectedDay);
-      const newWeekStart = selectedDayjs.startOf("isoWeek");
-
-      if (!newWeekStart.isSame(currentWeekStart, "week")) {
-        setCurrentWeekStart(newWeekStart);
-      }
-    }
-  }, [selectedDay]);
 
   // week label
   const startMonth = currentWeekStart.format("MMMM");
@@ -389,8 +384,6 @@ const VISIBLE_ITEMS = 3;
 export const TimePicker15Min = ({
   formatedTime,
   onSelect,
-  init,
-  setInited,
 }: {
   formatedTime: string | Date | undefined;
   onSelect: ({
@@ -406,7 +399,6 @@ export const TimePicker15Min = ({
   const { colors } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const initRef = useRef(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const isToday = dayjs(formatedTime).isSame(dayjs(), "day");
 
   const times = useMemo(() => {
@@ -427,41 +419,51 @@ export const TimePicker15Min = ({
     return result;
   }, [formatedTime, isToday]);
 
-  useEffect(() => {
-    if (init) return;
-    initRef.current = true;
+  function getInitIndex(times: string[]) {
     const now = dayjs();
-
     const minutes = Math.ceil(now.minute() / 30) * 30;
-    const roundedNow = now.minute(minutes).second(0);
 
-    const roundedTime = roundedNow.format("HH:mm");
-    const roundedIndex = times.indexOf(roundedTime);
+    const roundedTime = now.minute(minutes).second(0).format("HH:mm");
 
-    if (roundedIndex >= 0) {
-      setSelectedIndex(roundedIndex);
+    const index = times.indexOf(roundedTime);
 
-      scrollRef.current?.scrollTo({
-        y: roundedIndex * ITEM_HEIGHT,
-        animated: false,
-      });
-    }
-    const timeString = times[roundedIndex];
+    return index >= 0 ? index : 0;
+  }
+  const [selectedIndex, setSelectedIndex] = useState(getInitIndex(times));
+
+  useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+
+    const timeString = times[selectedIndex];
+
     if (!timeString) return;
 
-    const [hours, minutes2] = timeString.split(":").map(Number);
+    scrollRef.current?.scrollTo({
+      y: selectedIndex * ITEM_HEIGHT,
+      animated: false,
+    });
+
+    const [hours, minutes] = timeString.split(":").map(Number);
 
     const time = dayjs(formatedTime)
       .hour(hours)
-      .minute(minutes2)
+      .minute(minutes)
       .second(0)
       .toDate();
 
-    const timeFormated = dayjs(time).format("YYYY-MM-DDTHH:mm:ss");
-    onSelect?.({ updateField: "bookingDate", value: time });
-    onSelect?.({ updateField: "startTime", value: timeFormated });
-    setInited(true);
-  }, [init]);
+    const formattedTime = dayjs(time).format("YYYY-MM-DDTHH:mm:ss");
+
+    onSelect({
+      updateField: "bookingDate",
+      value: time,
+    });
+
+    onSelect({
+      updateField: "startTime",
+      value: formattedTime,
+    });
+  }, [selectedIndex, formatedTime, onSelect, times]);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = event.nativeEvent.contentOffset.y;
@@ -612,6 +614,7 @@ export const TimePicker15Min = ({
     </View>
   );
 };
+
 interface MonthCalendarProps {
   calendarModalVisible?: boolean;
   setCalendarModalVisible?: React.Dispatch<SetStateAction<boolean>>;
@@ -632,7 +635,7 @@ export const MonthCalendar = ({
   handleMonthFilter,
   selectDateRange = 2,
 }: MonthCalendarProps) => {
-  const { colors, theme } = useTheme();
+  const { colors } = useTheme();
   const [currentMonth, setCurrentMonth] = useState(dayjs(initDate));
   const [selectedRange, setSelectedRange] = useState<{
     start?: Date;

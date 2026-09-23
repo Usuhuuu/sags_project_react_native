@@ -1,7 +1,4 @@
-import {
-  EsportBookingData,
-  SportBookingData,
-} from "@/context/store/book_store";
+import { SportBookingData } from "@/context/store/book_store";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
 import React, { SetStateAction, useMemo } from "react";
@@ -16,6 +13,8 @@ interface Step_One_Props {
   selectedTimeSlots: string[][];
   steps: number;
   setSteps: React.Dispatch<SetStateAction<number>>;
+  oneHourPrice: number;
+  oneDayPrice: number;
 }
 
 const createStyles = (c: any) =>
@@ -197,6 +196,8 @@ const Step_One = ({
   selectedTimeSlots,
   steps,
   setSteps,
+  oneHourPrice,
+  oneDayPrice,
 }: Step_One_Props) => {
   const { colors } = useTheme();
   const s = useMemo(() => createStyles(colors), [colors]);
@@ -210,13 +211,7 @@ const Step_One = ({
     );
   }, [selectedTimeSlots, wholeDay]);
 
-  const oneHour = Number(
-    bookingDetails?.price.find((p) => p.durationMinutes === 60)?.price || 0,
-  );
-  const oneDay = Number(
-    bookingDetails?.price.find((p) => p.durationMinutes === 1440)?.price || 0,
-  );
-  const totalPrice = wholeDay ? oneDay : timeCount * oneHour;
+  const totalPrice = wholeDay ? oneDayPrice : timeCount * oneHourPrice;
 
   const updateSessions = useMemo(
     () => ({
@@ -267,7 +262,7 @@ const Step_One = ({
                   />
                   <AppText style={s.durationLabel}>1 Hour</AppText>
                 </View>
-                <AppText style={s.priceLabel}>₮{oneHour}</AppText>
+                <AppText style={s.priceLabel}>₮{oneHourPrice}</AppText>
               </View>
             )}
           </View>

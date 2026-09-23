@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { useEffect, useState, useMemo } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { router, useNavigation } from "expo-router";
 import StarRating from "@/components/hall_components/review/star_rating";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
-import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 
 export interface Review {
   _id: string;
@@ -22,6 +21,7 @@ export interface Review {
     star_count_5: number;
   };
 }
+
 interface SportHallReviewPageProps {
   sport_hall_id: string;
   reviews: Record<string, Review>;
@@ -39,21 +39,18 @@ const SportHallReviewPage = ({
   count,
   setPage,
 }: SportHallReviewPageProps) => {
-  const { colors: Colors, theme } = useTheme();
+  const { colors: C } = useTheme();
   const [filterRating, setFilterRating] = useState<number | "All">("All");
   const navigation = useNavigation();
 
-  // Memoize reviews array once
   const reviewsArr = useMemo(() => Object.values(reviews), [reviews]);
   const totalReviews = reviewsArr.length;
 
-  // Memoize filtered reviews
   const filteredReviews = useMemo(() => {
     if (filterRating === "All") return reviewsArr;
-    return reviewsArr.filter((review) => review.rating === filterRating);
+    return reviewsArr.filter((r) => r.rating === filterRating);
   }, [reviewsArr, filterRating]);
 
-  // Memoize star distribution
   const starDistribution = useMemo(() => {
     return [5, 4, 3, 2, 1].map((star) => {
       const starCount = reviewsArr.filter((r) => r.rating === star).length;
@@ -80,224 +77,292 @@ const SportHallReviewPage = ({
             })
           }
         >
-          <AntDesign name="edit" size={24} color={Colors.primary} />
+          <AntDesign name="edit" size={22} color={C.primary} />
         </TouchableOpacity>
       ),
     });
-  }, [sport_hall_id, rating, Colors.primary]);
+  }, [sport_hall_id, rating, C.primary, navigation]);
 
-  const keyExtractor = useCallback((item: Review) => item._id, []);
-
-  const renderItem = useCallback(
-    ({ item }: { item: Review }) => (
-      <View
-        style={{
-          marginVertical: 8,
-          padding: 10,
-          borderRadius: 8,
-          borderColor: Colors.littleDarkGrey,
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        // ── Rating overview ──────────────────────────────────────────────
+        overviewCard: {
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: C.surface,
+          borderRadius: 16,
           borderWidth: 1,
-        }}
-      >
-        <AppText style={{ fontWeight: "bold" }}>
-          {item.user_unique_name}
-        </AppText>
-        <StarRating rating={item.rating} starSize={20} />
-        <AppText>{item.review_message}</AppText>
-        <AppText style={{ fontSize: 12, color: Colors.darkGrey }}>
-          {new Date(item.updatedAt).toLocaleDateString()}
-        </AppText>
-      </View>
-    ),
-    [Colors],
-  );
+          borderColor: C.border,
+          padding: 20,
+          marginBottom: 16,
+          gap: 20,
+        },
+        ratingScore: {
+          fontSize: 52,
+          fontWeight: "700",
+          color: C.themeColorTextPure,
+          lineHeight: 56,
+        },
+        ratingLabel: {
+          fontSize: 12,
+          color: C.outline,
+          marginTop: 4,
+        },
+        barRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+          marginBottom: 4,
+        },
+        barLabel: {
+          fontSize: 12,
+          color: C.outline,
+          width: 10,
+          textAlign: "right",
+        },
+        barTrack: {
+          flex: 1,
+          height: 6,
+          backgroundColor: C.borderSubtle,
+          borderRadius: 999,
+          overflow: "hidden",
+        },
+        barFill: {
+          height: "100%",
+          borderRadius: 999,
+          backgroundColor: C.primary,
+        },
+        barPct: {
+          fontSize: 11,
+          color: C.outline,
+          width: 28,
+          textAlign: "right",
+        },
 
-  const emptyComponent = useCallback(
-    () => (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text
-          style={{ color: theme === "dark" ? Colors.dark : Colors.darkGrey }}
-        >
-          No reviews available
-        </Text>
-      </View>
-    ),
-    [theme, Colors.dark, Colors.darkGrey],
-  );
+        // ── Filter chips ─────────────────────────────────────────────────
+        chipRow: {
+          flexDirection: "row",
+          gap: 8,
+          marginBottom: 20,
+          flexWrap: "wrap",
+        },
+        chip: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 4,
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 20,
+          borderWidth: 1,
+        },
+        chipText: {
+          fontSize: 13,
+        },
 
-  const footerComponent = useCallback(
-    () => (
-      <View style={{ padding: 10, alignItems: "center" }}>
-        <Text
-          style={{ color: theme === "dark" ? Colors.dark : Colors.darkGrey }}
-        >
-          {totalReviews >= 10 ? <OwnActivaterIndicator /> : "No more reviews"}
-        </Text>
-      </View>
-    ),
-    [theme, Colors.dark, Colors.darkGrey, totalReviews],
+        // ── Section header ────────────────────────────────────────────────
+        sectionHeader: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 12,
+        },
+        sectionTitle: {
+          fontSize: 16,
+          fontWeight: "600",
+          color: C.themeColorTextPure,
+        },
+        headerMeta: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 4,
+        },
+
+        // ── Review card ──────────────────────────────────────────────────
+        reviewCard: {
+          backgroundColor: C.surface,
+          borderRadius: 14,
+          borderWidth: 1,
+          borderColor: C.border,
+          padding: 14,
+          marginBottom: 10,
+        },
+        reviewHeader: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 4,
+        },
+        reviewName: {
+          fontWeight: "700",
+          color: C.onSurface,
+          fontSize: 14,
+        },
+        reviewDate: {
+          fontSize: 11,
+          color: C.outline,
+        },
+        reviewBody: {
+          color: C.onSurfaceVariant,
+          fontSize: 14,
+          lineHeight: 20,
+          marginTop: 6,
+        },
+
+        // ── Empty / footer ───────────────────────────────────────────────
+        emptyWrap: {
+          alignItems: "center",
+          justifyContent: "center",
+          paddingVertical: 48,
+          gap: 10,
+        },
+        emptyText: {
+          color: C.outline,
+          fontSize: 14,
+        },
+        loadMoreBtn: {
+          alignItems: "center",
+          justifyContent: "center",
+          paddingVertical: 12,
+          marginTop: 4,
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: C.accentPrimaryBorder,
+          backgroundColor: C.accentPrimaryGlow,
+        },
+        loadMoreText: {
+          color: C.primary,
+          fontWeight: "600",
+          fontSize: 14,
+        },
+      }),
+    [C],
   );
 
   return (
-    <View style={{ backgroundColor: "transparent", width: "95%" }}>
-      <View>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <View style={{ flexDirection: "column", alignItems: "center" }}>
-            <Text
-              style={{
-                color:
-                  theme === "dark" ? Colors.themeColorTextPure : Colors.dark,
-                fontSize: 40,
-                fontWeight: "600",
-              }}
-            >
-              {rating || 0}
-            </Text>
-            <StarRating rating={rating} starSize={20} />
-            <Text style={{ color: Colors.darkGrey }}>{count || 0} review</Text>
-          </View>
-          <View style={{ width: "50%" }}>
-            {starDistribution.map(({ star, count, percentage }) => (
-              <View
-                key={star}
-                style={{
-                  gap: 3,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  maxWidth: "100%",
-                }}
-              >
-                <Entypo name="star" size={18} color={"gold"} />
-                <Text style={{ color: Colors.primary }}>{star}</Text>
-                {/* PROGRESS */}
-                <View
-                  style={{
-                    width: 100,
-                    height: 6,
-                    backgroundColor: Colors.borderSubtle,
-                    borderRadius: 999,
-                    overflow: "hidden",
-                  }}
-                >
-                  <View
-                    style={{
-                      width: `${Math.min(Math.max(percentage, 0), 1) * 100}%`,
-                      height: "100%",
-                      backgroundColor: Colors.primary,
-                      borderRadius: 999,
-                    }}
-                  />
-                </View>
-                <Text style={{ marginLeft: 5, color: Colors.secondary }}>
-                  {Math.round(percentage * 100)}%
-                </Text>
-              </View>
-            ))}
-          </View>
+    <View style={{ flex: 1, paddingHorizontal: 10, paddingTop: 10 }}>
+      {/* ── Rating overview card ── */}
+      <View style={styles.overviewCard}>
+        {/* Big score + stars + count */}
+        <View style={{ alignItems: "center", flex: 1 }}>
+          <Text style={styles.ratingScore}>{rating?.toFixed(1) ?? "0.0"}</Text>
+          <StarRating rating={rating} starSize={18} />
+          <Text style={styles.ratingLabel}>{count ?? 0} reviews</Text>
         </View>
 
-        <View style={{ paddingTop: 20 }}>
-          <View
-            style={{
-              justifyContent: "space-between",
-              flexDirection: "row",
-            }}
-          >
-            <View style={{ flexDirection: "column", width: "100%", flex: 1 }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  width: "100%",
-                  justifyContent: "space-evenly",
-                }}
-              >
-                {STAR_FILTERS.map((item) => (
-                  <TouchableOpacity
-                    key={item}
-                    style={{
-                      flexDirection: "row",
-                      borderWidth: 1,
-                      padding: 2,
-                      borderColor: Colors.darkGrey,
-                      borderRadius: 10,
-                      alignItems: "center",
-                      width: "15%",
-                      justifyContent: "center",
-                      backgroundColor:
-                        filterRating === item ? Colors.primary : Colors.white,
-                    }}
-                    onPress={() => setFilterRating(item)}
-                  >
-                    <Entypo
-                      name="star"
-                      size={15}
-                      color={filterRating === item ? Colors.white : Colors.dark}
-                    />
-                    <Text
-                      style={{
-                        color:
-                          filterRating === item ? Colors.white : Colors.dark,
-                      }}
-                    >
-                      {item}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  width: "100%",
-                  justifyContent: "space-between",
-                  paddingTop: 10,
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      theme === "dark"
-                        ? Colors.themeColorTextPure
-                        : Colors.dark,
-                    fontSize: 18,
-                    fontWeight: 600,
-                  }}
-                >
-                  Comment
-                </Text>
+        {/* Bar chart */}
+        <View style={{ flex: 2 }}>
+          {starDistribution.map(({ star, percentage }) => (
+            <View key={star} style={styles.barRow}>
+              <Text style={styles.barLabel}>{star}</Text>
+              <Entypo name="star" size={11} color="#FBBF24" />
+              <View style={styles.barTrack}>
                 <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 5,
-                  }}
-                >
-                  <Entypo name="star" size={24} color="gold" />
-                  <Text>{rating || 0}</Text>
-                  <Text style={{ color: Colors.darkGrey }}>({count || 0})</Text>
-                </View>
+                  style={[
+                    styles.barFill,
+                    {
+                      width: `${Math.round(
+                        Math.min(Math.max(percentage, 0), 1) * 100,
+                      )}%`,
+                    },
+                  ]}
+                />
               </View>
+              <Text style={styles.barPct}>{Math.round(percentage * 100)}%</Text>
             </View>
-          </View>
-          <View>
-            {filteredReviews.length === 0
-              ? emptyComponent()
-              : filteredReviews.map((item) => (
-                  <React.Fragment key={item._id}>
-                    {renderItem({ item })}
-                  </React.Fragment>
-                ))}
-            {footerComponent()}
-            {totalReviews >= 10 && (
-              <TouchableOpacity
-                style={{ alignItems: "center", padding: 12 }}
-                onPress={() => setPage((prev) => prev + 1)}
-              >
-                <AppText style={{ color: Colors.primary }}>Load more</AppText>
-              </TouchableOpacity>
-            )}
-          </View>
+          ))}
         </View>
       </View>
+
+      {/* ── Filter chips ── */}
+      <View style={styles.chipRow}>
+        {STAR_FILTERS.map((item) => {
+          const active = filterRating === item;
+          return (
+            <TouchableOpacity
+              key={item}
+              onPress={() => setFilterRating(item)}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: active ? C.primary : C.surfaceHighest,
+                  borderColor: active ? C.primary : C.border,
+                },
+              ]}
+            >
+              {item !== "All" && (
+                <Entypo
+                  name="star"
+                  size={12}
+                  color={active ? C.white : "#FBBF24"}
+                />
+              )}
+              <Text
+                style={[
+                  styles.chipText,
+                  {
+                    color: active ? C.white : C.onSurfaceVariant,
+                    fontWeight: active ? "600" : "400",
+                  },
+                ]}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* ── Section header ── */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Comments</Text>
+        <View style={styles.headerMeta}>
+          <Entypo name="star" size={16} color="#FBBF24" />
+          <AppText style={{ fontWeight: "600", color: C.themeColorTextPure }}>
+            {rating?.toFixed(1) ?? "0.0"}
+          </AppText>
+          <AppText style={{ color: C.outline }}>({count ?? 0})</AppText>
+        </View>
+      </View>
+
+      {/* ── Reviews ── */}
+      {filteredReviews.length === 0 ? (
+        <View style={styles.emptyWrap}>
+          <Entypo name="star-outlined" size={40} color={C.borderSubtle} />
+          <Text style={styles.emptyText}>No reviews yet</Text>
+        </View>
+      ) : (
+        <>
+          {filteredReviews.map((item) => (
+            <View key={item._id} style={styles.reviewCard}>
+              <View style={styles.reviewHeader}>
+                <Text style={styles.reviewName}>{item.user_unique_name}</Text>
+                <Text style={styles.reviewDate}>
+                  {new Date(item.updatedAt).toLocaleDateString()}
+                </Text>
+              </View>
+              <StarRating rating={item.rating} starSize={15} />
+              <Text style={styles.reviewBody}>{item.review_message}</Text>
+            </View>
+          ))}
+
+          {/* Footer */}
+          {totalReviews >= 10 ? (
+            <TouchableOpacity
+              style={styles.loadMoreBtn}
+              onPress={() => setPage((prev) => prev + 1)}
+            >
+              <Text style={styles.loadMoreText}>Load more</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={{ alignItems: "center", paddingVertical: 16 }}>
+              <Text style={{ color: C.outline, fontSize: 13 }}>
+                All reviews loaded
+              </Text>
+            </View>
+          )}
+        </>
+      )}
     </View>
   );
 };

@@ -3,7 +3,7 @@ import AppText from "@/components/ui/app_text";
 import { FontAwesome, FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { router } from "expo-router";
 import LottieView from "lottie-react-native";
-import React, { SetStateAction } from "react";
+import React, { RefObject, SetStateAction } from "react";
 import { Modal, TouchableOpacity, View } from "react-native";
 
 interface Confirm_Modal_Props {
@@ -16,7 +16,7 @@ interface Confirm_Modal_Props {
     resolve?: (index: number) => string | number | undefined;
   }[];
   addToCalendar: () => void;
-  hasScheduled: boolean;
+  hasScheduled: RefObject<boolean>;
 }
 
 const Confirm_Modal = ({
@@ -186,7 +186,7 @@ const Confirm_Modal = ({
                 }}
                 onPress={() => {
                   router.push("/(drawer)/(user)/(tab-user)/order");
-                  hasScheduled && setConfirmModal(!confirmModal);
+                  if (hasScheduled.current) setConfirmModal(!confirmModal);
                 }}
               >
                 <FontAwesome6

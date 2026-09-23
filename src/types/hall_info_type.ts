@@ -1,5 +1,3 @@
-import { HallTypesSeparator } from "./hall_separator_type";
-
 export interface DurationPrice {
   name: string;
   durationMinutes: number;

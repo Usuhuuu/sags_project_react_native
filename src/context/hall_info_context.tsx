@@ -169,7 +169,7 @@ const HallInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       getAllHalls: getAllHalls,
       getHallTimeSlots: getHallTimeSlots,
     }),
-    [hallInfo],
+    [hallInfo, getAllHalls, getHallTimeSlots, getSpecificHall],
   );
   return (
     <HallInfoContext.Provider value={value}>

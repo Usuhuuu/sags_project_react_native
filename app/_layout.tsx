@@ -42,29 +42,31 @@ export function RootLayout() {
   const { LoginStatus } = useAuth();
 
   useEffect(() => {
-    // Mark the app ready immediately so the UI renders without delay.
-    // Permissions and network tasks all run in the background — none of
-    // them need to finish before the first frame is visible to the user.
-    setAppReady(true);
+    let cancelled = false;
+    const init = async () => {
+      Promise.allSettled([
+        notificationPermission(),
+        trackingStatusPermission(),
+        requestLocationPermission(),
+        reminderPermission(),
+        initHallInfo(),
+        mqttService.connect(),
+      ]);
 
-    // Fire-and-forget: permissions, favorites, hall data, MQTT.
-    // Promise.allSettled ensures individual failures don't surface as
-    // unhandled rejections.
-    Promise.allSettled([
-      notificationPermission(),
-      trackingStatusPermission(),
-      requestLocationPermission(),
-      reminderPermission(),
-      LoginStatus && useFavoritesStore.getState().load(),
-    ]);
+      if (!cancelled) setAppReady(true);
+    };
 
-    initHallInfo();
-    mqttService.connect();
-
+    init();
     return () => {
+      cancelled = true;
       mqttService.disconnect();
     };
   }, []);
+  useEffect(() => {
+    if (LoginStatus) {
+      useFavoritesStore.getState().load();
+    }
+  }, [LoginStatus]);
 
   useEffect(() => {
     const addNotification = useNotificationStore.getState().addNotification;

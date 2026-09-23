@@ -143,7 +143,7 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
       chevronDeg.value = withTiming(n ? 90 : 0, { duration: 250 });
       return n;
     });
-  }, []);
+  }, [chevronDeg]);
 
   const chStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${chevronDeg.value}deg` }],
@@ -151,8 +151,11 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
 
   const onPress = useCallback(() => {
     if (!item.seen) {
-      item.seen = true;
-      void itemSave(item.id);
+      const updatedItem = {
+        ...item,
+        seen: true,
+      };
+      void itemSave(updatedItem.id);
     }
     toggle();
   }, [item, itemSave, toggle]);

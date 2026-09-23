@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Modal, View, Dimensions, TouchableOpacity } from "react-native";
+import { Modal, View, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "@/context/auth_context";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -41,7 +41,7 @@ interface SignUpModal {
 const STEP_LABELS = ["PROFILE SETUP", "INTERESTS", "FINAL"];
 
 // ── Styles ─────────────────────────────────────────────────────────────────
-const createStyles = (Colors: any, width: number) =>
+const createStyles = (Colors: any) =>
   ({
     container: {
       flex: 1,
@@ -118,8 +118,7 @@ const SignupModal = ({
   path,
 }: SignUpModal) => {
   const { colors: Colors } = useTheme();
-  const { width } = Dimensions.get("screen");
-  const styles = useMemo(() => createStyles(Colors, width), [Colors, width]);
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
 
   const [notificationToken, setNotificationToken] = useState("");
   const { logIn } = useAuth();
@@ -206,7 +205,7 @@ const SignupModal = ({
       showToast({
         title: "Signup failed",
         description: message,
-          alertType: "error",
+        alertType: "error",
       });
     }
   }, [path, formData, notificationToken, logIn, setModalVisible, router]);
@@ -264,7 +263,6 @@ const SignupModal = ({
           {steps === 0 && (
             <SignupOne
               setSteps={setSteps}
-              steps={steps}
               formData={formData}
               setFormData={setFormData}
             />
@@ -280,7 +278,6 @@ const SignupModal = ({
           {steps === 2 && (
             <SignupStepThree
               steps={steps}
-              setSteps={setSteps}
               formData={formData}
               setFormData={setFormData}
               onSubmit={handleSubmit}

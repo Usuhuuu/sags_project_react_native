@@ -2,7 +2,6 @@ import { useHallInfo } from "@/context/hall_info_context";
 import { EsportBookingData, useBookingStore } from "@/context/store/book_store";
 import { useTheme } from "@/context/theme_context";
 import {
-  Feather,
   FontAwesome5,
   Fontisto,
   Ionicons,
@@ -16,13 +15,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  StatusBar,
-  Text,
-} from "react-native";
+import { View, TouchableOpacity, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { openCheckoutBrowser } from "@/utils/paymentBrowser";
 import { InAppBrowser } from "react-native-inappbrowser-reborn";
@@ -85,7 +78,10 @@ const CombinedEsportHall = ({
   const hid = pHID ?? String(routeId ?? "");
   const listing =
     pList ?? (getSpecificHall(hid) as EsportHallDataType | undefined);
-  const imgs = listing?.hall_details?.hall_imageURLs ?? [];
+  const imgs = useMemo(
+    () => listing?.hall_details?.hall_imageURLs ?? [],
+    [listing],
+  );
   const hName = listing?.hall_details?.hall_name ?? "PC Bang";
   const hPrices = listing?.hall_details?.hall_price;
 
@@ -103,12 +99,15 @@ const CombinedEsportHall = ({
   const setBookingDetails = useBookingStore((s) => s.setEsportBookingDetails);
   const initRef = useRef(false);
 
-  const selectedDate =
-    bookingDetails?.bookingDate ?? bookingDetails?.date ?? new Date();
+  const selectedDate = useMemo(() => {
+    return bookingDetails?.bookingDate ?? bookingDetails?.date ?? new Date();
+  }, [bookingDetails]);
   const selectedTier = bookingDetails?.tier ?? "regular";
   const apiTier = selectedTier === "regular" ? "hall" : selectedTier;
   const selectedHours = Number(bookingDetails?.hours ?? 1);
-  const selectedStartTime = bookingDetails?.startTime ?? new Date();
+  const selectedStartTime = useMemo(() => {
+    return bookingDetails?.startTime ?? new Date();
+  }, [bookingDetails]);
 
   // ── Derived pricing ────────────────────────────────────────────────────────
   const totalPrice =
@@ -431,13 +430,13 @@ const CombinedEsportHall = ({
     }
   }, [
     selectedDate,
-    selectedTier,
     selectedHours,
     selectedStartTime,
     bookingDetails,
     listing,
     hName,
     grandTotal,
+    apiTier,
   ]);
 
   // ── Confirmation details (memoized) ──────────────────────────────────────
@@ -635,7 +634,7 @@ const CombinedEsportHall = ({
             value: d.value ?? "",
           }))}
           addToCalendar={() => console.log("Add to calendar")}
-          hasScheduled={sched.current}
+          hasScheduled={sched}
         />
       )}
     </SafeAreaView>

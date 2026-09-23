@@ -2,34 +2,9 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { showToast } from "@/utils/toast";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFavoritesStore } from "@/context/store/favorites_store";
 
-const apiUrl = process.env.EXPO_PUBLIC_BASE_URL ?? "http://localhost:3000"; //"https://8f9e-118-176-174-110.ngrok-free.app";
+const apiUrl = process.env.EXPO_PUBLIC_BASE_URL;
 
-const tokenWithRetry = async (
-  maxRetry: number = 3,
-  maxInterval: number = 300,
-) => {
-  let token = null;
-  let retry = 0;
-  token = await SecureStore.getItemAsync("Tokens");
-  while (!token && retry <= maxRetry) {
-    token = await SecureStore.getItemAsync("Tokens");
-    if (!token) {
-      retry++;
-      await new Promise((resolve) => setTimeout(resolve, maxInterval));
-    }
-  }
-  if (!token) {
-    showToast({
-      title: "Oops",
-      description: "Please login in to process",
-      alertType: "warn",
-    });
-    throw new Error("could't find Token");
-  }
-  return token;
-};
 // Create the main axios instance for normal requests
 
 export const axiosInstance = axios.create({
@@ -53,9 +28,11 @@ export const axiosInstanceRegular = axios.create({
 
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const token = await tokenWithRetry();
+    const token = await SecureStore.getItemAsync("Tokens");
 
-    const hallVersion = (await AsyncStorage.getItem("hall_version")) ?? "0";
+    const hallVersion = Number(
+      (await AsyncStorage.getItem("hall_version")) ?? 0,
+    );
     if (hallVersion) {
       config.headers["x-hall-version"] = hallVersion;
     }
@@ -130,7 +107,7 @@ axiosInstance.interceptors.response.use(
             default:
               break;
           }
-        } catch (refreshError) {
+        } catch {
           console.log("refresh error");
         }
       }

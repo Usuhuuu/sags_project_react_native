@@ -8,12 +8,7 @@ import {
 import React, { memo, useEffect, useState, useCallback, useMemo } from "react";
 import MapView, { Marker, PROVIDER_GOOGLE, Callout } from "react-native-maps";
 import * as Location from "expo-location";
-import {
-  EsportHallDataType,
-  EsportHallPrices,
-  SportHallDataType,
-  SportHallPrice,
-} from "@/types/hall_info_type";
+import { EsportHallDataType, SportHallDataType } from "@/types/hall_info_type";
 import { useIsFocused, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -54,17 +49,18 @@ const HallMarker = memo(
     ]?.find((p) => p.durationMinutes === 60)?.price;
 
     // Stable handlers – recreated only when item location or callbacks change.
-    const handleMarkerPress = useCallback(() => {
+
+    function handleMarkerPress() {
       onFocus(
         parseFloat(item.hall_locations?.latitude),
         parseFloat(item.hall_locations?.longitude),
       );
-    }, [item.hall_locations, onFocus]);
+    }
 
-    const handleCalloutPress = useCallback(() => {
+    function handleCalloutPress() {
       const type = item.hall_types.main.split("_")[0];
       onNavigate(item.sportHallID, type);
-    }, [item.sportHallID, onNavigate]);
+    }
 
     return (
       <Marker
@@ -191,11 +187,12 @@ const ListingsMap = memo(
     const mapRef = React.useRef<MapView | null>(null);
     const isFocused = useIsFocused();
     const onNavigate = useCallback(
-      (id: string, _type: string) => {
+      (id: string) => {
         router.push(`/book/${id}`);
       },
       [router],
     );
+
     const setMapRef = useCallback((ref: any) => {
       mapRef.current = ref as unknown as MapView;
     }, []);

@@ -1,5 +1,4 @@
 import mqtt, { type MqttClient } from "mqtt";
-import axiosInstance from "./axiosInstance";
 
 class MQTTService {
   private client: MqttClient | null = null;

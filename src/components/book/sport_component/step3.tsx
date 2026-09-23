@@ -24,6 +24,8 @@ interface Step_Three_Props {
   timeCount: number;
   totalPrice: number;
   handleOrder: () => void;
+  oneHourPrice: number;
+  oneDayPrice: number;
 }
 
 // ── Styles ─────────────────────────────────────────────────────────────────
@@ -332,6 +334,8 @@ const Step_Three = ({
   totalPrice,
   playersNeeded,
   handleOrder,
+  oneHourPrice,
+  oneDayPrice,
 }: Step_Three_Props) => {
   const { colors } = useTheme();
   const s = useMemo(() => createStyles(colors), [colors]);
@@ -369,9 +373,7 @@ const Step_Three = ({
                 />
                 <AppText style={s.timeHeaderLabel}>Whole Day</AppText>
               </View>
-              <AppText style={s.timeHeaderPrice}>
-                ₮{bookingDetails?.price.wholeDay}
-              </AppText>
+              <AppText style={s.timeHeaderPrice}>₮{oneDayPrice}</AppText>
             </View>
             <View style={s.peopleRow}>
               <AppText style={s.peopleLabel}>People</AppText>
@@ -389,8 +391,8 @@ const Step_Three = ({
               <AppText style={s.totalText}>
                 Booker's Total: ₮
                 {wholeDayPeople <= 0
-                  ? bookingDetails?.price.wholeDay
-                  : Number(bookingDetails?.price.wholeDay) / wholeDayPeople}
+                  ? oneDayPrice
+                  : Number(oneDayPrice) / wholeDayPeople}
               </AppText>
             </View>
           </View>
@@ -432,9 +434,7 @@ const Step_Three = ({
                     1 Hour
                   </AppText>
                 </View>
-                <AppText style={s.timeHeaderPrice}>
-                  ₮{bookingDetails?.price.oneHour}
-                </AppText>
+                <AppText style={s.timeHeaderPrice}>₮{oneHourPrice}</AppText>
               </View>
 
               {/* Total summary — clean, straight rows */}

@@ -85,7 +85,7 @@ const getUniqueListWithSessions = async (
           const sameDay =
             new Date(hall.day).getTime() === new Date(parsed.date).getTime();
 
-          let sameTimeSlots =
+          const sameTimeSlots =
             parsed.type === "esport"
               ? true
               : hall.blocks.some(

@@ -1,10 +1,6 @@
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
-import {
-  EsportHallDataType,
-  SportHallDataType,
-  SportHallPrice,
-} from "@/types/hall_info_type";
+import { EsportHallDataType, SportHallDataType } from "@/types/hall_info_type";
 import {
   AntDesign,
   Feather,
@@ -17,7 +13,7 @@ import Carousel, {
   Pagination,
 } from "react-native-reanimated-carousel";
 import { router } from "expo-router";
-import React, { useEffect, useRef, useState, memo } from "react";
+import React, { useEffect, useRef, useState, useMemo, memo } from "react";
 import {
   View,
   Image,
@@ -31,7 +27,7 @@ import {
 import Animated, { useSharedValue } from "react-native-reanimated";
 import OrderScreen, { FormData } from "@/components/book/detail";
 import SportHallReviewPage, { Review } from "@/app/review/hall_review";
-import axiosInstance, { axiosInstanceRegular } from "@/hooks/axiosInstance";
+import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import {
   HallDetailSeparator,
   HallTypesSeparator,
@@ -181,15 +177,7 @@ const MainHallComponent = ({
   const { colors: C } = useTheme();
   const { width } = useWindowDimensions();
   const [isOrderVisible, setOrderVisible] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    date: "",
-    price: [],
-    workTime: "",
-    image: [],
-    location: { latitude: "", longitude: "", smart_location: "" },
-    reference_hall_id: "",
-  });
+
   const [reviews, setReviews] = useState<Record<string, Review>>({});
   const [rating, setRating] = useState(4.8);
   const [count, setCount] = useState(124);
@@ -197,6 +185,15 @@ const MainHallComponent = ({
   const [noMore, setNoMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const fetched = useRef(false);
+  // Track the last sportHallID we rendered for so we can reset review state
+  // synchronously during render (React-approved alternative to a reset effect).
+  const [prevHallId, setPrevHallId] = useState(sportHallID);
+  if (prevHallId !== sportHallID) {
+    setPrevHallId(sportHallID);
+    setReviews({});
+    setPage(0);
+    setNoMore(false);
+  }
   const imageRef = useRef<ICarouselInstance>(null);
   const progress = useSharedValue(0);
   const [activeTab, setActiveTab] = useState(HallDetailSeparator.DETAILS);
@@ -219,21 +216,28 @@ const MainHallComponent = ({
 
   const { getHallTimeSlots } = useHallInfo();
 
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      ...(hallType === HallTypesSeparator.SPORTHALL && {
-        sport_hall_id: sportHallID,
-        name: listing?.hall_details?.hall_name,
-        price: listing?.hall_details.hall_price[hallMapValue],
-        workTime: `${listing?.hall_details?.hall_work_time?.start_time}~${listing?.hall_details?.hall_work_time?.end_time}`,
-        image: listing?.hall_details?.hall_imageURLs,
-        location: listing?.hall_locations ?? prev.location,
-        reference_hall_id: listing?.reference_hallId ?? "",
-      }),
-    }));
-  }, [sportHallID, listing]);
-
+  // All FormData fields come from listing/props — none need to live in state.
+  // useMemo recomputes synchronously on the same render whenever listing,
+  // sportHallID, hallMapValue, or hallType changes. OrderScreen owns `date`
+  // internally, so we seed it as an empty string here.
+  const formData = useMemo<FormData>(
+    () => ({
+      sport_hall_id:
+        hallType === HallTypesSeparator.SPORTHALL ? sportHallID : "",
+      name: listing?.hall_details?.hall_name ?? "",
+      date: "",
+      price: listing?.hall_details?.hall_price?.[hallMapValue] ?? [],
+      workTime: `${listing?.hall_details?.hall_work_time?.start_time ?? ""}~${listing?.hall_details?.hall_work_time?.end_time ?? ""}`,
+      image: listing?.hall_details?.hall_imageURLs ?? [],
+      location: listing?.hall_locations ?? {
+        latitude: "",
+        longitude: "",
+        smart_location: "",
+      },
+      reference_hall_id: listing?.reference_hallId ?? "",
+    }),
+    [hallType, sportHallID, listing, hallMapValue],
+  );
   useEffect(() => {
     if (activeTab !== HallDetailSeparator.REVIEW || fetched.current || noMore)
       return;
@@ -270,14 +274,13 @@ const MainHallComponent = ({
     return () => {
       mounted = false;
     };
-  }, [page, activeTab, listing?.sportHallID]);
+  }, [page, activeTab, listing?.sportHallID, noMore]);
 
+  // Reset the in-flight guard when the hall changes.
+  // Ref mutations belong in effects, not during render.
   useEffect(() => {
-    setReviews({});
-    setPage(0);
-    setNoMore(false);
     fetched.current = false;
-  }, [sportHallID]);
+  }, [listing?.sportHallID]);
 
   const imgs = listing?.hall_details?.hall_imageURLs ?? [];
 
