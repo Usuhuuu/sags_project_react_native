@@ -13,7 +13,7 @@ import { useTheme } from "@/context/theme_context";
 import { LoginInput } from "@/app/auth/signup";
 import AppText from "@/components/ui/app_text";
 import { KeyboardAwareScroll } from "@/components/ui/keyboard_aware_scroll";
-import { axiosInstance, axiosInstanceRegular } from "@/hooks/axiosInstance";
+import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 
 interface PhoneVerifySession {
   sessionId: string;
@@ -23,6 +23,9 @@ interface PhoneVerifySession {
   expiresAt: string;
   success: boolean;
 }
+
+// Hard floor between two send attempts (seconds).
+const RESEND_COOLDOWN_SECONDS = 10;
 
 // ── Props ──────────────────────────────────────────────────────────────────
 interface SignupStepTwoProps {
@@ -123,7 +126,7 @@ const createStyles = (Colors: any) =>
       paddingTop: 20,
     },
     headerSection: {
-      marginBottom: 36,
+      marginBottom: 32,
     },
     title: {
       fontSize: 32,
@@ -138,14 +141,14 @@ const createStyles = (Colors: any) =>
       lineHeight: 21,
     },
     formSection: {
-      gap: 14,
+      gap: 18,
     },
-    hintText: {
+    fieldLabel: {
       fontSize: 13,
-      color: Colors.outline,
-      lineHeight: 18,
-      marginTop: 4,
-      paddingLeft: 2,
+      fontWeight: "600",
+      color: Colors.onSurfaceVariant,
+      marginBottom: 8,
+      marginLeft: 2,
     },
     row: {
       flexDirection: "row",
@@ -168,17 +171,126 @@ const createStyles = (Colors: any) =>
     actionBtnDisabled: {
       opacity: 0.5,
     },
+    outlineBtn: {
+      backgroundColor: Colors.surfaceHigh,
+      borderColor: Colors.border,
+    },
+    card: {
+      backgroundColor: Colors.surface,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: Colors.borderSubtle,
+      padding: 20,
+      gap: 14,
+      shadowColor: Colors.shadowColor,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 8,
+      elevation: 1,
+    },
+    cardHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    cardTitle: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: "700",
+      color: Colors.onSurface,
+    },
+    cardBody: {
+      fontSize: 13,
+      color: Colors.onSurfaceVariant,
+      lineHeight: 20,
+    },
+    codeChip: {
+      alignSelf: "center",
+      alignItems: "center",
+      backgroundColor: Colors.accentPrimaryGlow,
+      borderRadius: 14,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+    },
+    codeNumber: {
+      fontSize: 26,
+      fontWeight: "800",
+      letterSpacing: 8,
+      color: Colors.accentPrimary,
+    },
+    codeHint: {
+      fontSize: 12,
+      color: Colors.outline,
+      marginTop: 4,
+    },
+    primaryBtn: {
+      height: 52,
+      borderRadius: 14,
+      justifyContent: "center",
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 8,
+    },
+    statusRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 8,
+    },
+    statusHint: {
+      fontSize: 13,
+      color: Colors.outline,
+    },
+    statusLink: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: Colors.accentPrimary,
+    },
+    resend: {
+      alignSelf: "center",
+      paddingVertical: 6,
+    },
+    resendText: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: Colors.accentPrimary,
+    },
+    errorBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      backgroundColor: Colors.errorGlow,
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+    },
     errorText: {
+      flex: 1,
       fontSize: 13,
       color: Colors.errorColor,
       lineHeight: 18,
-      paddingLeft: 2,
+    },
+    successBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      backgroundColor: Colors.successGlow,
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
     },
     successText: {
+      flex: 1,
       fontSize: 13,
+      fontWeight: "600",
       color: Colors.successColor,
       lineHeight: 18,
-      paddingLeft: 2,
+    },
+    footerHint: {
+      fontSize: 12.5,
+      color: Colors.outline,
+      textAlign: "center",
+      lineHeight: 18,
     },
     continueBtnDisabled: {
       opacity: 0.4,
@@ -226,10 +338,21 @@ const SignupStepTwo = ({
   const [sending, setSending] = useState(false);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Seconds remaining before another send is allowed (10s resend lock).
+  const [cooldown, setCooldown] = useState(0);
 
   const phone = formData.phoneNumber?.trim() ?? "";
   const phoneValid = phone.length >= 8;
-  const canSend = phoneValid && !verifySession && !verified && !sending;
+  const canSend = phoneValid && !verified && !sending && cooldown === 0;
+
+  // Tick the resend countdown down to 0.
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const handleSendOtp = useCallback(async () => {
     if (!canSend) return;
@@ -237,14 +360,18 @@ const SignupStepTwo = ({
     setExpired(false);
     setSending(true);
     try {
+      // A live session means this is a resend of the same attempt.
+      const resend = Boolean(verifySession);
       const res = await axiosInstanceRegular.post<PhoneVerifySession>(
         "/auth/mobile",
         {
           number: phone,
+          resend,
         },
       );
       if (res.status === 200 && res.data.success) {
         setVerifySession(res.data);
+        setCooldown(RESEND_COOLDOWN_SECONDS);
       }
     } catch (e: any) {
       setError(e?.response?.data?.message ?? "Failed to start verification");
@@ -252,7 +379,7 @@ const SignupStepTwo = ({
     } finally {
       setSending(false);
     }
-  }, [canSend, phone]);
+  }, [canSend, phone, verifySession]);
 
   const handleOpenSms = useCallback(() => {
     if (!verifySession?.smsUri) return;
@@ -277,7 +404,7 @@ const SignupStepTwo = ({
     const check = async () => {
       if (cancelled) return;
       try {
-        const res = await axiosInstance.get<{
+        const res = await axiosInstanceRegular.get<{
           status: string;
           verified: boolean;
           expiresAt: string;
@@ -298,7 +425,7 @@ const SignupStepTwo = ({
     };
 
     check();
-    const interval = setInterval(check, 3000);
+    const interval = setInterval(check, 5000);
     return () => {
       cancelled = true;
       clearInterval(interval);
@@ -358,162 +485,235 @@ const SignupStepTwo = ({
 
         {/* ── Form ── */}
         <View style={styles.formSection}>
-          <InputField
-            label="Email"
-            value={formData.email ?? ""}
-            onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, email: text }))
-            }
-            colors={Colors}
-            icon="mail-outline"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          <View>
+            <AppText style={styles.fieldLabel}>Email</AppText>
+            <InputField
+              label="you@example.com"
+              value={formData.email ?? ""}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, email: text }))
+              }
+              colors={Colors}
+              icon="mail-outline"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
 
-          {!verified ? (
-            <>
-              <View style={styles.row}>
-                <View style={styles.rowFlex}>
-                  <InputField
-                    label="Phone number"
-                    value={formData.phoneNumber ?? ""}
-                    onChangeText={handlePhoneChange}
-                    colors={Colors}
-                    icon="phone-outline"
-                    keyboardType="phone-pad"
-                    editable={!verifySession}
-                  />
-                </View>
-                {!verifySession && (
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={handleSendOtp}
-                    disabled={!canSend}
-                    style={[
-                      styles.actionBtn,
-                      {
-                        backgroundColor: Colors.surfaceHigh,
-                        borderColor: Colors.border,
-                      },
-                      !canSend && styles.actionBtnDisabled,
-                    ]}
-                  >
-                    {sending ? (
-                      <ActivityIndicator color={Colors.accentPrimary} />
-                    ) : (
-                      <AppText
-                        style={{
-                          fontSize: 14,
-                          fontWeight: "600",
-                          color: Colors.onSurface,
-                        }}
-                      >
-                        Verify
-                      </AppText>
-                    )}
-                  </TouchableOpacity>
-                )}
-              </View>
+          <View>
+            <AppText style={styles.fieldLabel}>Phone number</AppText>
 
-              {verifySession && !expired && (
-                <>
-                  <AppText style={styles.hintText}>
-                    {verifySession.displayInstruction}
-                  </AppText>
-                  {verifySession.code ? (
-                    <AppText style={styles.hintText}>
-                      Code: {verifySession.code} — send it to 144773
-                    </AppText>
-                  ) : null}
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={handleOpenSms}
-                    style={[
-                      styles.actionBtn,
-                      {
-                        backgroundColor: Colors.accentPrimary,
-                        borderColor: "transparent",
-                      },
-                    ]}
-                  >
-                    <AppText
-                      style={{
-                        color: "#FFFFFF",
-                        fontSize: 15,
-                        fontWeight: "700",
-                      }}
-                    >
-                      Send SMS
-                    </AppText>
-                    <Ionicons
-                      name="chatbubble-ellipses-outline"
-                      size={18}
-                      color="#FFFFFF"
+            {!verified ? (
+              <>
+                <View style={styles.row}>
+                  <View style={styles.rowFlex}>
+                    <InputField
+                      label="9988 0000"
+                      value={formData.phoneNumber ?? ""}
+                      onChangeText={handlePhoneChange}
+                      colors={Colors}
+                      icon="call-outline"
+                      keyboardType="phone-pad"
                     />
-                  </TouchableOpacity>
-                  <View style={styles.row}>
-                    <AppText style={styles.hintText}>
-                      Waiting for confirmation…
-                    </AppText>
+                  </View>
+                  {!verifySession && (
                     <TouchableOpacity
-                      activeOpacity={0.7}
-                      onPress={handleCheckStatus}
-                      disabled={checking}
+                      activeOpacity={0.8}
+                      onPress={handleSendOtp}
+                      disabled={!canSend}
+                      style={[
+                        styles.actionBtn,
+                        {
+                          backgroundColor: Colors.accentPrimary,
+                          borderColor: "transparent",
+                        },
+                        !canSend && styles.actionBtnDisabled,
+                      ]}
                     >
-                      {checking ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={Colors.accentPrimary}
-                        />
+                      {sending ? (
+                        <ActivityIndicator color="#FFFFFF" />
+                      ) : cooldown > 0 ? (
+                        <AppText
+                          style={{
+                            color: "#FFFFFF",
+                            fontSize: 14,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {cooldown}s
+                        </AppText>
                       ) : (
                         <AppText
-                          style={[
-                            styles.hintText,
-                            { color: Colors.accentPrimary },
-                          ]}
+                          style={{
+                            color: "#FFFFFF",
+                            fontSize: 14,
+                            fontWeight: "700",
+                          }}
                         >
-                          Check status
+                          Verify
                         </AppText>
                       )}
                     </TouchableOpacity>
-                  </View>
-                </>
+                  )}
+                </View>
+
+                {!verifySession && cooldown > 0 && (
+                  <AppText style={styles.footerHint}>
+                    Send another request in {cooldown}s
+                  </AppText>
+                )}
+              </>
+            ) : (
+              <View style={styles.successBox}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={Colors.successColor}
+                />
+                <AppText style={styles.successText}>
+                  Phone number verified
+                </AppText>
+              </View>
+            )}
+          </View>
+
+          {!verified && verifySession && !expired && (
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={20}
+                  color={Colors.accentPrimary}
+                />
+                <AppText style={styles.cardTitle}>Confirm your phone</AppText>
+                <ActivityIndicator size="small" color={Colors.accentPrimary} />
+              </View>
+
+              <AppText style={styles.cardBody}>
+                {verifySession.displayInstruction}
+              </AppText>
+
+              {verifySession.code && !verifySession.displayInstruction && (
+                <View style={styles.codeChip}>
+                  <AppText style={styles.codeNumber}>
+                    {verifySession.code}
+                  </AppText>
+                  <AppText style={styles.codeHint}>send this to 144773</AppText>
+                </View>
               )}
 
-              {expired && (
-                <>
-                  <AppText style={styles.errorText}>
-                    The verification code has expired. Start over.
-                  </AppText>
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={handleRetry}
-                    style={[
-                      styles.actionBtn,
-                      {
-                        backgroundColor: Colors.surfaceHigh,
-                        borderColor: Colors.border,
-                      },
-                    ]}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={handleOpenSms}
+                style={[
+                  styles.primaryBtn,
+                  { backgroundColor: Colors.accentPrimary },
+                ]}
+              >
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={18}
+                  color="#FFFFFF"
+                />
+                <AppText
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: 15,
+                    fontWeight: "700",
+                  }}
+                >
+                  Send SMS
+                </AppText>
+              </TouchableOpacity>
+
+              <View style={styles.statusRow}>
+                <AppText style={styles.statusHint}>
+                  Waiting for confirmation…
+                </AppText>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={handleCheckStatus}
+                  disabled={checking}
+                >
+                  {checking ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={Colors.accentPrimary}
+                    />
+                  ) : (
+                    <AppText style={styles.statusLink}>Check status</AppText>
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleSendOtp}
+                disabled={!canSend}
+                style={styles.resend}
+              >
+                {cooldown > 0 ? (
+                  <AppText
+                    style={[styles.resendText, { color: Colors.outline }]}
                   >
-                    <AppText
-                      style={{
-                        color: Colors.onSurface,
-                        fontSize: 14,
-                        fontWeight: "600",
-                      }}
-                    >
-                      Start over
-                    </AppText>
-                  </TouchableOpacity>
-                </>
-              )}
-            </>
-          ) : (
-            <AppText style={styles.successText}>Phone number verified</AppText>
+                    Resend code in {cooldown}s
+                  </AppText>
+                ) : sending ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={Colors.accentPrimary}
+                  />
+                ) : (
+                  <AppText style={styles.resendText}>Resend code</AppText>
+                )}
+              </TouchableOpacity>
+            </View>
           )}
 
-          {error ? <AppText style={styles.errorText}>{error}</AppText> : null}
+          {!verified && expired && (
+            <>
+              <View style={styles.errorBox}>
+                <Ionicons
+                  name="time-outline"
+                  size={20}
+                  color={Colors.errorColor}
+                />
+                <AppText style={styles.errorText}>
+                  The verification code has expired. Start over.
+                </AppText>
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={handleRetry}
+                style={[styles.actionBtn, styles.outlineBtn]}
+              >
+                <AppText
+                  style={{
+                    color: Colors.onSurface,
+                    fontSize: 14,
+                    fontWeight: "600",
+                  }}
+                >
+                  Start over
+                </AppText>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {error ? (
+            <View style={styles.errorBox}>
+              <Ionicons
+                name="alert-circle-outline"
+                size={20}
+                color={Colors.errorColor}
+              />
+              <AppText style={styles.errorText}>{error}</AppText>
+            </View>
+          ) : null}
+
+          <AppText style={styles.footerHint}>
+            We'll only use your number for booking confirmations.
+          </AppText>
         </View>
       </KeyboardAwareScroll>
       {/* ── Bottom button ── */}
