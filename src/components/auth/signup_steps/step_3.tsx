@@ -4,15 +4,13 @@ import {
   TextInput as RNTextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/context/theme_context";
 import { LoginInput } from "@/app/auth/signup";
 import AppText from "@/components/ui/app_text";
+import { KeyboardAwareScroll } from "@/components/ui/keyboard_aware_scroll";
 
 // ── Props ──────────────────────────────────────────────────────────────────
 interface SignupStepThreeProps {
@@ -279,150 +277,137 @@ const SignupStepThree = ({
     <SafeAreaView
       style={[styles.flex, { backgroundColor: Colors.backgroundColor }]}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.flex}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* ── Header ── */}
-          <View style={styles.headerSection}>
-            <AppText style={styles.title}>Account Security</AppText>
-            <AppText style={styles.subtitle}>
-              Create a password to secure your account
-            </AppText>
-          </View>
+      <KeyboardAwareScroll contentContainerStyle={styles.scrollContent}>
+        {/* ── Header ── */}
+        <View style={styles.headerSection}>
+          <AppText style={styles.title}>Account Security</AppText>
+          <AppText style={styles.subtitle}>
+            Create a password to secure your account
+          </AppText>
+        </View>
 
-          {/* ── Form ── */}
-          <View style={styles.formSection}>
-            <PasswordField
-              label="Create password"
-              value={password}
-              onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, password: text }))
-              }
-              colors={Colors}
-            />
+        {/* ── Form ── */}
+        <View style={styles.formSection}>
+          <PasswordField
+            label="Create password"
+            value={password}
+            onChangeText={(text) =>
+              setFormData((prev) => ({ ...prev, password: text }))
+            }
+            colors={Colors}
+          />
 
-            {/* Strength meter */}
-            {password.length > 0 && (
-              <View style={styles.strengthRow}>
-                <View style={styles.strengthBars}>
-                  {[1, 2, 3, 4].map((bar) => (
-                    <View
-                      key={bar}
-                      style={[
-                        styles.strengthBar,
-                        {
-                          backgroundColor:
-                            bar <= strength.bars
-                              ? strength.color
-                              : Colors.border,
-                        },
-                      ]}
-                    />
-                  ))}
-                </View>
-                <AppText
-                  style={[styles.strengthLabel, { color: strength.color }]}
-                >
-                  {strength.label}
-                </AppText>
+          {/* Strength meter */}
+          {password.length > 0 && (
+            <View style={styles.strengthRow}>
+              <View style={styles.strengthBars}>
+                {[1, 2, 3, 4].map((bar) => (
+                  <View
+                    key={bar}
+                    style={[
+                      styles.strengthBar,
+                      {
+                        backgroundColor:
+                          bar <= strength.bars ? strength.color : Colors.border,
+                      },
+                    ]}
+                  />
+                ))}
               </View>
-            )}
+              <AppText
+                style={[styles.strengthLabel, { color: strength.color }]}
+              >
+                {strength.label}
+              </AppText>
+            </View>
+          )}
 
-            {/* Confirm password */}
-            <PasswordField
-              label="Confirm password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              colors={Colors}
-            />
+          {/* Confirm password */}
+          <PasswordField
+            label="Confirm password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            colors={Colors}
+          />
 
-            {/* Match indicator */}
-            {confirmPassword.length > 0 && (
-              <View style={styles.matchRow}>
-                <Ionicons
-                  name={passwordsMatch ? "checkmark-circle" : "close-circle"}
-                  size={14}
-                  color={passwordsMatch ? "#22C55E" : "#EF4444"}
-                />
-                <AppText
-                  style={[
-                    styles.matchText,
-                    {
-                      color: passwordsMatch ? "#22C55E" : "#EF4444",
-                    },
-                  ]}
-                >
-                  {passwordsMatch
-                    ? "Passwords match"
-                    : "Passwords do not match"}
-                </AppText>
-              </View>
-            )}
-
-            {/* Terms checkbox */}
-            <TouchableOpacity
-              activeOpacity={0.7}
-              style={styles.termsRow}
-              onPress={toggleTerms}
-            >
-              <View
+          {/* Match indicator */}
+          {confirmPassword.length > 0 && (
+            <View style={styles.matchRow}>
+              <Ionicons
+                name={passwordsMatch ? "checkmark-circle" : "close-circle"}
+                size={14}
+                color={passwordsMatch ? "#22C55E" : "#EF4444"}
+              />
+              <AppText
                 style={[
-                  styles.checkbox,
+                  styles.matchText,
                   {
-                    borderColor: agreed ? Colors.accentPrimary : Colors.border,
-                    backgroundColor: agreed
-                      ? Colors.accentPrimary
-                      : "transparent",
+                    color: passwordsMatch ? "#22C55E" : "#EF4444",
                   },
                 ]}
               >
-                {agreed && (
-                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                )}
-              </View>
-              <AppText style={[styles.termsText, { color: Colors.outline }]}>
-                I agree to the{" "}
-                <AppText
-                  style={[styles.termsLink, { color: Colors.accentPrimary }]}
-                >
-                  Community Rules
-                </AppText>{" "}
-                &{" "}
-                <AppText
-                  style={[styles.termsLink, { color: Colors.accentPrimary }]}
-                >
-                  Terms of Service
-                </AppText>
+                {passwordsMatch ? "Passwords match" : "Passwords do not match"}
               </AppText>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+            </View>
+          )}
 
-        {/* ── Create account button ── */}
-        <View style={styles.bottomSection}>
+          {/* Terms checkbox */}
           <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={onSubmit}
-            style={[
-              styles.createBtn,
-              {
-                backgroundColor: canSubmit
-                  ? Colors.accentPrimary
-                  : Colors.outline,
-              },
-            ]}
+            activeOpacity={0.7}
+            style={styles.termsRow}
+            onPress={toggleTerms}
           >
-            <AppText style={styles.createBtnText}>Create account</AppText>
-            <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
+            <View
+              style={[
+                styles.checkbox,
+                {
+                  borderColor: agreed ? Colors.accentPrimary : Colors.border,
+                  backgroundColor: agreed
+                    ? Colors.accentPrimary
+                    : "transparent",
+                },
+              ]}
+            >
+              {agreed && (
+                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+              )}
+            </View>
+            <AppText style={[styles.termsText, { color: Colors.outline }]}>
+              I agree to the{" "}
+              <AppText
+                style={[styles.termsLink, { color: Colors.accentPrimary }]}
+              >
+                Community Rules
+              </AppText>{" "}
+              &{" "}
+              <AppText
+                style={[styles.termsLink, { color: Colors.accentPrimary }]}
+              >
+                Terms of Service
+              </AppText>
+            </AppText>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScroll>
+
+      {/* ── Create account button ── */}
+      <View style={styles.bottomSection}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={onSubmit}
+          style={[
+            styles.createBtn,
+            {
+              backgroundColor: canSubmit
+                ? Colors.accentPrimary
+                : Colors.outline,
+            },
+          ]}
+        >
+          <AppText style={styles.createBtnText}>Create account</AppText>
+          <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };

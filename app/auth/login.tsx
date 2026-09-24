@@ -6,14 +6,7 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
-} from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -29,6 +22,8 @@ import SignupModal, { LoginInput } from "./signup";
 import { showToast } from "@/utils/toast";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
+import { KeyboardAwareScroll } from "@/components/ui/keyboard_aware_scroll";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeColors } from "@/theme/colors";
 import { TextInput } from "react-native";
 
@@ -489,144 +484,133 @@ const Page = () => {
   }, []);
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.flex}
+    <SafeAreaView
+      style={[styles.flex, { backgroundColor: Colors.backgroundColor }]}
+      edges={["top"]}
     >
-      <View style={[styles.flex, { backgroundColor: Colors.backgroundColor }]}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+      <KeyboardAwareScroll contentContainerStyle={styles.scrollContent}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: Colors.surface, borderColor: Colors.border },
+          ]}
         >
+          {/* Logo */}
           <View
             style={[
-              styles.card,
-              { backgroundColor: Colors.surface, borderColor: Colors.border },
+              styles.logoBox,
+              { backgroundColor: Colors.accentPrimaryGlow },
             ]}
           >
-            {/* Logo */}
-            <View
-              style={[
-                styles.logoBox,
-                { backgroundColor: Colors.accentPrimaryGlow },
-              ]}
-            >
-              <Ionicons
-                name="football-outline"
-                size={24}
-                color={Colors.accentPrimary}
-              />
-            </View>
-
-            {/* Header */}
-            <View style={styles.headerSection}>
-              <AppText style={styles.title}>Welcome back</AppText>
-              <AppText style={styles.subtitle}>
-                Sign in to your account to continue
-              </AppText>
-            </View>
-
-            {/* Form */}
-            <View style={styles.formSection}>
-              <InputField
-                placeholder={
-                  loginDetails.loginWithEmailOrUsername || "Email or username"
-                }
-                value={email}
-                onChangeText={setEmail}
-                leftIcon="mail-outline"
-                colors={Colors}
-                autoCapitalize="none"
-              />
-
-              <InputField
-                placeholder={loginDetails.password || "Password"}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={passwordHide}
-                leftIcon="lock-closed-outline"
-                rightIcon={passwordHide ? "eye-off-outline" : "eye-outline"}
-                onRightPress={handlePasswordToggle}
-                colors={Colors}
-              />
-
-              {/* Forgot password */}
-              <View style={styles.forgotRow}>
-                <TouchableOpacity
-                  onPress={() => router.push("/auth/forgot-password")}
-                  hitSlop={{ top: 8, bottom: 8 }}
-                >
-                  <AppText style={styles.forgotText}>Forgot password?</AppText>
-                </TouchableOpacity>
-              </View>
-
-              {/* Login button */}
-              <TouchableOpacity
-                activeOpacity={0.7}
-                disabled={loading}
-                onPress={handleSubmit}
-                style={[
-                  styles.primaryBtn,
-                  loading && styles.primaryBtnDisabled,
-                ]}
-              >
-                <AppText style={styles.primaryBtnText}>
-                  {loading ? "Signing in..." : loginDetails.login || "Login"}
-                </AppText>
-              </TouchableOpacity>
-            </View>
-
-            {/* Divider */}
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <AppText style={styles.dividerText}>OR</AppText>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Social */}
-            <SocialButton
-              icon="logo-google"
-              label={loginDetails.continuewithgoogle || "Continue with Google"}
-              onPress={handleGoogleLogin}
-              colors={Colors}
+            <Ionicons
+              name="football-outline"
+              size={24}
+              color={Colors.accentPrimary}
             />
-            <SocialButton
-              icon="logo-facebook"
-              label={
-                loginDetails.continuewithfacebook || "Continue with Facebook"
-              }
-              onPress={handleFacebookLogin}
-              colors={Colors}
-            />
-
-            {/* Sign-up */}
-            <View style={styles.signupRow}>
-              <AppText style={styles.signupText}>
-                Don't have an account?
-              </AppText>
-              <TouchableOpacity onPress={openSignup}>
-                <AppText style={styles.signupLink}>
-                  {loginDetails.signUp || "Sign Up"}
-                </AppText>
-              </TouchableOpacity>
-            </View>
           </View>
-        </ScrollView>
 
-        {isModalVisible && (
-          <SignupModal
-            isModalVisible={isModalVisible}
-            setModalVisible={setIsModalVisible}
-            formData={formData}
-            setFormData={setFormData}
-            steps={steps}
-            setSteps={setSteps}
-            path={path}
+          {/* Header */}
+          <View style={styles.headerSection}>
+            <AppText style={styles.title}>Welcome back</AppText>
+            <AppText style={styles.subtitle}>
+              Sign in to your account to continue
+            </AppText>
+          </View>
+
+          {/* Form */}
+          <View style={styles.formSection}>
+            <InputField
+              placeholder={
+                loginDetails.loginWithEmailOrUsername || "Email or username"
+              }
+              value={email}
+              onChangeText={setEmail}
+              leftIcon="mail-outline"
+              colors={Colors}
+              autoCapitalize="none"
+            />
+
+            <InputField
+              placeholder={loginDetails.password || "Password"}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={passwordHide}
+              leftIcon="lock-closed-outline"
+              rightIcon={passwordHide ? "eye-off-outline" : "eye-outline"}
+              onRightPress={handlePasswordToggle}
+              colors={Colors}
+            />
+
+            {/* Forgot password */}
+            <View style={styles.forgotRow}>
+              <TouchableOpacity
+                onPress={() => router.push("/auth/forgot-password")}
+                hitSlop={{ top: 8, bottom: 8 }}
+              >
+                <AppText style={styles.forgotText}>Forgot password?</AppText>
+              </TouchableOpacity>
+            </View>
+
+            {/* Login button */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              disabled={loading}
+              onPress={handleSubmit}
+              style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
+            >
+              <AppText style={styles.primaryBtnText}>
+                {loading ? "Signing in..." : loginDetails.login || "Login"}
+              </AppText>
+            </TouchableOpacity>
+          </View>
+
+          {/* Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <AppText style={styles.dividerText}>OR</AppText>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Social */}
+          <SocialButton
+            icon="logo-google"
+            label={loginDetails.continuewithgoogle || "Continue with Google"}
+            onPress={handleGoogleLogin}
+            colors={Colors}
           />
-        )}
-      </View>
-    </KeyboardAvoidingView>
+          <SocialButton
+            icon="logo-facebook"
+            label={
+              loginDetails.continuewithfacebook || "Continue with Facebook"
+            }
+            onPress={handleFacebookLogin}
+            colors={Colors}
+          />
+
+          {/* Sign-up */}
+          <View style={styles.signupRow}>
+            <AppText style={styles.signupText}>Don't have an account?</AppText>
+            <TouchableOpacity onPress={openSignup}>
+              <AppText style={styles.signupLink}>
+                {loginDetails.signUp || "Sign Up"}
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAwareScroll>
+
+      {isModalVisible && (
+        <SignupModal
+          isModalVisible={isModalVisible}
+          setModalVisible={setIsModalVisible}
+          formData={formData}
+          setFormData={setFormData}
+          steps={steps}
+          setSteps={setSteps}
+          path={path}
+        />
+      )}
+    </SafeAreaView>
   );
 };
 

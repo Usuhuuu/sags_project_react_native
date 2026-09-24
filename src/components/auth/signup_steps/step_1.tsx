@@ -4,9 +4,6 @@ import {
   TextInput as RNTextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,6 +13,7 @@ import { LoginInput } from "@/app/auth/signup";
 import AppText from "@/components/ui/app_text";
 import { showToast } from "@/utils/toast";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
+import { KeyboardAwareScroll } from "@/components/ui/keyboard_aware_scroll";
 
 // ── Props ──────────────────────────────────────────────────────────────────
 interface SignupOneProps {
@@ -325,154 +323,149 @@ const SignupOne = ({ setSteps, formData, setFormData }: SignupOneProps) => {
   return (
     <SafeAreaView
       style={[styles.flex, { backgroundColor: Colors.backgroundColor }]}
+      edges={["top", "left", "right"]}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.flex}
+      <KeyboardAwareScroll
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* ── Header ── */}
-          <View style={styles.headerSection}>
-            <AppText style={styles.title}>Create your profile</AppText>
-            <AppText style={styles.subtitle}>Tell people who you are</AppText>
-          </View>
-
-          {/* ── Avatar ── */}
-          <View style={styles.avatarSection}>
-            <View style={styles.avatarOuter}>
-              <View style={styles.avatarCircle}>
-                <Entypo name="camera" size={36} color={Colors.outline} />
-              </View>
-              <TouchableOpacity activeOpacity={0.7} style={styles.avatarAddBtn}>
-                <Ionicons name="add" size={18} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* ── Form ── */}
-          <View style={styles.formSection}>
-            <InputField
-              label="First Name"
-              value={formData.firstName ?? ""}
-              onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, firstName: text }))
-              }
-              colors={Colors}
-              autoCapitalize="words"
-            />
-            <InputField
-              label="Last Name"
-              value={formData.lastName ?? ""}
-              onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, lastName: text }))
-              }
-              colors={Colors}
-              autoCapitalize="words"
-            />
-            <View style={{ position: "relative" }}>
-              <InputField
-                label="Username"
-                value={formData.userName ?? ""}
-                onChangeText={(text) =>
-                  setFormData((prev) => ({ ...prev, userName: text }))
-                }
-                colors={Colors}
-              />
-              {/* Status row */}
-              {usernameStatus !== "idle" && (
-                <View style={styles.usernameStatusRow}>
-                  {usernameStatus === "checking" ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={Colors.accentPrimary}
-                      style={{ marginRight: 6 }}
-                    />
-                  ) : usernameStatus === "available" ? (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={16}
-                      color="#22C55E"
-                      style={{ marginRight: 6 }}
-                    />
-                  ) : usernameStatus === "taken" ? (
-                    <Ionicons
-                      name="close-circle"
-                      size={16}
-                      color="#EF4444"
-                      style={{ marginRight: 6 }}
-                    />
-                  ) : null}
-                  <AppText
-                    style={[
-                      styles.usernameStatusText,
-                      {
-                        color:
-                          usernameStatus === "available"
-                            ? "#22C55E"
-                            : usernameStatus === "taken"
-                              ? "#EF4444"
-                              : Colors.outline,
-                      },
-                    ]}
-                  >
-                    {usernameStatus === "checking"
-                      ? "Checking availability..."
-                      : usernameStatus === "available"
-                        ? "Username is available"
-                        : usernameStatus === "taken"
-                          ? "Username is already taken"
-                          : "Could not verify username"}
-                  </AppText>
-                  {usernameStatus === "error" && (
-                    <TouchableOpacity
-                      style={[
-                        styles.retryBtn,
-                        { backgroundColor: Colors.borderSubtle },
-                      ]}
-                      onPress={() => {
-                        const name = formData.userName?.trim();
-                        if (name && name.length >= 3) checkUsername(name);
-                      }}
-                    >
-                      <AppText
-                        style={[
-                          styles.retryText,
-                          { color: Colors.accentPrimary },
-                        ]}
-                      >
-                        Retry
-                      </AppText>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-            </View>
-          </View>
-        </ScrollView>
-
-        {/* ── Bottom button ── */}
-        <View style={styles.bottomSection}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={handleContinue}
-            style={[
-              styles.continueBtn,
-              {
-                backgroundColor: canContinue
-                  ? Colors.accentPrimary
-                  : Colors.outline,
-              },
-            ]}
-          >
-            <AppText style={styles.continueBtnText}>Continue</AppText>
-            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
-          </TouchableOpacity>
+        {/* ── Header ── */}
+        <View style={styles.headerSection}>
+          <AppText style={styles.title}>Create your profile</AppText>
+          <AppText style={styles.subtitle}>Tell people who you are</AppText>
         </View>
-      </KeyboardAvoidingView>
+
+        {/* ── Avatar ── */}
+        <View style={styles.avatarSection}>
+          <View style={styles.avatarOuter}>
+            <View style={styles.avatarCircle}>
+              <Entypo name="camera" size={36} color={Colors.outline} />
+            </View>
+            <TouchableOpacity activeOpacity={0.7} style={styles.avatarAddBtn}>
+              <Ionicons name="add" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── Form ── */}
+        <View style={styles.formSection}>
+          <InputField
+            label="First Name"
+            value={formData.firstName ?? ""}
+            onChangeText={(text) =>
+              setFormData((prev) => ({ ...prev, firstName: text }))
+            }
+            colors={Colors}
+            autoCapitalize="words"
+          />
+          <InputField
+            label="Last Name"
+            value={formData.lastName ?? ""}
+            onChangeText={(text) =>
+              setFormData((prev) => ({ ...prev, lastName: text }))
+            }
+            colors={Colors}
+            autoCapitalize="words"
+          />
+          <View style={{ position: "relative" }}>
+            <InputField
+              label="Username"
+              value={formData.userName ?? ""}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, userName: text }))
+              }
+              colors={Colors}
+            />
+            {/* Status row */}
+            {usernameStatus !== "idle" && (
+              <View style={styles.usernameStatusRow}>
+                {usernameStatus === "checking" ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={Colors.accentPrimary}
+                    style={{ marginRight: 6 }}
+                  />
+                ) : usernameStatus === "available" ? (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={16}
+                    color="#22C55E"
+                    style={{ marginRight: 6 }}
+                  />
+                ) : usernameStatus === "taken" ? (
+                  <Ionicons
+                    name="close-circle"
+                    size={16}
+                    color="#EF4444"
+                    style={{ marginRight: 6 }}
+                  />
+                ) : null}
+                <AppText
+                  style={[
+                    styles.usernameStatusText,
+                    {
+                      color:
+                        usernameStatus === "available"
+                          ? "#22C55E"
+                          : usernameStatus === "taken"
+                            ? "#EF4444"
+                            : Colors.outline,
+                    },
+                  ]}
+                >
+                  {usernameStatus === "checking"
+                    ? "Checking availability..."
+                    : usernameStatus === "available"
+                      ? "Username is available"
+                      : usernameStatus === "taken"
+                        ? "Username is already taken"
+                        : "Could not verify username"}
+                </AppText>
+                {usernameStatus === "error" && (
+                  <TouchableOpacity
+                    style={[
+                      styles.retryBtn,
+                      { backgroundColor: Colors.borderSubtle },
+                    ]}
+                    onPress={() => {
+                      const name = formData.userName?.trim();
+                      if (name && name.length >= 3) checkUsername(name);
+                    }}
+                  >
+                    <AppText
+                      style={[
+                        styles.retryText,
+                        { color: Colors.accentPrimary },
+                      ]}
+                    >
+                      Retry
+                    </AppText>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      </KeyboardAwareScroll>
+      {/* ── Bottom button ── */}
+      <View style={styles.bottomSection}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={handleContinue}
+          style={[
+            styles.continueBtn,
+            {
+              backgroundColor: canContinue
+                ? Colors.accentPrimary
+                : Colors.outline,
+            },
+          ]}
+        >
+          <AppText style={styles.continueBtnText}>Continue</AppText>
+          <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };

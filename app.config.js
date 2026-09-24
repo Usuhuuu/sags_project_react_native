@@ -29,6 +29,11 @@ export default {
       },
       predictiveBackGestureEnabled: false,
       package: "com.usuhbayr.projectSags",
+      // "resize" = windowSoftInputMode adjustResize: the layout shrinks to the
+      // space above the keyboard.  Combined with KeyboardAvoidingView
+      // behavior="height", this gives correct keyboard avoidance on Android
+      // without hardcoding any heights.
+      softwareKeyboardLayoutMode: "resize",
     },
     web: {
       output: "static",
