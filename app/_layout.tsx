@@ -7,7 +7,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/components/ui/app_toast";
 import { AuthProvider, useAuth } from "@/context/auth_context";
-import HallInfoProvider, { initHallInfo } from "@/context/hall_info_context";
+import HallInfoProvider from "@/context/hall_info_context";
 import { queryClient } from "@/hooks/queryClient";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "@/hooks/i18n_instance";
@@ -49,7 +49,6 @@ export function RootLayout() {
         trackingStatusPermission(),
         requestLocationPermission(),
         reminderPermission(),
-        initHallInfo(),
         mqttService.connect(),
       ]);
 
@@ -152,7 +151,16 @@ export function RootLayoutNav({ onReady }: { onReady: () => void }) {
       />
       <Stack.Screen name="auth/forgot-password" />
       <Stack.Screen name="auth/login" />
-      <Stack.Screen name="auth/signup" />
+      <Stack.Screen
+        name="auth/signup"
+        options={{
+          presentation: "formSheet",
+          animation: "slide_from_bottom",
+          sheetAllowedDetents: [0.9, 1],
+          sheetInitialDetentIndex: 0,
+          sheetGrabberVisible: true,
+        }}
+      />
       <Stack.Screen name="book/esport/[hall_id]" />
       <Stack.Screen name="book/sport/[hall_id]" />
       <Stack.Screen name="book/[hall_id]" />

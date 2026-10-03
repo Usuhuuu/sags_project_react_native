@@ -18,8 +18,10 @@ import { KeyboardAwareScroll } from "@/components/ui/keyboard_aware_scroll";
 // ── Props ──────────────────────────────────────────────────────────────────
 interface SignupOneProps {
   setSteps: React.Dispatch<React.SetStateAction<number>>;
-  formData: Pick<LoginInput, "userName" | "firstName" | "lastName">;
-  setFormData: React.Dispatch<React.SetStateAction<LoginInput>>;
+  signupData: Pick<LoginInput, "userName" | "firstName" | "lastName">;
+  setSignupData: (
+    data: Partial<Pick<LoginInput, "userName" | "firstName" | "lastName">>,
+  ) => void;
 }
 
 // ── Shared static input styles ────────────────────────────────────────────
@@ -219,7 +221,7 @@ const createStyles = (Colors: any) =>
   });
 
 // ── Component ──────────────────────────────────────────────────────────────
-const SignupOne = ({ setSteps, formData, setFormData }: SignupOneProps) => {
+const SignupOne = ({ setSteps, signupData, setSignupData }: SignupOneProps) => {
   const { colors: Colors } = useTheme();
   const styles = createStyles(Colors);
 
@@ -246,7 +248,7 @@ const SignupOne = ({ setSteps, formData, setFormData }: SignupOneProps) => {
     }
   }, []);
 
-  const name = formData.userName?.trim() ?? "";
+  const name = signupData.userName?.trim() ?? "";
   const hasValidUsername = name.length >= 3;
 
   useEffect(() => {
@@ -270,7 +272,7 @@ const SignupOne = ({ setSteps, formData, setFormData }: SignupOneProps) => {
   }, [name, hasValidUsername, checkUsername]);
 
   const handleContinue = useCallback(() => {
-    const username = formData.userName?.trim();
+    const username = signupData.userName?.trim();
     if (!username) {
       showToast({
         title: "Username required",
@@ -316,7 +318,7 @@ const SignupOne = ({ setSteps, formData, setFormData }: SignupOneProps) => {
       return;
     }
     setSteps?.((prev) => prev + 1);
-  }, [formData.userName, usernameStatus, setSteps]);
+  }, [signupData.userName, usernameStatus, setSteps]);
 
   const canContinue = usernameStatus === "available";
 
@@ -352,18 +354,22 @@ const SignupOne = ({ setSteps, formData, setFormData }: SignupOneProps) => {
         <View style={styles.formSection}>
           <InputField
             label="First Name"
-            value={formData.firstName ?? ""}
+            value={signupData.firstName ?? ""}
             onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, firstName: text }))
+              setSignupData({
+                firstName: text,
+              })
             }
             colors={Colors}
             autoCapitalize="words"
           />
           <InputField
             label="Last Name"
-            value={formData.lastName ?? ""}
+            value={signupData.lastName ?? ""}
             onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, lastName: text }))
+              setSignupData({
+                lastName: text,
+              })
             }
             colors={Colors}
             autoCapitalize="words"
@@ -371,9 +377,11 @@ const SignupOne = ({ setSteps, formData, setFormData }: SignupOneProps) => {
           <View style={{ position: "relative" }}>
             <InputField
               label="Username"
-              value={formData.userName ?? ""}
+              value={signupData.userName ?? ""}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, userName: text }))
+                setSignupData({
+                  userName: text,
+                })
               }
               colors={Colors}
             />
@@ -429,7 +437,7 @@ const SignupOne = ({ setSteps, formData, setFormData }: SignupOneProps) => {
                       { backgroundColor: Colors.borderSubtle },
                     ]}
                     onPress={() => {
-                      const name = formData.userName?.trim();
+                      const name = signupData.userName?.trim();
                       if (name && name.length >= 3) checkUsername(name);
                     }}
                   >

@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  memo,
-  useMemo,
-  useRef,
-} from "react";
+import { useState, useEffect, useCallback, memo, useMemo } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
@@ -18,7 +11,6 @@ import {
   loginWithFacebook,
   loginWithGoogle,
 } from "@/components/auth/third_party_instance";
-import SignupModal, { LoginInput } from "./signup";
 import { showToast } from "@/utils/toast";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
@@ -26,6 +18,7 @@ import { KeyboardAwareScroll } from "@/components/ui/keyboard_aware_scroll";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeColors } from "@/theme/colors";
 import { TextInput } from "react-native";
+import { useSignupStore } from "@/context/store/signup_store";
 
 const sharedStyles = StyleSheet.create({
   socialBtn: {
@@ -290,41 +283,21 @@ const createStyles = (Colors: any) =>
   });
 
 // ── Page component ─────────────────────────────────────────────────────────
-const Page = () => {
+const LoginPage = () => {
   const { colors: Colors } = useTheme();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
 
   const { t } = useTranslation();
+  const { setSignupData } = useSignupStore();
   const loginDetails: any = t("login", { returnObjects: true });
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [passwordHide, setPasswordHide] = useState(true);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [steps, setSteps] = useState(0);
-  const [path, setPath] = useState("signup");
-  const [formData, setFormData] = useState<LoginInput>({
-    userName: "",
-    firstName: "",
-    lastName: "",
-    email: "",
-    userID: "",
-    signUpTimer: "",
-    phoneNumber: "",
-    password: "",
-    userAgreeTerms: { agree_terms: true, agree_privacy: true },
-  });
 
   const { logIn } = useAuth();
   const router = useRouter();
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
 
   // ── Google Sign-In config ──
   useEffect(() => {
@@ -408,16 +381,18 @@ const Page = () => {
         const responseGoogle = await loginWithGoogle(accessToken);
         const responseData = responseGoogle?.data;
         if (responseGoogle?.modalVisible && responseData?.data.signUpTimer) {
-          setFormData({
-            ...formData,
+          setSignupData({
             userID: responseData.data.googleID,
             email: responseData.data.email || "",
             firstName: responseData.data.firstName || "",
             lastName: responseData.data.lastName || "",
             signUpTimer: responseData.data.signUpTimer || "",
+            userName: "",
+            phoneNumber: "",
+            password: "",
+            userAgreeTerms: { agree_terms: true, agree_privacy: true },
+            path: responseGoogle.path || "",
           });
-          setPath(responseGoogle.path || "");
-          timeoutRef.current = setTimeout(() => setIsModalVisible(true), 500);
         } else if (
           responseGoogle?.success &&
           responseData?.message === "Successfully logged in with Google"
@@ -433,7 +408,7 @@ const Page = () => {
     } catch (err) {
       console.log(err);
     }
-  }, [formData, logIn]);
+  }, [logIn, setSignupData]);
 
   const handleFacebookLogin = useCallback(async () => {
     try {
@@ -441,16 +416,18 @@ const Page = () => {
       const facebookResponse = await loginWithFacebook();
       const returnData = facebookResponse?.data;
       if (facebookResponse?.modalVisible) {
-        setFormData({
-          ...formData,
+        setSignupData({
           userID: returnData.data.userID,
           email: returnData.data.email || "",
           firstName: returnData.data.firstName || "",
           lastName: returnData.data.lastName || "",
           signUpTimer: returnData.data.signUpTimer || "",
+          userName: "",
+          phoneNumber: "",
+          password: "",
+          userAgreeTerms: { agree_terms: true, agree_privacy: true },
+          path: facebookResponse.path || "",
         });
-        setPath(facebookResponse.path || "");
-        timeoutRef.current = setTimeout(() => setIsModalVisible(true), 500);
       } else if (
         facebookResponse?.data.message ===
         "Successfully logged in with Facebook"
@@ -465,10 +442,10 @@ const Page = () => {
     } catch (err: any) {
       console.log(err);
     }
-  }, [formData, logIn]);
+  }, [logIn, setSignupData]);
 
   const openSignup = useCallback(() => {
-    setFormData({
+    setSignupData({
       userName: "",
       firstName: "",
       lastName: "",
@@ -478,10 +455,10 @@ const Page = () => {
       phoneNumber: "",
       password: "",
       userAgreeTerms: { agree_terms: true, agree_privacy: true },
+      path: "signup",
     });
-    setPath("signup");
-    setIsModalVisible(true);
-  }, []);
+    router.push("auth/signup");
+  }, [setSignupData, router]);
 
   return (
     <SafeAreaView
@@ -599,7 +576,7 @@ const Page = () => {
         </View>
       </KeyboardAwareScroll>
 
-      {isModalVisible && (
+      {/*{isModalVisible && (
         <SignupModal
           isModalVisible={isModalVisible}
           setModalVisible={setIsModalVisible}
@@ -609,9 +586,9 @@ const Page = () => {
           setSteps={setSteps}
           path={path}
         />
-      )}
+      )}*/}
     </SafeAreaView>
   );
 };
 
-export default Page;
+export default LoginPage;

@@ -26,6 +26,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { flushRegularQuery } from "@/hooks/useQuery";
 import axiosInstance from "@/hooks/axiosInstance";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileSettings: React.FC = () => {
   const { colors: Colors, theme, changeTheme } = useTheme();
@@ -36,12 +37,22 @@ const ProfileSettings: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const settingsDet: any = t("settings", { returnObjects: true });
-  const settings = Array.isArray(settingsDet) ? settingsDet[0] : [];
+  const settings = useMemo(() => {
+    return Array.isArray(settingsDet) ? settingsDet[0] : [];
+  }, [settingsDet]);
 
-  const preferences = settings?.preferences[0] || {};
-  const helpSupport = settings?.helpSupport[0] || {};
-  const accountSupport = settings?.accountDetails[0] || {};
-  const socialMedia = settings?.socialMedia[0] || {};
+  const preferences = useMemo(() => {
+    return settings?.preferences[0] || {};
+  }, [settings]);
+  const helpSupport = useMemo(() => {
+    return settings?.helpSupport[0] || {};
+  }, [settings]);
+  const accountSupport = useMemo(() => {
+    return settings?.accountDetails[0] || {};
+  }, [settings]);
+  const socialMedia = useMemo(() => {
+    return settings?.socialMedia[0] || {};
+  }, [settings]);
 
   const Sections = useMemo(() => {
     interface SettingsItem {
@@ -116,6 +127,7 @@ const ProfileSettings: React.FC = () => {
             label: helpSupport.FAQ,
             iconBg: "#FEF9C3",
             iconColor: "#CA8A04",
+            onPress: () => handleDeleteHall(),
           },
           {
             id: "terms",
@@ -123,6 +135,7 @@ const ProfileSettings: React.FC = () => {
             label: helpSupport.termsConditions,
             iconBg: "#E0E7FF",
             iconColor: "#4F46E5",
+            onPress: () => checkHallInfos(),
           },
           {
             id: "privacy",
@@ -200,7 +213,6 @@ const ProfileSettings: React.FC = () => {
     helpSupport,
     accountSupport,
     socialMedia,
-    i18n.language,
     theme,
     changeTheme,
   ]);
@@ -215,6 +227,19 @@ const ProfileSettings: React.FC = () => {
       console.log(err);
     }
   };
+  const handleDeleteHall = async () => {
+    await AsyncStorage.removeItem("hall_version");
+    await AsyncStorage.removeItem("hall_infos");
+
+    console.log("DELETED HALL INFOS");
+  };
+  const checkHallInfos = async () => {
+    const hallVersion = await AsyncStorage.getItem("hall_version");
+    const hallInfos = await AsyncStorage.getItem("hall_infos");
+
+    console.log(hallVersion, hallInfos);
+  };
+
   const logoutHandle = async () => {
     Alert.alert(t("userLogout.logoutAlert"), t("userLogout.logoutMessage"), [
       { text: t("userLogout.cancel"), style: "cancel" },
@@ -370,7 +395,7 @@ const Theme_Changer_Toggle: React.FC<ThemeToggleProps> = ({
       duration: 280,
     });
     knobX.value = withTiming(target, { duration: 280 });
-  }, [value]);
+  }, [value, knobX, progress]);
 
   const containerStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(

@@ -15,8 +15,10 @@ import { KeyboardAwareScroll } from "@/components/ui/keyboard_aware_scroll";
 // ── Props ──────────────────────────────────────────────────────────────────
 interface SignupStepThreeProps {
   steps: number;
-  formData: Pick<LoginInput, "password" | "userAgreeTerms">;
-  setFormData: React.Dispatch<React.SetStateAction<LoginInput>>;
+  signupData: Pick<LoginInput, "password" | "userAgreeTerms">;
+  setSignupData: (
+    data: Partial<Pick<LoginInput, "password" | "userAgreeTerms">>,
+  ) => void;
   onSubmit?: () => Promise<void>;
 }
 
@@ -247,31 +249,30 @@ const createStyles = (Colors: any) =>
 
 // ── Component ──────────────────────────────────────────────────────────────
 const SignupStepThree = ({
-  formData,
-  setFormData,
   onSubmit,
+  signupData,
+  setSignupData,
 }: SignupStepThreeProps) => {
   const { colors: Colors } = useTheme();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
 
-  const password = formData.password ?? "";
+  const password = signupData.password ?? "";
   const [confirmPassword, setConfirmPassword] = useState("");
   const strength = useMemo(() => getStrength(password), [password]);
-  const agreed = formData.userAgreeTerms?.agree_terms ?? false;
+  const agreed = signupData.userAgreeTerms?.agree_terms ?? false;
 
   const passwordsMatch = password.length > 0 && password === confirmPassword;
   const canSubmit =
     password.length > 0 && passwordsMatch && agreed && strength.bars >= 2;
 
   const toggleTerms = useCallback(() => {
-    setFormData((prev) => ({
-      ...prev,
+    setSignupData({
       userAgreeTerms: {
-        agree_terms: !prev.userAgreeTerms?.agree_terms,
-        agree_privacy: !prev.userAgreeTerms?.agree_privacy,
+        agree_terms: !signupData.userAgreeTerms?.agree_terms,
+        agree_privacy: !signupData.userAgreeTerms?.agree_privacy,
       },
-    }));
-  }, [setFormData]);
+    });
+  }, [signupData, setSignupData]);
 
   return (
     <SafeAreaView
@@ -292,7 +293,9 @@ const SignupStepThree = ({
             label="Create password"
             value={password}
             onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, password: text }))
+              setSignupData({
+                password: text,
+              })
             }
             colors={Colors}
           />

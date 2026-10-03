@@ -31,8 +31,10 @@ const RESEND_COOLDOWN_SECONDS = 10;
 interface SignupStepTwoProps {
   steps: number;
   setSteps: React.Dispatch<React.SetStateAction<number>>;
-  formData: Pick<LoginInput, "email" | "phoneNumber">;
-  setFormData: React.Dispatch<React.SetStateAction<LoginInput>>;
+  signupData: Pick<LoginInput, "email" | "phoneNumber">;
+  setSignupData: (
+    data: Partial<Pick<LoginInput, "email" | "phoneNumber">>,
+  ) => void;
 }
 
 // ── Shared static input styles ────────────────────────────────────────────
@@ -324,8 +326,8 @@ const createStyles = (Colors: any) =>
 // ── Component ──────────────────────────────────────────────────────────────
 const SignupStepTwo = ({
   setSteps,
-  formData,
-  setFormData,
+  signupData,
+  setSignupData,
 }: SignupStepTwoProps) => {
   const { colors: Colors } = useTheme();
   const styles = createStyles(Colors);
@@ -341,7 +343,7 @@ const SignupStepTwo = ({
   // Seconds remaining before another send is allowed (10s resend lock).
   const [cooldown, setCooldown] = useState(0);
 
-  const phone = formData.phoneNumber?.trim() ?? "";
+  const phone = signupData.phoneNumber?.trim() ?? "";
   const phoneValid = phone.length >= 8;
   const canSend = phoneValid && !verified && !sending && cooldown === 0;
 
@@ -458,13 +460,16 @@ const SignupStepTwo = ({
 
   const handlePhoneChange = useCallback(
     (text: string) => {
-      setFormData((prev) => ({ ...prev, phoneNumber: text }));
+      setSignupData({
+        phoneNumber: text,
+      });
+
       setVerifySession(null);
       setVerified(false);
       setExpired(false);
       setError(null);
     },
-    [setFormData],
+    [setSignupData],
   );
 
   const handleContinue = useCallback(() => {
@@ -489,9 +494,11 @@ const SignupStepTwo = ({
             <AppText style={styles.fieldLabel}>Email</AppText>
             <InputField
               label="you@example.com"
-              value={formData.email ?? ""}
+              value={signupData.email ?? ""}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, email: text }))
+                setSignupData({
+                  email: text,
+                })
               }
               colors={Colors}
               icon="mail-outline"
@@ -509,7 +516,7 @@ const SignupStepTwo = ({
                   <View style={styles.rowFlex}>
                     <InputField
                       label="9988 0000"
-                      value={formData.phoneNumber ?? ""}
+                      value={signupData.phoneNumber ?? ""}
                       onChangeText={handlePhoneChange}
                       colors={Colors}
                       icon="call-outline"

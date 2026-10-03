@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Modal, View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "@/context/auth_context";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,6 +12,7 @@ import AppText from "@/components/ui/app_text";
 import SignupOne from "@/components/auth/signup_steps/step_1";
 import SignupStepTwo from "@/components/auth/signup_steps/step_2";
 import SignupStepThree from "@/components/auth/signup_steps/step_3";
+import { emptySignupData, useSignupStore } from "@/context/store/signup_store";
 
 export type LoginInput = {
   userName: string;
@@ -27,16 +28,6 @@ export type LoginInput = {
     agree_privacy: boolean;
   };
 };
-
-interface SignUpModal {
-  isModalVisible: boolean;
-  setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  formData: LoginInput;
-  setFormData: React.Dispatch<React.SetStateAction<LoginInput>>;
-  steps: number;
-  setSteps: React.Dispatch<React.SetStateAction<number>>;
-  path: string;
-}
 
 const STEP_LABELS = ["PROFILE SETUP", "INTERESTS", "FINAL"];
 
@@ -108,22 +99,16 @@ const createStyles = (Colors: any) =>
   }) as const;
 
 // ── Component ──────────────────────────────────────────────────────────────
-const SignupModal = ({
-  isModalVisible,
-  setModalVisible,
-  formData,
-  setFormData,
-  steps,
-  setSteps,
-  path,
-}: SignUpModal) => {
+const SignupModal = () => {
   const { colors: Colors } = useTheme();
+  const { signupData, setSignupData } = useSignupStore();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
 
   const [notificationToken, setNotificationToken] = useState("");
+  const [steps, setSteps] = useState(0);
+
   const { logIn } = useAuth();
   const router = useRouter();
-
   // ── Fetch notification token ──
   useEffect(() => {
     let mounted = true;
@@ -141,33 +126,33 @@ const SignupModal = ({
   const handleSubmit = useCallback(async () => {
     try {
       const payload =
-        path === "signup"
+        signupData.path === "signup"
           ? {
-              unique_user_ID: formData.userName,
-              email: formData.email,
-              phoneNumber: formData.phoneNumber,
-              password: formData.password,
-              firstName: formData.firstName,
-              lastName: formData.lastName,
+              unique_user_ID: signupData.userName,
+              email: signupData.email,
+              phoneNumber: signupData.phoneNumber,
+              password: signupData.password,
+              firstName: signupData.firstName,
+              lastName: signupData.lastName,
               userNotificationToken: notificationToken,
-              userAgreeTerms: formData.userAgreeTerms,
+              userAgreeTerms: signupData.userAgreeTerms,
             }
           : {
               fbData: {
-                userName: formData.userName,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email,
-                password: formData.password,
-                signUpTimer: formData.signUpTimer,
+                userName: signupData.userName,
+                firstName: signupData.firstName,
+                lastName: signupData.lastName,
+                email: signupData.email,
+                password: signupData.password,
+                signUpTimer: signupData.signUpTimer,
                 userNotificationToken: notificationToken,
               },
             };
 
       const response = await axiosInstanceRegular.post(
-        `/api/${path}`,
+        `/api/${signupData.path}`,
         payload,
-        path !== "signup" ? { timeout: 5000 } : undefined,
+        signupData.path !== "signup" ? { timeout: 5000 } : undefined,
       );
 
       if (response?.status === 200 && response?.data.success) {
@@ -178,7 +163,6 @@ const SignupModal = ({
             refreshToken: response.data.refreshToken,
           }),
         );
-        setModalVisible(false);
         showToast({
           title: "Success",
           description: "Account Created Successfully",
@@ -208,84 +192,79 @@ const SignupModal = ({
         alertType: "error",
       });
     }
-  }, [path, formData, notificationToken, logIn, setModalVisible, router]);
+  }, [notificationToken, logIn, router, signupData]);
 
   const closeModal = useCallback(() => {
-    setModalVisible(false);
-  }, [setModalVisible]);
+    setSignupData(emptySignupData);
+    router.back();
+  }, [router, setSignupData]);
 
   const goBack = useCallback(() => {
     setSteps((prev) => prev - 1);
   }, [setSteps]);
 
   return (
-    <Modal
-      visible={isModalVisible}
-      animationType="slide"
-      presentationStyle="formSheet"
-    >
-      <SafeAreaView style={styles.safeArea}>
-        {/* ── Top bar ── */}
-        <View style={styles.topBar}>
-          {steps > 0 ? (
-            <TouchableOpacity
-              onPress={goBack}
-              style={styles.backBtn}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Feather name="arrow-left" size={18} color={Colors.onSurface} />
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.spacerBox} />
-          )}
-          <AppText style={styles.stepLabel}>{STEP_LABELS[steps]}</AppText>
+    <SafeAreaView style={styles.safeArea}>
+      {/* ── Top bar ── */}
+      <View style={styles.topBar}>
+        {steps > 0 ? (
           <TouchableOpacity
-            onPress={closeModal}
+            onPress={goBack}
             style={styles.backBtn}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Feather name="x" size={18} color={Colors.onSurface} />
+            <Feather name="arrow-left" size={18} color={Colors.onSurface} />
           </TouchableOpacity>
-        </View>
+        ) : (
+          <View style={styles.spacerBox} />
+        )}
+        <AppText style={styles.stepLabel}>{STEP_LABELS[steps]}</AppText>
+        <TouchableOpacity
+          onPress={closeModal}
+          style={styles.backBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Feather name="x" size={18} color={Colors.onSurface} />
+        </TouchableOpacity>
+      </View>
 
-        {/* ── Progress bar ── */}
-        <View style={styles.progressSection}>
-          <View style={styles.progressRow}>
-            {Array.from({ length: 3 }, (_, i) => (
-              <View key={i} style={styles.progressSegment(i === steps)} />
-            ))}
-          </View>
-          <AppText style={styles.stepCountText}>STEP {steps + 1} of 3</AppText>
+      {/* ── Progress bar ── */}
+      <View style={styles.progressSection}>
+        <View style={styles.progressRow}>
+          {Array.from({ length: 3 }, (_, i) => (
+            <View key={i} style={styles.progressSegment(i === steps)} />
+          ))}
         </View>
+        <AppText style={styles.stepCountText}>STEP {steps + 1} of 3</AppText>
+      </View>
 
-        {/* ── Step content ── */}
-        <View style={styles.content}>
-          {steps === 0 && (
-            <SignupOne
-              setSteps={setSteps}
-              formData={formData}
-              setFormData={setFormData}
-            />
-          )}
-          {steps === 1 && (
-            <SignupStepTwo
-              setSteps={setSteps}
-              steps={steps}
-              formData={formData}
-              setFormData={setFormData}
-            />
-          )}
-          {steps === 2 && (
-            <SignupStepThree
-              steps={steps}
-              formData={formData}
-              setFormData={setFormData}
-              onSubmit={handleSubmit}
-            />
-          )}
-        </View>
-      </SafeAreaView>
-    </Modal>
+      {/* ── Step content ── */}
+      <View style={styles.content}>
+        {steps === 0 && (
+          <SignupOne
+            setSteps={setSteps}
+            signupData={signupData}
+            setSignupData={setSignupData}
+          />
+        )}
+        {steps === 1 && (
+          <SignupStepTwo
+            setSteps={setSteps}
+            steps={steps}
+            signupData={signupData}
+            setSignupData={setSignupData}
+          />
+        )}
+        {steps === 2 && (
+          <SignupStepThree
+            steps={steps}
+            signupData={signupData}
+            setSignupData={setSignupData}
+            onSubmit={handleSubmit}
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 

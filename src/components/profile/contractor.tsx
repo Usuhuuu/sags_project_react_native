@@ -9,15 +9,7 @@ import { useTheme } from "@/context/theme_context";
 import { useNavigation } from "expo-router";
 import { DrawerActions } from "expo-router/build/react-navigation";
 
-interface ProfileAdminProps {
-  copyToClipboard: () => Promise<void>;
-  formData: any;
-}
-
-const ContractorPage: React.FC<ProfileAdminProps> = ({
-  copyToClipboard,
-  formData,
-}) => {
+const ContractorPage = () => {
   const { colors: Colors } = useTheme();
 
   const sendNotification = async () => {

@@ -118,16 +118,14 @@ const HallInfoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     let mounted = true;
     const hallInfoGetter = async () => {
       try {
-        let hallInfos = JSON.parse(
-          (await AsyncStorage.getItem("hall_infos")) ?? "",
-        );
-        if (typeof hallInfos === "string") hallInfos = JSON.parse(hallInfos);
+        const halls = await initHallInfo();
+
         if (!mounted) return;
 
         const hallMap: Record<string, SportHallDataType | EsportHallDataType> =
           {};
 
-        for (const hall of hallInfos) {
+        for (const hall of halls) {
           hallMap[hall._id] = {
             sportHallID: hall._id,
             ...hall,

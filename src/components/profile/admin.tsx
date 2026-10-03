@@ -1,16 +1,11 @@
 import axiosInstance from "@/hooks/axiosInstance";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "@/context/theme_context";
 import { useNavigation } from "expo-router";
 import { DrawerActions } from "expo-router/build/react-navigation";
 
-interface ProfileAdminProps {
-  copyToClipboard: () => Promise<void>;
-  formData: any;
-}
-const ProfileAdmin = ({ copyToClipboard, formData }: ProfileAdminProps) => {
+const ProfileAdmin = () => {
   const { colors: Colors } = useTheme();
 
   const sendNotification = async () => {

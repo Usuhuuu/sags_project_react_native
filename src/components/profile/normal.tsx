@@ -15,10 +15,6 @@ import { useAuth } from "@/context/auth_context";
 import ProfileAvatar from "@/components/ui/profile_avatar";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 
-interface NormalUserProps {
-  formData: any;
-  copyToClipboard: () => void;
-}
 type NormalUserState = {
   email: string;
   phoneNumber: string;
@@ -30,7 +26,7 @@ type NormalUserState = {
   };
 };
 
-const NormalUser: React.FC<NormalUserProps> = ({ formData }) => {
+const NormalUser = () => {
   const { colors } = useTheme();
   const { LoginStatus } = useAuth();
   const { width } = Dimensions.get("screen");

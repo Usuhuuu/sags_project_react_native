@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-//import * as Clipboard from "expo-clipboard";
 import ContractorPage from "@/components/profile/contractor";
 import ProfileAdmin from "@/components/profile/admin";
 import NormalUser from "@/components/profile/normal";
 import { useAuth } from "@/context/auth_context";
-import Page from "@/app/auth/login";
+import LoginPage from "@/app/auth/login";
 
 import { useTheme } from "@/context/theme_context";
 import { useAuthQuery } from "@/hooks/useQuery";
@@ -16,12 +15,9 @@ import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 const Profile: React.FC = () => {
   const { colors: Colors } = useTheme();
 
-  const [formData, setFormData] = useState<any>({});
-  const [loading, setLoading] = useState<boolean>(false);
-  const [userRole, setUserRole] = useState<string>("");
   const { LoginStatus } = useAuth();
 
-  const { data, error, isLoading, isError } = useAuthQuery(
+  const { data, error, isLoading } = useAuthQuery(
     {
       pathname: "main",
       cacheKey: [`auth_status`] as const,
@@ -33,29 +29,14 @@ const Profile: React.FC = () => {
       retry: 0,
     },
   );
-  useEffect(() => {
-    if (data) {
-      setFormData(data.profileData);
-      setUserRole(data.role);
-    } else if (error) {
-      console.log("Error fetching role and profile data:", error);
-    }
-    // Set loading state based on isLoading
-    setLoading(isLoading);
-    console.log("CHECKING RETURN DATA", isLoading, loading, isError);
-  }, [data, error, isLoading]);
 
-  if (loading && !isError) {
+  if (isLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
         <OwnActivaterIndicator />
       </View>
     );
   }
-  const copyToClipboard = async () => {
-    //await Clipboard.setStringAsync(formData);
-  };
-
   return (
     <SafeAreaView
       style={[
@@ -67,33 +48,18 @@ const Profile: React.FC = () => {
       edges={!LoginStatus ? ["top"] : ["top", "left", "right"]}
     >
       {!LoginStatus ? (
-        <Page />
+        <LoginPage />
       ) : (
         <>
           {error ? (
             <ServerErrorScreen statusCode={500} />
           ) : (
             <>
-              {userRole === "admin" && (
-                <ProfileAdmin
-                  copyToClipboard={copyToClipboard}
-                  formData={formData}
-                />
-              )}
+              {data.role === "admin" && <ProfileAdmin />}
 
-              {userRole === "contractor" && (
-                <ContractorPage
-                  copyToClipboard={copyToClipboard}
-                  formData={formData}
-                />
-              )}
+              {data.role === "contractor" && <ContractorPage />}
 
-              {userRole === "user" && (
-                <NormalUser
-                  copyToClipboard={copyToClipboard}
-                  formData={formData}
-                />
-              )}
+              {data.role === "user" && <NormalUser />}
             </>
           )}
         </>
