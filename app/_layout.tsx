@@ -63,6 +63,7 @@ export function RootLayout() {
   }, []);
   useEffect(() => {
     if (LoginStatus) {
+      console.log("FAVORITE_INIT");
       useFavoritesStore.getState().load();
     }
   }, [LoginStatus]);
@@ -129,6 +130,7 @@ export function RootLayoutNav({ onReady }: { onReady: () => void }) {
         headerShown: false,
       }}
     >
+      <Stack.Screen name="server_error" />
       <Stack.Screen
         name="notification/notification"
         options={{
@@ -152,11 +154,11 @@ export function RootLayoutNav({ onReady }: { onReady: () => void }) {
       <Stack.Screen name="auth/forgot-password" />
       <Stack.Screen name="auth/login" />
       <Stack.Screen
-        name="auth/signup"
+        name="auth/[signup_type]"
         options={{
           presentation: "formSheet",
           animation: "slide_from_bottom",
-          sheetAllowedDetents: [0.9, 1],
+          sheetAllowedDetents: [0.95, 1],
           sheetInitialDetentIndex: 0,
           sheetGrabberVisible: true,
         }}
@@ -165,7 +167,6 @@ export function RootLayoutNav({ onReady }: { onReady: () => void }) {
       <Stack.Screen name="book/sport/[hall_id]" />
       <Stack.Screen name="book/[hall_id]" />
       <Stack.Screen name="review/hall_review" />
-      <Stack.Screen name="server_error" />
     </Stack>
   );
 }

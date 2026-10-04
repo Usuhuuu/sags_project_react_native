@@ -45,7 +45,7 @@ const Profile: React.FC = () => {
           backgroundColor: Colors.backgroundColor,
         },
       ]}
-      edges={!LoginStatus ? ["top"] : ["top", "left", "right"]}
+      edges={!LoginStatus ? ["left", "right"] : ["top", "left", "right"]}
     >
       {!LoginStatus ? (
         <LoginPage />

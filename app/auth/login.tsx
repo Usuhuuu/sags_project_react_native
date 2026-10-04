@@ -298,6 +298,7 @@ const LoginPage = () => {
 
   const { logIn } = useAuth();
   const router = useRouter();
+  const [path, setPath] = useState("signup");
 
   // ── Google Sign-In config ──
   useEffect(() => {
@@ -393,6 +394,7 @@ const LoginPage = () => {
             userAgreeTerms: { agree_terms: true, agree_privacy: true },
             path: responseGoogle.path || "",
           });
+          setPath(responseGoogle.path || "");
         } else if (
           responseGoogle?.success &&
           responseData?.message === "Successfully logged in with Google"
@@ -428,6 +430,7 @@ const LoginPage = () => {
           userAgreeTerms: { agree_terms: true, agree_privacy: true },
           path: facebookResponse.path || "",
         });
+        setPath(facebookResponse.path || "");
       } else if (
         facebookResponse?.data.message ===
         "Successfully logged in with Facebook"
@@ -445,20 +448,8 @@ const LoginPage = () => {
   }, [logIn, setSignupData]);
 
   const openSignup = useCallback(() => {
-    setSignupData({
-      userName: "",
-      firstName: "",
-      lastName: "",
-      email: "",
-      userID: "",
-      signUpTimer: "",
-      phoneNumber: "",
-      password: "",
-      userAgreeTerms: { agree_terms: true, agree_privacy: true },
-      path: "signup",
-    });
-    router.push("auth/signup");
-  }, [setSignupData, router]);
+    router.push(`auth/${path}`);
+  }, [router, path]);
 
   return (
     <SafeAreaView

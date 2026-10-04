@@ -13,6 +13,7 @@ import SignupOne from "@/components/auth/signup_steps/step_1";
 import SignupStepTwo from "@/components/auth/signup_steps/step_2";
 import SignupStepThree from "@/components/auth/signup_steps/step_3";
 import { emptySignupData, useSignupStore } from "@/context/store/signup_store";
+import { useLocalSearchParams } from "expo-router/build/hooks";
 
 export type LoginInput = {
   userName: string;
@@ -102,6 +103,8 @@ const createStyles = (Colors: any) =>
 const SignupModal = () => {
   const { colors: Colors } = useTheme();
   const { signupData, setSignupData } = useSignupStore();
+  const { signup_type } = useLocalSearchParams();
+  console.log("SIGNUP TYPE", signup_type);
   const styles = useMemo(() => createStyles(Colors), [Colors]);
 
   const [notificationToken, setNotificationToken] = useState("");

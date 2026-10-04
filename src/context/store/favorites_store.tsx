@@ -28,7 +28,6 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   load: async () => {
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
-
       // No cache → fetch backend
       if (raw === null) {
         set({ isSyncing: true });

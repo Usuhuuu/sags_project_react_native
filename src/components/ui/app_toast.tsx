@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type {
   ToastConfig,
@@ -15,7 +15,12 @@ const icons: Record<ToastVariant, keyof typeof Ionicons.glyphMap> = {
   info: "information-circle",
 };
 
-const AppToast = ({ text1, text2, type }: ToastConfigParams<unknown>) => {
+const AppToast = ({
+  text1,
+  text2,
+  type,
+  onPress,
+}: ToastConfigParams<unknown>) => {
   const { theme } = useTheme();
   const variant =
     (type as ToastVariant) in icons ? (type as ToastVariant) : "info";
@@ -27,7 +32,7 @@ const AppToast = ({ text1, text2, type }: ToastConfigParams<unknown>) => {
   }[variant];
 
   return (
-    <View
+    <TouchableOpacity
       style={[
         styles.container,
         {
@@ -35,6 +40,7 @@ const AppToast = ({ text1, text2, type }: ToastConfigParams<unknown>) => {
           borderLeftColor: accent,
         },
       ]}
+      onPress={onPress}
     >
       <Ionicons name={icons[variant]} size={25} color={accent} />
       <View style={styles.copy}>
@@ -59,7 +65,7 @@ const AppToast = ({ text1, text2, type }: ToastConfigParams<unknown>) => {
           </Text>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

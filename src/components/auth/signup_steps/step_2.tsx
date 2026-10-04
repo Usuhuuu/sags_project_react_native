@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/context/theme_context";
-import { LoginInput } from "@/app/auth/signup";
+import { LoginInput } from "@/app/auth/[signup_type]";
 import AppText from "@/components/ui/app_text";
 import { KeyboardAwareScroll } from "@/components/ui/keyboard_aware_scroll";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";

@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/context/theme_context";
 import { Entypo, Ionicons } from "@expo/vector-icons";
-import { LoginInput } from "@/app/auth/signup";
+import { LoginInput } from "@/app/auth/[signup_type]";
 import AppText from "@/components/ui/app_text";
 import { showToast } from "@/utils/toast";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
