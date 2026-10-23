@@ -7,7 +7,7 @@ import {
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, {
   useCallback,
   useEffect,
