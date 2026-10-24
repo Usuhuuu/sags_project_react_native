@@ -1,9 +1,6 @@
 import { useHallInfo } from "@/context/hall_info_context";
 import { useTheme } from "@/context/theme_context";
 import {
-  AntDesign,
-  Feather,
-  FontAwesome,
   FontAwesome5,
   Fontisto,
   Ionicons,
@@ -11,53 +8,32 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   View,
   ScrollView,
   Image,
   TouchableOpacity,
   StyleSheet,
-  useWindowDimensions,
-  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import Carousel, {
-  ICarouselInstance,
-  Pagination,
-} from "react-native-reanimated-carousel";
+
 import {
   WeekCalendarWithoutMonth,
   TimePicker15Min,
 } from "@/components/book/strip_calendar";
 import AppText from "@/components/ui/app_text";
-import {
-  DurationPrice,
-  EsportHallDataType,
-  EsportHallPrices,
-} from "@/types/hall_info_type";
-import {
-  HallDetailSeparator,
-  HallTypesSeparator,
-} from "@/types/hall_separator_type";
+import { EsportHallDataType, EsportHallPrices } from "@/types/hall_info_type";
+import { HallTypesSeparator } from "@/types/hall_separator_type";
 import axiosInstance from "@/hooks/axiosInstance";
 import { showToast } from "@/utils/toast";
+import { calculateDurationPrice } from "@/utils/duration_price";
 import { saveToken } from "@/components/book/session";
 import Confirm_Modal from "@/components/book/confirmation";
 import { format } from "date-fns";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { bookingNotificationSchedule } from "@/context/store/notification_store";
 import { queryClient } from "@/hooks/queryClient";
-import Animated, { useSharedValue } from "react-native-reanimated";
-import SportHallReviewPage, { Review } from "@/app/review/hall_review";
-import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 export interface BookingBoardGameProps {
@@ -92,64 +68,28 @@ const PACKAGES: {
   label: string;
   value: number;
   popular?: boolean;
-  isSpecial?: boolean;
 }[] = [
   { label: "1 Hour", value: 1 },
   { label: "2 Hours", value: 2 },
   { label: "3 Hours", value: 3, popular: true },
   { label: "5 Hours", value: 5 },
-  { label: "Whole Day", value: 8, isSpecial: true },
+  { label: "Whole Day", value: 8 },
 ];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-const formatPrice = (price: string) => {
-  const num = parseInt(price, 10);
-  return isNaN(num) ? "0" : num.toLocaleString();
+// ─── Pool-ball palette for duration chips ─────────────────────────────────────
+const BALL_META: Record<number, { color: string }> = {
+  1: { color: "#F59E0B" }, // yellow
+  2: { color: "#2563EB" }, // blue
+  3: { color: "#DC2626" }, // red
+  5: { color: "#EA580C" }, // orange
+  8: { color: "#111827" }, // 8-ball black
 };
 
-const getTierPrice = (
-  prices: EsportHallPrices | undefined,
-  tier: string,
-): DurationPrice | null => {
-  if (!prices) return null;
-  switch (tier) {
-    case "regular":
-      return prices.pcHall;
-    case "vip":
-      return prices.pcVipHall;
-    case "stage":
-      return prices.pcStageHall;
-    default:
-      return null;
-  }
-};
-
-// ─── Billiard feature icons ──────────────────────────────────────────────────
-const featureIcons: Record<string, { label: string; icon: React.ReactNode }> = {
-  billiards: {
-    label: "Billiards",
-    icon: <FontAwesome5 name="table-tennis" size={18} color="#FFF" />,
-  },
-  darts: {
-    label: "Darts",
-    icon: <FontAwesome5 name="bullseye" size={18} color="#FFF" />,
-  },
-  wifi: {
-    label: "Wi-Fi",
-    icon: <Feather name="wifi" size={20} color="#FFF" />,
-  },
-  parking: {
-    label: "Parking",
-    icon: <FontAwesome5 name="parking" size="18" color="#FFF" />,
-  },
-  changing_room: {
-    label: "Changing Room",
-    icon: <FontAwesome name="shower" size={18} color="#FFF" />,
-  },
-  shower: {
-    label: "Shower",
-    icon: <Ionicons name="water" size={20} color="#FFF" />,
-  },
+// Felt-cloth accent colour per table tier
+const TIER_FELT: Record<string, string> = {
+  regular: "#16A34A", // green felt
+  vip: "#7C3AED", // purple baize
+  stage: "#DC2626", // red competition cloth
 };
 
 const BookingBoardGame = ({
@@ -157,7 +97,6 @@ const BookingBoardGame = ({
   hallID: propHallID,
 }: BookingBoardGameProps) => {
   const { colors: C } = useTheme();
-  const { width, height } = useWindowDimensions();
   const { hall_id: routeHallId } = useLocalSearchParams();
   const { getSpecificHall } = useHallInfo();
 
@@ -166,16 +105,16 @@ const BookingBoardGame = ({
   const listing =
     propListing ?? (getSpecificHall(hallId) as EsportHallDataType | undefined);
 
-  const images = listing?.hall_details?.hall_imageURLs ?? [];
+  const images = useMemo(() => {
+    return listing?.hall_details?.hall_imageURLs ?? [];
+  }, [listing]);
   const hallName = listing?.hall_details?.hall_name ?? "Billiard Hall";
   const hallAddress = listing?.hall_details?.hall_address ?? "";
   const hallPrices = listing?.hall_details?.hall_price as
     | EsportHallPrices
     | undefined;
-  const workTime = listing?.hall_details?.hall_work_time;
 
   // ── State ──────────────────────────────────────────────────────────────────
-  const [isBooking, setIsBooking] = useState(false); // detail vs booking mode
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTier, setSelectedTier] = useState<"regular" | "vip" | "stage">(
     "regular",
@@ -183,195 +122,23 @@ const BookingBoardGame = ({
   const [hours, setHours] = useState<number>(1);
   const [startTime, setStartTime] = useState<Date | string>(new Date());
   const [initTime, setInitTime] = useState(false);
-  const [isWaiting, setIsWaiting] = useState(false);
   const [bookSuccess, setBookSuccess] = useState(false);
   const [confirmModal, setConfirmModal] = useState(false);
   const hasScheduled = useRef(false);
 
-  // ── Detail page state ──────────────────────────────────────────────────────
-  const imageRef = useRef<ICarouselInstance>(null);
-  const progress = useSharedValue(0);
-  const [activeTab, setActiveTab] = useState(HallDetailSeparator.DETAILS);
-  const [reviews, setReviews] = useState<Record<string, Review>>({});
-  const [rating, setRating] = useState(0);
-  const [count, setCount] = useState(0);
-  const [page, setPage] = useState(0);
-  const [noMore, setNoMore] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const fetched = useRef(false);
-
-  const tabs = useMemo(
-    () => [
-      { key: HallDetailSeparator.DETAILS, label: "Details" },
-      { key: HallDetailSeparator.AMENTITIES, label: "Amenities" },
-      { key: HallDetailSeparator.REVIEW, label: "Review" },
-    ],
-    [],
-  );
-
-  // ── Pricing ────────────────────────────────────────────────────────────────
-  const tierPrice = getTierPrice(hallPrices, selectedTier);
-  const pricePerHour = tierPrice ? parseInt(tierPrice.oneHour, 10) : 0;
-  const totalPrice = pricePerHour * hours;
+  // ── Pricing ──────────────────────────────────────────────────────────────────────
+  const prices = hallPrices?.esport ?? [];
+  const pricePerHour = calculateDurationPrice(prices, 60) ?? 0;
+  const totalPrice = calculateDurationPrice(prices, hours * 60) ?? 0;
   const serviceFee = pricePerHour > 0 ? Math.round(pricePerHour * 0.05) : 0;
   const grandTotal = totalPrice + serviceFee;
 
   // ── Step state ──────────────────────────────────────────────────────────────
   const [step, setStep] = useState(0);
 
-  // ── Reviews fetch (same pattern as Pc_Halls) ────────────────────────────────
-  useEffect(() => {
-    if (activeTab !== "review" || fetched.current || noMore || !listing) return;
-    fetched.current = true;
-    setLoading(true);
-    let mounted = true;
-    axiosInstanceRegular
-      .get(`/zaal-review/${listing.sportHallID}?page=${page}`)
-      .then((res) => {
-        fetched.current = false;
-        if (!mounted) return;
-        if (!res.data?.success || !res.data.data) {
-          setLoading(false);
-          return;
-        }
-        const d = res.data.data;
-        setReviews((prev) => {
-          const m = { ...prev };
-          d.reviews.forEach((r: Review) => {
-            if (!prev[r._id]) m[r._id] = r;
-          });
-          const keys = Object.keys(m);
-          if (keys.length > 50) {
-            keys.slice(0, keys.length - 50).forEach((k) => delete m[k]);
-          }
-          return m;
-        });
-        if (d.reviews.length < 10) setNoMore(true);
-        setRating(d.avg_rating);
-        setCount(d.review_count);
-        setLoading(false);
-      })
-      .catch(() => {
-        fetched.current = false;
-        if (mounted) setLoading(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, [page, activeTab, listing]);
-
-  useEffect(() => {
-    setReviews({});
-    setPage(0);
-    setNoMore(false);
-    fetched.current = false;
-  }, [listing?.sportHallID]);
-
-  // ── Price generator (matching Pc_Halls pattern) ──────────────────────────────
-  const priceGen = useCallback(
-    (t: "hour" | "wholeDay") => {
-      if (!hallPrices) return null;
-      return Object.entries(hallPrices).map(([k, v]: [string, any], i) => (
-        <View key={i} style={detS.priceRow}>
-          <AppText style={[detS.priceLabel, { color: C.onSurface }]}>
-            {k.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}
-          </AppText>
-          <AppText style={[detS.priceValue, { color: C.accentPrimary }]}>
-            ₩{t === "hour" ? formatPrice(v.oneHour) : formatPrice(v.wholeDay)}
-          </AppText>
-        </View>
-      ));
-    },
-    [hallPrices, C],
-  );
-
-  // ── Detail tab content ──────────────────────────────────────────────────────
-  const hallFeatures = listing?.hall_details?.hall_feature;
-  const activeFeatures = hallFeatures
-    ? Object.entries(featureIcons).filter(
-        ([key]) => hallFeatures[key as keyof typeof hallFeatures],
-      )
-    : [];
-
-  const detailContent = useMemo(() => {
-    if (!listing) return {};
-    return {
-      [HallDetailSeparator.DETAILS]: [
-        {
-          label: "About",
-          value: `Professional billiard & board game hall featuring premium tables, darts area, and lounge. ${listing.hall_details.hall_name} offers top-tier equipment and a relaxed atmosphere.`,
-        },
-        {
-          label: "Opening Hours",
-          value: `${workTime?.start_time ?? "09:00"} - ${workTime?.end_time ?? "23:00"}`,
-        },
-        {
-          label: "Phone",
-          value: listing.hall_details.hall_phone_number ?? "N/A",
-        },
-        ...(activeFeatures.length > 0
-          ? [
-              {
-                label: "Facilities",
-                resolve: activeFeatures.map(([, v], i) => (
-                  <View style={detS.facilityItem} key={i}>
-                    <View
-                      style={[
-                        detS.facilityIcon,
-                        { backgroundColor: C.accentPrimary },
-                      ]}
-                    >
-                      {v.icon}
-                    </View>
-                    <AppText style={[detS.facilityLabel, { color: C.outline }]}>
-                      {v.label}
-                    </AppText>
-                  </View>
-                )),
-              },
-            ]
-          : []),
-        {
-          label: "Prices Per Hour",
-          component: <>{priceGen("hour")}</>,
-        },
-        {
-          label: "Whole Day Rates",
-          component: <>{priceGen("wholeDay")}</>,
-        },
-      ],
-      [HallDetailSeparator.AMENTITIES]: [
-        {
-          label: "Amenities",
-          value:
-            "Smoking area, beverage service, locker storage, and free Wi-Fi available for all guests.",
-        },
-      ],
-      [HallDetailSeparator.REVIEW]: [
-        {
-          label: undefined,
-          component: loading ? (
-            <View style={detS.loadingWrap}>
-              <OwnActivaterIndicator />
-            </View>
-          ) : (
-            <SportHallReviewPage
-              sport_hall_id={listing.sportHallID}
-              reviews={reviews}
-              rating={rating}
-              count={count}
-              setPage={setPage}
-            />
-          ),
-        },
-      ],
-    };
-  }, [listing, activeFeatures, C, loading, reviews, rating, count, priceGen]);
-
   // ── Booking handler ──────────────────────────────────────────────────────────
   const handleBooking = useCallback(async () => {
     try {
-      setIsWaiting(true);
       const timezone = encodeURIComponent(
         Intl.DateTimeFormat().resolvedOptions().timeZone,
       );
@@ -427,8 +194,6 @@ const BookingBoardGame = ({
           alertType: "warn",
         });
       }
-    } finally {
-      setIsWaiting(false);
     }
   }, [selectedDate, selectedTier, hours, startTime, listing, hallName]);
 
@@ -557,7 +322,12 @@ const BookingBoardGame = ({
               <Ionicons name="grid" size={18} color={accentPrimary} />
             </View>
           )}
-          <View style={[bkS.venueAccent, { backgroundColor: accentPrimary }]} />
+          <View
+            style={[
+              bkS.venueAccent,
+              { backgroundColor: TIER_FELT[selectedTier] },
+            ]}
+          />
           <View style={{ flex: 1 }}>
             <AppText
               style={[bkS.venueName, { color: onSurface }]}
@@ -592,8 +362,8 @@ const BookingBoardGame = ({
           </AppText>
           {TABLE_TIERS.map((tier) => {
             const active = tier.id === selectedTier;
-            const tPrice = getTierPrice(hallPrices, tier.id);
-            const price = tPrice ? parseInt(tPrice.oneHour, 10) : 0;
+            const price = pricePerHour;
+            const feltColor = TIER_FELT[tier.id];
             return (
               <TouchableOpacity
                 key={tier.id}
@@ -602,52 +372,78 @@ const BookingBoardGame = ({
                 style={[
                   bkS.tierCard,
                   {
-                    backgroundColor: surface,
-                    borderColor: active ? accentPrimary : border,
+                    backgroundColor: active ? feltColor + "18" : surface,
+                    borderColor: active ? feltColor : border,
+                    overflow: "hidden",
                   },
                 ]}
               >
+                {/* Felt-colour left stripe */}
+                <View
+                  style={[bkS.tierStripe, { backgroundColor: feltColor }]}
+                />
+
                 <View style={bkS.tierLeft}>
                   <View
                     style={[
                       bkS.tierIcon,
                       {
                         backgroundColor: active
-                          ? accentPrimaryGlow
+                          ? feltColor + "22"
                           : backgroundColor,
-                        borderColor: active ? accentPrimary : border,
+                        borderColor: active ? feltColor : border,
                       },
                     ]}
                   >
                     <Image source={tier.image} style={bkS.tierThumb} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <AppText
-                      style={[
-                        bkS.tierLabel,
-                        { color: active ? accentPrimary : onSurface },
-                      ]}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                        flexWrap: "wrap",
+                      }}
                     >
-                      {tier.label}
-                    </AppText>
+                      <AppText
+                        style={[
+                          bkS.tierLabel,
+                          { color: active ? feltColor : onSurface },
+                        ]}
+                      >
+                        {tier.label}
+                      </AppText>
+                      {active && (
+                        <View
+                          style={[
+                            bkS.feltBadge,
+                            { backgroundColor: feltColor },
+                          ]}
+                        >
+                          <AppText style={bkS.feltBadgeText}>SELECTED</AppText>
+                        </View>
+                      )}
+                    </View>
                     <AppText style={[bkS.tierDesc, { color: outline }]}>
                       {tier.desc}
                     </AppText>
                   </View>
                 </View>
+
                 <View style={{ alignItems: "flex-end" }}>
-                  <AppText style={[bkS.tierPrice, { color: onSurface }]}>
+                  <AppText
+                    style={[
+                      bkS.tierPrice,
+                      { color: active ? feltColor : onSurface },
+                    ]}
+                  >
                     ₩{price.toLocaleString()}
                   </AppText>
                   <AppText style={[bkS.tierUnit, { color: outline }]}>
                     /hr
                   </AppText>
                 </View>
-                {active && (
-                  <View style={[bkS.tick, { backgroundColor: accentPrimary }]}>
-                    <Ionicons name="checkmark" size={11} color={white} />
-                  </View>
-                )}
               </TouchableOpacity>
             );
           })}
@@ -755,6 +551,7 @@ const BookingBoardGame = ({
           <View style={bkS.pillRow}>
             {PACKAGES.map((pkg) => {
               const active = hours === pkg.value;
+              const ball = BALL_META[pkg.value];
               return (
                 <TouchableOpacity
                   key={pkg.value}
@@ -763,12 +560,8 @@ const BookingBoardGame = ({
                   style={[
                     bkS.pillChip,
                     {
-                      backgroundColor: active
-                        ? accentPrimary
-                        : pkg.isSpecial
-                          ? surfaceHigh
-                          : surface,
-                      borderColor: active ? accentPrimary : border,
+                      backgroundColor: active ? ball.color : surface,
+                      borderColor: active ? ball.color : border,
                     },
                   ]}
                 >
@@ -779,32 +572,45 @@ const BookingBoardGame = ({
                         { backgroundColor: accentPrimary },
                       ]}
                     >
-                      <AppText style={bkS.pillBadgeText}>Popular</AppText>
+                      <AppText style={bkS.pillBadgeText}>Hot</AppText>
                     </View>
                   )}
-                  {pkg.isSpecial && (
-                    <Ionicons
-                      name="moon"
-                      size={13}
-                      color={active ? white : accentPrimary}
-                    />
-                  )}
-                  <AppText
+                  {/* Pool ball circle */}
+                  <View
                     style={[
-                      bkS.pillLabel,
-                      { color: active ? white : onSurface },
+                      bkS.ballCircle,
+                      {
+                        backgroundColor: active
+                          ? "rgba(255,255,255,0.2)"
+                          : ball.color,
+                        borderColor: "rgba(255,255,255,0.35)",
+                      },
                     ]}
                   >
-                    {pkg.label}
-                  </AppText>
-                  <AppText
-                    style={[
-                      bkS.pillPrice,
-                      { color: active ? white : onSurfaceVariant },
-                    ]}
-                  >
-                    ₩{(pricePerHour * pkg.value).toLocaleString()}
-                  </AppText>
+                    <AppText style={bkS.ballNum}>{pkg.value}</AppText>
+                  </View>
+                  <View>
+                    <AppText
+                      style={[
+                        bkS.pillLabel,
+                        { color: active ? white : onSurface },
+                      ]}
+                    >
+                      {pkg.label}
+                    </AppText>
+                    <AppText
+                      style={[
+                        bkS.pillPrice,
+                        {
+                          color: active
+                            ? "rgba(255,255,255,0.8)"
+                            : onSurfaceVariant,
+                        },
+                      ]}
+                    >
+                      ₩{(pricePerHour * pkg.value).toLocaleString()}
+                    </AppText>
+                  </View>
                 </TouchableOpacity>
               );
             })}
@@ -820,23 +626,11 @@ const BookingBoardGame = ({
     selectedDate,
     initTime,
     hours,
-    hallPrices,
     pricePerHour,
     hallName,
     hallAddress,
     images,
-    C.onSurface,
-    C.outline,
-    C.accentPrimary,
-    C.accentPrimaryGlow,
-    C.border,
-    C.borderSubtle,
-    C.surface,
-    C.surfaceHigh,
-    C.shadowColor,
-    C.onSurfaceVariant,
-    C.white,
-    C.backgroundColor,
+    C,
   ]);
 
   // ── Step 1 content (memoized — review & confirm) ─────────────────────────
@@ -1080,8 +874,6 @@ const BookingBoardGame = ({
     C.onSurface,
     C.onSurfaceVariant,
     C.surface,
-    C.white,
-    C.backgroundColor,
     hallName,
     hallAddress,
     images,
@@ -1107,257 +899,7 @@ const BookingBoardGame = ({
           backgroundColor: C.backgroundColor,
         }}
       >
-        <OwnActivaterIndicator />
-      </View>
-    );
-  }
-
-  if (isWaiting) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: C.backgroundColor,
-        }}
-      >
-        <OwnActivaterIndicator />
-      </View>
-    );
-  }
-
-  // ── DETAIL MODE ─────────────────────────────────────────────────────────────
-  if (!isBooking) {
-    return (
-      <View style={[detS.flex, { backgroundColor: C.backgroundColor }]}>
-        <StatusBar
-          translucent
-          backgroundColor="transparent"
-          barStyle="light-content"
-        />
-        <Animated.ScrollView
-          style={{ backgroundColor: C.backgroundColor }}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
-        >
-          {/* Image Carousel */}
-          <View style={[detS.carouselWrap, { backgroundColor: C.surfaceHigh }]}>
-            <Carousel
-              ref={imageRef}
-              width={width}
-              height={400}
-              loop={false}
-              data={images.length > 0 ? images : [""]}
-              scrollAnimationDuration={500}
-              onProgressChange={(p) => {
-                progress.value = p;
-              }}
-              renderItem={({ item }) => (
-                <Image
-                  source={
-                    item
-                      ? { uri: item }
-                      : require("@/assets/images/computerImage/regular.png")
-                  }
-                  style={detS.carouselImg}
-                />
-              )}
-            />
-            <Pagination.Custom
-              progress={progress}
-              data={
-                images.length > 0
-                  ? images
-                  : [require("@/assets/images/computerImage/regular.png")]
-              }
-              dotStyle={{
-                width: 25,
-                height: 4,
-                backgroundColor: C.onSurface,
-              }}
-              activeDotStyle={{
-                width: 25,
-                height: 4,
-                overflow: "hidden",
-                backgroundColor: C.accentPrimary,
-              }}
-              containerStyle={detS.dotContainer}
-              horizontal
-              onPress={(i) =>
-                imageRef.current?.scrollTo({
-                  count: i - progress.value,
-                  animated: true,
-                })
-              }
-            />
-            <View style={detS.iconBtnWrap}>
-              <TouchableOpacity
-                style={[detS.iconBtn, { backgroundColor: "rgba(0,0,0,0.4)" }]}
-                onPress={() => router.back()}
-              >
-                <Feather name="arrow-left" size={22} color="#FFF" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[detS.iconBtn, { backgroundColor: "rgba(0,0,0,0.4)" }]}
-              >
-                <AntDesign name="heart" size={22} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-            <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.6)"]}
-              style={detS.imgGradient}
-            />
-          </View>
-
-          {/* Title Card */}
-          <View
-            style={[
-              detS.titleCard,
-              {
-                backgroundColor: C.surfaceHighest,
-                shadowColor: C.shadowColor,
-              },
-            ]}
-          >
-            <LinearGradient
-              colors={[C.accentPrimary, C.accentPrimaryBorder]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={detS.titleAccent}
-            />
-            <AppText style={[detS.hallName, { color: C.onSurface }]}>
-              {hallName}
-            </AppText>
-            <View style={detS.ratingRow}>
-              <AntDesign name="star" size={14} color="#FFD700" />
-              <AppText style={[detS.ratingText, { color: C.onSurfaceVariant }]}>
-                {rating > 0 ? rating.toFixed(1) : "4.8"}{" "}
-                <AppText style={{ color: C.outline }}>
-                  ({count > 0 ? count : 120} reviews)
-                </AppText>
-              </AppText>
-            </View>
-            <View style={detS.addrRow}>
-              <Ionicons name="location-sharp" size={14} color={C.outline} />
-              <AppText
-                style={[detS.addrText, { color: C.outline }]}
-                numberOfLines={1}
-              >
-                {hallAddress}
-              </AppText>
-            </View>
-          </View>
-
-          {/* Tabs */}
-          <LinearGradient
-            colors={[C.backgroundColor, C.surfaceHigh]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={detS.gradientWrap}
-          >
-            <View style={detS.contentPad}>
-              {/* Tab bar */}
-              <View style={[detS.tabRow, { borderBottomColor: C.border }]}>
-                {tabs.map((t) => (
-                  <TouchableOpacity
-                    key={t.key}
-                    onPress={() => setActiveTab(t.key as HallDetailSeparator)}
-                    style={[
-                      detS.tabItem,
-                      activeTab === t.key && {
-                        borderBottomWidth: 2,
-                        borderBottomColor: C.accentPrimary,
-                      },
-                    ]}
-                  >
-                    <AppText
-                      style={[
-                        detS.tabLabel,
-                        {
-                          color:
-                            activeTab === t.key ? C.accentPrimary : C.outline,
-                        },
-                        activeTab === t.key && { fontWeight: "700" },
-                      ]}
-                    >
-                      {t.label}
-                    </AppText>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Tab content */}
-              {(
-                detailContent[activeTab] as {
-                  label?: string;
-                  value?: string;
-                  component?: React.ReactNode;
-                  resolve?: React.ReactNode[];
-                }[]
-              )?.map((item: any, i: number) => (
-                <View style={detS.sectionBlock} key={i}>
-                  {item.label && (
-                    <AppText
-                      style={[detS.sectionTitle, { color: C.onSurface }]}
-                    >
-                      {item.label}
-                    </AppText>
-                  )}
-                  {"component" in item ? (
-                    <View style={detS.sectionContent}>{item.component}</View>
-                  ) : "resolve" in item ? (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      style={detS.sectionContent}
-                    >
-                      {item.resolve}
-                    </ScrollView>
-                  ) : (
-                    <AppText
-                      style={[detS.sectionValue, { color: C.onSurfaceVariant }]}
-                    >
-                      {item.value}
-                    </AppText>
-                  )}
-                </View>
-              ))}
-            </View>
-          </LinearGradient>
-        </Animated.ScrollView>
-
-        {/* Bottom Bar */}
-        <View
-          style={[
-            detS.bottomBar,
-            {
-              backgroundColor: C.surfaceHighest,
-              borderTopColor: C.accentPrimary,
-              borderTopWidth: 2,
-            },
-          ]}
-        >
-          <View>
-            <AppText style={[detS.priceSmall, { color: C.outline }]}>
-              Starting from
-            </AppText>
-            <View style={{ flexDirection: "row", alignItems: "baseline" }}>
-              <AppText style={[detS.priceBig, { color: C.accentPrimary }]}>
-                ₩{hallPrices ? formatPrice(hallPrices.pcHall.oneHour) : "0"}
-              </AppText>
-              <AppText style={[detS.priceUnit, { color: C.outline }]}>
-                {" "}
-                / hour
-              </AppText>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={[detS.bookBtn, { backgroundColor: C.accentPrimary }]}
-            onPress={() => setIsBooking(true)}
-          >
-            <AppText style={detS.bookBtnText}>Book Now →</AppText>
-          </TouchableOpacity>
-        </View>
+        <OwnActivaterIndicator color={C.accentPrimary} />
       </View>
     );
   }
@@ -1369,7 +911,11 @@ const BookingBoardGame = ({
       <View style={[bkS.header, { borderBottomColor: C.border }]}>
         <TouchableOpacity
           onPress={() => {
-            step > 0 ? setStep(0) : setIsBooking(false);
+            if (step === 0) {
+              router.back();
+            } else {
+              setStep(step - 1);
+            }
           }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
@@ -1378,6 +924,16 @@ const BookingBoardGame = ({
         {stepDots}
         <View style={{ width: 32 }} />
       </View>
+      {/* Felt-colour tier accent line */}
+      <View
+        style={{
+          height: 2,
+          marginHorizontal: 20,
+          borderRadius: 1,
+          backgroundColor: TIER_FELT[selectedTier],
+          opacity: 0.6,
+        }}
+      />
 
       {/* Content */}
       {step === 0 ? step0Content : step1Content}
@@ -1400,12 +956,17 @@ const BookingBoardGame = ({
                 {TABLE_TIERS.find((t) => t.id === selectedTier)?.label ??
                   "Table"}
               </AppText>
-              <AppText style={[bkS.footerPrice, { color: C.onSurface }]}>
+              <AppText
+                style={[bkS.footerPrice, { color: TIER_FELT[selectedTier] }]}
+              >
                 ₩{totalPrice.toLocaleString()}
               </AppText>
             </View>
             <TouchableOpacity
-              style={[bkS.primaryBtn, { backgroundColor: C.accentPrimary }]}
+              style={[
+                bkS.primaryBtn,
+                { backgroundColor: TIER_FELT[selectedTier] },
+              ]}
               onPress={() => setStep(1)}
             >
               <AppText style={bkS.primaryBtnText}>Continue</AppText>
@@ -1442,113 +1003,12 @@ const BookingBoardGame = ({
             value: d.value ?? "",
           }))}
           addToCalendar={() => console.log("Add to calendar")}
-          hasScheduled={hasScheduled.current}
+          hasScheduled={hasScheduled}
         />
       )}
     </SafeAreaView>
   );
 };
-
-// ─── Detail Styles ───────────────────────────────────────────────────────────
-const detS = StyleSheet.create({
-  flex: { flex: 1 },
-  carouselWrap: {
-    height: 350,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    overflow: "hidden",
-  },
-  carouselImg: { width: "100%", height: "100%" },
-  iconBtnWrap: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    right: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  iconBtn: { padding: 10, borderRadius: 25 },
-  imgGradient: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 120,
-  },
-  dotContainer: { gap: 12, bottom: 120 },
-  titleCard: {
-    marginHorizontal: 20,
-    marginTop: -60,
-    borderRadius: 30,
-    padding: 22,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  titleAccent: {
-    width: "30%",
-    height: 3,
-    borderRadius: 2,
-    marginBottom: 14,
-  },
-  hallName: { fontSize: 20, fontWeight: "700", marginBottom: 6 },
-  ratingRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  ratingText: { fontSize: 13, fontWeight: "600" },
-  addrRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6 },
-  addrText: { fontSize: 13, flex: 1 },
-  gradientWrap: { flex: 1 },
-  contentPad: { marginHorizontal: 16, flex: 1 },
-  tabRow: {
-    flexDirection: "row",
-    marginTop: 16,
-    marginBottom: 8,
-    borderBottomWidth: 1,
-  },
-  tabItem: { flex: 1, alignItems: "center", paddingVertical: 10 },
-  tabLabel: { fontSize: 14 },
-  sectionBlock: { paddingVertical: 10 },
-  sectionTitle: { fontSize: 17, fontWeight: "700", marginBottom: 2 },
-  sectionContent: { paddingVertical: 6 },
-  sectionValue: { fontSize: 14, lineHeight: 20 },
-  priceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 4,
-  },
-  priceLabel: { fontWeight: "500", fontSize: 13 },
-  priceValue: { fontWeight: "600", fontSize: 13 },
-  facilityItem: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    gap: 3,
-  },
-  facilityIcon: { borderRadius: 22, padding: 8 },
-  facilityLabel: { textAlign: "center", fontSize: 11 },
-  loadingWrap: { justifyContent: "center", alignItems: "center", height: 180 },
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-    elevation: 8,
-  },
-  priceSmall: { fontSize: 11 },
-  priceBig: { fontSize: 22, fontWeight: "800" },
-  priceUnit: { fontSize: 13, fontWeight: "400" },
-  bookBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 28,
-    borderRadius: 22,
-  },
-  bookBtnText: { color: "#FFF", fontWeight: "700", fontSize: 15 },
-});
 
 // ─── Booking Styles ──────────────────────────────────────────────────────────
 const bkS = StyleSheet.create({
@@ -1563,8 +1023,6 @@ const bkS = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
   },
-  headerTitle: { fontSize: 17, fontWeight: "700" },
-
   // Scroll
   scrollContent: { paddingBottom: 40 },
 
@@ -1661,6 +1119,7 @@ const bkS = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     position: "relative",
+    overflow: "hidden",
   },
   tierLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
   tierIcon: {
@@ -1681,17 +1140,6 @@ const bkS = StyleSheet.create({
   },
   tierPrice: { fontSize: 18, fontWeight: "800" },
   tierUnit: { fontSize: 11 },
-  tick: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
   // Time
   fieldLabel: {
     fontSize: 11,
@@ -1709,10 +1157,10 @@ const bkS = StyleSheet.create({
   pillChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    gap: 8,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1.5,
     position: "relative",
   },
@@ -1860,6 +1308,39 @@ const bkS = StyleSheet.create({
     borderRadius: 12,
   },
   secondaryBtnText: { fontSize: 15, fontWeight: "700" },
+
+  // ── Billiard-specific ─────────────────────────────────────────────────────
+  tierStripe: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+  },
+  feltBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  feltBadgeText: {
+    color: "#FFF",
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+  },
+  ballCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+  },
+  ballNum: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "900",
+  },
 });
 
 export default React.memo(BookingBoardGame);

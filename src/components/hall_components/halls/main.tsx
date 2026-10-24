@@ -476,13 +476,16 @@ const MainHallComponent = ({
         <TouchableOpacity
           style={s.bookBtn}
           onPress={() => {
-            console.log(hallType);
             switch (hallType) {
               case HallTypesSeparator.SPORTHALL:
                 setOrderVisible(true);
                 break;
               case HallTypesSeparator.COMPUTERGAMESHALL:
                 router.push(`/book/esport/${listing?.sportHallID}`);
+                return;
+
+              case HallTypesSeparator.BILLIARDHALL:
+                router.push(`/book/boardGame/${listing?.sportHallID}`);
                 return;
               default:
                 break;
