@@ -59,10 +59,9 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   textMonthStyle,
   moveIconStyle,
 }) => {
-  const initialDayjs = dayjs(new Date());
-  const [currentWeekStart, setCurrentWeekStart] = useState(
-    initialDayjs.startOf("isoWeek"),
-  );
+  const initialDayjs = dayjs().startOf("day");
+
+  const currentWeekStart = dayjs(selectedDay).startOf("isoWeek");
 
   const [headerWidth, setHeaderWidth] = useState(0);
   // generate week days
@@ -87,23 +86,25 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   const canGoPrevWeek = !prevWeekStart
     .endOf("isoWeek")
     .isBefore(initialDayjs, "day");
-  const goNextWeek = () => setCurrentWeekStart(currentWeekStart.add(1, "week"));
+  const goNextWeek = () => {
+    const nextWeek = currentWeekStart.add(1, "week");
+    setSelectedDay(nextWeek.toDate());
+  };
+
   const goPrevWeek = () => {
-    if (canGoPrevWeek) setCurrentWeekStart(prevWeekStart);
+    if (canGoPrevWeek) {
+      setSelectedDay(currentWeekStart.subtract(1, "week").toDate());
+    }
   };
 
   // selection
   const handleSelect = (item: (typeof weekDays)[0]) => {
     if (!item?.formatted || item.isDisabled) return;
-    const date = new Date(item.formatted);
-    const newWeekStart = dayjs(date).startOf("isoWeek");
 
-    setSelectedDay(new Date(date));
-    onDateSelect?.(new Date(date));
-    if (!newWeekStart.isSame(currentWeekStart, "week")) {
-      setCurrentWeekStart(newWeekStart);
-    }
-    return item.formatted;
+    const date = item.date.toDate();
+
+    setSelectedDay(date);
+    onDateSelect?.(date);
   };
 
   // week label
@@ -679,7 +680,9 @@ export const MonthCalendar = ({
     dayjs(d).isBefore(end, "day");
 
   const selectDate = (date: Date) => {
-    // ✅ SINGLE DAY MODE
+    // Show the month containing the selected date
+    setCurrentMonth(dayjs(date));
+
     if (selectDateRange === 1) {
       setSelectedRange({
         start: dayjs(date).startOf("day").toDate(),
@@ -688,7 +691,6 @@ export const MonthCalendar = ({
       return;
     }
 
-    // ✅ RANGE MODE (existing behavior, refined)
     if (!selectedRange.start || selectedRange.end) {
       setSelectedRange({ start: date, end: undefined });
       return;

@@ -619,7 +619,7 @@ const TransactionPage = () => {
             flex: 1,
           }}
         >
-          <OwnActivaterIndicator />
+          <OwnActivaterIndicator color={Colors.backgroundColor} />
           {waitingText ? (
             <Text
               style={{

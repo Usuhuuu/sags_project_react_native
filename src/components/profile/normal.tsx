@@ -65,7 +65,7 @@ const NormalUser = () => {
     { label: "K/D", value: "2.41" },
   ];
   if (isLoading) {
-    return <OwnActivaterIndicator />;
+    return <OwnActivaterIndicator color={colors.backgroundColor} />;
   }
 
   return (

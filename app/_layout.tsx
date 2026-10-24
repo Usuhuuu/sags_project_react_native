@@ -110,7 +110,7 @@ export function RootLayout() {
   if (!appReady)
     return (
       <View style={{ flex: 1, backgroundColor: colors.backgroundColor }}>
-        <OwnActivaterIndicator />
+        <OwnActivaterIndicator color={colors.backgroundColor} />
       </View>
     );
 

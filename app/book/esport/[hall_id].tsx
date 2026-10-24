@@ -7,7 +7,7 @@ import {
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, {
   useCallback,
   useEffect,
@@ -521,7 +521,7 @@ const CombinedEsportHall = ({
           backgroundColor: C.backgroundColor,
         }}
       >
-        <OwnActivaterIndicator />
+        <OwnActivaterIndicator color={C.backgroundColor} />
         {waitingText ? (
           <Text
             style={{
@@ -543,7 +543,11 @@ const CombinedEsportHall = ({
     <View style={[bS.header, { borderBottomColor: C.border }]}>
       <TouchableOpacity
         onPress={() => {
-          setStep(step - 1);
+          if (step === 0) {
+            router.back();
+          } else {
+            setStep(step - 1);
+          }
         }}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >

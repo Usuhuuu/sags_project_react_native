@@ -288,7 +288,7 @@ const Order_Separator = ({
                 backgroundColor: Colors.backgroundColor,
               }}
             >
-              <OwnActivaterIndicator />
+              <OwnActivaterIndicator color={Colors.backgroundColor} />
             </View>
           ) : (
             <View
@@ -393,7 +393,7 @@ const Order_Separator = ({
                 backgroundColor: Colors.backgroundColor,
               }}
             >
-              <OwnActivaterIndicator />
+              <OwnActivaterIndicator color={Colors.backgroundColor} />
             </View>
           ) : (
             <View style={{ justifyContent: "center", alignItems: "center" }}>

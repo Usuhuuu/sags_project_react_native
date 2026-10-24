@@ -1,17 +1,18 @@
 import LottieView from "lottie-react-native";
-import { View, ViewStyle } from "react-native";
+import { View } from "react-native";
 
 interface OwnActivaterIndicatorProps {
-  style?: ViewStyle;
+  color: string;
 }
 
-const OwnActivaterIndicator = ({ style }: OwnActivaterIndicatorProps) => {
+const OwnActivaterIndicator = ({ color }: OwnActivaterIndicatorProps) => {
   return (
     <View
       style={{
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+        backgroundColor: color,
       }}
     >
       <LottieView
@@ -25,7 +26,6 @@ const OwnActivaterIndicator = ({ style }: OwnActivaterIndicatorProps) => {
             alignSelf: "center",
             justifyContent: "center",
           },
-          style,
         ]}
       />
     </View>

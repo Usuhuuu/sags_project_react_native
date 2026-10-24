@@ -375,7 +375,7 @@ const SportHall = ({ listing, sportHallID, hallType }: SportHallProps) => {
         label: undefined,
         component: loading ? (
           <View style={s.loadingWrap}>
-            <OwnActivaterIndicator />
+            <OwnActivaterIndicator color={C.backgroundColor} />
           </View>
         ) : (
           <SportHallReviewPage

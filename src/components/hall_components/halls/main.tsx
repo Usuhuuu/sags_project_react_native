@@ -313,7 +313,7 @@ const MainHallComponent = ({
         label: undefined,
         component: loading ? (
           <View style={s.loadingWrap}>
-            <OwnActivaterIndicator />
+            <OwnActivaterIndicator color={C.backgroundColor} />
           </View>
         ) : (
           <SportHallReviewPage
@@ -476,6 +476,7 @@ const MainHallComponent = ({
         <TouchableOpacity
           style={s.bookBtn}
           onPress={() => {
+            console.log(hallType);
             switch (hallType) {
               case HallTypesSeparator.SPORTHALL:
                 setOrderVisible(true);

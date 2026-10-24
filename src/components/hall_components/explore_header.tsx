@@ -7,7 +7,6 @@ import {
   ScrollView,
   Dimensions,
   TextInput,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -81,11 +80,7 @@ interface Props {
   isCategoryLoading?: boolean;
 }
 
-const ExploreHeader = ({
-  onCategoryChanged,
-  bottomSheetY,
-  isCategoryLoading = false,
-}: Props) => {
+const ExploreHeader = ({ onCategoryChanged, bottomSheetY }: Props) => {
   const { colors: Colors } = useTheme();
   const screenDims = useMemo(() => Dimensions.get("screen"), []);
   const { width, height } = screenDims;
@@ -157,12 +152,9 @@ const ExploreHeader = ({
   const selectCategory = (index: number) => {
     const selected = itemsRef.current[index];
     const categoryId = sportDetail?.[index]?.id;
-
     setActiveIndex(index);
-
     if (categoryId) {
-      // Defer one frame so the chip highlight (and the loading indicator)
-      // paint before the parent runs its — possibly heavy — data filtering.
+      console.log(categoryId);
       requestAnimationFrame(() => onCategoryChanged(categoryId));
     }
 
@@ -287,12 +279,6 @@ const ExploreHeader = ({
               ));
             })()}
           </ScrollView>
-          {/* Loading indicator — shown while the new category's data loads */}
-          {isCategoryLoading && (
-            <View style={styles.loadingBadge} pointerEvents="none">
-              <ActivityIndicator size="small" color={Colors.primary} />
-            </View>
-          )}
         </Animated.View>
       </Animated.View>
     </SafeAreaView>

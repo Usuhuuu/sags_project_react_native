@@ -59,7 +59,8 @@ const Step_two_pc = ({
   const { colors } = useTheme();
   const bookingDetails = useBookingStore((state) => state.esportBookingDetails);
 
-  if (!bookingDetails) return <OwnActivaterIndicator />;
+  if (!bookingDetails)
+    return <OwnActivaterIndicator color={colors.backgroundColor} />;
 
   const renderItems = [
     {

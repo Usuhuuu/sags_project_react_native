@@ -8,6 +8,7 @@ import { useSharedValue } from "react-native-reanimated";
 import { HallCategoryValue } from "@/types/hall_info_type";
 import { useHallInfo } from "@/context/hall_info_context";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
+import { useTheme } from "@/context/theme_context";
 
 const Page = () => {
   const { getAllHalls } = useHallInfo();
@@ -15,9 +16,7 @@ const Page = () => {
   const [category, setCategory] = useState<HallCategoryValue>(
     HallCategoryValue.BASKET_BALL,
   );
-  // Set while the new category's data is being filtered (blocks the UI thread
-  // on large datasets) so the header can show a loading indicator.
-  const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+  const { colors } = useTheme();
 
   // Deferred category — lets the loading indicator paint before the heavy
   // useMemo filter below runs.
@@ -36,7 +35,6 @@ const Page = () => {
 
   const onDataChanged = useCallback((c: HallCategoryValue) => {
     setPendingCategory(c);
-    setIsCategoryLoading(true);
   }, []);
 
   // Swap the category on the next frame so the loading indicator (and the
@@ -88,16 +86,15 @@ const Page = () => {
       <ExploreHeader
         onCategoryChanged={onDataChanged}
         bottomSheetY={bottomSheetY}
-        isCategoryLoading={isCategoryLoading}
       />
     ),
-    [onDataChanged, bottomSheetY, isCategoryLoading],
+    [onDataChanged, bottomSheetY],
   );
 
-  if (isCategoryLoading)
+  if (pendingCategory !== null)
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <OwnActivaterIndicator />
+      <View style={{ flex: 1 }}>
+        <OwnActivaterIndicator color={colors.backgroundColor} />
       </View>
     );
   return (

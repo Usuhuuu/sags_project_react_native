@@ -6,10 +6,12 @@ import HallForm, {
 } from "@/components/contractor/hall_form";
 import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import axiosInstance from "@/hooks/axiosInstance";
+import { useTheme } from "@/context/theme_context";
 
 export default function ManageZaal() {
   const [loading, setLoading] = useState(true);
   const [initialData, setInitialData] = useState<HallFormValues | null>(null);
+  const { colors } = useTheme();
 
   async function fetchOwnHall() {
     try {
@@ -34,7 +36,7 @@ export default function ManageZaal() {
     };
   }, []);
 
-  if (loading) return <OwnActivaterIndicator />;
+  if (loading) return <OwnActivaterIndicator color={colors.backgroundColor} />;
 
   const hasHall = !!initialData && initialData.hall_name.trim().length > 0;
 

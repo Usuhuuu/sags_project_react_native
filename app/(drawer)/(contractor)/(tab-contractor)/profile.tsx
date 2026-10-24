@@ -80,7 +80,7 @@ const ContractorProfile = () => {
   const userData: UserData = useMemo(() => data.profileData, [data]);
 
   if (isLoading) {
-    return <OwnActivaterIndicator />;
+    return <OwnActivaterIndicator color={colors.backgroundColor} />;
   }
 
   return (

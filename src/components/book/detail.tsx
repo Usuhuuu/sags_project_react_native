@@ -16,8 +16,8 @@ import { useBookingStore } from "@/context/store/book_store";
 import WeekCalendar from "@/components/book/strip_calendar";
 import { useTheme } from "@/context/theme_context";
 import { HallTypesSeparator } from "@/types/hall_separator_type";
-import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { DurationPrice } from "@/types/hall_info_type";
+import SportHallSkeleton from "./skeleton/sport_hall";
 
 export type FormData = {
   sport_hall_id?: string;
@@ -169,6 +169,7 @@ const TimeSlotItem: React.FC<TimeSlotItemProps> = React.memo(
     prevProps.wholeDayBooked === nextProps.wholeDayBooked,
 );
 const CACHE_TTL = 10 * 60 * 1000;
+const MINIMUM_SKELETON_MS = 600;
 
 interface OrderScreenProps {
   formData: FormData;
@@ -210,6 +211,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       timestampt: number;
     };
   }>({});
+  const skeletonStart = useRef<number>(0);
 
   const dateSlotGiver = useCallback(
     async (date: Date) => {
@@ -231,6 +233,7 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
       }
 
       setIsLoading(true);
+      skeletonStart.current = Date.now();
 
       try {
         setUnavailableTimes({ joinable: [], unavailable: [] });
@@ -301,6 +304,11 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
           console.log("lalr", err);
         }
       } finally {
+        const elapsed = Date.now() - skeletonStart.current;
+        const remaining = MINIMUM_SKELETON_MS - elapsed;
+        if (remaining > 0) {
+          await new Promise((resolve) => setTimeout(resolve, remaining));
+        }
         setIsLoading(false);
       }
     },
@@ -338,59 +346,57 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
         flex: 1,
       }}
     >
-      {isLoading ? (
-        <View style={{ flex: 1 }}>
-          <OwnActivaterIndicator />
-        </View>
-      ) : (
-        <SafeAreaView
-          style={{
-            backgroundColor: Colors.containerColor,
-            flex: 1,
-          }}
-          edges={["bottom", "left", "right", "top"]}
-        >
-          {/* 🔹 HEADER (fixed height) */}
-          {!wholeDayModal && (
-            <View
-              style={{
-                justifyContent: "space-between",
-                height: height * 0.15,
+      <SafeAreaView
+        style={{
+          backgroundColor: Colors.containerColor,
+          flex: 1,
+        }}
+        edges={["bottom", "left", "right", "top"]}
+      >
+        {/* 🔹 HEADER (fixed height) */}
+        {!wholeDayModal && (
+          <View
+            style={{
+              justifyContent: "space-between",
+              height: height * 0.15,
+            }}
+          >
+            <TouchableOpacity onPress={() => setIsOrderScreenVisible(false)}>
+              <Ionicons name="close" size={20} color={Colors.darkGrey} />
+            </TouchableOpacity>
+
+            <WeekCalendar
+              containerStyle={{
+                flex: 1,
+                paddingBottom: 10,
               }}
-            >
-              <TouchableOpacity onPress={() => setIsOrderScreenVisible(false)}>
-                <Ionicons name="close" size={20} color={Colors.darkGrey} />
-              </TouchableOpacity>
+              selectedDayTextStyle={{ color: Colors.white }}
+              selectedDayNumberStyle={{ color: Colors.white }}
+              selectedContainerStyle={{ backgroundColor: Colors.primary }}
+              onDateSelect={(date: Date) => {
+                setToday(date);
+                dateSlotGiver(date);
+              }}
+              selectedDay={today}
+              setSelectedDay={setToday}
+              textWeekStyle={{
+                color:
+                  theme === "dark" ? Colors.themeColorTextPure : Colors.dark,
+              }}
+              textDayStyle={{
+                color:
+                  theme === "dark" ? Colors.themeColorTextPure : Colors.dark,
+              }}
+              moveIconStyle={{ color: Colors.themeColorTextPure }}
+              textMonthStyle={{ color: Colors.themeColorTextPure }}
+            />
+          </View>
+        )}
 
-              <WeekCalendar
-                containerStyle={{
-                  flex: 1,
-                  paddingBottom: 10,
-                }}
-                selectedDayTextStyle={{ color: Colors.white }}
-                selectedDayNumberStyle={{ color: Colors.white }}
-                selectedContainerStyle={{ backgroundColor: Colors.primary }}
-                onDateSelect={(date: Date) => {
-                  setToday(date);
-                  dateSlotGiver(date);
-                }}
-                selectedDay={today}
-                setSelectedDay={setToday}
-                textWeekStyle={{
-                  color:
-                    theme === "dark" ? Colors.themeColorTextPure : Colors.dark,
-                }}
-                textDayStyle={{
-                  color:
-                    theme === "dark" ? Colors.themeColorTextPure : Colors.dark,
-                }}
-                moveIconStyle={{ color: Colors.themeColorTextPure }}
-                textMonthStyle={{ color: Colors.themeColorTextPure }}
-              />
-            </View>
-          )}
-
-          {/* 🔹 CONTENT AREA (IMPORTANT) */}
+        {/* 🔹 CONTENT AREA (IMPORTANT) */}
+        {isLoading ? (
+          <SportHallSkeleton slotCount={baseTimeSlot?.length} />
+        ) : (
           <View
             style={{
               padding: 10,
@@ -405,10 +411,10 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
 
                 <View style={{ flex: 1 }}>
                   {/*<Calendar
-                    sport_hall_id={sportHallID}
-                    formData={formData}
-                    setIsOrderScreenVisible={setIsOrderScreenVisible}
-                  />*/}
+                  sport_hall_id={sportHallID}
+                  formData={formData}
+                  setIsOrderScreenVisible={setIsOrderScreenVisible}
+                />*/}
                 </View>
               </View>
             ) : (
@@ -491,47 +497,47 @@ const OrderScreen: React.FC<OrderScreenProps> = ({
               </View>
             )}
           </View>
+        )}
 
-          {/* 🔹 ORDER BUTTON (fixed bottom) */}
-          <View
-            style={{
-              alignItems: "center",
-              borderRadius: 5,
-              justifyContent: "center",
-              flex: 1,
-            }}
-          >
-            {selectedTimeSlots.length !== 0 && (
-              <TouchableOpacity
+        {/* 🔹 ORDER BUTTON (fixed bottom) */}
+        <View
+          style={{
+            alignItems: "center",
+            borderRadius: 5,
+            justifyContent: "center",
+            flex: 1,
+          }}
+        >
+          {selectedTimeSlots.length !== 0 && (
+            <TouchableOpacity
+              style={{
+                borderWidth: 1,
+                width: "50%",
+                borderRadius: 5,
+                borderColor: Colors.primary,
+                backgroundColor: Colors.secondary,
+                shadowColor: Colors.primary,
+                shadowOpacity: theme === "dark" ? 1.8 : 0,
+                shadowRadius: 10,
+                shadowOffset: { width: 0, height: 0 },
+                padding: height * 0.02,
+              }}
+              onPress={handleOrder}
+            >
+              <Text
                 style={{
-                  borderWidth: 1,
-                  width: "50%",
-                  borderRadius: 5,
-                  borderColor: Colors.primary,
-                  backgroundColor: Colors.secondary,
-                  shadowColor: Colors.primary,
-                  shadowOpacity: theme === "dark" ? 1.8 : 0,
-                  shadowRadius: 10,
-                  shadowOffset: { width: 0, height: 0 },
-                  padding: height * 0.02,
+                  textAlign: "center",
+                  fontSize: 20,
+                  fontWeight: "400",
+                  color: Colors.littleDark,
                 }}
-                onPress={handleOrder}
               >
-                <Text
-                  style={{
-                    textAlign: "center",
-                    fontSize: 20,
-                    fontWeight: "400",
-                    color: Colors.littleDark,
-                  }}
-                >
-                  Order
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </SafeAreaView>
-      )}
+                Order
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </SafeAreaView>
     </View>
   );
 };

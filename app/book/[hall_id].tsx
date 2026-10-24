@@ -24,7 +24,7 @@ export default function DetailsPage() {
   if (!hallSeparated || !listing) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <OwnActivaterIndicator />
+        <OwnActivaterIndicator color={colors.backgroundColor} />
       </View>
     );
   }

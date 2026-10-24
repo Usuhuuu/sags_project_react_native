@@ -33,7 +33,7 @@ const Profile: React.FC = () => {
   if (isLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
-        <OwnActivaterIndicator />
+        <OwnActivaterIndicator color={Colors.backgroundColor} />
       </View>
     );
   }
