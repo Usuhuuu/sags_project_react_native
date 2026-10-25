@@ -115,6 +115,11 @@ export type RQ_infinite_cache_key =
       "contractor_order",
       string, // Booking type
       string, //Date.string EncodedURI
+    ]
+  | readonly [
+      "reviews",
+      string, // Hall ID
+      string, // DATE.string EncodedURI
     ];
 export const useRegularQuery = (
   props: UseRegularQueryProps,

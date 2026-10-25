@@ -27,7 +27,7 @@ interface SportHallReviewPageProps {
   reviews: Record<string, Review>;
   rating: number;
   count: number;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
+  reviewFetchFunc: () => void;
 }
 
 const STAR_FILTERS = ["All", 5, 4, 3, 2, 1] as const;
@@ -37,7 +37,7 @@ const SportHallReviewPage = ({
   reviews,
   rating,
   count,
-  setPage,
+  reviewFetchFunc,
 }: SportHallReviewPageProps) => {
   const { colors: C } = useTheme();
   const [filterRating, setFilterRating] = useState<number | "All">("All");
@@ -350,7 +350,7 @@ const SportHallReviewPage = ({
           {totalReviews >= 10 ? (
             <TouchableOpacity
               style={styles.loadMoreBtn}
-              onPress={() => setPage((prev) => prev + 1)}
+              onPress={() => reviewFetchFunc}
             >
               <Text style={styles.loadMoreText}>Load more</Text>
             </TouchableOpacity>

@@ -12,7 +12,7 @@ import Carousel, {
   ICarouselInstance,
   Pagination,
 } from "react-native-reanimated-carousel";
-import { router } from "expo-router";
+import { router, useIsFocused } from "expo-router";
 import React, { useEffect, useRef, useState, useMemo, memo } from "react";
 import {
   View,
@@ -26,17 +26,22 @@ import {
 } from "react-native";
 import Animated, { useSharedValue } from "react-native-reanimated";
 import OrderScreen, { FormData } from "@/components/book/detail";
-import SportHallReviewPage, { Review } from "@/app/review/hall_review";
-import { axiosInstanceRegular } from "@/hooks/axiosInstance";
+import SportHallReviewPage from "@/app/review/hall_review";
 import {
   HallDetailSeparator,
   HallTypesSeparator,
 } from "@/types/hall_separator_type";
 import { LinearGradient } from "expo-linear-gradient";
-import OwnActivaterIndicator from "@/components/ui/loader_indicator";
+
+import ReviewSkeleton from "@/components/hall_components/skeleton/review_skeleton";
 import { useHallInfo } from "@/context/hall_info_context";
 import { hallPriceMap } from "@/utils/duration_price";
 import { useFavoritesStore } from "@/context/store/favorites_store";
+import {
+  RQ_infinite_cache_key,
+  useRegularInfiniteQuery,
+} from "@/hooks/useQuery";
+import { useAuth } from "@/context/auth_context";
 
 const TabBar = memo(
   ({
@@ -150,19 +155,6 @@ const featureIcons = [
   },
 ];
 
-const fetchZaalReview = async (id: string, page: number) => {
-  try {
-    const res = await axiosInstanceRegular.get(
-      `/zaal-review/${id}?page=${page}`,
-    );
-    if (res.status === 200 && res.data.success && res.data.data)
-      return res.data.data;
-    return null;
-  } catch {
-    return null;
-  }
-};
-
 interface SportHallProps {
   listing: SportHallDataType | EsportHallDataType;
   sportHallID: string;
@@ -178,22 +170,10 @@ const MainHallComponent = ({
   const { width } = useWindowDimensions();
   const [isOrderVisible, setOrderVisible] = useState(false);
 
-  const [reviews, setReviews] = useState<Record<string, Review>>({});
-  const [rating, setRating] = useState(4.8);
-  const [count, setCount] = useState(124);
-  const [page, setPage] = useState(0);
-  const [noMore, setNoMore] = useState(false);
-  const [loading, setLoading] = useState(false);
   const fetched = useRef(false);
   // Track the last sportHallID we rendered for so we can reset review state
   // synchronously during render (React-approved alternative to a reset effect).
-  const [prevHallId, setPrevHallId] = useState(sportHallID);
-  if (prevHallId !== sportHallID) {
-    setPrevHallId(sportHallID);
-    setReviews({});
-    setPage(0);
-    setNoMore(false);
-  }
+
   const imageRef = useRef<ICarouselInstance>(null);
   const progress = useSharedValue(0);
   const [activeTab, setActiveTab] = useState(HallDetailSeparator.DETAILS);
@@ -212,7 +192,43 @@ const MainHallComponent = ({
     [],
   );
 
+  const { LoginStatus } = useAuth();
+  const isFocused = useIsFocused();
+  const dayString = new Date().toISOString().split("T")[0];
+  const cacheKey = [
+    "reviews",
+    listing?.sportHallID.toString(),
+    dayString,
+  ] as const satisfies RQ_infinite_cache_key;
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    useRegularInfiniteQuery(
+      {
+        cacheKey: cacheKey,
+        loginStatus: LoginStatus,
+        pathname: (page) => `/zaal-review/${listing?.sportHallID}?page=${page}`,
+      },
+      {
+        enabled: isFocused && activeTab === HallDetailSeparator.REVIEW,
+        refetchInterval: false,
+      },
+    );
+
+  const reviews = useMemo(
+    () => data?.pages.flatMap((page: any) => page.reviews ?? []) ?? [],
+    [data?.pages],
+  );
+  // Latest page's metadata
+  const latestPage = data?.pages?.[data.pages.length - 1];
+
+  const rating = latestPage?.avg_rating ?? 4.8;
+  const count = latestPage?.review_count ?? 124;
   const hallMapValue = hallPriceMap[hallType];
+
+  const loadMoreReviews = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
 
   const { getHallTimeSlots } = useHallInfo();
 
@@ -238,46 +254,6 @@ const MainHallComponent = ({
     }),
     [hallType, sportHallID, listing, hallMapValue],
   );
-  useEffect(() => {
-    if (activeTab !== HallDetailSeparator.REVIEW || fetched.current || noMore)
-      return;
-    fetched.current = true;
-    setLoading(true);
-    let mounted = true;
-    fetchZaalReview(listing?.sportHallID, page).then((d) => {
-      fetched.current = false;
-      if (!mounted) return;
-      if (!d) {
-        setLoading(false);
-        return;
-      }
-      setReviews((prev) => {
-        const m = { ...prev };
-        let c = false;
-        d.reviews.forEach((r: Review) => {
-          if (!prev[r._id]) {
-            m[r._id] = r;
-            c = true;
-          }
-        });
-        const keys = Object.keys(m);
-        if (keys.length > 50) {
-          keys.slice(0, keys.length - 50).forEach((k) => delete m[k]);
-        }
-        return c ? m : prev;
-      });
-      if (d.reviews?.length < 10) setNoMore(true);
-      if (d.avg_rating) setRating(d.avg_rating);
-      if (d.review_count) setCount(d.review_count);
-      setLoading(false);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, [page, activeTab, listing?.sportHallID, noMore]);
-
-  // Reset the in-flight guard when the hall changes.
-  // Ref mutations belong in effects, not during render.
   useEffect(() => {
     fetched.current = false;
   }, [listing?.sportHallID]);
@@ -310,18 +286,15 @@ const MainHallComponent = ({
     ],
     [HallDetailSeparator.REVIEW]: [
       {
-        label: undefined,
-        component: loading ? (
-          <View style={s.loadingWrap}>
-            <OwnActivaterIndicator color={C.backgroundColor} />
-          </View>
+        component: isLoading ? (
+          <ReviewSkeleton />
         ) : (
           <SportHallReviewPage
             sport_hall_id={listing?.sportHallID}
             reviews={reviews}
             rating={rating}
             count={count}
-            setPage={setPage}
+            reviewFetchFunc={loadMoreReviews}
           />
         ),
       },
@@ -420,7 +393,7 @@ const MainHallComponent = ({
         <View style={s.titleCard}>
           <View style={s.handleBar} />
           <AppText style={s.hallName}>
-            {listing?.hall_details?.hall_name || "Royal хурлын заал"}
+            {listing?.hall_details?.hall_name || "UNKNOWN"}
           </AppText>
           <View style={s.ratingRow}>
             <AntDesign name="star" size={14} color="#FFD700" />
