@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -12,11 +12,15 @@ import { useTheme } from "@/context/theme_context";
 import dayjs from "dayjs";
 import Bottom_Renderer from "@/components/together/bottom_render";
 import { MonthCalendar } from "@/components/book/strip_calendar";
-import { RQ_simple_cache_key, useSimpleQuery } from "@/hooks/useQuery";
+import {
+  RQ_infinite_cache_key,
+  useRegularInfiniteQuery,
+} from "@/hooks/useQuery";
 import { ULAANBAATAR_DISTRICTS_MAP } from "@/assets/Data/ub_location";
 import { SPORT_INDICATOR } from "@/assets/Data/sport_indicator";
 import { useIsFocused } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { showToast } from "@/utils/toast";
 
 export type PostTypes = {
   id: string;
@@ -62,12 +66,7 @@ export type UBDistrict = {
 
 const TogetherScreen = () => {
   const { colors, theme } = useTheme();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [date, setDate] = useState<Date>(new Date());
-  const [formattedDate, setFormattedDate] = useState<string>(
-    dayjs(date).format("YYYY-MM-DD"),
-  );
-  const [page, setPage] = useState<number>(1);
+
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedDistrict, setSelectedDistrict] = useState<string>("BGD");
   const [selectedSportType, setSelectedSportType] =
@@ -82,46 +81,45 @@ const TogetherScreen = () => {
     startDate: Date;
     endDate: Date;
   }>();
-  const [postData, setPostData] = useState<PostTypes[]>();
-
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const encodedTimezone = encodeURIComponent(timezone);
 
-  const RQ_key = [
-    "partner_posts",
-    formattedDate,
-    encodedTimezone,
-    page,
-  ] as const satisfies RQ_simple_cache_key;
-
   const isFocused = useIsFocused();
 
-  const { data, error, isLoading } = useSimpleQuery(
+  const dayStr = dayjs(new Date()).format("YYYY-MM-DD");
+  const cacheKey = [
+    "partner_posts",
+    dayStr,
+    encodedTimezone,
+  ] as const satisfies RQ_infinite_cache_key;
+  const {
+    data,
+    error,
+    isLoading,
+    isFetchNextPageError,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useRegularInfiniteQuery(
     {
-      pathname: `/partner/${formattedDate}/${encodedTimezone}?page=${page}`,
-      cacheKey: RQ_key,
+      cacheKey: cacheKey,
+      pathname: (page) => `/partner/${dayStr}/${encodedTimezone}?page=${page}`,
+      loginStatus: isFocused,
     },
     {
       enabled: isFocused,
     },
   );
-  useEffect(() => {
-    setLoading(isLoading);
-    if (!data?.success) return;
-    setPostData((prev) => {
-      if (page === 1) {
-        return data.data;
-      }
-      const map = new Map((prev ?? []).map((item) => [item.block._id, item]));
-      for (const item of data.data) {
-        map.set(item.block._id, item);
-      }
-      return Array.from(map.values());
-    });
-    if (error) {
-      console.log(error);
+  const [isFetching, setIsFetching] = useState<boolean>(isLoading);
+
+  const postData: PostTypes[] = useMemo(() => {
+    const tmpData = data?.pages[0]?.data;
+    const map = new Map(tmpData?.map((item: any) => [item.block._id, item]));
+    for (const item of tmpData ?? []) {
+      map.set(item.block._id, item);
     }
-  }, [data, isLoading, page]);
+    return Array.from(map.values()) as PostTypes[];
+  }, [data]);
 
   const selectFunc = ({
     startDate,
@@ -161,6 +159,20 @@ const TogetherScreen = () => {
   ];
   const [filterData, setFilterData] = useState<any>(ULAANBAATAR_DISTRICTS_MAP);
 
+  if (error || isFetchNextPageError)
+    return showToast({ title: "Oops!", description: "Something went wrong" });
+
+  async function loadMorePosts() {
+    if (!hasNextPage || isFetchingNextPage) return;
+    setIsFetching(true);
+    const startTime = Date.now();
+    try {
+      await fetchNextPage();
+    } finally {
+      const remainTime = Math.max(0, 800 - (Date.now() - startTime));
+      setTimeout(() => setIsFetching(false), remainTime);
+    }
+  }
   return (
     <SafeAreaView
       style={{
@@ -250,8 +262,10 @@ const TogetherScreen = () => {
       </View>
       <TogetherInsideFlatList
         data={postData}
-        loading={loading}
-        setLoading={setLoading}
+        loading={isFetching}
+        fetchMoreFunc={loadMorePosts}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
       />
       {modalVisible && (
         <Bottom_Renderer

@@ -347,7 +347,7 @@ const Theme_Changer_Toggle: React.FC<ThemeToggleProps> = ({
       duration: 280,
     });
     knobX.value = withTiming(target, { duration: 280 });
-  }, [value]);
+  }, [value, knobX, progress]);
 
   const containerStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(

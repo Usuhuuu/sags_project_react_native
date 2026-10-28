@@ -171,7 +171,7 @@ const SignupModal = () => {
           description: "Account Created Successfully",
           alertType: "success",
         });
-        logIn();
+        logIn(response.data.role);
         switch (response.data.role) {
           case "admin":
             router.replace("/(drawer)/(user)/(tab-user)");

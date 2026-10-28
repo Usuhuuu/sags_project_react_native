@@ -120,6 +120,11 @@ export type RQ_infinite_cache_key =
       "reviews",
       string, // Hall ID
       string, // DATE.string EncodedURI
+    ]
+  | readonly [
+      "partner_posts",
+      string, // date
+      string, // timezone
     ];
 export const useRegularQuery = (
   props: UseRegularQueryProps,
@@ -146,6 +151,7 @@ interface UseRegularInfiniteQueryProps {
   cacheKey: RQ_infinite_cache_key;
   loginStatus: boolean;
 }
+
 export function useRegularInfiniteQuery(
   props: UseRegularInfiniteQueryProps,
   options?: Omit<

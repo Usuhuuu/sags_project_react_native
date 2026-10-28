@@ -10,10 +10,14 @@ import {
 import { useCalendar } from "@/context/calendar_context";
 import { Ionicons } from "@expo/vector-icons";
 import type { DrawerContentComponentProps } from "expo-router/drawer";
+import { useRbacPermission } from "@/hooks/rbac_permission";
+import { useAuth } from "@/context/auth_context";
 
 export default function UserLayout() {
   const { colors: Colors } = useTheme();
   const { triggerCalendar } = useCalendar();
+  const { user } = useAuth();
+  const { roleBasedPermissions } = useRbacPermission();
 
   const userScreens = useMemo<DrawerScreenConfig[]>(
     () => [
@@ -28,7 +32,7 @@ export default function UserLayout() {
         label: "Notification",
         icon: "notifications",
         headerLeft: true,
-        hidden: false,
+        hidden: true,
       },
     ],
     [],
@@ -62,11 +66,12 @@ export default function UserLayout() {
             ),
           }}
         />
-        {renderDrawerScreens({
-          screens: userScreens,
-          colors: Colors,
-          triggerCalendar: triggerCalendar,
-        })}
+        {roleBasedPermissions(user.role) &&
+          renderDrawerScreens({
+            screens: userScreens,
+            colors: Colors,
+            triggerCalendar: triggerCalendar,
+          })}
       </Drawer>
     </SafeAreaView>
   );

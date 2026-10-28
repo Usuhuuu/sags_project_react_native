@@ -5,15 +5,20 @@ import React, {
   useContext,
   ReactNode,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { queryClient } from "@/hooks/queryClient";
 import { router } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+
+type Role = "user" | "contractor" | "admin";
 
 interface AuthContextType {
   LoginStatus: boolean;
   authInitalizing: boolean;
-  logIn: () => void;
+  logIn: (role: string) => void;
   logOut: () => void;
+  user: {
+    role: Role | undefined;
+  };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,13 +28,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authInit, setAuthInit] = useState<boolean>(true);
+  const [userRole, setUserRole] = useState<Role | undefined>(undefined);
+
   // Check login status on mount
+
   useEffect(() => {
     let mounted = true;
     const persistLoginStatus = async () => {
       try {
-        const loginStatus = await AsyncStorage.getItem("LoginStatus");
         if (!mounted) return;
+        const loginStatus = await SecureStore.getItemAsync("login_status");
+        const role = (await SecureStore.getItemAsync("user_role")) as
+          | Role
+          | undefined;
+        if (role) setUserRole(role);
         setIsAuthenticated(!!loginStatus);
       } catch (error) {
         console.error("Failed to load login status from AsyncStorage", error);
@@ -44,10 +56,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     };
   }, []);
 
-  const login = async () => {
+  const login = async (role: string) => {
     try {
       if (isAuthenticated) return;
-      await AsyncStorage.setItem("LoginStatus", "true");
+      await SecureStore.setItemAsync("login_status", "true");
+      await SecureStore.setItemAsync("user_role", String(role));
       setIsAuthenticated(true);
     } catch (error) {
       console.error("Failed to save login status", error);
@@ -56,7 +69,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem("LoginStatus");
+      await SecureStore.deleteItemAsync("login_status");
+      await SecureStore.deleteItemAsync("user_role");
       queryClient.clear();
       setIsAuthenticated(false);
       router.replace("/(drawer)/(user)");
@@ -72,6 +86,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         authInitalizing: authInit,
         logIn: login,
         logOut: logout,
+        user: {
+          role: userRole,
+        },
       }}
     >
       {children}

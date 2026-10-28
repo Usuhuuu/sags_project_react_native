@@ -335,7 +335,7 @@ const LoginPage = () => {
           description: response.data.message,
           alertType: "success",
         });
-        logIn();
+        logIn(response.data.role);
         switch (response.data.role) {
           case "admin":
             return router.replace("/(drawer)/(admin)");
@@ -399,7 +399,7 @@ const LoginPage = () => {
           responseGoogle?.success &&
           responseData?.message === "Successfully logged in with Google"
         ) {
-          logIn();
+          logIn(responseData.role);
           showToast({
             title: "Google Login",
             description: responseData.message,
@@ -435,7 +435,7 @@ const LoginPage = () => {
         facebookResponse?.data.message ===
         "Successfully logged in with Facebook"
       ) {
-        logIn();
+        logIn(returnData.data.role);
         showToast({
           title: "Facebook Login",
           description: facebookResponse.data.message,

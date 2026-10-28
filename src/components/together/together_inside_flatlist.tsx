@@ -14,12 +14,17 @@ import { Skeleton } from "moti/skeleton";
 interface TogetherInsideFlatListProps {
   data: PostTypes[] | undefined;
   loading: boolean;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  fetchMoreFunc: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
 }
 
 const TogetherInsideFlatList = ({
   data,
   loading,
+  fetchMoreFunc,
+  hasNextPage,
+  isFetchingNextPage,
 }: TogetherInsideFlatListProps) => {
   const { colors, theme } = useTheme();
   const { setPostDetails } = usePostStore();
@@ -194,58 +199,67 @@ const TogetherInsideFlatList = ({
       <FlatList
         data={data}
         keyExtractor={(item, index) => `${item.id}-${index}`}
-        renderItem={({ item }) =>
-          loading ? (
-            <PostSkeletonItem width={width} theme={theme} color={colors} />
-          ) : (
-            renderItem({ item })
-          )
-        }
+        renderItem={({ item }) => renderItem({ item })}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
+        ListFooterComponent={
+          loading ? (
+            <PostSkeletonItem width={width} theme={theme} color={colors} />
+          ) : null
+        }
         ListEmptyComponent={
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: colors.containerColor,
-              marginHorizontal: 10,
-              padding: 10,
-              height: height * 0.6,
-              shadowColor: colors.shadowColor,
-              shadowOffset: { width: 0, height: 3 },
-              shadowOpacity: 0.15,
-              shadowRadius: 6,
-              elevation: 4,
-              borderRadius: 12,
-              margin: 20,
-            }}
-          >
-            <View style={{ alignItems: "center", marginBottom: 12 }}>
-              <FontAwesome5
-                name="comment-alt"
-                size={40}
-                color={colors.themeColorTextPure}
-              />
-              <AppText
-                style={{
-                  fontSize: 24,
-                  color: colors.themeColorTextPure,
-                  fontWeight: "600",
-                }}
-              >
-                No Posts Yet
+          isFetchingNextPage || loading ? (
+            <PostSkeletonItem width={width} theme={theme} color={colors} />
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: colors.containerColor,
+                marginHorizontal: 10,
+                padding: 10,
+                height: height * 0.6,
+                shadowColor: colors.shadowColor,
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.15,
+                shadowRadius: 6,
+                elevation: 4,
+                borderRadius: 12,
+                margin: 20,
+              }}
+            >
+              <View style={{ alignItems: "center", marginBottom: 12 }}>
+                <FontAwesome5
+                  name="comment-alt"
+                  size={40}
+                  color={colors.themeColorTextPure}
+                />
+                <AppText
+                  style={{
+                    fontSize: 24,
+                    color: colors.themeColorTextPure,
+                    fontWeight: "600",
+                  }}
+                >
+                  No Posts Yet
+                </AppText>
+              </View>
+              <AppText style={{ color: colors.darkGrey, fontSize: 14 }}>
+                Be the first to find teammates or
+              </AppText>
+              <AppText style={{ color: colors.darkGrey, fontSize: 14 }}>
+                create a new post!
               </AppText>
             </View>
-            <AppText style={{ color: colors.darkGrey, fontSize: 14 }}>
-              Be the first to find teammates or
-            </AppText>
-            <AppText style={{ color: colors.darkGrey, fontSize: 14 }}>
-              create a new post!
-            </AppText>
-          </View>
+          )
         }
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchMoreFunc();
+          }
+        }}
+        onEndReachedThreshold={0.5}
       />
 
       {/* Floating Action */}
@@ -274,7 +288,7 @@ const TogetherInsideFlatList = ({
   );
 };
 
-function PostSkeletonItem({
+export function PostSkeletonItem({
   width,
   color,
   theme,
@@ -284,7 +298,7 @@ function PostSkeletonItem({
   theme: "light" | "dark";
 }) {
   const AVATAR = (width / 2) * 0.23;
-  return (
+  return [0, 1, 2].map((_, index) => (
     <View
       style={[
         {
@@ -299,6 +313,7 @@ function PostSkeletonItem({
           padding: 10,
         },
       ]}
+      key={index}
     >
       {/* Header */}
       <View
@@ -346,6 +361,6 @@ function PostSkeletonItem({
         <Skeleton width={60} height={30} radius={15} colorMode={theme} />
       </View>
     </View>
-  );
+  ));
 }
 export default TogetherInsideFlatList;

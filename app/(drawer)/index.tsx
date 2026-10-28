@@ -5,9 +5,11 @@ import OwnActivaterIndicator from "@/components/ui/loader_indicator";
 import { useAuthQuery } from "@/hooks/useQuery";
 import { Redirect } from "expo-router";
 import type { Href } from "expo-router";
+import { useTheme } from "@/context/theme_context";
 
 function DrawerLayout() {
   const { LoginStatus, authInitalizing } = useAuth();
+  const { colors } = useTheme();
   const { data, isLoading, isFetching } = useAuthQuery(
     {
       pathname: "main",
@@ -36,7 +38,7 @@ function DrawerLayout() {
   if (authInitalizing || isLoading || isFetching) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <OwnActivaterIndicator />
+        <OwnActivaterIndicator color={colors.backgroundColor} />
       </View>
     );
   }

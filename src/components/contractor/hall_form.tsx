@@ -27,7 +27,12 @@ import { showToast } from "@/utils/toast";
 import MapView, { Marker } from "react-native-maps";
 
 const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-const UB_CENTER = { latitude: 47.918873, latitudeDelta: 0.05, longitude: 106.917701, longitudeDelta: 0.05 };
+const UB_CENTER = {
+  latitude: 47.918873,
+  latitudeDelta: 0.05,
+  longitude: 106.917701,
+  longitudeDelta: 0.05,
+};
 
 // ── Persistence ────────────────────────────────────────────────────────────
 const SAVED_HALL_KEY = "saved_hall";
@@ -56,7 +61,10 @@ export type HallFormValues = {
   prices: { label: string; durationMinutes: number; price: string }[];
   esportAvailability: string[];
   esportPrices: Record<string, string>;
-  esportPackages: Record<string, { name: string; durationMinutes: number; price: string }[]>;
+  esportPackages: Record<
+    string,
+    { name: string; durationMinutes: number; price: string }[]
+  >;
 };
 
 export const emptyHallValues = (): HallFormValues => ({
@@ -105,22 +113,28 @@ export async function saveHallToStorage(values: HallFormValues): Promise<void> {
 }
 
 // ── Category + feature definitions ─────────────────────────────────────────
-const SPORT_CATEGORIES: { id: HallCategoryType; label: string; icon: string }[] =
-  [
-    { id: "basket_ball", label: "Basketball", icon: "basketball" },
-    { id: "volley_ball", label: "Volleyball", icon: "volleyball" },
-    { id: "foot_ball", label: "Football", icon: "football" },
-    { id: "tennis", label: "Tennis", icon: "tennis" },
-    { id: "bowling", label: "Bowling", icon: "bowling" },
-    { id: "golf", label: "Golf", icon: "golf" },
-  ];
+const SPORT_CATEGORIES: {
+  id: HallCategoryType;
+  label: string;
+  icon: string;
+}[] = [
+  { id: "basket_ball", label: "Basketball", icon: "basketball" },
+  { id: "volley_ball", label: "Volleyball", icon: "volleyball" },
+  { id: "foot_ball", label: "Football", icon: "football" },
+  { id: "tennis", label: "Tennis", icon: "tennis" },
+  { id: "bowling", label: "Bowling", icon: "bowling" },
+  { id: "golf", label: "Golf", icon: "golf" },
+];
 
-const ESPORT_CATEGORIES: { id: HallCategoryType; label: string; icon: string }[] =
-  [
-    { id: "computer", label: "PC Room", icon: "desktop-classic" },
-    { id: "billiards", label: "Billiards", icon: "billiards" },
-    { id: "playstation", label: "PlayStation", icon: "gamepad-variant" },
-  ];
+const ESPORT_CATEGORIES: {
+  id: HallCategoryType;
+  label: string;
+  icon: string;
+}[] = [
+  { id: "computer", label: "PC Room", icon: "desktop-classic" },
+  { id: "billiards", label: "Billiards", icon: "billiards" },
+  { id: "playstation", label: "PlayStation", icon: "gamepad-variant" },
+];
 
 const ESPORT_TIERS: { id: string; label: string; icon: string }[] = [
   { id: "hall", label: "Hall", icon: "grid-outline" },
@@ -135,23 +149,55 @@ const FEATURE_ITEMS: {
   family: "ion" | "mci" | "fa" | "fa5";
   icon: string;
 }[] = [
-  { key: "changing_room", label: "Changing room", family: "ion", icon: "shirt-outline" },
+  {
+    key: "changing_room",
+    label: "Changing room",
+    family: "ion",
+    icon: "shirt-outline",
+  },
   { key: "shower", label: "Shower", family: "fa", icon: "shower" },
   { key: "lighting", label: "Lighting", family: "mci", icon: "ceiling-light" },
-  { key: "spectator_seats", label: "Spectator seats", family: "mci", icon: "scoreboard-outline" },
+  {
+    key: "spectator_seats",
+    label: "Spectator seats",
+    family: "mci",
+    icon: "scoreboard-outline",
+  },
   { key: "parking", label: "Parking", family: "fa5", icon: "parking" },
-  { key: "free_wifi", label: "Free Wi-Fi", family: "ion", icon: "wifi-outline" },
-  { key: "scoreboard", label: "Scoreboard", family: "mci", icon: "scoreboard-outline" },
+  {
+    key: "free_wifi",
+    label: "Free Wi-Fi",
+    family: "ion",
+    icon: "wifi-outline",
+  },
+  {
+    key: "scoreboard",
+    label: "Scoreboard",
+    family: "mci",
+    icon: "scoreboard-outline",
+  },
   { key: "speaker", label: "Speaker", family: "fa", icon: "volume-up" },
   { key: "microphone", label: "Microphone", family: "fa", icon: "microphone" },
 ];
 
-const FeatureIcon = ({ item, active }: { item: (typeof FEATURE_ITEMS)[number]; active: boolean }) => {
+const FeatureIcon = ({
+  item,
+  active,
+}: {
+  item: (typeof FEATURE_ITEMS)[number];
+  active: boolean;
+}) => {
   const color = active ? "#1877F2" : "#767676";
   const size = 20;
   switch (item.family) {
     case "mci":
-      return <MaterialCommunityIcons name={item.icon as any} size={size} color={color} />;
+      return (
+        <MaterialCommunityIcons
+          name={item.icon as any}
+          size={size}
+          color={color}
+        />
+      );
     case "fa":
       return <FontAwesome name={item.icon as any} size={size} color={color} />;
     case "fa5":
@@ -196,7 +242,11 @@ const createStyles = (Colors: any) =>
       padding: 18,
       marginBottom: 16,
     },
-    sectionHeader: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
+    sectionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 16,
+    },
     sectionBadge: {
       width: 36,
       height: 36,
@@ -218,7 +268,13 @@ const createStyles = (Colors: any) =>
       marginBottom: 14,
     },
     inputIcon: { marginRight: 10 },
-    input: { flex: 1, height: 52, fontSize: 15, paddingHorizontal: 0, color: Colors.onSurface },
+    input: {
+      flex: 1,
+      height: 52,
+      fontSize: 15,
+      paddingHorizontal: 0,
+      color: Colors.onSurface,
+    },
     row: { flexDirection: "row", gap: 12 },
     col: { flex: 1 },
     chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
@@ -237,7 +293,11 @@ const createStyles = (Colors: any) =>
       backgroundColor: Colors.accentPrimaryGlow,
       borderColor: Colors.accentPrimaryBorder,
     },
-    chipText: { fontSize: 13, fontWeight: "600", color: Colors.onSurfaceVariant },
+    chipText: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: Colors.onSurfaceVariant,
+    },
     chipTextActive: { color: Colors.accentPrimary },
     mainTypeRow: { flexDirection: "row", gap: 12 },
     mainTypeCard: {
@@ -270,7 +330,12 @@ const createStyles = (Colors: any) =>
       color: Colors.outline,
       textTransform: "uppercase",
     },
-    priceRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 10 },
+    priceRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 10,
+    },
     priceName: { flex: 1 },
     priceInputWrap: {
       flexDirection: "row",
@@ -283,7 +348,12 @@ const createStyles = (Colors: any) =>
       height: 46,
       width: 110,
     },
-    priceInput: { flex: 1, fontSize: 15, color: Colors.onSurface, textAlign: "right" },
+    priceInput: {
+      flex: 1,
+      fontSize: 15,
+      color: Colors.onSurface,
+      textAlign: "right",
+    },
     currency: { fontSize: 13, color: Colors.outline, marginLeft: 6 },
     cta: {
       flexDirection: "row",
@@ -294,7 +364,12 @@ const createStyles = (Colors: any) =>
       borderRadius: 16,
       backgroundColor: Colors.accentPrimary,
     },
-    ctaText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700", letterSpacing: 0.2 },
+    ctaText: {
+      color: "#FFFFFF",
+      fontSize: 16,
+      fontWeight: "700",
+      letterSpacing: 0.2,
+    },
     imagePicker: {
       height: 120,
       borderRadius: 16,
@@ -307,7 +382,11 @@ const createStyles = (Colors: any) =>
       gap: 8,
       marginBottom: 12,
     },
-    imagePickerText: { fontSize: 14, fontWeight: "600", color: Colors.accentPrimary },
+    imagePickerText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: Colors.accentPrimary,
+    },
     imageThumb: {
       width: 84,
       height: 84,
@@ -393,9 +472,13 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
     initialData?.subCategories ?? [],
   );
   const [hallName, setHallName] = useState(initialData?.hall_name ?? "");
-  const [hallAddress, setHallAddress] = useState(initialData?.hall_address ?? "");
+  const [hallAddress, setHallAddress] = useState(
+    initialData?.hall_address ?? "",
+  );
   const [phone, setPhone] = useState(initialData?.hall_phone_number ?? "");
-  const [startTime, setStartTime] = useState(initialData?.start_time ?? "09:00");
+  const [startTime, setStartTime] = useState(
+    initialData?.start_time ?? "09:00",
+  );
   const [endTime, setEndTime] = useState(initialData?.end_time ?? "22:00");
   const [latitude, setLatitude] = useState(initialData?.latitude ?? "");
   const [longitude, setLongitude] = useState(initialData?.longitude ?? "");
@@ -449,42 +532,63 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
         setLatitude(lat.toString());
         setLongitude(lng.toString());
         mapRef.current?.animateToRegion(
-          { latitude: lat, longitude: lng, latitudeDelta: 0.01, longitudeDelta: 0.01 },
+          {
+            latitude: lat,
+            longitude: lng,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          },
           300,
         );
       } else {
-        showToast({ title: "Location not found", description: "Try a different address", alertType: "warn" });
+        showToast({
+          title: "Location not found",
+          description: "Try a different address",
+          alertType: "warn",
+        });
       }
     } catch {
-      showToast({ title: "Search failed", description: "Could not reach Google Maps API", alertType: "error" });
+      showToast({
+        title: "Search failed",
+        description: "Could not reach Google Maps API",
+        alertType: "error",
+      });
     } finally {
       setSearching(false);
     }
   }, [locationQuery]);
 
-  const selectSuggestion = useCallback(async (placeId: string, description: string) => {
-    setLocationQuery(description);
-    setShowSuggestions(false);
-    setSearching(true);
-    try {
-      const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${GOOGLE_MAPS_API_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.status === "OK" && data.result?.geometry?.location) {
-        const { lat, lng } = data.result.geometry.location;
-        setLatitude(lat.toString());
-        setLongitude(lng.toString());
-        mapRef.current?.animateToRegion(
-          { latitude: lat, longitude: lng, latitudeDelta: 0.01, longitudeDelta: 0.01 },
-          300,
-        );
+  const selectSuggestion = useCallback(
+    async (placeId: string, description: string) => {
+      setLocationQuery(description);
+      setShowSuggestions(false);
+      setSearching(true);
+      try {
+        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${GOOGLE_MAPS_API_KEY}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status === "OK" && data.result?.geometry?.location) {
+          const { lat, lng } = data.result.geometry.location;
+          setLatitude(lat.toString());
+          setLongitude(lng.toString());
+          mapRef.current?.animateToRegion(
+            {
+              latitude: lat,
+              longitude: lng,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            },
+            300,
+          );
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setSearching(false);
       }
-    } catch {
-      /* ignore */
-    } finally {
-      setSearching(false);
-    }
-  }, []);
+    },
+    [],
+  );
   const [features, setFeatures] = useState<HallFormValues["features"]>(
     initialData?.features ?? emptyHallValues().features,
   );
@@ -503,7 +607,8 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
   const [images, setImages] = useState<string[]>(initialData?.imageURIs ?? []);
   const [saving, setSaving] = useState(false);
 
-  const categories = mainType === "sport_hall" ? SPORT_CATEGORIES : ESPORT_CATEGORIES;
+  const categories =
+    mainType === "sport_hall" ? SPORT_CATEGORIES : ESPORT_CATEGORIES;
 
   const toggleCategory = useCallback((id: HallCategoryType) => {
     setSubCategories((prev) =>
@@ -535,7 +640,8 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
           i === idx
             ? {
                 ...p,
-                [field]: field === "durationMinutes" ? Number(value) || 0 : value,
+                [field]:
+                  field === "durationMinutes" ? Number(value) || 0 : value,
               }
             : p,
         ),
@@ -554,65 +660,49 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
     setEsportPrices((prev) => ({ ...prev, [tier]: v }));
   }, []);
 
-  const updateEsportPackage = useCallback(
-    (tier: string, idx: number, field: "name" | "durationMinutes" | "price", v: string) => {
-      setEsportPackages((prev) => {
-        const list = prev[tier] ?? [];
-        const next = list.map((p, i) =>
-          i === idx
-            ? { ...p, [field]: field === "durationMinutes" ? Number(v) || 0 : v }
-            : p,
-        );
-        return { ...prev, [tier]: next };
-      });
-    },
-    [],
-  );
-
-  const addEsportPackage = useCallback((tier: string) => {
-    setEsportPackages((prev) => ({
-      ...prev,
-      [tier]: [...(prev[tier] ?? []), { name: "", durationMinutes: 60, price: "" }],
-    }));
-  }, []);
-
-  const removeEsportPackage = useCallback((tier: string, idx: number) => {
-    setEsportPackages((prev) => ({
-      ...prev,
-      [tier]: (prev[tier] ?? []).filter((_, i) => i !== idx),
-    }));
-  }, []);
-
   const canSubmit = useCallback(
-    () => hallName.trim().length > 0 && subCategories.length > 0 && phone.trim().length > 0,
+    () =>
+      hallName.trim().length > 0 &&
+      subCategories.length > 0 &&
+      phone.trim().length > 0,
     [hallName, subCategories, phone],
   );
 
-  const handleAddImageFromPicker = useCallback(() => {
-    showToast({
-      title: "Image picker",
-      description: "Wire react-native-image-picker here",
-      alertType: "info",
-    });
-  }, []);
-
-  const value: HallFormValues = {
+  const value = useMemo(() => {
+    return {
+      mainType,
+      subCategories,
+      hall_name: hallName,
+      hall_address: hallAddress,
+      hall_phone_number: phone,
+      start_time: startTime,
+      end_time: endTime,
+      latitude,
+      longitude,
+      imageURIs: images,
+      features,
+      prices,
+      esportAvailability,
+      esportPrices,
+      esportPackages,
+    };
+  }, [
     mainType,
     subCategories,
-    hall_name: hallName,
-    hall_address: hallAddress,
-    hall_phone_number: phone,
-    start_time: startTime,
-    end_time: endTime,
+    hallName,
+    hallAddress,
+    phone,
+    startTime,
+    endTime,
     latitude,
     longitude,
-    imageURIs: images,
+    images,
     features,
     prices,
     esportAvailability,
     esportPrices,
     esportPackages,
-  };
+  ]);
 
   const handleSave = useCallback(async () => {
     if (!canSubmit()) {
@@ -633,7 +723,7 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
         alertType: "success",
       });
       setTimeout(() => router.back(), 400);
-    } catch (err) {
+    } catch {
       showToast({
         title: "Save failed",
         description: "Could not save the hall. Please try again.",
@@ -679,34 +769,54 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionBadge}>
-                <Ionicons name="home-outline" size={18} color={Colors.accentPrimary} />
+                <Ionicons
+                  name="home-outline"
+                  size={18}
+                  color={Colors.accentPrimary}
+                />
               </View>
               <View>
                 <AppText style={styles.sectionTitle}>Hall type</AppText>
-                <AppText style={styles.sectionHint}>Choose what kind of hall this is</AppText>
+                <AppText style={styles.sectionHint}>
+                  Choose what kind of hall this is
+                </AppText>
               </View>
             </View>
 
             <View style={styles.mainTypeRow}>
               <TouchableOpacity
-                style={[styles.mainTypeCard, mainType === "sport_hall" && styles.mainTypeActive]}
+                style={[
+                  styles.mainTypeCard,
+                  mainType === "sport_hall" && styles.mainTypeActive,
+                ]}
                 onPress={() => toggleMainType("sport_hall")}
               >
                 <Ionicons
                   name="basketball-outline"
                   size={26}
-                  color={mainType === "sport_hall" ? Colors.accentPrimary : Colors.outline}
+                  color={
+                    mainType === "sport_hall"
+                      ? Colors.accentPrimary
+                      : Colors.outline
+                  }
                 />
                 <AppText style={styles.mainTypeLabel}>Sport hall</AppText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.mainTypeCard, mainType === "esport_hall" && styles.mainTypeActive]}
+                style={[
+                  styles.mainTypeCard,
+                  mainType === "esport_hall" && styles.mainTypeActive,
+                ]}
                 onPress={() => toggleMainType("esport_hall")}
               >
                 <Ionicons
                   name="game-controller-outline"
                   size={26}
-                  color={mainType === "esport_hall" ? Colors.accentPrimary : Colors.outline}
+                  color={
+                    mainType === "esport_hall"
+                      ? Colors.accentPrimary
+                      : Colors.outline
+                  }
                 />
                 <AppText style={styles.mainTypeLabel}>Esport hall</AppText>
               </TouchableOpacity>
@@ -717,11 +827,17 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionBadge}>
-                <Ionicons name="grid-outline" size={18} color={Colors.accentPrimary} />
+                <Ionicons
+                  name="grid-outline"
+                  size={18}
+                  color={Colors.accentPrimary}
+                />
               </View>
               <View>
                 <AppText style={styles.sectionTitle}>Categories</AppText>
-                <AppText style={styles.sectionHint}>Pick the sports available</AppText>
+                <AppText style={styles.sectionHint}>
+                  Pick the sports available
+                </AppText>
               </View>
             </View>
             <View style={styles.chipRow}>
@@ -738,7 +854,9 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                       size={18}
                       color={active ? Colors.accentPrimary : Colors.outline}
                     />
-                    <AppText style={[styles.chipText, active && styles.chipTextActive]}>
+                    <AppText
+                      style={[styles.chipText, active && styles.chipTextActive]}
+                    >
                       {cat.label}
                     </AppText>
                   </TouchableOpacity>
@@ -751,11 +869,17 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionBadge}>
-                <Ionicons name="information-circle-outline" size={18} color={Colors.accentPrimary} />
+                <Ionicons
+                  name="information-circle-outline"
+                  size={18}
+                  color={Colors.accentPrimary}
+                />
               </View>
               <View>
                 <AppText style={styles.sectionTitle}>Basic information</AppText>
-                <AppText style={styles.sectionHint}>Name, address and contact</AppText>
+                <AppText style={styles.sectionHint}>
+                  Name, address and contact
+                </AppText>
               </View>
             </View>
 
@@ -813,7 +937,11 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionBadge}>
-                <Ionicons name="images-outline" size={18} color={Colors.accentPrimary} />
+                <Ionicons
+                  name="images-outline"
+                  size={18}
+                  color={Colors.accentPrimary}
+                />
               </View>
               <View>
                 <AppText style={styles.sectionTitle}>Photos</AppText>
@@ -839,10 +967,16 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                         justifyContent: "center",
                       }}
                     >
-                      <Ionicons name="image-outline" size={28} color={Colors.outline} />
+                      <Ionicons
+                        name="image-outline"
+                        size={28}
+                        color={Colors.outline}
+                      />
                     </View>
                     <TouchableOpacity
-                      onPress={() => setImages((prev) => prev.filter((_, idx) => idx !== i))}
+                      onPress={() =>
+                        setImages((prev) => prev.filter((_, idx) => idx !== i))
+                      }
                       style={{
                         position: "absolute",
                         top: 4,
@@ -864,7 +998,11 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
 
             {images.length < 5 && (
               <TouchableOpacity style={styles.imagePicker} onPress={addImage}>
-                <Ionicons name="add-circle-outline" size={32} color={Colors.accentPrimary} />
+                <Ionicons
+                  name="add-circle-outline"
+                  size={32}
+                  color={Colors.accentPrimary}
+                />
                 <AppText style={styles.imagePickerText}>Add photo</AppText>
               </TouchableOpacity>
             )}
@@ -874,11 +1012,19 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionBadge}>
-                <Ionicons name="sparkles-outline" size={18} color={Colors.accentPrimary} />
+                <Ionicons
+                  name="sparkles-outline"
+                  size={18}
+                  color={Colors.accentPrimary}
+                />
               </View>
               <View>
-                <AppText style={styles.sectionTitle}>Features & amenities</AppText>
-                <AppText style={styles.sectionHint}>Toggle what your hall offers</AppText>
+                <AppText style={styles.sectionTitle}>
+                  Features & amenities
+                </AppText>
+                <AppText style={styles.sectionHint}>
+                  Toggle what your hall offers
+                </AppText>
               </View>
             </View>
 
@@ -891,7 +1037,10 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                 <Switch
                   value={features[feat.key]}
                   onValueChange={() => toggleFeature(feat.key)}
-                  trackColor={{ false: Colors.border, true: Colors.accentPrimary }}
+                  trackColor={{
+                    false: Colors.border,
+                    true: Colors.accentPrimary,
+                  }}
                   thumbColor="#fff"
                 />
               </View>
@@ -902,7 +1051,11 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionBadge}>
-                <Ionicons name="pricetag-outline" size={18} color={Colors.accentPrimary} />
+                <Ionicons
+                  name="pricetag-outline"
+                  size={18}
+                  color={Colors.accentPrimary}
+                />
               </View>
               <View>
                 <AppText style={styles.sectionTitle}>Pricing</AppText>
@@ -918,7 +1071,9 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
               <>
                 <View style={styles.priceHeader}>
                   <View style={styles.priceName}>
-                    <AppText style={styles.priceColHead}>Available Tier</AppText>
+                    <AppText style={styles.priceColHead}>
+                      Available Tier
+                    </AppText>
                   </View>
                   <View style={{ width: 110, paddingLeft: 12 }}>
                     <AppText style={styles.priceColHead}>Price</AppText>
@@ -930,7 +1085,11 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                   return (
                     <View key={tier.id} style={styles.priceRow}>
                       <TouchableOpacity
-                        style={[styles.chip, active && styles.chipActive, { flex: 1 }]}
+                        style={[
+                          styles.chip,
+                          active && styles.chipActive,
+                          { flex: 1 },
+                        ]}
                         onPress={() => toggleEsportTier(tier.id)}
                       >
                         <Ionicons
@@ -938,7 +1097,12 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                           size={18}
                           color={active ? Colors.accentPrimary : Colors.outline}
                         />
-                        <AppText style={[styles.chipText, active && styles.chipTextActive]}>
+                        <AppText
+                          style={[
+                            styles.chipText,
+                            active && styles.chipTextActive,
+                          ]}
+                        >
                           {tier.label}
                         </AppText>
                         <Ionicons
@@ -948,7 +1112,12 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                           style={{ marginLeft: "auto" }}
                         />
                       </TouchableOpacity>
-                      <View style={[styles.priceInputWrap, { opacity: active ? 1 : 0.4 }]}>
+                      <View
+                        style={[
+                          styles.priceInputWrap,
+                          { opacity: active ? 1 : 0.4 },
+                        ]}
+                      >
                         <TextInput
                           placeholder="0"
                           placeholderTextColor={Colors.outline}
@@ -967,7 +1136,12 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                 <TouchableOpacity
                   style={[
                     styles.cta,
-                    { marginTop: 8, backgroundColor: Colors.surfaceHigh, borderWidth: 1, borderColor: Colors.accentPrimaryBorder },
+                    {
+                      marginTop: 8,
+                      backgroundColor: Colors.surfaceHigh,
+                      borderWidth: 1,
+                      borderColor: Colors.accentPrimaryBorder,
+                    },
                   ]}
                   activeOpacity={0.85}
                   onPress={() =>
@@ -976,8 +1150,18 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                     })
                   }
                 >
-                  <Ionicons name="layers-outline" size={20} color={Colors.accentPrimary} />
-                  <AppText style={{ color: Colors.accentPrimary, fontSize: 16, fontWeight: "700" }}>
+                  <Ionicons
+                    name="layers-outline"
+                    size={20}
+                    color={Colors.accentPrimary}
+                  />
+                  <AppText
+                    style={{
+                      color: Colors.accentPrimary,
+                      fontSize: 16,
+                      fontWeight: "700",
+                    }}
+                  >
                     Manage Esport Packages
                   </AppText>
                 </TouchableOpacity>
@@ -994,7 +1178,11 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                 {prices.map((p, idx) => (
                   <View key={idx} style={styles.priceRow}>
                     <View style={styles.priceName}>
-                      <AppText style={{ fontSize: 15, color: Colors.onSurface }}>{p.label}</AppText>
+                      <AppText
+                        style={{ fontSize: 15, color: Colors.onSurface }}
+                      >
+                        {p.label}
+                      </AppText>
                     </View>
                     <View style={styles.priceInputWrap}>
                       <TextInput
@@ -1017,18 +1205,27 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionBadge}>
-                <Ionicons name="navigate-outline" size={18} color={Colors.accentPrimary} />
+                <Ionicons
+                  name="navigate-outline"
+                  size={18}
+                  color={Colors.accentPrimary}
+                />
               </View>
               <View>
                 <AppText style={styles.sectionTitle}>Location</AppText>
-                <AppText style={styles.sectionHint}>Drag the marker or search an address</AppText>
+                <AppText style={styles.sectionHint}>
+                  Drag the marker or search an address
+                </AppText>
               </View>
             </View>
 
             <View
               style={[
                 styles.inputWrapper,
-                { backgroundColor: Colors.surfaceHigh, borderColor: Colors.border },
+                {
+                  backgroundColor: Colors.surfaceHigh,
+                  borderColor: Colors.border,
+                },
               ]}
             >
               <Ionicons
@@ -1043,9 +1240,13 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                 value={locationQuery}
                 onChangeText={(t) => {
                   setLocationQuery(t);
-                  if (searchTimeout.current) clearTimeout(searchTimeout.current);
+                  if (searchTimeout.current)
+                    clearTimeout(searchTimeout.current);
                   if (t.trim().length > 0) {
-                    searchTimeout.current = setTimeout(() => fetchSuggestions(t), 400);
+                    searchTimeout.current = setTimeout(
+                      () => fetchSuggestions(t),
+                      400,
+                    );
                   } else {
                     setSuggestions([]);
                     setShowSuggestions(false);
@@ -1059,14 +1260,22 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                 style={styles.input}
               />
               {searching ? (
-                <ActivityIndicator size="small" color={Colors.accentPrimary} style={{ marginRight: 14 }} />
+                <ActivityIndicator
+                  size="small"
+                  color={Colors.accentPrimary}
+                  style={{ marginRight: 14 }}
+                />
               ) : (
                 <TouchableOpacity
                   onPress={handleLocationSearch}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   style={{ marginRight: 14 }}
                 >
-                  <Ionicons name="arrow-forward-circle" size={22} color={Colors.accentPrimary} />
+                  <Ionicons
+                    name="arrow-forward-circle"
+                    size={22}
+                    color={Colors.accentPrimary}
+                  />
                 </TouchableOpacity>
               )}
             </View>
@@ -1085,7 +1294,9 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                 {suggestions.map((sugg, i) => (
                   <TouchableOpacity
                     key={sugg.place_id}
-                    onPress={() => selectSuggestion(sugg.place_id, sugg.description)}
+                    onPress={() =>
+                      selectSuggestion(sugg.place_id, sugg.description)
+                    }
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
@@ -1095,8 +1306,15 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                       borderBottomColor: Colors.border,
                     }}
                   >
-                    <Ionicons name="location-outline" size={16} color={Colors.outline} style={{ marginRight: 10 }} />
-                    <AppText style={{ fontSize: 14, color: Colors.onSurface, flex: 1 }}>
+                    <Ionicons
+                      name="location-outline"
+                      size={16}
+                      color={Colors.outline}
+                      style={{ marginRight: 10 }}
+                    />
+                    <AppText
+                      style={{ fontSize: 14, color: Colors.onSurface, flex: 1 }}
+                    >
                       {sugg.description}
                     </AppText>
                   </TouchableOpacity>
@@ -1104,7 +1322,9 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
               </View>
             )}
 
-            <View style={{ borderRadius: 16, overflow: "hidden", marginBottom: 12 }}>
+            <View
+              style={{ borderRadius: 16, overflow: "hidden", marginBottom: 12 }}
+            >
               <MapView
                 ref={mapRef}
                 style={{ height: 220, width: "100%" }}
@@ -1121,7 +1341,10 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
                 <Marker
                   coordinate={
                     latitude && longitude
-                      ? { latitude: parseFloat(latitude), longitude: parseFloat(longitude) }
+                      ? {
+                          latitude: parseFloat(latitude),
+                          longitude: parseFloat(longitude),
+                        }
                       : UB_CENTER
                   }
                   draggable
@@ -1133,8 +1356,14 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
               </MapView>
             </View>
 
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Ionicons name="information-circle-outline" size={14} color={Colors.outline} />
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+            >
+              <Ionicons
+                name="information-circle-outline"
+                size={14}
+                color={Colors.outline}
+              />
               <AppText style={{ fontSize: 13, color: Colors.outline }}>
                 Tap the map or drag the marker to set the location
               </AppText>
@@ -1150,7 +1379,11 @@ export default function HallForm({ initialData, mode }: HallFormProps) {
           >
             <Ionicons name="checkmark-circle" size={20} color="#fff" />
             <AppText style={styles.ctaText}>
-              {saving ? "Saving..." : mode === "create" ? "Register Hall" : "Save Changes"}
+              {saving
+                ? "Saving..."
+                : mode === "create"
+                  ? "Register Hall"
+                  : "Save Changes"}
             </AppText>
           </TouchableOpacity>
         </ScrollView>

@@ -9,10 +9,12 @@ import { useTheme } from "@/context/theme_context";
 import { useCalendar } from "@/context/calendar_context";
 import CustomDrawerContent from "@/components/ui/costum_drawer";
 import type { DrawerContentComponentProps } from "expo-router/drawer";
+import { useRbacPermission } from "@/hooks/rbac_permission";
 
 export default function ContractorLayout() {
   const { colors: Colors } = useTheme();
   const { triggerCalendar } = useCalendar();
+  const { roleBasedPermissions } = useRbacPermission();
   const contractorScreens = useMemo<DrawerScreenConfig[]>(
     () => [
       { name: "booking_check", label: "Booking Check", icon: "calendar" },
@@ -22,6 +24,7 @@ export default function ContractorLayout() {
         icon: "business",
         headerShown: false,
       },
+
       { name: "statistical", label: "Stats", icon: "checkmark-circle" },
       {
         name: "(profile-settings)/contractor_personal_information",
@@ -70,11 +73,12 @@ export default function ContractorLayout() {
           ),
         }}
       />
-      {renderDrawerScreens({
-        screens: contractorScreens,
-        colors: Colors,
-        triggerCalendar: triggerCalendar,
-      })}
+      {roleBasedPermissions("contractor") &&
+        renderDrawerScreens({
+          screens: contractorScreens,
+          colors: Colors,
+          triggerCalendar: triggerCalendar,
+        })}
     </Drawer>
   );
 }

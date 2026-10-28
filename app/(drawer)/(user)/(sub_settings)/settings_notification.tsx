@@ -6,7 +6,6 @@ import { View, ScrollView, Text, Switch } from "react-native";
 
 const NotificationSettingsComponent = () => {
   const { colors } = useTheme();
-
   const NotificationSections = [
     {
       header: "Essentials",
@@ -101,7 +100,6 @@ const NotificationSettingsComponent = () => {
       ],
     },
   ];
-
   const initialState = Object.fromEntries(
     NotificationSections.flatMap((s) => s.items.map((i) => [i.id, true])),
   );
