@@ -173,6 +173,7 @@ const TogetherScreen = () => {
       setTimeout(() => setIsFetching(false), remainTime);
     }
   }
+  console.log(isFetchingNextPage, isFetching);
   return (
     <SafeAreaView
       style={{
@@ -262,7 +263,7 @@ const TogetherScreen = () => {
       </View>
       <TogetherInsideFlatList
         data={postData}
-        loading={isFetching}
+        loading={isLoading}
         fetchMoreFunc={loadMorePosts}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}

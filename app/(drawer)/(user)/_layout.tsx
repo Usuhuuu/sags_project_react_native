@@ -12,11 +12,12 @@ import { Ionicons } from "@expo/vector-icons";
 import type { DrawerContentComponentProps } from "expo-router/drawer";
 import { useRbacPermission } from "@/hooks/rbac_permission";
 import { useAuth } from "@/context/auth_context";
+import { Redirect } from "expo-router";
 
 export default function UserLayout() {
   const { colors: Colors } = useTheme();
   const { triggerCalendar } = useCalendar();
-  const { user } = useAuth();
+  const { user, LoginStatus, authInitalizing } = useAuth();
   const { roleBasedPermissions } = useRbacPermission();
 
   const userScreens = useMemo<DrawerScreenConfig[]>(
@@ -34,6 +35,13 @@ export default function UserLayout() {
         headerLeft: true,
         hidden: true,
       },
+      {
+        name: "(sub_settings)/edit_profile",
+        label: "Edit Profile",
+        icon: "person",
+        headerLeft: true,
+        hidden: true,
+      },
     ],
     [],
   );
@@ -41,6 +49,11 @@ export default function UserLayout() {
     (props: DrawerContentComponentProps) => <CustomDrawerContent {...props} />,
     [],
   );
+
+  if (authInitalizing) return null;
+  if (!LoginStatus) return <Redirect href={"/(drawer)/(user)/(tab-user)"} />;
+  if (user?.role === "contractor")
+    return <Redirect href="/(drawer)/(contractor)/(tab-contractor)" />;
 
   return (
     <SafeAreaView

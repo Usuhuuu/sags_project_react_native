@@ -8,6 +8,7 @@ import { StyleSheet, View } from "react-native";
 export default function TabLayout() {
   const { colors, theme } = useTheme();
   const styles = React.useMemo(() => createTabStyle(colors), [colors]) as any;
+
   return (
     <Tabs
       screenOptions={{

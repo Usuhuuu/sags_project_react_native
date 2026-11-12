@@ -37,7 +37,7 @@ function DrawerLayout() {
   // ── Single loading guard ────────────────────────────────────────────────
   if (authInitalizing || isLoading || isFetching) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={{ flex: 1 }}>
         <OwnActivaterIndicator color={colors.backgroundColor} />
       </View>
     );

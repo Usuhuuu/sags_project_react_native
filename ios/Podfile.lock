@@ -205,6 +205,8 @@ PODS:
     - RecaptchaInterop
   - ExpoAsset (56.0.24):
     - ExpoModulesCore
+  - ExpoBlob (58.0.3):
+    - ExpoModulesCore
   - ExpoCalendar (56.0.10):
     - ExpoModulesCore
   - ExpoDomWebView (56.0.6):
@@ -2625,6 +2627,7 @@ DEPENDENCIES:
   - ExpoAdapterFBSDKNext (from `../node_modules/react-native-fbsdk-next/ios`)
   - "ExpoAdapterGoogleSignIn (from `../node_modules/@react-native-google-signin/google-signin/expo/ios`)"
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoBlob (from `../node_modules/expo-blob/ios`)
   - ExpoCalendar (from `../node_modules/expo-calendar/ios`)
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios/ExpoFileSystem.podspec`)
@@ -2782,6 +2785,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-google-signin/google-signin/expo/ios"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoBlob:
+    :path: "../node_modules/expo-blob/ios"
   ExpoCalendar:
     :path: "../node_modules/expo-calendar/ios"
   ExpoDomWebView:
@@ -3021,6 +3026,7 @@ SPEC CHECKSUMS:
   ExpoAdapterFBSDKNext: 49ecf2414e4787250b0ed1faae99d1295dee674e
   ExpoAdapterGoogleSignIn: dd506e5b1d8b9a172843ff6fc72875e0a9d241e1
   ExpoAsset: 3f825e3c30de2d3e8a280b97602a8a607ce864fe
+  ExpoBlob: 4601da7bdda4e58e704f04eb1a4f4c4537332f91
   ExpoCalendar: a99ba7c34dcd3547bf988aa5fcb355828114db98
   ExpoDomWebView: 4e53b05879dc73ba374f76bff93dd64c8a0d91b3
   ExpoFileSystem: 9d47583cbcc53ab2411901c601cd0a7ca18b3c11

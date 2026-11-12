@@ -155,6 +155,8 @@ const ProfileSettings: React.FC = () => {
             label: accountSupport.profile,
             iconBg: "#EEF2FF",
             iconColor: "#4338CA",
+            onPress: () =>
+              router.navigate("/(drawer)/(user)/(sub_settings)/edit_profile"),
           },
           {
             id: "password",
