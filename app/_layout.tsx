@@ -166,7 +166,26 @@ export function RootLayoutNav({ onReady }: { onReady: () => void }) {
       <Stack.Screen name="book/esport/[hall_id]" />
       <Stack.Screen name="book/sport/[hall_id]" />
       <Stack.Screen name="book/[hall_id]" />
-      <Stack.Screen name="review/hall_review" />
+      <Stack.Screen
+        name="review/inner_review"
+        options={{
+          headerShown: true,
+          title: "Write a review",
+          headerStyle: {
+            backgroundColor: colors.backgroundColor,
+          },
+          headerTitleStyle: {
+            fontSize: 20,
+            color: colors.primary,
+          },
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
+              <Ionicons name="arrow-back" size={24} color={colors.primary} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
     </Stack>
   );
 }

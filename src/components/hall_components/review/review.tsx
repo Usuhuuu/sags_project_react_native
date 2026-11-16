@@ -1,7 +1,14 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { AntDesign, Entypo } from "@expo/vector-icons";
-import { router, useNavigation } from "expo-router";
+import React, { useState, useMemo } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ScrollView,
+} from "react-native";
+import { Entypo } from "@expo/vector-icons";
+import { router } from "expo-router";
 import StarRating from "@/components/hall_components/review/star_rating";
 import { useTheme } from "@/context/theme_context";
 import AppText from "@/components/ui/app_text";
@@ -31,6 +38,7 @@ interface SportHallReviewPageProps {
 }
 
 const STAR_FILTERS = ["All", 5, 4, 3, 2, 1] as const;
+const R2_PUBLIC_BASE_URL = process.env.EXPO_PUBLIC_IMAGE_URL;
 
 const SportHallReviewPage = ({
   sport_hall_id,
@@ -41,7 +49,6 @@ const SportHallReviewPage = ({
 }: SportHallReviewPageProps) => {
   const { colors: C } = useTheme();
   const [filterRating, setFilterRating] = useState<number | "All">("All");
-  const navigation = useNavigation();
 
   const reviewsArr = useMemo(() => Object.values(reviews), [reviews]);
   const totalReviews = reviewsArr.length;
@@ -61,27 +68,6 @@ const SportHallReviewPage = ({
       };
     });
   }, [reviewsArr, totalReviews]);
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() =>
-            router.push({
-              pathname: "/",
-              params: {
-                zaalId: sport_hall_id,
-                hallName: sport_hall_id,
-                currentRating: rating,
-              },
-            })
-          }
-        >
-          <AntDesign name="edit" size={22} color={C.primary} />
-        </TouchableOpacity>
-      ),
-    });
-  }, [sport_hall_id, rating, C.primary, navigation]);
 
   const styles = useMemo(
     () =>
@@ -273,7 +259,29 @@ const SportHallReviewPage = ({
           ))}
         </View>
       </View>
-
+      <TouchableOpacity
+        onPress={() =>
+          router.push({
+            pathname: "/review/inner_review",
+            params: {
+              zaalId: sport_hall_id,
+              hallName: sport_hall_id, // Use the actual hall name if you have it
+              currentRating: String(rating),
+            },
+          })
+        }
+        style={{
+          backgroundColor: C.primary,
+          padding: 12,
+          borderRadius: 10,
+          alignItems: "center",
+          marginBottom: 12,
+        }}
+      >
+        <Text style={{ color: C.white, fontWeight: "600" }}>
+          Write a review
+        </Text>
+      </TouchableOpacity>
       {/* ── Filter chips ── */}
       <View style={styles.chipRow}>
         {STAR_FILTERS.map((item) => {
@@ -343,6 +351,33 @@ const SportHallReviewPage = ({
               </View>
               <StarRating rating={item.rating} starSize={15} />
               <Text style={styles.reviewBody}>{item.review_message}</Text>
+              {item.imageURL?.length > 0 && (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ marginTop: 10 }}
+                >
+                  {item.imageURL.map((imageUrl, index) => {
+                    const uri = imageUrl.startsWith("http")
+                      ? imageUrl
+                      : `${R2_PUBLIC_BASE_URL}/${imageUrl}`;
+
+                    return (
+                      <Image
+                        key={`${item._id}-${index}`}
+                        source={{ uri }}
+                        style={{
+                          width: 88,
+                          height: 88,
+                          borderRadius: 10,
+                          marginRight: 8,
+                        }}
+                        resizeMode="cover"
+                      />
+                    );
+                  })}
+                </ScrollView>
+              )}
             </View>
           ))}
 

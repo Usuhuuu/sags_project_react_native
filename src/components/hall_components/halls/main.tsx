@@ -26,7 +26,7 @@ import {
 } from "react-native";
 import Animated, { useSharedValue } from "react-native-reanimated";
 import OrderScreen, { FormData } from "@/components/book/detail";
-import SportHallReviewPage from "@/app/review/hall_review";
+import SportHallReviewPage from "@/components/hall_components/review/review";
 import {
   HallDetailSeparator,
   HallTypesSeparator,
@@ -205,7 +205,7 @@ const MainHallComponent = ({
       {
         cacheKey: cacheKey,
         loginStatus: LoginStatus,
-        pathname: (page) => `/zaal-review/${listing?.sportHallID}?page=${page}`,
+        pathname: (page) => `/review/${listing?.sportHallID}?page=${page}`,
       },
       {
         enabled: isFocused && activeTab === HallDetailSeparator.REVIEW,
@@ -214,7 +214,7 @@ const MainHallComponent = ({
     );
 
   const reviews = useMemo(
-    () => data?.pages.flatMap((page: any) => page.reviews ?? []) ?? [],
+    () => data?.pages.flatMap((page: any) => page.data.reviews ?? []) ?? [],
     [data?.pages],
   );
   // Latest page's metadata

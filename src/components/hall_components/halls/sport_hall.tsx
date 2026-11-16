@@ -25,7 +25,7 @@ import {
 } from "react-native";
 import Animated, { useSharedValue } from "react-native-reanimated";
 import OrderScreen, { FormData } from "@/components/book/detail";
-import SportHallReviewPage, { Review } from "@/app/review/hall_review";
+import SportHallReviewPage, { Review } from "@/app/review/review_inner";
 import { axiosInstanceRegular } from "@/hooks/axiosInstance";
 import {
   HallDetailSeparator,
@@ -136,9 +136,7 @@ const featureIcons = [
 
 const fetchZaalReview = async (id: string, page: number) => {
   try {
-    const res = await axiosInstanceRegular.get(
-      `/zaal-review/${id}?page=${page}`,
-    );
+    const res = await axiosInstanceRegular.get(`/review/${id}?page=${page}`);
     if (res.status === 200 && res.data.success && res.data.data)
       return res.data.data;
     return null;
